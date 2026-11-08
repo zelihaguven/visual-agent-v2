@@ -1,0 +1,1 @@
+"""Cevabın kaynağa karşı doğrulanması."""

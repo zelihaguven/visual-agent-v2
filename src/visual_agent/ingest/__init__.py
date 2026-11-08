@@ -1,0 +1,1 @@
+"""Belgeleri ortak biçime dönüştürme."""

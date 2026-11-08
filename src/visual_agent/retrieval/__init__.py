@@ -1,0 +1,1 @@
+"""Arama arayüzü ve uygulamaları."""

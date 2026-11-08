@@ -1,0 +1,63 @@
+:root {
+  --color-surface: #f5f7f8;
+  --color-text: #17242c;
+  --color-muted: #566771;
+  --color-ok: #1d7a4e;
+  --color-error: #a32a4b;
+  --font-body: "Segoe UI", system-ui, sans-serif;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface: #11191e;
+    --color-text: #e4ecef;
+    --color-muted: #9dafb8;
+    --color-ok: #7fd6a8;
+    --color-error: #f2a2bb;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+.shell {
+  display: grid;
+  gap: 12px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(32px, 8vw, 96px) 16px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 7vw, 3.75rem);
+  line-height: 1.05;
+}
+
+.lede {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 1.125rem;
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 16px 0 0;
+  color: var(--color-muted);
+}
+
+.status-ok span:first-child {
+  color: var(--color-ok);
+  font-weight: 600;
+}
+
+.status-error {
+  color: var(--color-error);
+}

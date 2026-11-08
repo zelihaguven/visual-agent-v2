@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+
+# Web
+node_modules/
+apps/web/dist/
+
+# Gizli ayarlar
+.env
+.env.*
+!.env.example
+
+# Gerçek belgeler, indeksler ve ölçüm çıktıları repoya girmez
+data/
+evals/output/
+
+.DS_Store
