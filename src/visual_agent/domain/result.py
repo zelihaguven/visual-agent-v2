@@ -61,3 +61,4 @@ class AskOutcome(FrozenModel):
     timings: dict[str, float]
     cost_usd: float = 0.0
     provider: str | None = None
+    first_verified_seconds: float | None = None

@@ -1,46 +1,277 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
+import { applyEvent, newTurn } from "./turn";
 
-function stubHealth(response: Partial<Response> | Error) {
-  const fetchMock =
-    response instanceof Error
-      ? vi.fn().mockRejectedValue(response)
-      : vi.fn().mockResolvedValue(response);
+const CITATION = {
+  chunk_id: "d1:0",
+  doc_id: "d1",
+  title: "PNT-4417 ölçü föyü",
+  location: { page: 2, boxes: [], sheet: null, row: null },
+};
+
+function sse(events: object[]): Response {
+  const body = events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join("");
+  return new Response(body, { headers: { "Content-Type": "text/event-stream" } });
+}
+
+function jsonResponse(data: unknown, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+type Route = (url: string, init?: RequestInit) => Response;
+
+function stubApi(routes: Record<string, Route>) {
+  const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    const key = Object.keys(routes).find((route) => url.startsWith(route));
+    return key ? routes[key](url, init) : jsonResponse({}, 404);
+  });
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
 }
 
-describe("App", () => {
-  it("shows that the service is connected and login is off", async () => {
-    const fetchMock = stubHealth({
-      ok: true,
-      json: async () => ({ status: "ok", auth_enabled: false }),
+const answered = {
+  type: "done",
+  timings: {},
+  result: {
+    kind: "answered",
+    status: "verified",
+    has_conflict: false,
+    problems: [],
+    items: [
+      {
+        text: "İç paça 76,5 cm.",
+        citations: [CITATION],
+        verified: true,
+        from_figure: false,
+        code: null,
+        problems: [],
+      },
+    ],
+  },
+};
+
+async function ask(question: string) {
+  fireEvent.change(screen.getByLabelText("Sorunuz"), { target: { value: question } });
+  fireEvent.click(screen.getByRole("button", { name: "Sor" }));
+}
+
+describe("applyEvent", () => {
+  it("keeps streamed text masked until the item is verified", () => {
+    let turn = newTurn("1", "soru");
+    turn = applyEvent(turn, { type: "item_stream", index: 0, text: "İç paça ▒▒▒" });
+
+    expect(turn.items[0]).toMatchObject({ state: "streaming", text: "İç paça ▒▒▒" });
+
+    turn = applyEvent(turn, {
+      type: "item_verified",
+      index: 0,
+      text: "İç paça 76,5 cm.",
+      source_numbers: [1],
+      from_figure: false,
     });
 
-    render(<App />);
-
-    expect(await screen.findByText("Servis bağlı")).toBeInTheDocument();
-    expect(screen.getByText("Giriş kapalı")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("/api/health", expect.anything());
+    expect(turn.items[0]).toMatchObject({ state: "verified", text: "İç paça 76,5 cm." });
   });
 
-  it("explains what to do when the service returns an error", async () => {
-    stubHealth({ ok: false, status: 503 });
+  it("does not let a late stream event overwrite a verified item", () => {
+    let turn = newTurn("1", "soru");
+    turn = applyEvent(turn, {
+      type: "item_verified",
+      index: 0,
+      text: "76,5",
+      source_numbers: [],
+      from_figure: false,
+    });
+    turn = applyEvent(turn, { type: "item_stream", index: 0, text: "▒▒▒" });
 
-    render(<App />);
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Servise ulaşılamadı. API çalışıyor mu kontrol edin.",
-    );
+    expect(turn.items[0].text).toBe("76,5");
   });
 
-  it("explains what to do when the network request fails", async () => {
-    stubHealth(new Error("network down"));
+  it("clears streamed items when the provider is switched", () => {
+    let turn = newTurn("1", "soru");
+    turn = applyEvent(turn, { type: "item_stream", index: 0, text: "Metin" });
 
+    expect(applyEvent(turn, { type: "reset" }).items).toEqual({});
+  });
+
+  it("does not mutate the previous turn", () => {
+    const turn = newTurn("1", "soru");
+    applyEvent(turn, { type: "item_stream", index: 0, text: "Metin" });
+
+    expect(turn.items).toEqual({});
+  });
+});
+
+describe("App", () => {
+  it("shows a verified answer with its badge and masks values while streaming", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          { type: "status", stage: "retrieve" },
+          { type: "sources", sources: [CITATION] },
+          { type: "item_stream", index: 0, text: "İç paça ▒▒▒" },
+          {
+            type: "item_verified",
+            index: 0,
+            text: "İç paça 76,5 cm.",
+            source_numbers: [1],
+            from_figure: false,
+          },
+          answered,
+        ]),
+    });
     render(<App />);
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Servise ulaşılamadı.");
+    await ask("İç paça kaç?");
+
+    expect(await screen.findByText("Doğrulandı")).toBeInTheDocument();
+    expect(screen.getByText("İç paça 76,5 cm.")).toBeInTheDocument();
+    expect(screen.queryByText(/▒/)).not.toBeInTheDocument();
+  });
+
+  it("opens the highlighted page of a citation", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([{ type: "sources", sources: [CITATION] }, answered]),
+      "/api/chunks/d1%3A0/source": () =>
+        jsonResponse({
+          kind: "page",
+          page: 2,
+          title: "PNT-4417 ölçü föyü",
+          image_url: "/api/chunks/d1:0/preview.png",
+        }),
+    });
+    render(<App />);
+    await ask("soru");
+
+    fireEvent.click(await screen.findByRole("button", { name: /PNT-4417 ölçü föyü · s\.2/ }));
+
+    const image = await screen.findByRole("img", { name: /vurgulu kaynak sayfa/i });
+    expect(image).toHaveAttribute("src", "/api/chunks/d1:0/preview.png");
+  });
+
+  it("highlights the source row of a spreadsheet", async () => {
+    const citation = { ...CITATION, location: { page: null, boxes: [], sheet: "Ölçüler", row: 5 } };
+    const result = { ...answered.result, items: [{ ...answered.result.items[0], citations: [citation] }] };
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([{ ...answered, result }]),
+      "/api/chunks/d1%3A0/source": () =>
+        jsonResponse({
+          kind: "sheet",
+          sheet: "Ölçüler",
+          title: "Föy",
+          highlight_row: 5,
+          rows: [
+            { row: 4, text: "Beden: S" },
+            { row: 5, text: "Beden: M" },
+          ],
+        }),
+    });
+    render(<App />);
+    await ask("soru");
+
+    fireEvent.click(await screen.findByRole("button", { name: /Ölçüler · satır 5/ }));
+
+    const row = (await screen.findByText("Beden: M")).closest("tr");
+    expect(row).toHaveClass("is-highlighted");
+  });
+
+  it("offers document choices when clarification is needed and asks again", async () => {
+    const fetchMock = stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          {
+            type: "done",
+            timings: {},
+            result: {
+              kind: "clarify",
+              question: "Hangi model?",
+              options: [{ doc_id: "a", label: "Model A" }],
+            },
+          },
+        ]),
+    });
+    render(<App />);
+    await ask("iç paça kaç");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Model A" }));
+
+    await waitFor(() => {
+      const asks = fetchMock.mock.calls.filter(([url]) => String(url) === "/api/ask");
+      expect(asks).toHaveLength(2);
+      expect(JSON.parse(String(asks[1][1]?.body))).toEqual({
+        question: "iç paça kaç",
+        doc_ids: ["a"],
+      });
+    });
+  });
+
+  it("states clearly when the answer is not in the documents", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          {
+            type: "done",
+            timings: {},
+            result: { kind: "not_found", reason: "", suggested_doc_ids: [] },
+          },
+        ]),
+    });
+    render(<App />);
+    await ask("soru");
+
+    expect(await screen.findByText("Bu bilgi belgelerde bulunamadı.")).toBeInTheDocument();
+  });
+
+  it("shows an error when the answer stream fails", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => new Response("", { status: 500 }),
+    });
+    render(<App />);
+    await ask("soru");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Cevap alınamadı");
+  });
+
+  it("lists documents with their processing state", async () => {
+    stubApi({
+      "/api/documents": () =>
+        jsonResponse([
+          { doc_id: "a", title: "Kılavuz", filename: "a.pdf", status: "processing", error: null, report: null },
+          { doc_id: "b", title: "Bozuk", filename: "b.pdf", status: "failed", error: "Belge işlenemedi.", report: null },
+        ]),
+    });
+    render(<App />);
+
+    const list = await screen.findByRole("list", { name: "Belgeler" });
+    expect(within(list).getByText("İşleniyor")).toBeInTheDocument();
+    expect(within(list).getByText("Belge işlenemedi.")).toBeInTheDocument();
+  });
+
+  it("uploads a file and shows the server's rejection reason", async () => {
+    const fetchMock = stubApi({
+      "/api/documents": (_url, init) =>
+        init?.method === "POST"
+          ? jsonResponse({ detail: "virus.exe: bu dosya türü desteklenmiyor" }, 415)
+          : jsonResponse([]),
+    });
+    render(<App />);
+
+    const input = await screen.findByLabelText("Belge yükle");
+    fireEvent.change(input, { target: { files: [new File(["MZ"], "virus.exe")] } });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("desteklenmiyor");
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(true);
   });
 });

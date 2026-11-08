@@ -2,7 +2,7 @@
 
 Önceden yüklenmiş belgelere yazarak ya da konuşarak soru sorulan, her cevabı kaynağıyla gösteren web aracı.
 
-Durum: iskelet, test belgesi üreticisi, doğrulama çekirdeği ve belge işleme hazır (A0–A3). Uçtan uca soru-cevap henüz yok.
+Durum: belge yükleme, işleme, kaynaklı soru-cevap ve web arayüzü çalışıyor (A0–A5). Konuşma bağlamı, ses ve giriş henüz yok.
 
 ## Çalıştırma
 
@@ -14,6 +14,12 @@ docker compose up --build
 ```
 
 Arayüz: <http://127.0.0.1:8080>
+
+Belge işleme modelleri imaja gömülmez. Temiz kurulumda bir kez indirin:
+
+```bash
+docker compose run --rm worker docling-tools models download layout tableformer rapidocr --output-dir /opt/docling-models
+```
 
 ## Geliştirme
 

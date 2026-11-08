@@ -110,6 +110,13 @@ def fold_identifier(value: str) -> str:
     return value.replace("İ", "i").casefold()
 
 
+def identifier_spans(text: str) -> list[tuple[int, int]]:
+    """Teknik adların metindeki konumları; ters tırnaklar dahil."""
+    spans = [match.span() for match in _BACKTICK_RE.finditer(text)]
+    spans += [match.span() for match in _IDENTIFIER_RE.finditer(text)]
+    return spans
+
+
 def identifiers_in(text: str) -> set[str]:
     """Kod, tablo, kolon ve komut adları gibi birebir olması gereken teknik adlar."""
     canon = canon_chars(text)

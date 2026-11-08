@@ -7,6 +7,7 @@ from dataclasses import dataclass, replace
 
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.language import detect_language
+from visual_agent.ask.streaming import INCOMPLETE_MESSAGE, StreamAssembler
 from visual_agent.domain.answer import (
     AnswerKind,
     AnswerVerification,
@@ -27,7 +28,7 @@ from visual_agent.domain.result import (
     Hit,
     NotFound,
 )
-from visual_agent.generation.openrouter import ServiceUnavailable
+from visual_agent.generation.openrouter import ServiceUnavailable, StreamCallbacks
 from visual_agent.generation.parse import ParseFailure, parse_answer
 from visual_agent.generation.sources import build_user_message, to_prompt_sources
 from visual_agent.verification.answer import verify_answer
@@ -52,6 +53,7 @@ class AskState:
     answer: ModelAnswer | None = None
     cost_usd: float = 0.0
     provider: str | None = None
+    first_verified_seconds: float | None = None
     result: AskResult | None = None
 
 
@@ -141,7 +143,29 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     hits = _with_exact_chunks(state, found, deps.top_k)
     if not hits:
         return replace(state, result=NotFound())
+    if state.request.on_event is not None:
+        sources = [_citation(hit).model_dump(mode="json") for hit in hits]
+        state.request.on_event({"type": "sources", "sources": sources})
     return replace(state, hits=hits)
+
+
+def _stream_callbacks(state: AskState) -> tuple[StreamAssembler | None, StreamCallbacks | None]:
+    if state.request.on_event is None:
+        return None, None
+    assembler = StreamAssembler(
+        to_prompt_sources(state.hits), state.language, state.request.on_event
+    )
+    return assembler, StreamCallbacks(
+        on_delta=assembler.feed, may_retry=assembler.may_retry, on_reset=assembler.reset
+    )
+
+
+def _partial_result(assembler: StreamAssembler, hits: Sequence[Hit]) -> Answered:
+    return Answered(
+        status=VerificationStatus.PARTIAL,
+        items=tuple(_answered_item(item, check, hits) for item, check in assembler.verified),
+        problems=(INCOMPLETE_MESSAGE,),
+    )
 
 
 async def generate(state: AskState, deps: AskDeps) -> AskState:
@@ -153,12 +177,21 @@ async def generate(state: AskState, deps: AskDeps) -> AskState:
             "content": build_user_message(state.hits, state.request.question, state.language),
         },
     ]
+    assembler, callbacks = _stream_callbacks(state)
     try:
-        stream = await deps.answer_client.stream(messages)
+        stream = await deps.answer_client.stream(messages, callbacks)
     except ServiceUnavailable:
         logger.exception("Cevap servisine ulaşılamadı")
         return replace(state, result=Failed(reason=_SERVICE_DOWN, citations=citations))
-    current = replace(state, cost_usd=stream.cost_usd, provider=stream.provider)
+    current = replace(
+        state,
+        cost_usd=stream.cost_usd,
+        provider=stream.provider,
+        first_verified_seconds=assembler.first_verified_seconds if assembler else None,
+    )
+    if stream.incomplete and assembler is not None:
+        assembler.interrupted()
+        return replace(current, result=_partial_result(assembler, state.hits))
     parsed = parse_answer(stream.content, stream.finish)
     if isinstance(parsed, ParseFailure):
         logger.warning("Model çıktısı okunamadı: %s %s", parsed.reason, parsed.detail)

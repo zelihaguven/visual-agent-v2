@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from typing import Protocol, Self
 
+from visual_agent.ask.streaming import EventSink
 from visual_agent.catalog.identifiers import IdentifierIndex
 from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.domain.result import Hit
@@ -36,6 +37,7 @@ class AskRequest:
     question: str
     doc_ids: tuple[str, ...] | None = None
     access: tuple[str, ...] | None = None
+    on_event: EventSink | None = None
 
 
 @dataclass(frozen=True)

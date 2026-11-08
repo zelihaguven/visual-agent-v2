@@ -1,52 +1,84 @@
-import { useEffect, useState } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
+import { askQuestion, type Citation } from "./api";
 import "./App.css";
+import { DocumentsPanel } from "./components/DocumentsPanel";
+import { SourcePanel } from "./components/SourcePanel";
+import { TurnView } from "./components/TurnView";
+import { applyEvent, newTurn, type Turn } from "./turn";
 
-type Health = { status: "ok"; auth_enabled: boolean };
-type ConnectionState =
-  | { kind: "checking" }
-  | { kind: "connected"; health: Health }
-  | { kind: "failed" };
-
-async function fetchHealth(signal: AbortSignal): Promise<Health> {
-  const response = await fetch("/api/health", { signal });
-  if (!response.ok) {
-    throw new Error(`Sağlık kontrolü başarısız: ${response.status}`);
-  }
-  return (await response.json()) as Health;
-}
+const ASK_FAILED = "Cevap alınamadı. Bağlantınızı kontrol edip yeniden deneyin.";
 
 export function App() {
-  const [connection, setConnection] = useState<ConnectionState>({ kind: "checking" });
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [draft, setDraft] = useState("");
+  const [isAsking, setIsAsking] = useState(false);
+  const [source, setSource] = useState<Citation | null>(null);
+  const nextId = useRef(0);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchHealth(controller.signal)
-      .then((health) => setConnection({ kind: "connected", health }))
-      .catch(() => {
-        if (!controller.signal.aborted) {
-          setConnection({ kind: "failed" });
-        }
+  async function ask(question: string, docIds: string[] | null) {
+    nextId.current += 1;
+    const id = String(nextId.current);
+    const updateTurn = (change: (turn: Turn) => Turn) =>
+      setTurns((current) => current.map((turn) => (turn.id === id ? change(turn) : turn)));
+    setTurns((current) => [...current, newTurn(id, question, docIds)]);
+    setIsAsking(true);
+    try {
+      await askQuestion(question, docIds, (event) => {
+        updateTurn((turn) => applyEvent(turn, event));
       });
-    return () => controller.abort();
-  }, []);
+    } catch {
+      updateTurn((turn) => applyEvent(turn, { type: "error", message: ASK_FAILED }));
+    } finally {
+      setIsAsking(false);
+    }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const question = draft.trim();
+    if (question && !isAsking) {
+      setDraft("");
+      void ask(question, null);
+    }
+  }
 
   return (
-    <main className="shell">
-      <h1>Visual Agent</h1>
-      <p className="lede">Belgelerinize sorun, cevabı kaynağıyla görün.</p>
-      {connection.kind === "checking" && <p className="status">Servis kontrol ediliyor</p>}
-      {connection.kind === "connected" && (
-        <p className="status status-ok">
-          <span>Servis bağlı</span>
-          <span>{connection.health.auth_enabled ? "Giriş açık" : "Giriş kapalı"}</span>
-        </p>
-      )}
-      {connection.kind === "failed" && (
-        <p className="status status-error" role="alert">
-          Servise ulaşılamadı. API çalışıyor mu kontrol edin.
-        </p>
-      )}
-    </main>
+    <div className={`layout ${source ? "has-source" : ""}`}>
+      <DocumentsPanel />
+      <main className="conversation">
+        <header className="masthead">
+          <h1>Visual Agent</h1>
+          <p>Belgelerinize sorun, cevabı kaynağıyla görün.</p>
+        </header>
+        <div className="turns">
+          {turns.map((turn) => (
+            <TurnView
+              key={turn.id}
+              turn={turn}
+              onOpenSource={setSource}
+              onAskAgain={(question, docIds) => void ask(question, docIds)}
+            />
+          ))}
+        </div>
+        <form className="composer" onSubmit={handleSubmit}>
+          <label htmlFor="question" className="visually-hidden">
+            Sorunuz
+          </label>
+          <input
+            id="question"
+            value={draft}
+            maxLength={2000}
+            autoComplete="off"
+            placeholder="Sorunuzu yazın"
+            onChange={(event) => setDraft(event.target.value)}
+          />
+          <button type="submit" disabled={isAsking || draft.trim() === ""}>
+            Sor
+          </button>
+        </form>
+      </main>
+      {source !== null && <SourcePanel citation={source} onClose={() => setSource(null)} />}
+    </div>
   );
 }

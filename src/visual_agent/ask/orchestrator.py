@@ -32,6 +32,8 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
     timings: dict[str, float] = {}
     for step in PIPELINE:
         started = time.perf_counter()
+        if request.on_event is not None:
+            request.on_event({"type": "status", "stage": step.name})
         state = await step.run(state, deps)
         timings = {**timings, step.name: time.perf_counter() - started}
         if state.result is not None:
@@ -44,4 +46,5 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
         timings=timings,
         cost_usd=final.cost_usd,
         provider=final.provider,
+        first_verified_seconds=final.first_verified_seconds,
     )

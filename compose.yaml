@@ -33,6 +33,11 @@ services:
       VA_AUTH_ENABLED: ${VA_AUTH_ENABLED:-false}
       VA_QDRANT_URL: http://qdrant:6333
       VA_DATABASE_URL: postgresql://visual_agent:${POSTGRES_PASSWORD}@postgres:5432/visual_agent
+      VA_OPENROUTER_API_KEY: ${VA_OPENROUTER_API_KEY:-}
+      VA_STORAGE_DIRECTORY: /data/documents
+    volumes: &app-volumes
+      - documents_data:/data/documents
+      - model_cache:/home/appuser/.cache
     depends_on:
       qdrant:
         condition: service_healthy
@@ -50,6 +55,10 @@ services:
       target: ingest
     command: ["python", "-m", "apps.worker.main"]
     environment: *app-environment
+    volumes:
+      - documents_data:/data/documents
+      - model_cache:/home/appuser/.cache
+      - docling_models:/opt/docling-models
     depends_on:
       qdrant:
         condition: service_healthy
@@ -70,5 +79,8 @@ services:
       retries: 20
 
 volumes:
+  documents_data:
+  model_cache:
+  docling_models:
   qdrant_data:
   postgres_data:

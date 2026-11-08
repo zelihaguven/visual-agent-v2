@@ -1,0 +1,143 @@
+"""Gerçek bağımlılıkları kurar: Postgres, Qdrant, modeller ve OpenRouter."""
+
+import asyncio
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from pathlib import Path
+
+import asyncpg
+import httpx
+from qdrant_client import AsyncQdrantClient
+
+from apps.api.main import ApiServices
+from visual_agent.ask.deps import AskDeps, AskRequest
+from visual_agent.ask.orchestrator import answer_question
+from visual_agent.catalog.repository import DocumentRepository
+from visual_agent.catalog.snapshot import SnapshotProvider
+from visual_agent.domain.result import AskOutcome, Failed
+from visual_agent.generation.openrouter import (
+    AnswerClient,
+    AnswerClientOptions,
+    fetch_zdr_index,
+    select_providers,
+)
+from visual_agent.generation.prompts import load_answer_prompt, load_answer_schema
+from visual_agent.generation.translate import Translator, make_translator
+from visual_agent.retrieval.hybrid import HybridRetriever
+from visual_agent.retrieval.qdrant_store import QdrantChunkStore
+from visual_agent.settings import Settings
+
+COLLECTION = "documents"
+_MISSING_KEY = "Cevap servisi yapılandırılmamış. OpenRouter anahtarını ekleyin."
+
+
+@dataclass(frozen=True)
+class _ModelClients:
+    retriever: HybridRetriever
+    answer: AnswerClient
+    translator: Translator
+    system_prompt: str
+
+
+class AskRuntime:
+    """Ağır modeller ilk soruda bir kez yüklenir; API hızlı açılır."""
+
+    def __init__(
+        self,
+        settings: Settings,
+        http: httpx.AsyncClient,
+        store: QdrantChunkStore,
+        snapshots: SnapshotProvider,
+    ) -> None:
+        self._settings = settings
+        self._http = http
+        self._store = store
+        self._snapshots = snapshots
+        self._clients: _ModelClients | None = None
+        self._lock = asyncio.Lock()
+
+    async def _build_clients(self, api_key: str) -> _ModelClients:
+        from visual_agent.retrieval.encoders import BgeM3Dense, Bm25Sparse
+
+        settings = self._settings
+        url = str(settings.openrouter_url).rstrip("/")
+        dense, sparse = await asyncio.gather(
+            asyncio.to_thread(BgeM3Dense), asyncio.to_thread(Bm25Sparse)
+        )
+        await self._store.ensure_collection(dense.size)
+        index = await fetch_zdr_index(self._http, url, api_key)
+        providers, ignored = select_providers(
+            settings.answer_model, settings.answer_providers, index
+        )
+        answer = AnswerClient(
+            self._http,
+            base_url=url,
+            api_key=api_key,
+            options=AnswerClientOptions(
+                model=settings.answer_model,
+                providers=providers,
+                ignored_providers=ignored,
+                schema=load_answer_schema(),
+                max_tokens=settings.answer_max_tokens,
+                first_token_seconds=settings.answer_first_token_seconds,
+                runaway_whitespace_limit=settings.stream_runaway_limit,
+            ),
+        )
+        translation, translation_ignored = select_providers(
+            settings.translation_model, settings.translation_providers, index
+        )
+        return _ModelClients(
+            retriever=HybridRetriever(dense, sparse, self._store),
+            answer=answer,
+            translator=make_translator(
+                self._http,
+                base_url=url,
+                api_key=api_key,
+                model=settings.translation_model,
+                providers=translation,
+                ignored_providers=translation_ignored,
+            ),
+            system_prompt=load_answer_prompt(),
+        )
+
+    async def _ensure_clients(self, api_key: str) -> _ModelClients:
+        async with self._lock:
+            if self._clients is None:
+                self._clients = await self._build_clients(api_key)
+            return self._clients
+
+    async def ask(self, request: AskRequest) -> AskOutcome:
+        key = self._settings.openrouter_api_key
+        if key is None or not key.get_secret_value():
+            return AskOutcome(result=Failed(reason=_MISSING_KEY), timings={})
+        clients = await self._ensure_clients(key.get_secret_value())
+        snapshot = await self._snapshots.current()
+        deps = AskDeps(
+            catalog=snapshot.catalog,
+            identifiers=snapshot.identifiers,
+            retriever=clients.retriever,
+            answer_client=clients.answer,
+            system_prompt=clients.system_prompt,
+            translator=clients.translator,
+        )
+        return await answer_question(request, deps)
+
+
+@asynccontextmanager
+async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
+    pool = await asyncpg.create_pool(str(settings.database_url))
+    repository = DocumentRepository(pool)
+    await repository.migrate()
+    qdrant = AsyncQdrantClient(url=str(settings.qdrant_url))
+    storage = Path(settings.storage_directory)
+    storage.mkdir(parents=True, exist_ok=True)
+    async with httpx.AsyncClient() as http:
+        runtime = AskRuntime(
+            settings, http, QdrantChunkStore(qdrant, COLLECTION), SnapshotProvider(repository)
+        )
+        try:
+            yield ApiServices(repository=repository, ask=runtime.ask, storage_directory=storage)
+        finally:
+            await qdrant.close()
+            await pool.close()

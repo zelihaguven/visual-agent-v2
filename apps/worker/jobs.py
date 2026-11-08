@@ -1,0 +1,98 @@
+"""Kuyruktaki belgeyi işler, indeksler ve hazır işaretler."""
+
+import asyncio
+import logging
+import shutil
+import tempfile
+from collections.abc import Callable, Sequence
+from pathlib import Path
+from typing import Protocol
+
+from visual_agent.ask.language import detect_language
+from visual_agent.catalog.repository import StoredDocument
+from visual_agent.domain.document import Chunk, DocumentMeta
+from visual_agent.ingest.formats import UnsupportedFormat
+from visual_agent.ingest.pipeline import IngestReport, IngestResult
+
+logger = logging.getLogger(__name__)
+
+_LANGUAGE_SAMPLE_CHUNKS = 40
+_GENERIC_FAILURE = "Belge işlenemedi. Dosyanın bozuk olmadığını kontrol edip yeniden yükleyin."
+_DISPLAY_NAME = "display.pdf"
+
+Ingest = Callable[[Path, DocumentMeta, Path], IngestResult]
+
+
+class JobRepository(Protocol):
+    async def claim_next(self) -> StoredDocument | None: ...
+
+    async def mark_ready(
+        self,
+        doc_id: str,
+        language: str,
+        chunks: Sequence[Chunk],
+        report: IngestReport,
+        display_pdf: str | None,
+    ) -> None: ...
+
+    async def mark_failed(self, doc_id: str, message: str) -> None: ...
+
+
+class Indexer(Protocol):
+    async def index(self, doc_id: str, access: Sequence[str], chunks: Sequence[Chunk]) -> None: ...
+
+
+def _document_language(chunks: Sequence[Chunk], fallback: str) -> str:
+    sample = " ".join(chunk.text for chunk in chunks[:_LANGUAGE_SAMPLE_CHUNKS])
+    return detect_language(sample) if sample else fallback
+
+
+class DocumentProcessor:
+    def __init__(self, repository: JobRepository, indexer: Indexer, ingest: Ingest) -> None:
+        self._repository = repository
+        self._indexer = indexer
+        self._ingest = ingest
+
+    async def process_next(self) -> bool:
+        """Bir iş işlendiyse True döndürür."""
+        document = await self._repository.claim_next()
+        if document is None:
+            return False
+        try:
+            await self._process(document)
+        except UnsupportedFormat as error:
+            await self._repository.mark_failed(document.doc_id, str(error))
+        except Exception:
+            logger.exception("Belge işlenemedi: %s", document.doc_id)
+            await self._repository.mark_failed(document.doc_id, _GENERIC_FAILURE)
+        return True
+
+    async def _process(self, document: StoredDocument) -> None:
+        source = Path(document.stored_path)
+        meta = DocumentMeta(
+            doc_id=document.doc_id,
+            title=document.title,
+            language=document.language,
+            access=document.access,
+        )
+        with tempfile.TemporaryDirectory() as work:
+            result = await asyncio.to_thread(self._ingest, source, meta, Path(work))
+            display = self._keep_display_pdf(result.display_pdf, source)
+        await self._indexer.index(document.doc_id, document.access, result.chunks)
+        await self._repository.mark_ready(
+            document.doc_id,
+            _document_language(result.chunks, document.language),
+            result.chunks,
+            result.report,
+            display,
+        )
+
+    @staticmethod
+    def _keep_display_pdf(display_pdf: Path | None, source: Path) -> str | None:
+        if display_pdf is None:
+            return None
+        if display_pdf == source:
+            return str(source)
+        target = source.parent / _DISPLAY_NAME
+        shutil.copyfile(display_pdf, target)
+        return str(target)

@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     qdrant_url: AnyHttpUrl = AnyHttpUrl("http://localhost:6333")
     database_url: PostgresDsn | None = None
     worker_poll_seconds: float = Field(default=5.0, gt=0)
+    storage_directory: str = "data/documents"
     openrouter_api_key: SecretStr | None = None
     openrouter_url: AnyHttpUrl = AnyHttpUrl("https://openrouter.ai/api/v1")
     answer_model: str = "google/gemma-4-26b-a4b-it"

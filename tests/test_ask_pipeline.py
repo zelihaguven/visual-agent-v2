@@ -7,8 +7,8 @@ from visual_agent.ask.orchestrator import AskDeps, AskRequest, answer_question
 from visual_agent.catalog.identifiers import build_identifier_index
 from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
-from visual_agent.domain.result import Answered, Clarify, Failed, Hit, NotFound
-from visual_agent.generation.openrouter import ServiceUnavailable, StreamResult
+from visual_agent.domain.result import Answered, AskOutcome, Clarify, Failed, Hit, NotFound
+from visual_agent.generation.openrouter import ServiceUnavailable, StreamCallbacks, StreamResult
 
 ROW = "Ölçü noktası: İç paça | Beden M: 76,5 | Tolerans (cm): 0,5"
 
@@ -64,15 +64,18 @@ class FakeRetriever:
 class FakeClient:
     payload: object = None
     error: Exception | None = None
+    incomplete: bool = False
     calls: list[Sequence[dict[str, str]]] = field(default_factory=list)
 
     async def stream(
-        self, messages: Sequence[dict[str, str]], callbacks: object = None
+        self, messages: Sequence[dict[str, str]], callbacks: StreamCallbacks | None = None
     ) -> StreamResult:
         self.calls.append(messages)
         if self.error is not None:
             raise self.error
         content = self.payload if isinstance(self.payload, str) else json.dumps(self.payload)
+        if callbacks is not None and callbacks.on_delta is not None:
+            callbacks.on_delta(content, 0.2)
         return StreamResult(
             content=content,
             provider="p",
@@ -81,6 +84,7 @@ class FakeClient:
             timeline=(),
             cost_usd=0.001,
             attempts=(),
+            incomplete=self.incomplete,
         )
 
 
@@ -362,3 +366,40 @@ def test_slow_translation_does_not_delay_the_search() -> None:
     ask(deps, "iç paça nedir")
 
     assert retriever.calls[0]["bm25"] == "iç paça nedir"
+
+
+def _with_events(deps: AskDeps, question: str) -> tuple[object, list[dict[str, object]]]:
+    events: list[dict[str, object]] = []
+    outcome = asyncio.run(
+        answer_question(AskRequest(question=question, on_event=events.append), deps)
+    )
+    return outcome, events
+
+
+def test_events_arrive_in_order_before_the_answer_is_revealed() -> None:
+    _, events = _with_events(
+        make_deps(FakeClient(answer_payload("İç paça 76,5 cm."))), "soru nedir"
+    )
+
+    kinds = [str(event["type"]) for event in events]
+    assert kinds.index("status") < kinds.index("sources") < kinds.index("item_verified")
+
+
+def test_sources_are_sent_before_the_model_runs() -> None:
+    _, events = _with_events(make_deps(FakeClient(answer_payload("76,5"))), "soru nedir")
+
+    sources = next(event for event in events if event["type"] == "sources")
+    assert isinstance(sources["sources"], list)
+    assert sources["sources"][0]["doc_id"] == "a"
+
+
+def test_interrupted_stream_keeps_only_verified_items() -> None:
+    client = FakeClient(answer_payload("İç paça 76,5 cm."), incomplete=True)
+
+    outcome, events = _with_events(make_deps(client), "soru nedir")
+
+    assert isinstance(outcome, AskOutcome)
+    assert isinstance(outcome.result, Answered)
+    assert outcome.result.status.value == "partial"
+    assert [item.verified for item in outcome.result.items] == [True]
+    assert any(event["type"] == "incomplete" for event in events)
