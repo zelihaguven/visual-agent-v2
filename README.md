@@ -2,7 +2,7 @@
 
 Önceden yüklenmiş belgelere yazarak ya da konuşarak soru sorulan, her cevabı kaynağıyla gösteren web aracı.
 
-Durum: iskelet, test belgesi üreticisi ve doğrulama çekirdeği hazır (A0–A2). Uçtan uca soru-cevap henüz yok.
+Durum: iskelet, test belgesi üreticisi, doğrulama çekirdeği ve belge işleme hazır (A0–A3). Uçtan uca soru-cevap henüz yok.
 
 ## Çalıştırma
 
@@ -38,6 +38,13 @@ Test belgelerini ve doğru cevapları üretmek için:
 
 ```bash
 uv run python -m evals.generate --seed 7 --output evals/output/set
+```
+
+Belge işleme kapsamını işçi imajında, internetsiz ölçmek için:
+
+```bash
+docker build --target ingest -t visual-agent-ingest .
+docker run --rm --network none -v "$PWD/evals:/app/evals:ro" visual-agent-ingest python -m evals.ingest_check --set evals/output/set
 ```
 
 ## Yapı

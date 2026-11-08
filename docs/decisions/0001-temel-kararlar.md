@@ -17,3 +17,6 @@ Bu repo, eski `visual_agent` pilotunun yerine temiz yapıyla yazılan sürümdü
 | Komutlar | Belgedeki komut aynen gösterilir; sistem yerleştirmez, değiştirmez, çalıştırmaz |
 | Ses | Anlık işlenir, saklanmaz; sağlayıcıda veri saklamama aranır |
 | Test belgeleri | Gerçekleri baştan bilinen, kontrollü üretilmiş belgeler |
+| PDF işleme | Docling ve pypdfium2; AGPL lisanslı PyMuPDF kullanılmaz |
+| Ağır araçlar | LibreOffice, Tesseract ve Docling yalnız işçi imajında; belgeler internetsiz işlenir |
+| OCR güvenliği | İki okumada uyuşmayan değer belirsiz işaretlenir ve doğrulanmış gösterilmez |

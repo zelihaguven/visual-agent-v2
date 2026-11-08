@@ -106,13 +106,13 @@ def word_numbers(text: str) -> set[str]:
     return {str(_WORD_NUMBERS[word.lower()]) for word in _WORD_NUMBER_RE.findall(text)}
 
 
-def _fold_identifier(value: str) -> str:
+def fold_identifier(value: str) -> str:
     return value.replace("İ", "i").casefold()
 
 
 def identifiers_in(text: str) -> set[str]:
     """Kod, tablo, kolon ve komut adları gibi birebir olması gereken teknik adlar."""
     canon = canon_chars(text)
-    quoted = {_fold_identifier(match) for match in _BACKTICK_RE.findall(canon)}
+    quoted = {fold_identifier(match) for match in _BACKTICK_RE.findall(canon)}
     remainder = _BACKTICK_RE.sub(" ", canon)
-    return quoted | {_fold_identifier(m.group(0)) for m in _IDENTIFIER_RE.finditer(remainder)}
+    return quoted | {fold_identifier(m.group(0)) for m in _IDENTIFIER_RE.finditer(remainder)}

@@ -11,6 +11,37 @@ dependencies = [
     "uvicorn[standard]>=0.32",
 ]
 
+[project.optional-dependencies]
+ingest = [
+    "docling>=2.137",
+    "numpy>=1.26",
+    "ocrmypdf>=16.10",
+    "openpyxl>=3.1.5",
+    "pikepdf>=9.0",
+    "pillow>=11.0",
+    "pypdfium2>=4.30",
+    "rapidocr>=3.4",
+    "onnxruntime>=1.20",
+    "torch>=2.5",
+    "torchvision>=0.20",
+]
+
+[tool.uv]
+required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
 [dependency-groups]
 dev = [
     "httpx2>=2.16.0",
@@ -37,6 +68,9 @@ testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "--strict-markers --cov=visual_agent --cov=apps --cov=evals --cov-report=term-missing --cov-fail-under=80"
 
+[tool.coverage.run]
+omit = ["*/ingest/tools.py", "*/ingest/docling_parser.py", "evals/ingest_check.py"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"
@@ -57,5 +91,5 @@ explicit_package_bases = true
 mypy_path = ["src", "."]
 
 [[tool.mypy.overrides]]
-module = ["docx.*", "openpyxl.*", "reportlab.*", "pypdfium2.*"]
+module = ["docling.*", "numpy.*", "docx.*", "openpyxl.*", "pikepdf.*", "pypdfium2.*", "rapidocr.*", "reportlab.*"]
 ignore_missing_imports = true

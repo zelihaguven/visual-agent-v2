@@ -64,9 +64,7 @@ def generate_set(seed: int, output: Path) -> GoldSet:
             document.gold.doc_id: document.content.full_text() for document in documents
         },
     )
-    (output / GOLD_FILENAME).write_text(
-        gold.model_dump_json(indent=2, exclude={"document_texts"}), encoding="utf-8"
-    )
+    (output / GOLD_FILENAME).write_text(gold.model_dump_json(indent=2), encoding="utf-8")
     return gold
 
 
