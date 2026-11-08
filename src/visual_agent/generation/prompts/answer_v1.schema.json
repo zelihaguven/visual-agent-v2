@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "required": ["tur", "cevap", "celiski_var"],
+  "properties": {
+    "tur": { "type": "string", "enum": ["cevap", "netlestirme", "bulunamadi"] },
+    "netlestirme": {
+      "type": "object",
+      "required": ["soru", "secenekler"],
+      "properties": {
+        "soru": { "type": "string", "maxLength": 150 },
+        "secenekler": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "required": ["kaynak_no"],
+            "properties": { "kaynak_no": { "type": "integer" } }
+          }
+        }
+      }
+    },
+    "cevap": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["alintilar", "metin"],
+        "properties": {
+          "alintilar": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "required": ["kaynak_no", "metin"],
+              "properties": {
+                "kaynak_no": { "type": "integer" },
+                "metin": { "type": "string", "maxLength": 150 }
+              }
+            }
+          },
+          "kod_kaynak_no": { "type": "integer" },
+          "metin": { "type": "string", "maxLength": 250 }
+        }
+      }
+    },
+    "celiski_var": { "type": "boolean" }
+  }
+}

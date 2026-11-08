@@ -2,7 +2,7 @@
 
 Önceden yüklenmiş belgelere yazarak ya da konuşarak soru sorulan, her cevabı kaynağıyla gösteren web aracı.
 
-Durum: iskelet ve test belgesi üreticisi hazır (A0, A1). Soru-cevap özellikleri henüz yok.
+Durum: iskelet, test belgesi üreticisi ve doğrulama çekirdeği hazır (A0–A2). Uçtan uca soru-cevap henüz yok.
 
 ## Çalıştırma
 
