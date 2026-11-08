@@ -2,7 +2,7 @@
 
 Önceden yüklenmiş belgelere yazarak ya da konuşarak soru sorulan, her cevabı kaynağıyla gösteren web aracı.
 
-Durum: iskelet (A0). Soru-cevap özellikleri henüz yok.
+Durum: iskelet ve test belgesi üreticisi hazır (A0, A1). Soru-cevap özellikleri henüz yok.
 
 ## Çalıştırma
 
@@ -32,6 +32,12 @@ Web (`apps/web`):
 npm ci
 npm test
 npm run dev
+```
+
+Test belgelerini ve doğru cevapları üretmek için:
+
+```bash
+uv run python -m evals.generate --seed 7 --output evals/output/set
 ```
 
 ## Yapı

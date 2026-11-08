@@ -14,8 +14,13 @@ dependencies = [
 dev = [
     "httpx2>=2.16.0",
     "mypy>=1.13",
+    "openpyxl>=3.1.5",
+    "pillow>=13.0.0",
+    "pypdfium2>=5.15.1",
     "pytest>=8.3",
     "pytest-cov>=6.0",
+    "python-docx>=1.2.0",
+    "reportlab>=5.1.0",
     "ruff>=0.8",
 ]
 
@@ -29,7 +34,7 @@ packages = ["src/visual_agent"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
-addopts = "--strict-markers --cov=visual_agent --cov=apps --cov-report=term-missing --cov-fail-under=80"
+addopts = "--strict-markers --cov=visual_agent --cov=apps --cov=evals --cov-report=term-missing --cov-fail-under=80"
 
 [tool.ruff]
 line-length = 100
@@ -45,7 +50,11 @@ max-complexity = 10
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src", "apps", "tests"]
+files = ["src", "apps", "evals", "tests"]
 plugins = ["pydantic.mypy"]
 explicit_package_bases = true
 mypy_path = ["src", "."]
+
+[[tool.mypy.overrides]]
+module = ["docx.*", "openpyxl.*", "reportlab.*", "pypdfium2.*"]
+ignore_missing_imports = true

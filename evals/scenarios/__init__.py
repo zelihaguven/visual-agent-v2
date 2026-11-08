@@ -1,0 +1,1 @@
+"""Alanlara göre test senaryoları."""

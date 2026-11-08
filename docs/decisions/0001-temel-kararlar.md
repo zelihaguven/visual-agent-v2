@@ -10,7 +10,7 @@ Bu repo, eski `visual_agent` pilotunun yerine temiz yapıyla yazılan sürümdü
 | İlk kullanım | Önce SQL aracı kullanan uzmanlar ve iş analistleri, sonra dikim departmanı |
 | Arayüz | Tablet ve bilgisayara uyumlu web |
 | Giriş | İlk sürümde kapalı; Microsoft girişi ve departmanlar sonra eklenir |
-| Cevap modeli | Gemma 4 26B, DeepInfra birincil, ZDR zorunlu, 8 kaynak |
+| Cevap modeli | OpenRouter üzerinden, ZDR zorunlu, 8 kaynak. Başlangıç Gemma 4 26B; seçim yeni test setinde verimlilik ve maliyete göre yapılır |
 | Arama | Yerel bge-m3, BM25, RRF; reranker yok |
 | Kurallar | Yalnız her belgede geçerli ana kurallar; belgeye özel elle yazılmış kural yok |
 | Doğrulama | Sayı, kod ve teknik ad, cümlenin kendi alıntısında birebir geçer |
