@@ -10,7 +10,7 @@ RUN useradd --create-home --uid 10001 appuser
 ENV PATH="/app/.venv/bin:$PATH"
 
 FROM base AS api
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev --extra retrieval
 USER appuser
 EXPOSE 8000
 CMD ["uvicorn", "apps.api.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
@@ -25,11 +25,12 @@ RUN apt-get update \
         tesseract-ocr-eng \
         tesseract-ocr-tur \
     && rm -rf /var/lib/apt/lists/*
-RUN uv sync --frozen --no-dev --extra ingest
-ENV DOCLING_ARTIFACTS_PATH=/opt/docling-models HOME=/home/appuser
+RUN uv sync --frozen --no-dev --extra ingest --extra retrieval
+ENV DOCLING_ARTIFACTS_PATH=/opt/docling-models HOME=/home/appuser FASTEMBED_CACHE_PATH=/home/appuser/.cache/fastembed
 RUN docling-tools models download layout tableformer rapidocr --output-dir /opt/docling-models \
     && chmod -R a+rX /opt/docling-models
 RUN python -c "from rapidocr import RapidOCR; RapidOCR()" \
     && chmod -R a+rX /app/.venv
+RUN mkdir -p /home/appuser/.cache/huggingface /home/appuser/.cache/fastembed && chown -R appuser /home/appuser/.cache
 USER appuser
 CMD ["python", "-m", "apps.worker.main"]

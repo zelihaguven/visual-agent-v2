@@ -8,10 +8,16 @@ dependencies = [
     "httpx>=0.28.1",
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
+    "qdrant-client>=1.15",
     "uvicorn[standard]>=0.32",
 ]
 
 [project.optional-dependencies]
+retrieval = [
+    "fastembed>=0.7",
+    "sentence-transformers>=5.0",
+    "torch>=2.5",
+]
 ingest = [
     "docling>=2.137",
     "numpy>=1.26",
@@ -69,7 +75,7 @@ pythonpath = ["."]
 addopts = "--strict-markers --cov=visual_agent --cov=apps --cov=evals --cov-report=term-missing --cov-fail-under=80"
 
 [tool.coverage.run]
-omit = ["*/ingest/tools.py", "*/ingest/docling_parser.py", "evals/ingest_check.py"]
+omit = ["*/ingest/tools.py", "*/ingest/docling_parser.py", "*/retrieval/encoders.py", "evals/ingest_check.py", "evals/run_questions.py"]
 
 [tool.ruff]
 line-length = 100
@@ -91,5 +97,5 @@ explicit_package_bases = true
 mypy_path = ["src", "."]
 
 [[tool.mypy.overrides]]
-module = ["docling.*", "numpy.*", "docx.*", "openpyxl.*", "pikepdf.*", "pypdfium2.*", "rapidocr.*", "reportlab.*"]
+module = ["fastembed.*", "sentence_transformers.*", "docling.*", "numpy.*", "docx.*", "openpyxl.*", "pikepdf.*", "pypdfium2.*", "rapidocr.*", "reportlab.*"]
 ignore_missing_imports = true
