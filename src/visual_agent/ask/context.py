@@ -11,7 +11,7 @@ from visual_agent.conversation.grounding import is_grounded
 from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.result import Answered, Clarify
-from visual_agent.verification.text import identifiers_in
+from visual_agent.verification.text import compact_identifier, identifiers_in
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,12 @@ _CANNOT_COMPLETE = (
 
 def _unresolved(state: AskState) -> AskState:
     return replace(state, context_resolved=False, result=Clarify(question=_CANNOT_COMPLETE))
+
+
+def _codes_in(text: str, deps: AskDeps) -> set[str]:
+    """Kodlar yazılışından bağımsız karşılaştırılır; söylenen kodlar da sayılır."""
+    codes = identifiers_in(text) | deps.identifiers.codes_in_speech(text)
+    return {compact_identifier(code) for code in codes}
 
 
 async def resolve_context(state: AskState, deps: AskDeps) -> AskState:
@@ -45,7 +51,7 @@ async def resolve_context(state: AskState, deps: AskDeps) -> AskState:
         return _unresolved(state)
     if request.on_event is not None:
         request.on_event({"type": "resolved", "question": rewrite.question})
-    has_new_identifier = bool(identifiers_in(request.question) - identifiers_in(context.question))
+    has_new_identifier = bool(_codes_in(request.question, deps) - _codes_in(context.question, deps))
     return replace(
         state,
         resolved_question=rewrite.question,

@@ -133,6 +133,31 @@ def test_new_code_in_the_message_lifts_the_inherited_scope() -> None:
     assert not outcome.scope_inherited
 
 
+def test_spoken_new_code_lifts_the_inherited_scope() -> None:
+    retriever = FakeRetriever(hits=[CHUNKS[1]])
+    rewriter = follows("e050 M beden iç paça kaç?")
+    payload = answer_payload("E050 motor arızasıdır.", "Hata E050 motor arızasıdır.")
+
+    outcome = ask_with(deps_with(rewriter, FakeClient(payload), retriever), "Peki e050 için?")
+
+    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
+    assert not outcome.scope_inherited
+
+
+def test_same_code_in_another_spelling_keeps_the_scope() -> None:
+    retriever = FakeRetriever(hits=[CHUNKS[1]])
+    previous = ConversationContext(question="E050 nedir?", doc_ids=("b",), titles=("Kılavuz",))
+    rewriter = follows("e050 çözümü nedir?")
+    payload = answer_payload("E050 motor arızasıdır.", "Hata E050 motor arızasıdır.")
+
+    outcome = ask_with(
+        deps_with(rewriter, FakeClient(payload), retriever), "Peki e050 çözümü?", previous
+    )
+
+    assert retriever.calls[0]["doc_ids"] == ("b",)
+    assert outcome.scope_inherited
+
+
 def test_context_for_a_document_no_longer_visible_is_ignored() -> None:
     retriever = FakeRetriever()
     stale = ConversationContext(question=PREVIOUS.question, doc_ids=("gizli",))

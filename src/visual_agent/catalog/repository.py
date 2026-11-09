@@ -133,6 +133,14 @@ class DocumentRepository:
             "UPDATE documents SET status = 'queued', updated_at = now() WHERE status = 'processing'"
         )
 
+    async def requeue(self, doc_id: str) -> None:
+        """Sonucu yazılamayan tek belgeyi kuyruğa döndürür; diğer işçilerin işine dokunmaz."""
+        await self._pool.execute(
+            "UPDATE documents SET status = 'queued', updated_at = now()"
+            " WHERE doc_id = $1 AND status = 'processing'",
+            doc_id,
+        )
+
     async def claim_next(self) -> StoredDocument | None:
         """Birden çok işçi aynı belgeyi alamaz."""
         row = await self._pool.fetchrow(

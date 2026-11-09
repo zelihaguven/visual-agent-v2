@@ -26,7 +26,7 @@ Ingest = Callable[[Path, DocumentMeta, Path], IngestResult]
 class JobRepository(Protocol):
     async def claim_next(self) -> StoredDocument | None: ...
 
-    async def requeue_interrupted(self) -> None: ...
+    async def requeue(self, doc_id: str) -> None: ...
 
     async def mark_ready(
         self,
@@ -56,20 +56,20 @@ class DocumentProcessor:
         self._repository = repository
         self._indexer = indexer
         self._ingest = ingest
-        self._interrupted = False
+        self._interrupted: str | None = None
 
     async def process_next(self) -> bool:
         """Bir iş işlendiyse True döndürür; sonucu yazılamayan iş sonra kuyruğa döner."""
-        if self._interrupted:
-            await self._repository.requeue_interrupted()
-            self._interrupted = False
+        if self._interrupted is not None:
+            await self._repository.requeue(self._interrupted)
+            self._interrupted = None
         document = await self._repository.claim_next()
         if document is None:
             return False
         try:
             await self._process_and_record(document)
         except Exception:
-            self._interrupted = True
+            self._interrupted = document.doc_id
             raise
         return True
 

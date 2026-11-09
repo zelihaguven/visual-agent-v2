@@ -43,13 +43,13 @@ class FakeRepository:
     load_calls: int = 0
     ready_error: Exception | None = None
     failed_error: Exception | None = None
-    requeues: int = 0
+    requeues: list[str] = field(default_factory=list)
 
     async def claim_next(self) -> StoredDocument | None:
         return self.queued.pop(0) if self.queued else None
 
-    async def requeue_interrupted(self) -> None:
-        self.requeues += 1
+    async def requeue(self, doc_id: str) -> None:
+        self.requeues.append(doc_id)
 
     async def mark_ready(
         self,
@@ -202,12 +202,12 @@ def test_document_is_requeued_after_a_database_outage(tmp_path: Path) -> None:
     async def run() -> None:
         with pytest.raises(ConnectionError):
             await processor.process_next()
-        assert repository.requeues == 0
+        assert repository.requeues == []
         await processor.process_next()
 
     asyncio.run(run())
 
-    assert repository.requeues == 1
+    assert repository.requeues == ["d"]
 
 
 def test_requeue_runs_only_once_after_an_outage(tmp_path: Path) -> None:
@@ -225,7 +225,7 @@ def test_requeue_runs_only_once_after_an_outage(tmp_path: Path) -> None:
 
     asyncio.run(run())
 
-    assert repository.requeues == 1
+    assert repository.requeues == ["d"]
 
 
 def test_failure_message_does_not_expose_internal_errors(tmp_path: Path) -> None:
