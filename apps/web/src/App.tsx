@@ -1,6 +1,12 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
-import { askQuestion, type Citation, type ConversationContext } from "./api";
+import {
+  askQuestion,
+  fetchVoicePhrases,
+  type Citation,
+  type ConversationContext,
+  type VoicePhrases,
+} from "./api";
 import "./App.css";
 import { ContextBar } from "./components/ContextBar";
 import { DocumentsPanel } from "./components/DocumentsPanel";
@@ -23,10 +29,32 @@ export function App() {
   const nextId = useRef(0);
   const audio = useRef<AudioQueue | null>(null);
   const draftInput = useRef<HTMLInputElement>(null);
+  const phrases = useRef<VoicePhrases | null>(null);
+  const hasGreeted = useRef(false);
+  const waitingTurn = useRef(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchVoicePhrases(controller.signal)
+      .then((ready) => {
+        phrases.current = ready;
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
 
   function audioQueue(): AudioQueue {
     audio.current ??= new AudioQueue();
     return audio.current;
+  }
+
+  function playWaitingPhrase() {
+    const waiting = phrases.current?.waiting ?? [];
+    if (waiting.length > 0) {
+      const phrase = waiting[waitingTurn.current % waiting.length];
+      waitingTurn.current += 1;
+      audioQueue().enqueue(phrase.audio, phrase.mime);
+    }
   }
 
   async function ask(
@@ -43,6 +71,7 @@ export function App() {
     if (speaks) {
       audioQueue().stop();
       audioQueue().unlock();
+      playWaitingPhrase();
     }
     try {
       await askQuestion(question, docIds, turnContext, speaks, (event) => {
@@ -71,9 +100,20 @@ export function App() {
     }
   }
 
+  function greet() {
+    const greeting = phrases.current?.greeting;
+    audioQueue().unlock();
+    if (greeting && !hasGreeted.current) {
+      hasGreeted.current = true;
+      audioQueue().enqueue(greeting.audio, greeting.mime);
+    }
+  }
+
   function toggleSpeech() {
     if (speaks) {
       audioQueue().stop();
+    } else {
+      greet();
     }
     setSpeaks(!speaks);
   }

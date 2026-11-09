@@ -87,6 +87,9 @@ export type SourceView =
     }
   | { kind: "text"; text: string; title: string };
 
+export type PhraseAudio = { audio: string; mime: string };
+export type VoicePhrases = { greeting: PhraseAudio; waiting: PhraseAudio[] };
+
 const EVENT_SEPARATOR = "\n\n";
 const DATA_PREFIX = "data: ";
 
@@ -177,4 +180,12 @@ export async function transcribeAudio(audio: Blob): Promise<string> {
     throw new Error(await readError(response));
   }
   return ((await response.json()) as { text: string }).text;
+}
+
+export async function fetchVoicePhrases(signal: AbortSignal): Promise<VoicePhrases> {
+  const response = await fetch("/api/voice/phrases", { signal });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as VoicePhrases;
 }

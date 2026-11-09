@@ -29,6 +29,8 @@ _AUDIO_FORMATS = {
     "audio/x-wav": "wav",
 }
 _NOTICE_INDEX = -1
+GREETING = "Merhaba, hoş geldiniz. Sorunuzu sorabilirsiniz."
+_WAITING = ("Bir saniye, bakıyorum.", "Hemen kontrol ediyorum.")
 _NOTICES = {
     "tr": {
         "clarify": "Netleştirmem gereken bir nokta var, ekrana bakın.",
@@ -47,6 +49,39 @@ _NOTICES = {
 
 class TranscriptResponse(BaseModel):
     text: str
+
+
+class PhraseAudio(BaseModel):
+    audio: str
+    mime: str
+
+
+class PhrasesResponse(BaseModel):
+    greeting: PhraseAudio
+    waiting: list[PhraseAudio]
+
+
+def _phrase(speech: Speech) -> PhraseAudio:
+    return PhraseAudio(audio=base64.b64encode(speech.audio).decode("ascii"), mime=speech.mime)
+
+
+class PhraseCache:
+    """Sabit cümleler bir kez üretilir; değer içermedikleri için bellekte kalabilir."""
+
+    def __init__(self) -> None:
+        self._ready: PhrasesResponse | None = None
+        self._lock = asyncio.Lock()
+
+    async def get(self, voice: Voice) -> PhrasesResponse:
+        async with self._lock:
+            if self._ready is None:
+                greeting, *waiting = await asyncio.gather(
+                    *(voice.synthesize(text) for text in (GREETING, *_WAITING))
+                )
+                self._ready = PhrasesResponse(
+                    greeting=_phrase(greeting), waiting=[_phrase(item) for item in waiting]
+                )
+            return self._ready
 
 
 def _notice_key(result: AskResult) -> str | None:
@@ -120,6 +155,17 @@ def _audio_format(content_type: str | None) -> str:
 
 def voice_router(dependency: Callable[[], Voice | None]) -> APIRouter:
     router = APIRouter(prefix="/api")
+    phrases = PhraseCache()
+
+    @router.get("/voice/phrases", response_model=PhrasesResponse)
+    async def ready_phrases(voice: Annotated[Voice | None, Depends(dependency)]) -> PhrasesResponse:
+        if voice is None:
+            raise HTTPException(status_code=503, detail="Ses servisi yapılandırılmamış.")
+        try:
+            return await phrases.get(voice)
+        except Exception as error:
+            logger.warning("Hazır cümleler üretilemedi", exc_info=True)
+            raise HTTPException(status_code=502, detail="Sesler hazırlanamadı.") from error
 
     @router.post("/transcribe", response_model=TranscriptResponse)
     async def transcribe(

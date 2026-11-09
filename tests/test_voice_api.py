@@ -13,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import ApiServices, create_app
-from apps.api.voice import MAX_AUDIO_BYTES
+from apps.api.voice import GREETING, MAX_AUDIO_BYTES
 from tests.test_api_documents import FakeRepository, _events
 from visual_agent.ask.deps import AskRequest
 from visual_agent.domain.answer import VerificationStatus
@@ -209,6 +209,34 @@ def test_transcribe_without_voice_service_is_unavailable(tmp_path: Path) -> None
     response = _upload(make_client(tmp_path, None, [], ANSWERED), b"ses", "audio/webm")
 
     assert response.status_code == 503
+
+
+def test_ready_phrases_are_generated_once(tmp_path: Path) -> None:
+    voice = FakeVoice()
+    client = make_client(tmp_path, voice, [], ANSWERED)
+
+    first = client.get("/api/voice/phrases")
+    second = client.get("/api/voice/phrases")
+
+    assert first.status_code == 200
+    assert second.json() == first.json()
+    assert len(voice.spoken) == 1 + len(first.json()["waiting"])
+    assert base64.b64decode(first.json()["greeting"]["audio"]).decode().startswith("Merhaba")
+
+
+def test_failed_phrases_are_tried_again(tmp_path: Path) -> None:
+    voice = FakeVoice(fail_on=GREETING)
+    client = make_client(tmp_path, voice, [], ANSWERED)
+
+    assert client.get("/api/voice/phrases").status_code == 502
+    voice.fail_on = None
+    assert client.get("/api/voice/phrases").status_code == 200
+
+
+def test_phrases_without_voice_service_are_unavailable(tmp_path: Path) -> None:
+    client = make_client(tmp_path, None, [], ANSWERED)
+
+    assert client.get("/api/voice/phrases").status_code == 503
 
 
 Handler = Callable[[httpx.Request], httpx.Response]

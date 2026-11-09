@@ -415,6 +415,72 @@ describe("App", () => {
     expect(screen.getByText(/Sesli okuma şu an kullanılamıyor/)).toBeInTheDocument();
   });
 
+  describe("ready phrases", () => {
+    const phrase = (name: string) => ({ audio: btoa(name), mime: "audio/wav" });
+    const PHRASES = { greeting: phrase("merhaba"), waiting: [phrase("bir"), phrase("hemen")] };
+
+    function played() {
+      const create = vi.fn((blob: Blob) => `blob:${blob.size}`);
+      URL.createObjectURL = create as typeof URL.createObjectURL;
+      URL.revokeObjectURL = vi.fn();
+      return create;
+    }
+
+    it("greets once when spoken answers are turned on", async () => {
+      const create = played();
+      const fetchMock = stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse(PHRASES),
+      });
+      render(<App />);
+      await waitFor(() =>
+        expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/voice/phrases")).toBe(true),
+      );
+      await new Promise((resolve) => setTimeout(resolve));
+      const speaker = screen.getByRole("button", { name: "Sesli cevap" });
+
+      fireEvent.click(speaker);
+      fireEvent.click(speaker);
+      fireEvent.click(speaker);
+
+      expect(create).toHaveBeenCalledTimes(1);
+    });
+
+    it("plays a waiting phrase as soon as a question is sent", async () => {
+      const create = played();
+      stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse(PHRASES),
+        "/api/ask": () => sse([answered]),
+      });
+      render(<App />);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      fireEvent.click(screen.getByRole("button", { name: "Sesli cevap" }));
+      create.mockClear();
+
+      await ask("soru");
+
+      await screen.findByText("İç paça 76,5 cm.");
+      expect(create).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps working when phrases cannot be prepared", async () => {
+      const create = played();
+      stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse({ detail: "x" }, 502),
+        "/api/ask": () => sse([answered]),
+      });
+      render(<App />);
+      fireEvent.click(await screen.findByRole("button", { name: "Sesli cevap" }));
+
+      await ask("soru");
+
+      expect(await screen.findByText("İç paça 76,5 cm.")).toBeInTheDocument();
+      expect(create).not.toHaveBeenCalled();
+    });
+  });
+
   describe("microphone", () => {
     function stubRecorder() {
       const stopTrack = vi.fn();

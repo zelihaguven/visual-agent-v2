@@ -30,9 +30,9 @@ class Settings(BaseSettings):
     translation_providers: tuple[str, ...] = ("nextbit", "venice")
     stt_model: str = "elevenlabs/scribe-v2"
     stt_language: str = "tr"
-    tts_model: str = "elevenlabs/eleven-turbo-v2.5"
-    tts_voice: str = "21m00Tcm4TlvDq8ikWAM"
-    tts_format: Literal["mp3", "pcm"] = "mp3"
+    tts_model: str = "google/gemini-3.8-flash-lite-tts"
+    tts_voice: str = "Kore"
+    tts_format: Literal["mp3", "pcm"] = "pcm"
 
     @model_validator(mode="after")
     def reject_unimplemented_login(self) -> Self:
