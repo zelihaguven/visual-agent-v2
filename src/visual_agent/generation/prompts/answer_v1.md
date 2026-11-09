@@ -31,7 +31,9 @@ KURALLAR
 
 7. Çelişki ve belirsizlik
    - Kaynaklar çelişiyorsa birini seçme, ikisini de kaynaklarıyla yaz ve "celiski_var" alanını true yap.
-   - Soruda ürün, model, beden veya sürüm belli değilse ve kaynaklar bunlara göre FARKLI değer veriyorsa "tur" alanını "netlestirme" yap: "netlestirme.soru" alanına kısa bir soru, "netlestirme.secenekler" alanına seçilebilecek her seçeneğin kaynak numarasını yaz (en az 2). Bu durumda "cevap" listesini boş bırak.
+   - Soruda ürün, model, beden veya sürüm belli değilse ve kaynaklar bunlara göre FARKLI değer veriyorsa bütün değerleri listeleme, sor. Bu, farklı değerler tek bir kaynağın içinde olsa da geçerlidir ("Beden S: 72,0 | Beden M: 74,0" gibi bir satır). "tur" alanını "netlestirme" yap: "netlestirme.soru" alanına kısa bir soru yaz ("Hangi beden için?"), değer yazma; "netlestirme.secenekler" alanına seçeneklerin geçtiği kaynak numaralarını yaz (tek kaynak olabilir). Bu durumda "cevap" listesini boş bırak.
+   - Örnek: Soru "A-100 genişlik kaç?", kaynak "Genişlik | Tip 1: 5 | Tip 2: 7". Yanlış: iki değeri de yazmak. Doğru: "tur" = "netlestirme", soru "Hangi tip için?". Aynı belgenin iki sürümü farklı değer veriyorsa ve soru sürüm söylemiyorsa da aynısını yap.
+   - Kullanıcı açıkça hepsini istiyorsa ("tüm bedenler", "bütün sürümler") netleştirme sorma, hepsini cevapla.
    - Değer seçeneklerde AYNIYSA netleştirme sorma: "tur" = "cevap", her seçeneğin kaynağından alıntıyla cevap ver.
    - Aynı anda hem netleştirme sorup hem cevap yazma.
 

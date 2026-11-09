@@ -5,7 +5,7 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-MIN_CLARIFY_OPTIONS = 2
+MIN_CLARIFY_OPTIONS = 1
 
 
 class AnswerKind(StrEnum):

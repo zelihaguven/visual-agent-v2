@@ -134,7 +134,7 @@ def _has_repeated_sentence(answer: ModelAnswer) -> bool:
 def _verify_clarification(answer: ModelAnswer, sources: Sources) -> AnswerVerification:
     options = answer.clarify.options if answer.clarify else ()
     valid = tuple(dict.fromkeys(o.source_no for o in options if o.source_no in sources))
-    if len(valid) < MIN_CLARIFY_OPTIONS:
+    if len(valid) < MIN_CLARIFY_OPTIONS or any(o.source_no not in sources for o in options):
         return AnswerVerification(
             status=VerificationStatus.FAILED, problems=("netleştirme seçenekleri geçersiz",)
         )

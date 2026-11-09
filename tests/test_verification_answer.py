@@ -166,7 +166,7 @@ def test_not_found_is_reported() -> None:
     assert result.status is VerificationStatus.NOT_FOUND
 
 
-def test_clarification_needs_two_real_sources() -> None:
+def test_clarification_needs_real_sources() -> None:
     def clarify(*numbers: int) -> ModelAnswer:
         options = tuple(ClarifyOption(source_no=number) for number in numbers)
         return ModelAnswer(
@@ -204,3 +204,16 @@ def test_field_quote_requires_contiguous_text_in_the_named_cell(quote: str, expe
     sources = {1: PromptSource(number=1, text="Code: E050 | Remedy: turn off and check")}
 
     assert verify_item(item("Kontrol edin.", quote=quote), sources).ok is expected
+
+
+def test_one_source_can_hold_all_options_of_a_clarification() -> None:
+    answer = ModelAnswer(
+        kind=AnswerKind.CLARIFY,
+        items=(),
+        clarify=ClarifyRequest(question="Hangi beden?", options=(ClarifyOption(source_no=1),)),
+    )
+
+    result = verify_answer(answer, SOURCES)
+
+    assert result.status is VerificationStatus.CLARIFY
+    assert result.clarify_options == (1,)
