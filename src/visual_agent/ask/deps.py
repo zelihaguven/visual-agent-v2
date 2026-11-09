@@ -9,6 +9,7 @@ from visual_agent.catalog.identifiers import IdentifierIndex
 from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.result import Hit
+from visual_agent.generation.inventory import InventoryClassifier
 from visual_agent.generation.openrouter import StreamCallbacks, StreamResult
 from visual_agent.generation.rewrite import Rewriter
 from visual_agent.generation.translate import Translator
@@ -16,6 +17,7 @@ from visual_agent.generation.translate import Translator
 DEFAULT_TOP_K = 8
 DEFAULT_TRANSLATION_LIMIT_SECONDS = 1.2
 DEFAULT_REWRITE_LIMIT_SECONDS = 4.0
+DEFAULT_INVENTORY_LIMIT_SECONDS = 1.5
 
 
 class Retriever(Protocol):
@@ -56,6 +58,8 @@ class AskDeps:
     translation_limit_seconds: float = DEFAULT_TRANSLATION_LIMIT_SECONDS
     rewriter: Rewriter | None = None
     rewrite_limit_seconds: float = DEFAULT_REWRITE_LIMIT_SECONDS
+    inventory_classifier: InventoryClassifier | None = None
+    inventory_limit_seconds: float = DEFAULT_INVENTORY_LIMIT_SECONDS
 
     def with_translation_limit(self, seconds: float) -> Self:
         return replace(self, translation_limit_seconds=seconds)

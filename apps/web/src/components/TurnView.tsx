@@ -4,6 +4,7 @@ import type { Turn, TurnItem } from "../turn";
 const STAGE_LABELS: Record<string, string> = {
   context: "Soru tamamlanıyor",
   scope: "Belgeler belirleniyor",
+  inventory: "Belgeler belirleniyor",
   retrieve: "Kaynaklar aranıyor",
   generate: "Cevap yazılıyor",
   verify: "Kaynakla kontrol ediliyor",
@@ -174,6 +175,31 @@ function FinalAnswer({
   );
 }
 
+function InventoryView({ result }: { result: Extract<AskResult, { kind: "inventory" }> }) {
+  return (
+    <div className="inventory">
+      <p className="inventory-total">
+        {result.document_count} belge, {result.code_count} kod
+      </p>
+      <ul>
+        {result.documents.map((document) => (
+          <li key={document.doc_id}>
+            <strong>{document.title}</strong>
+            {document.codes.length > 0 && (
+              <p className="inventory-codes">
+                {document.codes.join(", ")}
+                {document.code_count > document.codes.length &&
+                  ` ve ${document.code_count - document.codes.length} kod daha`}
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+      <p className="muted">Hangisini soruyorsunuz?</p>
+    </div>
+  );
+}
+
 function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: Props) {
   const { result } = turn;
   const fullQuestion = turn.resolvedQuestion ?? turn.question;
@@ -214,7 +240,11 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: P
           <p className="notice">
             {turn.scopeInherited ? "Bu bilgi bu belgede yok." : "Bu bilgi belgelerde bulunamadı."}
           </p>
-          {result.reason && <p className="muted">{result.reason}</p>}
+          {result.reason ? (
+            <p className="muted">{result.reason}</p>
+          ) : (
+            <p className="muted">Bir model ya da konu söylerseniz yardımcı olabilirim.</p>
+          )}
           {turn.scopeInherited && (
             <div className="choices">
               <button type="button" className="choice" onClick={() => onAskAgain(fullQuestion, null)}>
@@ -224,6 +254,8 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: P
           )}
         </div>
       );
+    case "inventory":
+      return <InventoryView result={result} />;
     case "failed":
       return (
         <div>

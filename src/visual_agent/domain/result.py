@@ -53,7 +53,22 @@ class Failed(FrozenModel):
     citations: tuple[Citation, ...] = ()
 
 
-AskResult = Answered | Clarify | NotFound | Failed
+class InventoryDocument(FrozenModel):
+    doc_id: str
+    title: str
+    codes: tuple[str, ...] = ()
+    code_count: int = 0
+
+
+class Inventory(FrozenModel):
+    """Sayılar kayıtlardan gelir; liste uzunsa kesilir, sayı yine doğrudur."""
+
+    documents: tuple[InventoryDocument, ...]
+    document_count: int
+    code_count: int
+
+
+AskResult = Answered | Clarify | NotFound | Failed | Inventory
 
 
 class AskOutcome(FrozenModel):

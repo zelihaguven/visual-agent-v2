@@ -28,6 +28,7 @@ from visual_agent.domain.result import (
     AskOutcome,
     AskResult,
     Clarify,
+    Inventory,
     NotFound,
 )
 from visual_agent.ingest.formats import UnsupportedFormat, detect_format
@@ -108,6 +109,7 @@ def _result_payload(result: AskResult) -> dict[str, object]:
         (Answered, "answered"),
         (Clarify, "clarify"),
         (NotFound, "not_found"),
+        (Inventory, "inventory"),
     ]
     kind = next((name for model, name in kinds if isinstance(result, model)), "failed")
     return {"kind": kind, **result.model_dump(mode="json")}

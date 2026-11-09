@@ -26,6 +26,15 @@ class IdentifierIndex:
         postings = self._postings.get(fold_identifier(identifier), ())
         return tuple(dict.fromkeys(doc_id for doc_id, _ in postings))
 
+    def codes_of(self, doc_id: str) -> tuple[str, ...]:
+        """Belgedeki kodlar; sütun ve tablo adları kod sayılmaz."""
+        codes = (
+            identifier
+            for identifier, postings in self._postings.items()
+            if any(c.isdigit() for c in identifier) and any(d == doc_id for d, _ in postings)
+        )
+        return tuple(sorted(code.upper() for code in codes))
+
 
 def build_identifier_index(chunks: Iterable[Chunk]) -> IdentifierIndex:
     postings: defaultdict[str, list[tuple[str, str]]] = defaultdict(list)

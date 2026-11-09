@@ -478,6 +478,34 @@ describe("App", () => {
     expect(screen.getByText(/Sesli okuma şu an kullanılamıyor/)).toBeInTheDocument();
   });
 
+  it("lists what the assistant holds and asks which one is meant", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          {
+            type: "done",
+            timings: {},
+            question: "soru",
+            scope_inherited: false,
+            context: null,
+            result: {
+              kind: "inventory",
+              document_count: 1,
+              code_count: 205,
+              documents: [{ doc_id: "a", title: "Föy", codes: ["PNT-1", "PNT-2"], code_count: 205 }],
+            },
+          },
+        ]),
+    });
+    render(<App />);
+    await ask("kaç belge var");
+
+    expect(await screen.findByText("1 belge, 205 kod")).toBeInTheDocument();
+    expect(screen.getByText("PNT-1, PNT-2 ve 203 kod daha")).toBeInTheDocument();
+    expect(screen.getByText("Hangisini soruyorsunuz?")).toBeInTheDocument();
+  });
+
   describe("conversation mode", () => {
     const phrase = (name: string) => ({ audio: btoa(name), mime: "audio/wav" });
     const PHRASES = { greeting: phrase("merhaba"), waiting: [phrase("bir")] };

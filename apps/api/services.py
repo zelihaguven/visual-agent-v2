@@ -16,6 +16,7 @@ from visual_agent.ask.orchestrator import answer_question
 from visual_agent.catalog.repository import DocumentRepository
 from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.result import AskOutcome, Failed
+from visual_agent.generation.inventory import InventoryClassifier, make_inventory_classifier
 from visual_agent.generation.json_model import JsonModel
 from visual_agent.generation.openrouter import (
     AnswerClient,
@@ -41,6 +42,7 @@ class _ModelClients:
     answer: AnswerClient
     translator: Translator
     rewriter: Rewriter
+    inventory_classifier: InventoryClassifier
     system_prompt: str
 
 
@@ -99,6 +101,7 @@ class AskRuntime:
             answer=answer,
             translator=make_translator(helper_model),
             rewriter=make_rewriter(helper_model),
+            inventory_classifier=make_inventory_classifier(helper_model),
             system_prompt=load_answer_prompt(),
         )
 
@@ -122,6 +125,7 @@ class AskRuntime:
             system_prompt=clients.system_prompt,
             translator=clients.translator,
             rewriter=clients.rewriter,
+            inventory_classifier=clients.inventory_classifier,
         )
         return await answer_question(request, deps)
 

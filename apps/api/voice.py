@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from visual_agent.ask.language import detect_language
 from visual_agent.ask.streaming import Event
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.result import Answered, AskResult, Clarify, NotFound
+from visual_agent.domain.result import Answered, AskResult, Clarify, Inventory, NotFound
 from visual_agent.voice.client import Speech, Voice
 from visual_agent.voice.reading import spoken_text
 
@@ -37,13 +37,15 @@ _WAITING = ("Bir saniye, bakıyorum.", "Hemen kontrol ediyorum.")
 _NOTICES = {
     "tr": {
         "clarify": "Netleştirmem gereken bir nokta var, ekrana bakın.",
-        "not_found": "Bu bilgi belgelerde bulunamadı.",
+        "not_found": (
+            "Bu bilgi belgelerde bulunamadı. Bir model ya da konu söylerseniz yardımcı olabilirim."
+        ),
         "failed": "Cevap doğrulanamadı, ekrana bakın.",
         "partial": "Bazı değerler doğrulanamadı, ekrana bakın.",
     },
     "en": {
         "clarify": "I need to clarify something, please check the screen.",
-        "not_found": "This information was not found in the documents.",
+        "not_found": "Not found in the documents. Tell me a model or topic and I can help.",
         "failed": "The answer could not be verified, please check the screen.",
         "partial": "Some values could not be verified, please check the screen.",
     },
@@ -100,6 +102,16 @@ class PhraseCache:
             return self._ready
 
 
+def _inventory_summary(result: Inventory, language: str) -> str:
+    """Liste sesle okunmaz; sayı söylenip kullanıcıya hangisi olduğu sorulur."""
+    documents, codes = result.document_count, result.code_count
+    if language == "en":
+        held = f"{documents} documents and {codes} codes" if codes else f"{documents} documents"
+        return f"I have {held}, the list is on screen. Which one do you mean?"
+    held = f"{documents} belgede {codes} kod var" if codes else f"{documents} belge var"
+    return f"{held}, liste ekranda. Hangisini soruyorsunuz?"
+
+
 def _notice_key(result: AskResult) -> str | None:
     if isinstance(result, Answered):
         return None if result.status is VerificationStatus.VERIFIED else "partial"
@@ -129,6 +141,10 @@ class SpokenAnswer:
         """Değer içermeyen netleştirme sorusu okunur; diğer durumlarda sabit bildirim."""
         if isinstance(result, Clarify) and not any(c.isdigit() for c in result.question):
             self._speak(_NOTICE_INDEX, spoken_text(result.question, self._language))
+            return
+        if isinstance(result, Inventory):
+            summary = _inventory_summary(result, self._language)
+            self._speak(_NOTICE_INDEX, spoken_text(summary, self._language))
             return
         key = _notice_key(result)
         if key is not None:

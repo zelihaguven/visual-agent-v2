@@ -30,6 +30,12 @@ export type AskResult =
     }
   | { kind: "clarify"; question: string; options: { doc_id: string; label: string }[] }
   | { kind: "not_found"; reason: string; suggested_doc_ids: string[] }
+  | {
+      kind: "inventory";
+      documents: { doc_id: string; title: string; codes: string[]; code_count: number }[];
+      document_count: number;
+      code_count: number;
+    }
   | { kind: "failed"; reason: string; citations: Citation[] };
 
 export type ConversationContext = {

@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 
 from visual_agent.ask.context import next_context, resolve_context
 from visual_agent.ask.deps import AskDeps, AskRequest
+from visual_agent.ask.inventory import answer_inventory
 from visual_agent.ask.steps import AskState, generate, resolve_scope, retrieve, verify
 from visual_agent.domain.result import AskOutcome, Failed
 
@@ -23,6 +24,7 @@ class NamedStep:
 PIPELINE = (
     NamedStep("context", resolve_context),
     NamedStep("scope", resolve_scope),
+    NamedStep("inventory", answer_inventory),
     NamedStep("retrieve", retrieve),
     NamedStep("generate", generate),
     NamedStep("verify", verify),

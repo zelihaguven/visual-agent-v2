@@ -127,7 +127,10 @@ def test_command_is_not_read_aloud(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("result", "expected"),
     [
-        (NotFound(), "Bu bilgi belgelerde bulunamadı."),
+        (
+            NotFound(),
+            "Bu bilgi belgelerde bulunamadı. Bir model ya da konu söylerseniz yardımcı olabilirim.",
+        ),
         (
             Clarify(question="Model 123 mü, 456 mı?"),
             "Netleştirmem gereken bir nokta var, ekrana bakın.",

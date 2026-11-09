@@ -414,6 +414,26 @@ h1 {
   flex: none;
 }
 
+.inventory ul {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inventory-total {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.inventory-codes {
+  margin: 2px 0 0;
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+}
+
 .answer-head {
   display: flex;
   align-items: center;
