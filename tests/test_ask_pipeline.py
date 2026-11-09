@@ -1,7 +1,7 @@
 import asyncio
 import json
 from collections.abc import Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from visual_agent.ask.orchestrator import AskDeps, AskRequest, answer_question
 from visual_agent.catalog.identifiers import build_identifier_index
@@ -186,6 +186,26 @@ def test_explicit_document_choice_wins() -> None:
     ask(make_deps(FakeClient(answer_payload("76,5")), retriever), "iç paça kaç?", ("b",))
 
     assert retriever.calls[0]["doc_ids"] == ("b",)
+
+
+def test_search_without_a_scope_covers_only_catalogued_documents() -> None:
+    retriever = FakeRetriever()
+
+    ask(make_deps(FakeClient(answer_payload("76,5")), retriever), "iç paça kaç?")
+
+    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
+
+
+def test_no_ready_document_means_not_found_without_searching() -> None:
+    retriever = FakeRetriever()
+    deps = replace(
+        make_deps(FakeClient(answer_payload("76,5")), retriever), catalog=DocumentCatalog()
+    )
+
+    outcome = ask(deps, "iç paça kaç?")
+
+    assert isinstance(outcome.result, NotFound)
+    assert retriever.calls == []
 
 
 def test_code_of_another_document_is_not_answered_from_the_chosen_one() -> None:

@@ -120,7 +120,7 @@ def test_new_code_in_the_message_lifts_the_inherited_scope() -> None:
 
     outcome = ask_with(deps_with(rewriter, FakeClient(payload), retriever), "Peki E050 için?")
 
-    assert retriever.calls[0]["doc_ids"] is None
+    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
     assert not outcome.scope_inherited
 
 
@@ -130,7 +130,7 @@ def test_context_for_a_document_no_longer_visible_is_ignored() -> None:
 
     ask_with(deps_with(follows(), FakeClient(VERIFIED), retriever), "Peki dış paça?", stale)
 
-    assert retriever.calls[0]["doc_ids"] is None
+    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
 
 
 def test_previous_answer_never_reaches_the_rewriter_or_the_sources() -> None:
@@ -152,7 +152,7 @@ def test_unrelated_question_drops_the_context() -> None:
     )
 
     assert retriever.calls[0]["query"] == "İzin kaç gün?"
-    assert retriever.calls[0]["doc_ids"] is None
+    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
     assert not outcome.scope_inherited
 
 

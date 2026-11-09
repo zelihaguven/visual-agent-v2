@@ -5,9 +5,9 @@ import json
 import logging
 import shutil
 import uuid
-from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Annotated, Literal, Protocol
 
@@ -43,6 +43,9 @@ _UPLOAD_CHUNK_BYTES = 1024 * 1024
 _MAX_TITLE_CHARS = 200
 _GENERIC_ERROR = "Cevap hazırlanırken bir sorun oluştu. Lütfen yeniden deneyin."
 _END_OF_STREAM: Event = {"type": "__end__"}
+_HEALTH_TIMEOUT_SECONDS = 1.0
+
+HealthCheck = Callable[[], Awaitable[object]]
 
 
 class Repository(Protocol):
@@ -63,11 +66,13 @@ class ApiServices:
     ask: Callable[[AskRequest], Awaitable[AskOutcome]]
     storage_directory: Path
     voice: Voice | None = None
+    health_checks: Mapping[str, HealthCheck] = field(default_factory=dict)
 
 
 class HealthResponse(BaseModel):
-    status: Literal["ok"]
+    status: Literal["ok", "unavailable"]
     auth_enabled: bool
+    dependencies: dict[str, bool] | None = None
 
 
 class AskBody(BaseModel):
@@ -213,12 +218,38 @@ async def _store_upload(file: UploadFile, title: str, services: ApiServices) -> 
     return document
 
 
-def _health_router(settings: Settings) -> APIRouter:
+async def _dependency_answers(name: str, check: HealthCheck) -> bool:
+    try:
+        await asyncio.wait_for(check(), _HEALTH_TIMEOUT_SECONDS)
+    except Exception as error:
+        logger.warning("Bağımlılık cevap vermiyor: %s (%s)", name, type(error).__name__)
+        return False
+    return True
+
+
+async def _dependency_states(checks: Mapping[str, HealthCheck]) -> dict[str, bool]:
+    states = await asyncio.gather(
+        *(_dependency_answers(name, check) for name, check in checks.items())
+    )
+    return dict(zip(checks, states, strict=True))
+
+
+def _health_router(app: FastAPI) -> APIRouter:
     router = APIRouter(prefix="/api")
 
-    @router.get("/health", response_model=HealthResponse)
-    async def health() -> HealthResponse:
-        return HealthResponse(status="ok", auth_enabled=settings.auth_enabled)
+    @router.get("/health", response_model=HealthResponse, response_model_exclude_none=True)
+    async def health(response: Response) -> HealthResponse:
+        services: ApiServices | None = app.state.services
+        checks = services.health_checks if services is not None else {}
+        states = await _dependency_states(checks) if checks else None
+        healthy = states is None or all(states.values())
+        if not healthy:
+            response.status_code = 503
+        return HealthResponse(
+            status="ok" if healthy else "unavailable",
+            auth_enabled=app.state.settings.auth_enabled,
+            dependencies=states,
+        )
 
     return router
 
@@ -323,7 +354,7 @@ def create_app(settings: Settings | None = None, services: ApiServices | None = 
     app = FastAPI(title="Visual Agent", lifespan=_lifespan)
     app.state.settings = resolved
     app.state.services = services
-    app.include_router(_health_router(resolved))
+    app.include_router(_health_router(app))
     app.include_router(_document_router(app))
     app.include_router(
         voice_router(lambda: app.state.services.voice if app.state.services else None)

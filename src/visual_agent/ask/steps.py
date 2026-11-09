@@ -149,9 +149,13 @@ def _with_exact_chunks(state: AskState, found: Sequence[Hit], top_k: int) -> tup
 
 
 async def retrieve(state: AskState, deps: AskDeps) -> AskState:
+    """Arama daima kapsamla sınırlıdır: katalogda yalnız hazır belgeler vardır."""
+    domain = _search_domain(state)
+    if not domain:
+        return replace(state, result=NotFound())
     query = state.question
     found = await deps.retriever.search(
-        query, await _bm25_query(state, deps), state.scope, deps.top_k, state.request.access
+        query, await _bm25_query(state, deps), domain, deps.top_k, state.request.access
     )
     hits = _with_exact_chunks(state, found, deps.top_k)
     if not hits:

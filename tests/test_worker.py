@@ -29,6 +29,22 @@ def test_termination_signal_stops_the_worker(monkeypatch: pytest.MonkeyPatch) ->
     assert observed == [True]
 
 
+def test_worker_survives_a_failing_job_and_tries_again() -> None:
+    stop = threading.Event()
+    attempts: list[int] = []
+
+    def process_next() -> bool:
+        attempts.append(1)
+        if len(attempts) == 1:
+            raise ConnectionError("postgres kapalı")
+        stop.set()
+        return True
+
+    run_worker(stop, poll_seconds=0.01, process_next=process_next)
+
+    assert len(attempts) == 2
+
+
 def test_worker_stops_when_stop_is_requested() -> None:
     stop = threading.Event()
     stop.set()

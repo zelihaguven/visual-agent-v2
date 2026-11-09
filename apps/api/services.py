@@ -180,6 +180,10 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
                 ask=runtime.ask,
                 storage_directory=storage,
                 voice=_make_voice(settings, http),
+                health_checks={
+                    "postgres": lambda: pool.fetchval("SELECT 1"),
+                    "qdrant": qdrant.get_collections,
+                },
             )
         finally:
             warm_up.cancel()

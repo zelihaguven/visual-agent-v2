@@ -23,8 +23,11 @@ def run_worker(
     """İş varsa beklemeden sürer, yoksa bekler; tamamlanan bekleme sayısını döndürür."""
     polls = 0
     while not stop.is_set():
-        if process_next():
-            continue
+        try:
+            if process_next():
+                continue
+        except Exception:
+            logger.warning("İş alınamadı; bir sonraki turda yeniden denenecek", exc_info=True)
         if stop.wait(poll_seconds):
             break
         polls += 1
