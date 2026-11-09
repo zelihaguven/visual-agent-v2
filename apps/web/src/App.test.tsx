@@ -7,6 +7,7 @@ import { applyEvent, newTurn } from "./turn";
 const listening = vi.hoisted(() => ({
   open: vi.fn(),
   listen: vi.fn(),
+  barge: vi.fn(),
   close: vi.fn(),
 }));
 
@@ -14,6 +15,7 @@ vi.mock("./listening", async (original) => ({
   ...(await original<typeof import("./listening")>()),
   openMicrophone: listening.open,
   listenForUtterance: listening.listen,
+  listenForBargeIn: listening.barge,
 }));
 
 const CITATION = {
@@ -544,6 +546,13 @@ describe("App", () => {
       listening.open.mockReset();
       listening.open.mockResolvedValue({ stream: {}, level: () => 0, close: listening.close });
       listening.listen.mockReset();
+      listening.barge.mockReset();
+      listening.barge.mockImplementation(
+        (_mic: unknown, _session: unknown, turnDone: AbortSignal) =>
+          new Promise((resolve) => {
+            turnDone.addEventListener("abort", () => resolve(null));
+          }),
+      );
     });
 
     it("hears, asks by itself with speech on, answers and listens again", async () => {
@@ -617,6 +626,43 @@ describe("App", () => {
       fireEvent.click(await screen.findByRole("button", { name: "Sözünü kes" }));
 
       await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(2));
+    });
+
+    it("stops speaking and takes the new question when the user talks over it", async () => {
+      stubAudio(false);
+      hearInTurn("birinci");
+      const pause = vi.spyOn(window.HTMLMediaElement.prototype, "pause");
+      let bargeIn: () => void = () => undefined;
+      let finishRecording: (audio: Blob) => void = () => undefined;
+      listening.barge.mockImplementationOnce(
+        (_mic: unknown, _session: unknown, _done: unknown, onBargeIn: () => void) =>
+          new Promise((resolve) => {
+            bargeIn = onBargeIn;
+            finishRecording = resolve;
+          }),
+      );
+      const transcripts = ["ilk soru", "araya giren soru"];
+      const fetchMock = stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse({ detail: "x" }, 502),
+        "/api/transcribe": () => jsonResponse({ text: transcripts.shift() ?? "" }),
+        "/api/ask": () =>
+          sse([{ type: "item_audio", index: 0, audio: btoa("ses"), mime: "audio/wav" }, answered]),
+      });
+      await open(fetchMock);
+      await waitFor(() => expect(askBodiesOf(fetchMock)).toHaveLength(1));
+      await screen.findByText("Konuşuyorum");
+      pause.mockClear();
+
+      bargeIn();
+      expect(pause).toHaveBeenCalled();
+      expect(await screen.findByText("Dinliyorum")).toBeInTheDocument();
+      finishRecording(new Blob(["araya"], { type: "audio/webm" }));
+
+      await waitFor(() => expect(askBodiesOf(fetchMock)).toHaveLength(2));
+      expect(askBodiesOf(fetchMock)[1].question).toBe("araya giren soru");
+      expect(listening.listen).toHaveBeenCalledTimes(1);
+      pause.mockRestore();
     });
 
     it("explains when the microphone cannot be opened", async () => {

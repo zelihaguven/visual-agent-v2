@@ -8,6 +8,11 @@ const MIN_SPEECH_MS = 200;
 const END_SILENCE_MS = 900;
 const MAX_UTTERANCE_MS = 30_000;
 const NO_SPEECH_RESTART_MS = 15_000;
+const BARGE_CALIBRATION_MS = 500;
+const BARGE_MIN_THRESHOLD = 0.05;
+const BARGE_ECHO_FACTOR = 1.8;
+const BARGE_SPEECH_MS = 300;
+const PRE_ROLL_MS = 1000;
 
 export function canListen(): boolean {
   return typeof MediaRecorder !== "undefined" && Boolean(navigator.mediaDevices?.getUserMedia);
@@ -67,10 +72,46 @@ export function stepVad(
   return { state: { ...state, elapsedMs, silenceMs }, decision: isOver ? "end" : "continue" };
 }
 
+export type BargeState = { elapsedMs: number; speechMs: number; echoPeak: number };
+
+export const INITIAL_BARGE: BargeState = { elapsedMs: 0, speechMs: 0, echoPeak: 0 };
+
+/** Sistem konuşurken eşik, mikrofona sızan kendi sesinin üstünde tutulur. */
+export function bargeThreshold(echoPeak: number): number {
+  return Math.max(BARGE_MIN_THRESHOLD, echoPeak * BARGE_ECHO_FACTOR);
+}
+
+export function stepBarge(
+  state: BargeState,
+  level: number,
+  deltaMs: number,
+): { state: BargeState; isBarge: boolean } {
+  const elapsedMs = state.elapsedMs + deltaMs;
+  if (elapsedMs <= BARGE_CALIBRATION_MS) {
+    return {
+      state: { ...state, elapsedMs, echoPeak: Math.max(state.echoPeak, level) },
+      isBarge: false,
+    };
+  }
+  if (level > bargeThreshold(state.echoPeak)) {
+    const speechMs = state.speechMs + deltaMs;
+    return { state: { ...state, elapsedMs, speechMs }, isBarge: speechMs >= BARGE_SPEECH_MS };
+  }
+  return {
+    state: {
+      elapsedMs,
+      speechMs: Math.max(0, state.speechMs - deltaMs),
+      echoPeak: Math.max(state.echoPeak, level),
+    },
+    isBarge: false,
+  };
+}
+
 export type Microphone = {
   stream: MediaStream;
   level: () => number;
   close: () => void;
+  noiseFloor?: number;
 };
 
 export async function openMicrophone(): Promise<Microphone> {
@@ -135,11 +176,59 @@ export function listenForUtterance(
       const step = stepVad(vad, level, TICK_MS);
       vad = step.state;
       if (step.decision === "end") {
+        microphone.noiseFloor = vad.noiseFloor;
         finish(timer, recording.stop());
       } else if (step.decision === "restart") {
         recording.cancel();
         recording = record(microphone.stream);
         vad = { ...INITIAL_VAD, noiseFloor: vad.noiseFloor };
+      }
+    }, TICK_MS);
+  });
+}
+
+/**
+ * Sistem konuşurken dinler. Kullanıcı araya girerse onBargeIn çağrılır ve konuşması
+ * bitince kaydı döner; kayıt sürekli yenilendiği için ilk heceler kaybolmaz.
+ */
+export function listenForBargeIn(
+  microphone: Microphone,
+  session: AbortSignal,
+  turnDone: AbortSignal,
+  onBargeIn: () => void,
+): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    let recording = record(microphone.stream);
+    let barge = INITIAL_BARGE;
+    let rollingMs = 0;
+    let vad: VadState | null = null;
+    const timer = window.setInterval(() => {
+      if (session.aborted || (vad === null && turnDone.aborted)) {
+        window.clearInterval(timer);
+        recording.cancel();
+        resolve(null);
+        return;
+      }
+      const level = microphone.level();
+      if (vad !== null) {
+        const step = stepVad(vad, level, TICK_MS);
+        vad = step.state;
+        if (step.decision === "end") {
+          window.clearInterval(timer);
+          void recording.stop().then(resolve);
+        }
+        return;
+      }
+      const step = stepBarge(barge, level, TICK_MS);
+      barge = step.state;
+      rollingMs += TICK_MS;
+      if (step.isBarge) {
+        vad = { ...INITIAL_VAD, hasSpeech: true, noiseFloor: microphone.noiseFloor ?? 0 };
+        onBargeIn();
+      } else if (rollingMs >= PRE_ROLL_MS) {
+        recording.cancel();
+        recording = record(microphone.stream);
+        rollingMs = 0;
       }
     }, TICK_MS);
   });

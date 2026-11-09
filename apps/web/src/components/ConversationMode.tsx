@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
 import { transcribeAudio, type Citation, type PhraseAudio } from "../api";
-import { listenForUtterance, openMicrophone, type Microphone } from "../listening";
+import {
+  listenForBargeIn,
+  listenForUtterance,
+  openMicrophone,
+  type Microphone,
+} from "../listening";
 import type { AudioQueue } from "../speech";
 import type { Turn } from "../turn";
 import { TurnView } from "./TurnView";
@@ -58,45 +63,59 @@ export function ConversationMode(props: Props) {
     const showLevel = (level: number) =>
       bars.current?.style.setProperty("--level", String(Math.min(1, level * LEVEL_GAIN)));
 
-    async function handleUtterance(recording: Blob) {
+    /** Cevabı verir; kullanıcı araya girdiyse onun kaydını döndürür. */
+    async function handleUtterance(mic: Microphone, recording: Blob): Promise<Blob | null> {
       setPhase("thinking");
       setNotice(null);
+      const control = new AbortController();
+      const monitorEnd = new AbortController();
+      let hasBargedIn = false;
+      turnControl.current = control;
+      const monitor = listenForBargeIn(mic, session.signal, monitorEnd.signal, () => {
+        hasBargedIn = true;
+        control.abort();
+        audio.stop();
+        setPhase("listening");
+      });
       latest.current.playWaiting();
       const text = await transcribeSafely(recording);
-      if (session.signal.aborted) {
-        return;
-      }
-      if (!text) {
+      if (!text && !control.signal.aborted && !session.signal.aborted) {
         setNotice(NOT_HEARD);
-        return;
       }
-      const control = new AbortController();
-      turnControl.current = control;
-      await latest.current.onAsk(text, control.signal, () => setPhase("speaking"));
+      if (text && !control.signal.aborted && !session.signal.aborted) {
+        await latest.current.onAsk(text, control.signal, () => setPhase("speaking"));
+      }
       await audio.whenIdle();
       turnControl.current = null;
+      if (!hasBargedIn) {
+        monitorEnd.abort();
+      }
+      return monitor;
     }
 
     async function converse() {
+      let mic: Microphone;
       try {
-        microphone = await openMicrophone();
+        mic = await openMicrophone();
       } catch {
         setError(NO_MICROPHONE);
         return;
       }
+      microphone = mic;
       const greeting = latest.current.takeGreeting();
       if (greeting !== null) {
         setPhase("speaking");
         audio.enqueue(greeting.audio, greeting.mime);
         await audio.whenIdle();
       }
+      let recording: Blob | null = null;
       while (!session.signal.aborted) {
-        setPhase("listening");
-        showLevel(0);
-        const recording = await listenForUtterance(microphone, showLevel, session.signal);
-        if (recording !== null) {
-          await handleUtterance(recording);
+        if (recording === null) {
+          setPhase("listening");
+          showLevel(0);
+          recording = await listenForUtterance(mic, showLevel, session.signal);
         }
+        recording = recording === null ? null : await handleUtterance(mic, recording);
       }
     }
 

@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { INITIAL_VAD, speechThreshold, stepVad, type VadDecision, type VadState } from "./listening";
+import {
+  INITIAL_BARGE,
+  INITIAL_VAD,
+  bargeThreshold,
+  speechThreshold,
+  stepBarge,
+  stepVad,
+  type BargeState,
+  type VadDecision,
+  type VadState,
+} from "./listening";
 
 const TICK = 50;
 
@@ -53,5 +63,53 @@ describe("speech detection", () => {
     expect(speechThreshold(0.015)).toBeGreaterThan(0.03);
     expect(state.hasSpeech).toBe(false);
     expect(noisy.state.hasSpeech).toBe(false);
+  });
+});
+
+function runBarge(levels: number[], start: BargeState = INITIAL_BARGE) {
+  let state = start;
+  let hasBarged = false;
+  for (const level of levels) {
+    const step = stepBarge(state, level, TICK);
+    state = step.state;
+    hasBarged = hasBarged || step.isBarge;
+  }
+  return { state, hasBarged };
+}
+
+describe("interrupting by voice", () => {
+  it("detects the user talking over the answer", () => {
+    expect(runBarge([...ticks(0.01, 600), ...ticks(0.2, 400)]).hasBarged).toBe(true);
+  });
+
+  it("is not fooled by its own voice leaking into the microphone", () => {
+    expect(runBarge(ticks(0.12, 8000)).hasBarged).toBe(false);
+  });
+
+  it("raises the bar to the loudest echo it has heard", () => {
+    const { state, hasBarged } = runBarge([...ticks(0.1, 600), ...ticks(0.14, 400)]);
+
+    expect(hasBarged).toBe(false);
+    expect(bargeThreshold(state.echoPeak)).toBeGreaterThan(0.14);
+  });
+
+  it("still hears a louder voice over the echo", () => {
+    expect(runBarge([...ticks(0.05, 600), ...ticks(0.3, 400)]).hasBarged).toBe(true);
+  });
+
+  it("ignores a short noise", () => {
+    expect(runBarge([...ticks(0.01, 600), ...ticks(0.3, 100), ...ticks(0.01, 300)]).hasBarged).toBe(
+      false,
+    );
+  });
+
+  it("tolerates brief dips inside a word", () => {
+    const speech = [0.3, 0.3, 0.3, 0.01, 0.3, 0.3, 0.3, 0.01, 0.3, 0.3, 0.3];
+
+    expect(runBarge([...ticks(0.01, 600), ...speech]).hasBarged).toBe(true);
+  });
+
+  it("does not trigger during calibration", () => {
+    expect(runBarge(ticks(0.5, 450)).hasBarged).toBe(false);
   });
 });
