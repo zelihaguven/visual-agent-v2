@@ -245,6 +245,36 @@ def test_small_talk_gets_a_fixed_reply_without_search_or_model(
     assert deps.retriever.calls == []  # type: ignore[attr-defined]
 
 
+@pytest.mark.parametrize(
+    ("question", "expected"),
+    [
+        ("Merhaba.", "Merhaba, nasıl yardımcı olabilirim?"),
+        ("selam!", "Merhaba, nasıl yardımcı olabilirim?"),
+        ("Merhaba, nasılsın?", "İyiyim, teşekkürler. Nasıl yardımcı olabilirim?"),
+        ("Teşekkür ederim", "Rica ederim. Başka bir sorunuz var mı?"),
+        ("Hoşça kal", "Görüşmek üzere, iyi çalışmalar."),
+    ],
+)
+def test_common_small_talk_is_recognised_without_asking_a_model(
+    question: str, expected: str
+) -> None:
+    classifier = FakeClassifier(error=RuntimeError("servis"))
+
+    outcome = ask(deps_with(classifier), question)
+
+    assert outcome.result == SmallTalk(text=expected)
+    assert classifier.calls == []
+
+
+def test_a_greeting_inside_a_longer_question_is_not_small_talk() -> None:
+    classifier = FakeClassifier(intent="question")
+
+    outcome = ask(deps_with(classifier, ANSWER), "Merhaba, iç paça kaç?")
+
+    assert isinstance(outcome.result, Answered)
+    assert classifier.calls == ["Merhaba, iç paça kaç?"]
+
+
 def test_small_talk_keeps_the_conversation_context() -> None:
     context = ConversationContext(question="Bel kaç?", doc_ids=("a",))
     deps = deps_with(FakeClassifier(intent="greeting"))

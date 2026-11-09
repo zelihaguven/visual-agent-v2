@@ -8,7 +8,7 @@ from visual_agent.ask.deps import AskDeps
 from visual_agent.ask.steps import AskState
 from visual_agent.domain.result import AskResult, Inventory, InventoryDocument, SmallTalk
 from visual_agent.generation.intent import Intent
-from visual_agent.verification.text import identifiers_in
+from visual_agent.verification.text import identifiers_in, normalize
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,31 @@ SMALL_TALK_REPLIES: dict[str, dict[Intent, str]] = {
         "goodbye": "Goodbye, have a good day.",
     },
 }
+
+_COMMON_SMALL_TALK: dict[str, Intent] = {
+    **dict.fromkeys(
+        ("merhaba", "merhabalar", "selam", "selamlar", "günaydın", "iyi günler", "iyi akşamlar"),
+        "greeting",
+    ),
+    **dict.fromkeys(("hello", "hi", "hey", "good morning"), "greeting"),
+    **dict.fromkeys(
+        ("nasılsın", "nasılsınız", "merhaba, nasılsın", "merhaba nasılsın", "selam nasılsın"),
+        "how_are_you",
+    ),
+    **dict.fromkeys(("naber", "how are you"), "how_are_you"),
+    **dict.fromkeys(
+        ("teşekkürler", "teşekkür ederim", "sağ ol", "sağol", "sağ olun", "eyvallah"), "thanks"
+    ),
+    **dict.fromkeys(("thanks", "thank you"), "thanks"),
+    **dict.fromkeys(
+        ("görüşürüz", "hoşça kal", "hoşça kalın", "iyi çalışmalar", "bye", "goodbye"), "goodbye"
+    ),
+}
+
+
+def _common_small_talk(question: str) -> Intent | None:
+    """Sık selamlar modele sorulmaz: anında ve her seferinde aynı tanınır."""
+    return _COMMON_SMALL_TALK.get(normalize(question).strip(" .,!?…"))
 
 
 def _build_inventory(state: AskState, deps: AskDeps) -> Inventory:
@@ -56,8 +81,13 @@ def _result_for(intent: Intent, state: AskState, deps: AskDeps) -> AskResult | N
 
 
 async def _classified(state: AskState, deps: AskDeps) -> Intent:
+    if state.request.doc_ids:
+        return "question"
+    common = _common_small_talk(state.question)
+    if common is not None:
+        return common
     classifier = deps.intent_classifier
-    if classifier is None or state.request.doc_ids or identifiers_in(state.question):
+    if classifier is None or identifiers_in(state.question):
         return "question"
     try:
         return await asyncio.wait_for(classifier(state.question), deps.intent_limit_seconds)

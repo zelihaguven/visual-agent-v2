@@ -9,7 +9,7 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 
 ## Ses
 
-- Gerçek mikrofon, hoparlör yankısı ve atölye gürültüsünde sesle söz kesme eşiği ayarlanacak.
+- Sesle söz kesme bilgisayarda hoparlörle çalıştı; atölye gürültüsünde ve tablette eşik yeniden denenecek.
 - Söylenen kodlar yazıya çevrilirken bozulabiliyor ("PNT-1162" yerine "NT1162"). Konuşma modunda soru otomatik gönderildiği için gerçek konuşmacıyla ölçülecek.
 - Tablet Safari'de otomatik ses çalma denenmedi.
 - Ağdaki tabletlerden mikrofon için HTTPS gerekiyor.

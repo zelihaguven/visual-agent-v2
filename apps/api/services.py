@@ -1,6 +1,7 @@
 """Gerçek bağımlılıkları kurar: Postgres, Qdrant, modeller ve OpenRouter."""
 
 import asyncio
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -32,6 +33,8 @@ from visual_agent.retrieval.hybrid import HybridRetriever
 from visual_agent.retrieval.qdrant_store import QdrantChunkStore
 from visual_agent.settings import Settings
 from visual_agent.voice.client import CachingVoice, OpenRouterVoice, Voice
+
+logger = logging.getLogger(__name__)
 
 COLLECTION = "documents"
 _MISSING_KEY = "Cevap servisi yapılandırılmamış. OpenRouter anahtarını ekleyin."
@@ -112,6 +115,16 @@ class AskRuntime:
                 self._clients = await self._build_clients(api_key)
             return self._clients
 
+    async def warm_up(self) -> None:
+        """Ağır modeller açılışta yüklenir; ilk soru, selam bile olsa, beklemez."""
+        key = self._settings.openrouter_api_key
+        if key is None or not key.get_secret_value():
+            return
+        try:
+            await self._ensure_clients(key.get_secret_value())
+        except Exception:
+            logger.warning("Modeller açılışta yüklenemedi; ilk soruda denenecek", exc_info=True)
+
     async def ask(self, request: AskRequest) -> AskOutcome:
         key = self._settings.openrouter_api_key
         if key is None or not key.get_secret_value():
@@ -160,6 +173,7 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
         runtime = AskRuntime(
             settings, http, QdrantChunkStore(qdrant, COLLECTION), SnapshotProvider(repository)
         )
+        warm_up = asyncio.create_task(runtime.warm_up())
         try:
             yield ApiServices(
                 repository=repository,
@@ -168,5 +182,6 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
                 voice=_make_voice(settings, http),
             )
         finally:
+            warm_up.cancel()
             await qdrant.close()
             await pool.close()
