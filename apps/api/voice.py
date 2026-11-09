@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from visual_agent.ask.intent import SMALL_TALK_REPLIES
 from visual_agent.ask.language import detect_language
-from visual_agent.ask.streaming import Event
+from visual_agent.ask.streaming import INCOMPLETE_MESSAGE, Event
 from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.result import (
     Answered,
@@ -50,12 +50,18 @@ _NOTICES = {
         ),
         "failed": "Cevap doğrulanamadı, ekrana bakın.",
         "partial": "Bazı değerler doğrulanamadı, ekrana bakın.",
+        "from_ocr": "Bu cevap görsel ya da taramadan okundu, kaynağı ekrandan kontrol edin.",
+        "incomplete": "Cevap tamamlanamadı, ekrana bakın.",
     },
     "en": {
         "clarify": "I need to clarify something, please check the screen.",
         "not_found": "Not found in the documents. Tell me a model or topic and I can help.",
         "failed": "The answer could not be verified, please check the screen.",
         "partial": "Some values could not be verified, please check the screen.",
+        "from_ocr": (
+            "This answer was read from an image or scan, please check the source on screen."
+        ),
+        "incomplete": "The answer could not be completed, please check the screen.",
     },
 }
 
@@ -125,9 +131,20 @@ def _inventory_summary(result: Inventory, language: str) -> str:
     return f"{held}, liste ekranda. Hangisini soruyorsunuz?"
 
 
+def _answered_notice_key(result: Answered) -> str | None:
+    if result.status is VerificationStatus.VERIFIED:
+        return None
+    if result.status is VerificationStatus.PARTIAL:
+        if INCOMPLETE_MESSAGE in result.problems:
+            return "incomplete"
+        if any(item.from_figure for item in result.items):
+            return "from_ocr"
+    return "partial"
+
+
 def _notice_key(result: AskResult) -> str | None:
     if isinstance(result, Answered):
-        return None if result.status is VerificationStatus.VERIFIED else "partial"
+        return _answered_notice_key(result)
     if isinstance(result, Clarify):
         return "clarify"
     return "not_found" if isinstance(result, NotFound) else "failed"

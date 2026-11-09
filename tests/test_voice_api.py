@@ -16,8 +16,17 @@ from apps.api.main import ApiServices, create_app
 from apps.api.voice import GREETING, MAX_AUDIO_BYTES, fixed_reply_texts
 from tests.test_api_documents import FakeRepository, _events
 from visual_agent.ask.deps import AskRequest
+from visual_agent.ask.streaming import INCOMPLETE_MESSAGE
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.result import Answered, AskOutcome, AskResult, Clarify, Failed, NotFound
+from visual_agent.domain.result import (
+    Answered,
+    AnsweredItem,
+    AskOutcome,
+    AskResult,
+    Clarify,
+    Failed,
+    NotFound,
+)
 from visual_agent.settings import Settings
 from visual_agent.voice.client import CachingVoice, OpenRouterVoice, Speech
 
@@ -57,6 +66,7 @@ def verified(index: int, text: str, has_code: bool = False) -> dict[str, object]
 
 UNVERIFIED = {"type": "item_unverified", "index": 1, "message": "yok", "source_numbers": []}
 ANSWERED = Answered(status=VerificationStatus.VERIFIED, items=())
+OCR_ITEM = AnsweredItem(text="Limit 386.", citations=(), verified=True, from_figure=True)
 
 
 def make_client(
@@ -140,6 +150,22 @@ def test_command_is_not_read_aloud(tmp_path: Path) -> None:
             Answered(status=VerificationStatus.PARTIAL, items=()),
             "Bazı değerler doğrulanamadı, ekrana bakın.",
         ),
+        (
+            Answered(status=VerificationStatus.FAILED, items=(OCR_ITEM,)),
+            "Bazı değerler doğrulanamadı, ekrana bakın.",
+        ),
+        (
+            Answered(status=VerificationStatus.PARTIAL, items=(OCR_ITEM,)),
+            "Bu cevap görsel ya da taramadan okundu, kaynağı ekrandan kontrol edin.",
+        ),
+        (
+            Answered(
+                status=VerificationStatus.PARTIAL,
+                items=(OCR_ITEM,),
+                problems=(INCOMPLETE_MESSAGE,),
+            ),
+            "Cevap tamamlanamadı, ekrana bakın.",
+        ),
     ],
 )
 def test_unverified_outcomes_read_a_fixed_notice(
@@ -148,6 +174,30 @@ def test_unverified_outcomes_read_a_fixed_notice(
     voice = FakeVoice()
 
     ask_events(make_client(tmp_path, voice, [], result))
+
+    assert voice.spoken == [expected]
+
+
+@pytest.mark.parametrize(
+    ("result", "expected"),
+    [
+        (
+            Answered(status=VerificationStatus.PARTIAL, items=(OCR_ITEM,)),
+            "This answer was read from an image or scan, please check the source on screen.",
+        ),
+        (
+            Answered(status=VerificationStatus.PARTIAL, items=(), problems=(INCOMPLETE_MESSAGE,)),
+            "The answer could not be completed, please check the screen.",
+        ),
+    ],
+)
+def test_partial_notice_follows_the_question_language(
+    tmp_path: Path, result: AskResult, expected: str
+) -> None:
+    voice = FakeVoice()
+    client = make_client(tmp_path, voice, [], result)
+
+    client.post("/api/ask", json={"question": "What is the waist?", "speak": True})
 
     assert voice.spoken == [expected]
 
