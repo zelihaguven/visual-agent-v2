@@ -29,6 +29,7 @@ from visual_agent.generation.translate import Translator, make_translator
 from visual_agent.retrieval.hybrid import HybridRetriever
 from visual_agent.retrieval.qdrant_store import QdrantChunkStore
 from visual_agent.settings import Settings
+from visual_agent.voice.client import OpenRouterVoice, Voice
 
 COLLECTION = "documents"
 _MISSING_KEY = "Cevap servisi yapılandırılmamış. OpenRouter anahtarını ekleyin."
@@ -125,6 +126,22 @@ class AskRuntime:
         return await answer_question(request, deps)
 
 
+def _make_voice(settings: Settings, http: httpx.AsyncClient) -> Voice | None:
+    key = settings.openrouter_api_key
+    if key is None or not key.get_secret_value():
+        return None
+    return OpenRouterVoice(
+        http=http,
+        base_url=str(settings.openrouter_url).rstrip("/"),
+        api_key=key.get_secret_value(),
+        stt_model=settings.stt_model,
+        stt_language=settings.stt_language,
+        tts_model=settings.tts_model,
+        tts_voice=settings.tts_voice,
+        tts_format=settings.tts_format,
+    )
+
+
 @asynccontextmanager
 async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
     pool = await asyncpg.create_pool(str(settings.database_url))
@@ -138,7 +155,12 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
             settings, http, QdrantChunkStore(qdrant, COLLECTION), SnapshotProvider(repository)
         )
         try:
-            yield ApiServices(repository=repository, ask=runtime.ask, storage_directory=storage)
+            yield ApiServices(
+                repository=repository,
+                ask=runtime.ask,
+                storage_directory=storage,
+                voice=_make_voice(settings, http),
+            )
         finally:
             await qdrant.close()
             await pool.close()

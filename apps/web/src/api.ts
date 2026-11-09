@@ -49,7 +49,10 @@ export type AskEvent =
       text: string;
       source_numbers: number[];
       from_figure: boolean;
+      has_code: boolean;
     }
+  | { type: "item_audio"; index: number; audio: string; mime: string }
+  | { type: "audio_unavailable" }
   | { type: "item_unverified"; index: number; message: string; source_numbers: number[] }
   | { type: "reset" }
   | { type: "incomplete"; message: string }
@@ -97,6 +100,7 @@ export async function askQuestion(
   question: string,
   docIds: string[] | null,
   context: ConversationContext | null,
+  speak: boolean,
   onEvent: (event: AskEvent) => void,
 ): Promise<void> {
   const response = await fetch("/api/ask", {
@@ -106,6 +110,7 @@ export async function askQuestion(
       question,
       ...(docIds ? { doc_ids: docIds } : {}),
       ...(context ? { context } : {}),
+      ...(speak ? { speak } : {}),
     }),
   });
   if (!response.ok || response.body === null) {
@@ -162,4 +167,14 @@ export async function fetchSource(chunkId: string): Promise<SourceView> {
     throw new Error(await readError(response));
   }
   return (await response.json()) as SourceView;
+}
+
+export async function transcribeAudio(audio: Blob): Promise<string> {
+  const form = new FormData();
+  form.append("file", audio, "kayit");
+  const response = await fetch("/api/transcribe", { method: "POST", body: form });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return ((await response.json()) as { text: string }).text;
 }

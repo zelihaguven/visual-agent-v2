@@ -2,7 +2,9 @@
 
 Önceden yüklenmiş belgelere yazarak ya da konuşarak soru sorulan, her cevabı kaynağıyla gösteren web aracı.
 
-Durum: belge yükleme, işleme, kaynaklı soru-cevap, sohbet bağlamı ve web arayüzü çalışıyor (A0–A6). Ses ve giriş henüz yok.
+Durum: belge yükleme, işleme, kaynaklı soru-cevap, sohbet bağlamı, ses ve web arayüzü çalışıyor (A0–A7). Giriş henüz yok.
+
+Mikrofon tarayıcıda yalnız `localhost` ya da HTTPS üzerinden açılır. Ağdaki tabletlerden kullanmak için uygulama HTTPS arkasında yayınlanmalıdır. Ses yalnız bellekte işlenir, diske yazılmaz; konuşma modelleri `VA_STT_MODEL`, `VA_TTS_MODEL` ve `VA_TTS_VOICE` ile değiştirilir.
 
 ## Çalıştırma
 

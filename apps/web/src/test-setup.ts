@@ -6,3 +6,6 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
 });
+
+window.HTMLMediaElement.prototype.play = async () => undefined;
+window.HTMLMediaElement.prototype.pause = () => undefined;

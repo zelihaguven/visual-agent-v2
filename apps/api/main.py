@@ -16,7 +16,9 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
 from apps.api.preview import render_highlighted_page
+from apps.api.voice import SpokenAnswer, voice_router
 from visual_agent.ask.deps import AskRequest
+from visual_agent.ask.language import detect_language
 from visual_agent.ask.streaming import Event
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
 from visual_agent.domain.conversation import MAX_QUESTION_CHARS, ConversationContext
@@ -30,6 +32,7 @@ from visual_agent.domain.result import (
 )
 from visual_agent.ingest.formats import UnsupportedFormat, detect_format
 from visual_agent.settings import Settings
+from visual_agent.voice.client import Voice
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +60,7 @@ class ApiServices:
     repository: Repository
     ask: Callable[[AskRequest], Awaitable[AskOutcome]]
     storage_directory: Path
+    voice: Voice | None = None
 
 
 class HealthResponse(BaseModel):
@@ -68,6 +72,7 @@ class AskBody(BaseModel):
     question: str = Field(max_length=MAX_QUESTION_CHARS)
     doc_ids: tuple[str, ...] | None = None
     context: ConversationContext | None = None
+    speak: bool = False
 
     @field_validator("question")
     @classmethod
@@ -115,6 +120,12 @@ def _sse(event: Event) -> str:
 async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterator[str]:
     """Soru hattının olaylarını üretildikleri anda istemciye taşır."""
     queue: asyncio.Queue[Event] = asyncio.Queue()
+    spoken = (
+        SpokenAnswer(services.voice, queue.put_nowait, detect_language(request.question))
+        if request.speak and services.voice is not None
+        else None
+    )
+    sink = spoken.on_event if spoken is not None else queue.put_nowait
 
     async def run() -> None:
         try:
@@ -123,7 +134,7 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
                     question=request.question,
                     doc_ids=request.doc_ids,
                     context=request.context,
-                    on_event=queue.put_nowait,
+                    on_event=sink,
                 )
             )
             queue.put_nowait(
@@ -138,6 +149,9 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
                     else None,
                 }
             )
+            if spoken is not None:
+                spoken.announce(outcome.result)
+                await spoken.finish()
         except Exception:
             logger.exception("Soru cevaplanamadı")
             queue.put_nowait({"type": "error", "message": _GENERIC_ERROR})
@@ -150,6 +164,8 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
             yield _sse(event)
     finally:
         task.cancel()
+        if spoken is not None:
+            spoken.cancel()
 
 
 async def _save_upload(file: UploadFile, target: Path) -> None:
@@ -305,4 +321,7 @@ def create_app(settings: Settings | None = None, services: ApiServices | None = 
     app.state.services = services
     app.include_router(_health_router(resolved))
     app.include_router(_document_router(app))
+    app.include_router(
+        voice_router(lambda: app.state.services.voice if app.state.services else None)
+    )
     return app

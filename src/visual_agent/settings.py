@@ -1,6 +1,6 @@
 """Uygulamanın tek ayar nesnesi: başlangıçta doğrulanır, sonra değişmez."""
 
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import AnyHttpUrl, Field, PostgresDsn, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     stream_runaway_limit: int = Field(default=40, gt=0)
     translation_model: str = "google/gemma-4-26b-a4b-it"
     translation_providers: tuple[str, ...] = ("nextbit", "venice")
+    stt_model: str = "elevenlabs/scribe-v2"
+    stt_language: str = "tr"
+    tts_model: str = "elevenlabs/eleven-turbo-v2.5"
+    tts_voice: str = "21m00Tcm4TlvDq8ikWAM"
+    tts_format: Literal["mp3", "pcm"] = "mp3"
 
     @model_validator(mode="after")
     def reject_unimplemented_login(self) -> Self:

@@ -42,6 +42,21 @@ def _code_source(item: ModelItem, sources: Sources) -> PromptSource | None:
     return source if source is not None and source.is_code else None
 
 
+def code_source_number(item: ModelItem, sources: Sources) -> int | None:
+    """Komutun gösterileceği kaynak: açık referans ya da komutun tamamını kapsayan alıntı."""
+    if item.code_source_no is not None:
+        return item.code_source_no
+    for quote in item.quotes:
+        source = sources.get(quote.source_no)
+        if (
+            source is not None
+            and source.is_code
+            and normalize(quote.text) == normalize(source.text)
+        ):
+            return quote.source_no
+    return None
+
+
 def _ocr_problems(item: ModelItem, sources: Sources) -> list[str]:
     uncertain = []
     for quote in item.quotes:

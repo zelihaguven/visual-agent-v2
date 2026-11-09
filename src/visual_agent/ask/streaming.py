@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pydantic import ValidationError
 
 from visual_agent.domain.answer import ItemCheck, ModelItem, PromptSource
-from visual_agent.verification.answer import verify_item
+from visual_agent.verification.answer import code_source_number, verify_item
 from visual_agent.verification.text import identifier_spans
 
 Event = dict[str, object]
@@ -289,6 +289,7 @@ class StreamAssembler:
                         "text": item.text,
                         "source_numbers": list(check.source_numbers),
                         "from_figure": check.from_figure,
+                        "has_code": code_source_number(item, self._sources) is not None,
                     }
                 )
             else:

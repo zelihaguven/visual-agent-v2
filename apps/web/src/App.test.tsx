@@ -76,7 +76,7 @@ describe("applyEvent", () => {
       index: 0,
       text: "İç paça 76,5 cm.",
       source_numbers: [1],
-      from_figure: false,
+      from_figure: false, has_code: false,
     });
 
     expect(turn.items[0]).toMatchObject({ state: "verified", text: "İç paça 76,5 cm." });
@@ -89,7 +89,7 @@ describe("applyEvent", () => {
       index: 0,
       text: "76,5",
       source_numbers: [],
-      from_figure: false,
+      from_figure: false, has_code: false,
     });
     turn = applyEvent(turn, { type: "item_stream", index: 0, text: "▒▒▒" });
 
@@ -125,7 +125,7 @@ describe("App", () => {
             index: 0,
             text: "İç paça 76,5 cm.",
             source_numbers: [1],
-            from_figure: false,
+            from_figure: false, has_code: false,
           },
           answered,
         ]),
@@ -370,5 +370,111 @@ describe("App", () => {
     await ask("komut ne");
 
     expect(await screen.findAllByText(command)).toHaveLength(1);
+  });
+
+  it("asks for spoken answers only when the speaker is on and plays each sentence", async () => {
+    URL.createObjectURL = vi.fn(() => "blob:ses");
+    URL.revokeObjectURL = vi.fn();
+    const play = vi.spyOn(window.HTMLMediaElement.prototype, "play");
+    const fetchMock = stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": (_url, init) =>
+        sse([
+          ...(String(init?.body).includes('"speak"')
+            ? [{ type: "item_audio", index: 0, audio: btoa("ses"), mime: "audio/mpeg" }]
+            : []),
+          answered,
+        ]),
+    });
+    render(<App />);
+    await ask("birinci");
+    await screen.findByText("İç paça 76,5 cm.");
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Sesli cevap" }));
+    await ask("ikinci");
+
+    await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalledTimes(1));
+    const bodies = fetchMock.mock.calls
+      .filter(([url]) => String(url) === "/api/ask")
+      .map(([, init]) => JSON.parse(String(init?.body)));
+    expect(bodies).toEqual([{ question: "birinci" }, { question: "ikinci", speak: true }]);
+    expect(play).toHaveBeenCalled();
+    play.mockRestore();
+  });
+
+  it("tells the user when speech is unavailable and keeps the answer", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([{ type: "audio_unavailable" }, answered]),
+    });
+    render(<App />);
+    await ask("soru");
+
+    expect(await screen.findByText("İç paça 76,5 cm.")).toBeInTheDocument();
+    expect(screen.getByText(/Sesli okuma şu an kullanılamıyor/)).toBeInTheDocument();
+  });
+
+  describe("microphone", () => {
+    function stubRecorder() {
+      const stopTrack = vi.fn();
+      class FakeRecorder {
+        mimeType = "audio/webm";
+        ondataavailable: ((event: { data: Blob }) => void) | null = null;
+        onstop: (() => void) | null = null;
+        start() {}
+        stop() {
+          this.ondataavailable?.({ data: new Blob(["ses"], { type: "audio/webm" }) });
+          this.onstop?.();
+        }
+      }
+      vi.stubGlobal("MediaRecorder", FakeRecorder);
+      Object.defineProperty(navigator, "mediaDevices", {
+        configurable: true,
+        value: {
+          getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: stopTrack }] })),
+        },
+      });
+      return stopTrack;
+    }
+
+    it("puts the transcript in the box and does not send it", async () => {
+      const stopTrack = stubRecorder();
+      const fetchMock = stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/transcribe": () => jsonResponse({ text: "NT1162 bel kaç" }),
+      });
+      render(<App />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Konuşarak sor" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Kaydı bitir" }));
+
+      await waitFor(() => expect(screen.getByLabelText("Sorunuz")).toHaveValue("NT1162 bel kaç"));
+      expect(stopTrack).toHaveBeenCalled();
+      expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/ask")).toBe(false);
+    });
+
+    it("explains a failed transcription", async () => {
+      stubRecorder();
+      stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/transcribe": () => jsonResponse({ detail: "x" }, 502),
+      });
+      render(<App />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Konuşarak sor" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Kaydı bitir" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent("yazıya çevrilemedi");
+    });
+
+    it("hides the button where the browser cannot record", async () => {
+      vi.stubGlobal("MediaRecorder", undefined);
+      stubApi({ "/api/documents": () => jsonResponse([]) });
+      render(<App />);
+
+      expect(await screen.findByRole("button", { name: "Sesli cevap" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Konuşarak sor" })).not.toBeInTheDocument();
+    });
   });
 });

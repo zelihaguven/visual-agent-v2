@@ -31,8 +31,8 @@ from visual_agent.domain.result import (
 from visual_agent.generation.openrouter import ServiceUnavailable, StreamCallbacks
 from visual_agent.generation.parse import ParseFailure, parse_answer
 from visual_agent.generation.sources import build_user_message, to_prompt_sources
-from visual_agent.verification.answer import verify_answer
-from visual_agent.verification.text import identifiers_in, normalize
+from visual_agent.verification.answer import code_source_number, verify_answer
+from visual_agent.verification.text import identifiers_in
 
 logger = logging.getLogger(__name__)
 
@@ -216,24 +216,10 @@ def _hit_at(number: int, hits: Sequence[Hit]) -> Hit | None:
     return hits[number - 1] if 1 <= number <= len(hits) else None
 
 
-def _code_hit(item: ModelItem, hits: Sequence[Hit]) -> Hit | None:
-    """Model komutu baştan sona alıntıladıysa komut yine kaynaktan gösterilir."""
-    if item.code_source_no is not None:
-        return _hit_at(item.code_source_no, hits)
-    for quote in item.quotes:
-        hit = _hit_at(quote.source_no, hits)
-        if (
-            hit is not None
-            and hit.chunk.kind is ChunkKind.CODE
-            and normalize(quote.text) == normalize(hit.chunk.text)
-        ):
-            return hit
-    return None
-
-
 def _answered_item(item: ModelItem, check: ItemCheck, hits: Sequence[Hit]) -> AnsweredItem:
     numbers = [n for n in check.source_numbers if 1 <= n <= len(hits)]
-    code_hit = _code_hit(item, hits)
+    number = code_source_number(item, to_prompt_sources(hits))
+    code_hit = _hit_at(number, hits) if number is not None else None
     return AnsweredItem(
         text=item.text,
         citations=tuple(_citation(hits[number - 1]) for number in dict.fromkeys(numbers)),

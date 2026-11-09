@@ -75,6 +75,10 @@ export function applyEvent(turn: Turn, event: AskEvent): Turn {
         sourceNumbers: event.source_numbers,
         fromFigure: false,
       });
+    case "item_audio":
+      return turn;
+    case "audio_unavailable":
+      return { ...turn, notice: "Sesli okuma şu an kullanılamıyor; cevap ekranda." };
     case "reset":
       return { ...turn, items: {} };
     case "incomplete":
