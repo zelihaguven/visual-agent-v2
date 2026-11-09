@@ -7,8 +7,9 @@ from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from visual_agent.ask.language import detect_language
 from visual_agent.ask.streaming import Event
 from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.result import Answered, AskResult, Clarify, NotFound
@@ -28,6 +29,8 @@ _AUDIO_FORMATS = {
     "audio/wav": "wav",
     "audio/x-wav": "wav",
 }
+_MAX_SPOKEN_ITEMS = 20
+_MAX_SPOKEN_CHARS = 2000
 _NOTICE_INDEX = -1
 GREETING = "Merhaba, hoş geldiniz. Sorunuzu sorabilirsiniz."
 _WAITING = ("Bir saniye, bakıyorum.", "Hemen kontrol ediyorum.")
@@ -59,6 +62,19 @@ class PhraseAudio(BaseModel):
 class PhrasesResponse(BaseModel):
     greeting: PhraseAudio
     waiting: list[PhraseAudio]
+
+
+class SpeakItem(BaseModel):
+    text: str = Field(min_length=1, max_length=_MAX_SPOKEN_CHARS)
+    has_code: bool = False
+
+
+class SpeakBody(BaseModel):
+    items: list[SpeakItem] = Field(min_length=1, max_length=_MAX_SPOKEN_ITEMS)
+
+
+class SpeakResponse(BaseModel):
+    audios: list[PhraseAudio]
 
 
 def _phrase(speech: Speech) -> PhraseAudio:
@@ -110,7 +126,10 @@ class SpokenAnswer:
             self._speak(int(str(event["index"])), text)
 
     def announce(self, result: AskResult) -> None:
-        """Doğrulanmamış sonuçlarda model metni değil, sabit bir bildirim okunur."""
+        """Değer içermeyen netleştirme sorusu okunur; diğer durumlarda sabit bildirim."""
+        if isinstance(result, Clarify) and not any(c.isdigit() for c in result.question):
+            self._speak(_NOTICE_INDEX, spoken_text(result.question, self._language))
+            return
         key = _notice_key(result)
         if key is not None:
             notices = _NOTICES.get(self._language, _NOTICES["tr"])
@@ -153,32 +172,54 @@ def _audio_format(content_type: str | None) -> str:
     return audio_format
 
 
+def _available(voice: Voice | None) -> Voice:
+    if voice is None:
+        raise HTTPException(status_code=503, detail="Ses servisi yapılandırılmamış.")
+    return voice
+
+
 def voice_router(dependency: Callable[[], Voice | None]) -> APIRouter:
     router = APIRouter(prefix="/api")
     phrases = PhraseCache()
 
     @router.get("/voice/phrases", response_model=PhrasesResponse)
     async def ready_phrases(voice: Annotated[Voice | None, Depends(dependency)]) -> PhrasesResponse:
-        if voice is None:
-            raise HTTPException(status_code=503, detail="Ses servisi yapılandırılmamış.")
+        service = _available(voice)
         try:
-            return await phrases.get(voice)
+            return await phrases.get(service)
         except Exception as error:
             logger.warning("Hazır cümleler üretilemedi", exc_info=True)
             raise HTTPException(status_code=502, detail="Sesler hazırlanamadı.") from error
+
+    @router.post("/speak", response_model=SpeakResponse)
+    async def speak(
+        body: SpeakBody, voice: Annotated[Voice | None, Depends(dependency)]
+    ) -> SpeakResponse:
+        service = _available(voice)
+        language = detect_language(" ".join(item.text for item in body.items))
+        try:
+            speeches = await asyncio.gather(
+                *(
+                    service.synthesize(spoken_text(item.text, language, has_code=item.has_code))
+                    for item in body.items
+                )
+            )
+        except Exception as error:
+            logger.warning("Cevap seslendirilemedi", exc_info=True)
+            raise HTTPException(status_code=502, detail="Cevap seslendirilemedi.") from error
+        return SpeakResponse(audios=[_phrase(speech) for speech in speeches])
 
     @router.post("/transcribe", response_model=TranscriptResponse)
     async def transcribe(
         file: UploadFile, voice: Annotated[Voice | None, Depends(dependency)]
     ) -> TranscriptResponse:
-        if voice is None:
-            raise HTTPException(status_code=503, detail="Ses servisi yapılandırılmamış.")
+        service = _available(voice)
         audio_format = _audio_format(file.content_type)
         audio = await file.read(MAX_AUDIO_BYTES + 1)
         if len(audio) > MAX_AUDIO_BYTES:
             raise HTTPException(status_code=413, detail="Kayıt çok uzun.")
         try:
-            return TranscriptResponse(text=await voice.transcribe(audio, audio_format))
+            return TranscriptResponse(text=await service.transcribe(audio, audio_format))
         except Exception as error:
             logger.warning("Ses yazıya çevrilemedi", exc_info=True)
             raise HTTPException(status_code=502, detail="Ses yazıya çevrilemedi.") from error

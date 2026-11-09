@@ -1,8 +1,20 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 import { applyEvent, newTurn } from "./turn";
+
+const listening = vi.hoisted(() => ({
+  open: vi.fn(),
+  listen: vi.fn(),
+  close: vi.fn(),
+}));
+
+vi.mock("./listening", async (original) => ({
+  ...(await original<typeof import("./listening")>()),
+  openMicrophone: listening.open,
+  listenForUtterance: listening.listen,
+}));
 
 const CITATION = {
   chunk_id: "d1:0",
@@ -33,6 +45,28 @@ function stubApi(routes: Record<string, Route>) {
   });
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
+}
+
+function stubBrowserRecording() {
+  const stopTrack = vi.fn();
+  class FakeRecorder {
+    mimeType = "audio/webm";
+    ondataavailable: ((event: { data: Blob }) => void) | null = null;
+    onstop: (() => void) | null = null;
+    start() {}
+    stop() {
+      this.ondataavailable?.({ data: new Blob(["ses"], { type: "audio/webm" }) });
+      this.onstop?.();
+    }
+  }
+  vi.stubGlobal("MediaRecorder", FakeRecorder);
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: {
+      getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: stopTrack }] })),
+    },
+  });
+  return stopTrack;
 }
 
 const answered = {
@@ -372,35 +406,62 @@ describe("App", () => {
     expect(await screen.findAllByText(command)).toHaveLength(1);
   });
 
-  it("asks for spoken answers only when the speaker is on and plays each sentence", async () => {
+  it("reads an answer aloud from the button beside it and stops on a second press", async () => {
     URL.createObjectURL = vi.fn(() => "blob:ses");
     URL.revokeObjectURL = vi.fn();
-    const play = vi.spyOn(window.HTMLMediaElement.prototype, "play");
+    const pause = vi.spyOn(window.HTMLMediaElement.prototype, "pause");
     const fetchMock = stubApi({
       "/api/documents": () => jsonResponse([]),
-      "/api/ask": (_url, init) =>
-        sse([
-          ...(String(init?.body).includes('"speak"')
-            ? [{ type: "item_audio", index: 0, audio: btoa("ses"), mime: "audio/mpeg" }]
-            : []),
-          answered,
-        ]),
+      "/api/ask": () => sse([answered]),
+      "/api/speak": () => jsonResponse({ audios: [{ audio: btoa("ses"), mime: "audio/wav" }] }),
     });
     render(<App />);
-    await ask("birinci");
-    await screen.findByText("İç paça 76,5 cm.");
-    expect(URL.createObjectURL).not.toHaveBeenCalled();
+    await ask("soru");
 
-    fireEvent.click(screen.getByRole("button", { name: "Sesli cevap" }));
-    await ask("ikinci");
+    fireEvent.click(await screen.findByRole("button", { name: "Cevabı seslendir" }));
 
-    await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalledTimes(1));
-    const bodies = fetchMock.mock.calls
-      .filter(([url]) => String(url) === "/api/ask")
-      .map(([, init]) => JSON.parse(String(init?.body)));
-    expect(bodies).toEqual([{ question: "birinci" }, { question: "ikinci", speak: true }]);
-    expect(play).toHaveBeenCalled();
-    play.mockRestore();
+    const stop = await screen.findByRole("button", { name: "Seslendirmeyi durdur" });
+    const body = fetchMock.mock.calls.find(([url]) => String(url) === "/api/speak")?.[1]?.body;
+    expect(JSON.parse(String(body))).toEqual({
+      items: [{ text: "İç paça 76,5 cm.", has_code: false }],
+    });
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+
+    pause.mockClear();
+    fireEvent.click(stop);
+
+    expect(await screen.findByRole("button", { name: "Cevabı seslendir" })).toBeInTheDocument();
+    expect(pause).toHaveBeenCalled();
+    pause.mockRestore();
+  });
+
+  it("offers no read-aloud when nothing was verified", async () => {
+    const item = { ...answered.result.items[0], verified: false };
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([{ ...answered, result: { ...answered.result, status: "failed", items: [item] } }]),
+    });
+    render(<App />);
+    await ask("soru");
+
+    await screen.findByText("Doğrulanamadı");
+    expect(screen.queryByRole("button", { name: "Cevabı seslendir" })).not.toBeInTheDocument();
+  });
+
+  it("explains a failed read-aloud", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([answered]),
+      "/api/speak": () => jsonResponse({ detail: "x" }, 502),
+    });
+    render(<App />);
+    await ask("soru");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Cevabı seslendir" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("seslendirilemedi");
+    expect(await screen.findByRole("button", { name: "Cevabı seslendir" })).toBeEnabled();
   });
 
   it("tells the user when speech is unavailable and keeps the answer", async () => {
@@ -415,97 +476,164 @@ describe("App", () => {
     expect(screen.getByText(/Sesli okuma şu an kullanılamıyor/)).toBeInTheDocument();
   });
 
-  describe("ready phrases", () => {
+  describe("conversation mode", () => {
     const phrase = (name: string) => ({ audio: btoa(name), mime: "audio/wav" });
-    const PHRASES = { greeting: phrase("merhaba"), waiting: [phrase("bir"), phrase("hemen")] };
+    const PHRASES = { greeting: phrase("merhaba"), waiting: [phrase("bir")] };
+    const NEXT = { question: "Tam soru?", doc_ids: ["d1"], titles: ["Föy"] };
 
-    function played() {
-      const create = vi.fn((blob: Blob) => `blob:${blob.size}`);
-      URL.createObjectURL = create as typeof URL.createObjectURL;
+    function stubAudio(endsByItself = true) {
+      const create = vi.fn(() => "blob:ses");
+      URL.createObjectURL = create as unknown as typeof URL.createObjectURL;
       URL.revokeObjectURL = vi.fn();
+      vi.spyOn(window.HTMLMediaElement.prototype, "play").mockImplementation(async function (
+        this: HTMLMediaElement,
+      ) {
+        if (endsByItself) {
+          setTimeout(() => this.onended?.(new Event("ended")));
+        }
+      });
       return create;
     }
 
-    it("greets once when spoken answers are turned on", async () => {
-      const create = played();
-      const fetchMock = stubApi({
-        "/api/documents": () => jsonResponse([]),
-        "/api/voice/phrases": () => jsonResponse(PHRASES),
-      });
+    function hearInTurn(...recordings: string[]) {
+      const queue = [...recordings];
+      listening.listen.mockImplementation(
+        (_mic: unknown, _level: unknown, signal: AbortSignal) =>
+          new Promise((resolve) => {
+            const next = queue.shift();
+            if (next !== undefined) {
+              resolve(new Blob([next], { type: "audio/webm" }));
+            } else {
+              signal.addEventListener("abort", () => resolve(null));
+            }
+          }),
+      );
+    }
+
+    const askBodiesOf = (fetchMock: ReturnType<typeof stubApi>) =>
+      fetchMock.mock.calls
+        .filter(([url]) => String(url) === "/api/ask")
+        .map(([, init]) => JSON.parse(String(init?.body)));
+
+    async function open(fetchMock: ReturnType<typeof stubApi>) {
       render(<App />);
       await waitFor(() =>
         expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/voice/phrases")).toBe(true),
       );
       await new Promise((resolve) => setTimeout(resolve));
-      const speaker = screen.getByRole("button", { name: "Sesli cevap" });
+      fireEvent.click(screen.getByRole("button", { name: "Konuşma modu" }));
+    }
 
-      fireEvent.click(speaker);
-      fireEvent.click(speaker);
-      fireEvent.click(speaker);
-
-      expect(create).toHaveBeenCalledTimes(1);
-    });
-
-    it("plays a waiting phrase as soon as a question is sent", async () => {
-      const create = played();
-      stubApi({
+    function conversationApi(transcripts: string[]) {
+      const queue = [...transcripts];
+      return stubApi({
         "/api/documents": () => jsonResponse([]),
         "/api/voice/phrases": () => jsonResponse(PHRASES),
-        "/api/ask": () => sse([answered]),
+        "/api/transcribe": () => jsonResponse({ text: queue.shift() ?? "" }),
+        "/api/ask": () =>
+          sse([
+            { type: "item_audio", index: 0, audio: btoa("ses"), mime: "audio/wav" },
+            { ...answered, context: NEXT },
+          ]),
       });
-      render(<App />);
-      await new Promise((resolve) => setTimeout(resolve, 10));
-      fireEvent.click(screen.getByRole("button", { name: "Sesli cevap" }));
-      create.mockClear();
+    }
 
-      await ask("soru");
+    beforeEach(() => {
+      stubBrowserRecording();
+      listening.close.mockClear();
+      listening.open.mockReset();
+      listening.open.mockResolvedValue({ stream: {}, level: () => 0, close: listening.close });
+      listening.listen.mockReset();
+    });
 
-      await screen.findByText("İç paça 76,5 cm.");
+    it("hears, asks by itself with speech on, answers and listens again", async () => {
+      stubAudio();
+      hearInTurn("birinci", "ikinci");
+      const fetchMock = conversationApi(["PNT-1162 bel kaç", "peki dış paça"]);
+
+      await open(fetchMock);
+
+      await waitFor(() => expect(askBodiesOf(fetchMock)).toHaveLength(2));
+      expect(askBodiesOf(fetchMock)).toEqual([
+        { question: "PNT-1162 bel kaç", speak: true },
+        { question: "peki dış paça", speak: true, context: NEXT },
+      ]);
+      await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(3));
+      expect(await screen.findByText("Dinliyorum")).toBeInTheDocument();
+    });
+
+    it("greets only the first time and releases the microphone when finished", async () => {
+      const create = stubAudio();
+      hearInTurn();
+      const fetchMock = conversationApi([]);
+
+      await open(fetchMock);
+      await screen.findByText("Dinliyorum");
+      expect(create).toHaveBeenCalledTimes(1);
+      fireEvent.click(screen.getByRole("button", { name: "Bitir" }));
+      await waitFor(() => expect(listening.close).toHaveBeenCalled());
+      expect(screen.queryByText("Dinliyorum")).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("button", { name: "Konuşma modu" }));
+      await screen.findByText("Dinliyorum");
       expect(create).toHaveBeenCalledTimes(1);
     });
 
-    it("keeps working when phrases cannot be prepared", async () => {
-      const create = played();
-      stubApi({
+    it("plays a waiting phrase right after the user stops talking", async () => {
+      const create = stubAudio();
+      hearInTurn("birinci");
+      const fetchMock = conversationApi(["soru"]);
+
+      await open(fetchMock);
+
+      await waitFor(() => expect(askBodiesOf(fetchMock)).toHaveLength(1));
+      await waitFor(() => expect(create.mock.calls.length).toBeGreaterThanOrEqual(3));
+    });
+
+    it("asks to repeat instead of sending an empty transcript", async () => {
+      stubAudio();
+      hearInTurn("gurultu");
+      const fetchMock = conversationApi([""]);
+
+      await open(fetchMock);
+
+      expect(await screen.findByText("Anlayamadım, tekrar söyler misiniz?")).toBeInTheDocument();
+      await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(2));
+      expect(askBodiesOf(fetchMock)).toHaveLength(0);
+    });
+
+    it("stops talking and listens again when interrupted", async () => {
+      stubAudio(false);
+      hearInTurn("birinci");
+      const fetchMock = stubApi({
         "/api/documents": () => jsonResponse([]),
         "/api/voice/phrases": () => jsonResponse({ detail: "x" }, 502),
-        "/api/ask": () => sse([answered]),
+        "/api/transcribe": () => jsonResponse({ text: "soru" }),
+        "/api/ask": () =>
+          sse([{ type: "item_audio", index: 0, audio: btoa("ses"), mime: "audio/wav" }, answered]),
       });
-      render(<App />);
-      fireEvent.click(await screen.findByRole("button", { name: "Sesli cevap" }));
+      await open(fetchMock);
 
-      await ask("soru");
+      fireEvent.click(await screen.findByRole("button", { name: "Sözünü kes" }));
 
-      expect(await screen.findByText("İç paça 76,5 cm.")).toBeInTheDocument();
-      expect(create).not.toHaveBeenCalled();
+      await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(2));
+    });
+
+    it("explains when the microphone cannot be opened", async () => {
+      stubAudio();
+      listening.open.mockRejectedValue(new Error("izin yok"));
+      const fetchMock = conversationApi([]);
+
+      await open(fetchMock);
+
+      expect(await screen.findByRole("alert")).toHaveTextContent("Mikrofona erişilemedi");
+      expect(listening.listen).not.toHaveBeenCalled();
     });
   });
 
   describe("microphone", () => {
-    function stubRecorder() {
-      const stopTrack = vi.fn();
-      class FakeRecorder {
-        mimeType = "audio/webm";
-        ondataavailable: ((event: { data: Blob }) => void) | null = null;
-        onstop: (() => void) | null = null;
-        start() {}
-        stop() {
-          this.ondataavailable?.({ data: new Blob(["ses"], { type: "audio/webm" }) });
-          this.onstop?.();
-        }
-      }
-      vi.stubGlobal("MediaRecorder", FakeRecorder);
-      Object.defineProperty(navigator, "mediaDevices", {
-        configurable: true,
-        value: {
-          getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: stopTrack }] })),
-        },
-      });
-      return stopTrack;
-    }
-
     it("puts the transcript in the box and does not send it", async () => {
-      const stopTrack = stubRecorder();
+      const stopTrack = stubBrowserRecording();
       const fetchMock = stubApi({
         "/api/documents": () => jsonResponse([]),
         "/api/transcribe": () => jsonResponse({ text: "NT1162 bel kaç" }),
@@ -521,7 +649,7 @@ describe("App", () => {
     });
 
     it("explains a failed transcription", async () => {
-      stubRecorder();
+      stubBrowserRecording();
       stubApi({
         "/api/documents": () => jsonResponse([]),
         "/api/transcribe": () => jsonResponse({ detail: "x" }, 502),
@@ -539,8 +667,9 @@ describe("App", () => {
       stubApi({ "/api/documents": () => jsonResponse([]) });
       render(<App />);
 
-      expect(await screen.findByRole("button", { name: "Sesli cevap" })).toBeInTheDocument();
+      expect(await screen.findByRole("button", { name: "Sor" })).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Konuşarak sor" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Konuşma modu" })).not.toBeInTheDocument();
     });
   });
 });

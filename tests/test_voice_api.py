@@ -211,6 +211,54 @@ def test_transcribe_without_voice_service_is_unavailable(tmp_path: Path) -> None
     assert response.status_code == 503
 
 
+def test_clarifying_question_is_read_when_it_holds_no_value(tmp_path: Path) -> None:
+    voice = FakeVoice()
+
+    ask_events(make_client(tmp_path, voice, [], Clarify(question="Hangi beden için?")))
+
+    assert voice.spoken == ["Hangi beden için?"]
+
+
+def test_speak_reads_each_answer_item_in_order(tmp_path: Path) -> None:
+    voice = FakeVoice(delays={"Birinci.": 0.02})
+    client = make_client(tmp_path, voice, [], ANSWERED)
+    items = [{"text": "Birinci."}, {"text": "Bel 5 cm."}, {"text": "ALTER T_A;", "has_code": True}]
+
+    response = client.post("/api/speak", json={"items": items})
+
+    assert response.status_code == 200
+    spoken = [base64.b64decode(a["audio"]).decode() for a in response.json()["audios"]]
+    assert spoken == ["Birinci.", "Bel beş santimetre.", "Komut ekranda gösteriliyor."]
+
+
+@pytest.mark.parametrize(
+    "items",
+    [[], [{"text": ""}], [{"text": "x" * 2001}], [{"text": "a"}] * 21],
+    ids=["bos", "bos-metin", "uzun-metin", "cok-oge"],
+)
+def test_speak_limits_what_can_be_requested(tmp_path: Path, items: list[dict[str, str]]) -> None:
+    voice = FakeVoice()
+    client = make_client(tmp_path, voice, [], ANSWERED)
+
+    assert client.post("/api/speak", json={"items": items}).status_code == 422
+    assert voice.spoken == []
+
+
+def test_speak_failure_hides_details(tmp_path: Path) -> None:
+    client = make_client(tmp_path, FakeVoice(fail_on="Birinci."), [], ANSWERED)
+
+    response = client.post("/api/speak", json={"items": [{"text": "Birinci."}]})
+
+    assert response.status_code == 502
+    assert "servis" not in response.text
+
+
+def test_speak_without_voice_service_is_unavailable(tmp_path: Path) -> None:
+    client = make_client(tmp_path, None, [], ANSWERED)
+
+    assert client.post("/api/speak", json={"items": [{"text": "a"}]}).status_code == 503
+
+
 def test_ready_phrases_are_generated_once(tmp_path: Path) -> None:
     voice = FakeVoice()
     client = make_client(tmp_path, voice, [], ANSWERED)

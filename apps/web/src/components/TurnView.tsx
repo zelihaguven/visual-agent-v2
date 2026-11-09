@@ -1,4 +1,4 @@
-import type { AskResult, Citation } from "../api";
+import type { AskResult, Citation, SpokenItem } from "../api";
 import type { Turn, TurnItem } from "../turn";
 
 const STAGE_LABELS: Record<string, string> = {
@@ -15,8 +15,18 @@ const BADGES = {
   failed: { label: "Doğrulanamadı", tone: "bad" },
 } as const;
 
+export type SpeechStatus = "idle" | "loading" | "playing";
+
+const SPEECH_LABELS: Record<SpeechStatus, string> = {
+  idle: "Cevabı seslendir",
+  loading: "Ses hazırlanıyor",
+  playing: "Seslendirmeyi durdur",
+};
+
 type Props = {
   turn: Turn;
+  speechStatus?: SpeechStatus;
+  onSpeak?: (items: SpokenItem[]) => void;
   onOpenSource: (citation: Citation) => void;
   onAskAgain: (question: string, docIds: string[] | null) => void;
 };
@@ -95,17 +105,56 @@ function StreamedItems({
   );
 }
 
+function SpeakButton({
+  status,
+  onClick,
+}: {
+  status: SpeechStatus;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`speak-button is-${status}`}
+      aria-label={SPEECH_LABELS[status]}
+      title={SPEECH_LABELS[status]}
+      aria-pressed={status === "playing"}
+      disabled={status === "loading"}
+      onClick={onClick}
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M3 9v6h4l5 5V4L7 9H3Zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4Zm-2.5-9v2a7 7 0 0 1 0 14v2a9 9 0 0 0 0-18Z"
+        />
+      </svg>
+    </button>
+  );
+}
+
 function FinalAnswer({
   result,
   onOpenSource,
+  speechStatus = "idle",
+  onSpeak,
 }: {
   result: Extract<AskResult, { kind: "answered" }>;
   onOpenSource: Props["onOpenSource"];
+  speechStatus?: SpeechStatus;
+  onSpeak?: Props["onSpeak"];
 }) {
   const badge = BADGES[result.status];
+  const spoken = result.items
+    .filter((item) => item.verified)
+    .map((item) => ({ text: item.text, has_code: item.code !== null }));
   return (
     <>
-      <span className={`badge is-${badge.tone}`}>{badge.label}</span>
+      <div className="answer-head">
+        <span className={`badge is-${badge.tone}`}>{badge.label}</span>
+        {onSpeak && spoken.length > 0 && (
+          <SpeakButton status={speechStatus} onClick={() => onSpeak(spoken)} />
+        )}
+      </div>
       {result.has_conflict && <p className="notice">Kaynaklar birbiriyle çelişiyor.</p>}
       <ol className="answer-items">
         {result.items.map((item, index) => (
@@ -125,7 +174,7 @@ function FinalAnswer({
   );
 }
 
-function ResultView({ turn, onOpenSource, onAskAgain }: Props) {
+function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: Props) {
   const { result } = turn;
   const fullQuestion = turn.resolvedQuestion ?? turn.question;
   if (result === null) {
@@ -133,7 +182,14 @@ function ResultView({ turn, onOpenSource, onAskAgain }: Props) {
   }
   switch (result.kind) {
     case "answered":
-      return <FinalAnswer result={result} onOpenSource={onOpenSource} />;
+      return (
+        <FinalAnswer
+          result={result}
+          onOpenSource={onOpenSource}
+          speechStatus={speechStatus}
+          onSpeak={onSpeak}
+        />
+      );
     case "clarify":
       return (
         <div className="clarify">

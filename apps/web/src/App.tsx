@@ -3,20 +3,32 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   askQuestion,
   fetchVoicePhrases,
+  requestSpeech,
   type Citation,
   type ConversationContext,
+  type PhraseAudio,
+  type SpokenItem,
   type VoicePhrases,
 } from "./api";
 import "./App.css";
 import { ContextBar } from "./components/ContextBar";
+import { ConversationMode } from "./components/ConversationMode";
 import { DocumentsPanel } from "./components/DocumentsPanel";
 import { MicButton } from "./components/MicButton";
 import { SourcePanel } from "./components/SourcePanel";
-import { TurnView } from "./components/TurnView";
+import { TurnView, type SpeechStatus } from "./components/TurnView";
+import { canListen } from "./listening";
 import { AudioQueue } from "./speech";
 import { applyEvent, newTurn, type Turn } from "./turn";
 
 const ASK_FAILED = "Cevap alınamadı. Bağlantınızı kontrol edip yeniden deneyin.";
+
+type AskOptions = {
+  context: ConversationContext | null;
+  speak?: boolean;
+  signal?: AbortSignal;
+  onAudio?: () => void;
+};
 
 export function App() {
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -24,7 +36,8 @@ export function App() {
   const [isAsking, setIsAsking] = useState(false);
   const [source, setSource] = useState<Citation | null>(null);
   const [context, setContext] = useState<ConversationContext | null>(null);
-  const [speaks, setSpeaks] = useState(false);
+  const [isTalking, setIsTalking] = useState(false);
+  const [speech, setSpeech] = useState<{ turnId: string; status: SpeechStatus } | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const nextId = useRef(0);
   const audio = useRef<AudioQueue | null>(null);
@@ -32,6 +45,8 @@ export function App() {
   const phrases = useRef<VoicePhrases | null>(null);
   const hasGreeted = useRef(false);
   const waitingTurn = useRef(0);
+  const latestContext = useRef<ConversationContext | null>(null);
+  const speechToken = useRef(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -57,10 +72,15 @@ export function App() {
     }
   }
 
+  function updateContext(next: ConversationContext | null) {
+    latestContext.current = next;
+    setContext(next);
+  }
+
   async function ask(
     question: string,
     docIds: string[] | null,
-    turnContext: ConversationContext | null,
+    { context: turnContext, speak = false, signal, onAudio }: AskOptions,
   ) {
     nextId.current += 1;
     const id = String(nextId.current);
@@ -68,23 +88,30 @@ export function App() {
       setTurns((current) => current.map((turn) => (turn.id === id ? change(turn) : turn)));
     setTurns((current) => [...current, newTurn(id, question, docIds)]);
     setIsAsking(true);
-    if (speaks) {
-      audioQueue().stop();
-      audioQueue().unlock();
-      playWaitingPhrase();
-    }
     try {
-      await askQuestion(question, docIds, turnContext, speaks, (event) => {
-        updateTurn((turn) => applyEvent(turn, event));
-        if (event.type === "item_audio") {
-          audioQueue().enqueue(event.audio, event.mime);
-        }
-        if (event.type === "done") {
-          setContext(event.context);
-        }
-      });
+      await askQuestion(
+        question,
+        docIds,
+        turnContext,
+        speak,
+        (event) => {
+          updateTurn((turn) => applyEvent(turn, event));
+          if (event.type === "item_audio") {
+            audioQueue().enqueue(event.audio, event.mime);
+            onAudio?.();
+          }
+          if (event.type === "done") {
+            updateContext(event.context);
+          }
+        },
+        signal,
+      );
     } catch {
-      updateTurn((turn) => applyEvent(turn, { type: "error", message: ASK_FAILED }));
+      updateTurn((turn) =>
+        signal?.aborted
+          ? { ...turn, stage: null }
+          : applyEvent(turn, { type: "error", message: ASK_FAILED }),
+      );
     } finally {
       setIsAsking(false);
     }
@@ -96,26 +123,59 @@ export function App() {
     if (question && !isAsking) {
       setDraft("");
       setVoiceError(null);
-      void ask(question, null, context);
+      void ask(question, null, { context });
     }
   }
 
-  function greet() {
-    const greeting = phrases.current?.greeting;
+  function takeGreeting(): PhraseAudio | null {
+    const greeting = phrases.current?.greeting ?? null;
+    if (greeting === null || hasGreeted.current) {
+      return null;
+    }
+    hasGreeted.current = true;
+    return greeting;
+  }
+
+  function stopAnswerSpeech() {
+    speechToken.current += 1;
+    audioQueue().stop();
+    setSpeech(null);
+  }
+
+  function openConversation() {
+    stopAnswerSpeech();
     audioQueue().unlock();
-    if (greeting && !hasGreeted.current) {
-      hasGreeted.current = true;
-      audioQueue().enqueue(greeting.audio, greeting.mime);
-    }
+    setIsTalking(true);
   }
 
-  function toggleSpeech() {
-    if (speaks) {
-      audioQueue().stop();
-    } else {
-      greet();
+  function closeConversation() {
+    audioQueue().stop();
+    setIsTalking(false);
+  }
+
+  async function speakAnswer(turnId: string, items: SpokenItem[]) {
+    const isSameTurn = speech?.turnId === turnId;
+    stopAnswerSpeech();
+    if (isSameTurn) {
+      return;
     }
-    setSpeaks(!speaks);
+    const token = speechToken.current;
+    audioQueue().unlock();
+    setSpeech({ turnId, status: "loading" });
+    try {
+      const audios = await requestSpeech(items);
+      if (token !== speechToken.current) {
+        return;
+      }
+      audios.forEach((item) => audioQueue().enqueue(item.audio, item.mime));
+      setSpeech({ turnId, status: "playing" });
+      await audioQueue().whenIdle();
+    } catch {
+      setVoiceError("Cevap seslendirilemedi. Yeniden deneyin.");
+    }
+    if (token === speechToken.current) {
+      setSpeech(null);
+    }
   }
 
   function handleTranscript(text: string) {
@@ -138,11 +198,13 @@ export function App() {
               key={turn.id}
               turn={turn}
               onOpenSource={setSource}
-              onAskAgain={(question, docIds) => void ask(question, docIds, null)}
+              onAskAgain={(question, docIds) => void ask(question, docIds, { context: null })}
+              speechStatus={speech?.turnId === turn.id ? speech.status : "idle"}
+              onSpeak={(items) => void speakAnswer(turn.id, items)}
             />
           ))}
         </div>
-        {context !== null && <ContextBar context={context} onClear={() => setContext(null)} />}
+        {context !== null && <ContextBar context={context} onClear={() => updateContext(null)} />}
         {voiceError !== null && (
           <p className="notice is-bad composer-notice" role="alert">
             {voiceError}
@@ -162,25 +224,44 @@ export function App() {
             onChange={(event) => setDraft(event.target.value)}
           />
           <MicButton isDisabled={isAsking} onTranscript={handleTranscript} onError={setVoiceError} />
-          <button
-            type="button"
-            className={`icon-button ${speaks ? "is-active" : ""}`}
-            aria-label="Sesli cevap"
-            title="Sesli cevap"
-            aria-pressed={speaks}
-            onClick={toggleSpeech}
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path
-                fill="currentColor"
-                d="M3 9v6h4l5 5V4L7 9H3Zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4Zm-2.5-9v2a7 7 0 0 1 0 14v2a9 9 0 0 0 0-18Z"
-              />
-            </svg>
-          </button>
+          {canListen() && (
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="Konuşma modu"
+              title="Konuşma modu"
+              onClick={openConversation}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M3 10h2v4H3v-4Zm4-4h2v12H7V6Zm4-3h2v18h-2V3Zm4 3h2v12h-2V6Zm4 4h2v4h-2v-4Z"
+                />
+              </svg>
+            </button>
+          )}
           <button type="submit" disabled={isAsking || draft.trim() === ""}>
             Sor
           </button>
         </form>
+        {isTalking && (
+          <ConversationMode
+            audio={audioQueue()}
+            lastTurn={turns.at(-1) ?? null}
+            takeGreeting={takeGreeting}
+            playWaiting={playWaitingPhrase}
+            onAsk={(question, signal, onAudio) =>
+              ask(question, null, {
+                context: latestContext.current,
+                speak: true,
+                signal,
+                onAudio,
+              })
+            }
+            onOpenSource={setSource}
+            onClose={closeConversation}
+          />
+        )}
       </main>
       {source !== null && <SourcePanel citation={source} onClose={() => setSource(null)} />}
     </div>

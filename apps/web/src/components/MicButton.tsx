@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 
 import { transcribeAudio } from "../api";
+import { canListen } from "../listening";
 
 const MAX_RECORDING_MS = 60_000;
 
@@ -17,10 +18,6 @@ const LABELS: Record<MicState, string> = {
   recording: "Kaydı bitir",
   transcribing: "Yazıya çevriliyor",
 };
-
-function canRecord(): boolean {
-  return typeof MediaRecorder !== "undefined" && Boolean(navigator.mediaDevices?.getUserMedia);
-}
 
 export function MicButton({ isDisabled, onTranscript, onError }: Props) {
   const [state, setState] = useState<MicState>("idle");
@@ -73,7 +70,7 @@ export function MicButton({ isDisabled, onTranscript, onError }: Props) {
     }
   }
 
-  if (!canRecord()) {
+  if (!canListen()) {
     return null;
   }
   return (

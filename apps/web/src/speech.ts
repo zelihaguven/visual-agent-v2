@@ -11,6 +11,7 @@ export class AudioQueue {
   private readonly player = new Audio();
   private pending: string[] = [];
   private current: string | null = null;
+  private waiters: (() => void)[] = [];
 
   constructor() {
     this.player.onended = () => this.playNext();
@@ -35,6 +36,23 @@ export class AudioQueue {
     this.pending.forEach((url) => URL.revokeObjectURL(url));
     this.pending = [];
     this.release();
+    this.notifyIdle();
+  }
+
+  /** Sıradaki bütün sesler bitince ya da durdurulunca tamamlanır. */
+  whenIdle(): Promise<void> {
+    if (this.current === null && this.pending.length === 0) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      this.waiters = [...this.waiters, resolve];
+    });
+  }
+
+  private notifyIdle(): void {
+    const waiters = this.waiters;
+    this.waiters = [];
+    waiters.forEach((resolve) => resolve());
   }
 
   private release(): void {
@@ -48,6 +66,7 @@ export class AudioQueue {
     this.release();
     const [next, ...rest] = this.pending;
     if (next === undefined) {
+      this.notifyIdle();
       return;
     }
     this.pending = rest;

@@ -105,10 +105,12 @@ export async function askQuestion(
   context: ConversationContext | null,
   speak: boolean,
   onEvent: (event: AskEvent) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   const response = await fetch("/api/ask", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    signal,
     body: JSON.stringify({
       question,
       ...(docIds ? { doc_ids: docIds } : {}),
@@ -188,4 +190,18 @@ export async function fetchVoicePhrases(signal: AbortSignal): Promise<VoicePhras
     throw new Error(await readError(response));
   }
   return (await response.json()) as VoicePhrases;
+}
+
+export type SpokenItem = { text: string; has_code: boolean };
+
+export async function requestSpeech(items: SpokenItem[]): Promise<PhraseAudio[]> {
+  const response = await fetch("/api/speak", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return ((await response.json()) as { audios: PhraseAudio[] }).audios;
 }
