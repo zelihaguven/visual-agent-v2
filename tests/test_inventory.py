@@ -150,6 +150,66 @@ def test_long_code_lists_are_cut_but_the_count_stays_true() -> None:
     assert len(outcome.result.documents[0].codes) == 200
 
 
+ANNOUNCE_REPLY = "Tabii, sorunuzu dinliyorum."
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Tamam, bir şey sormak istiyorum.",
+        "bir şey soracağım",
+        "Peki bir soru soracağım",
+        "Merhaba, bir şey sormak istiyorum.",
+        "Merhaba bir şey sormak istiyorum",
+        "Merhaba. Bir şey sormak istiyorum.",
+        "Selam, sana bir şey soracağım.",
+        "Merhaba, bir sorum var.",
+        "Bir sorum olacaktı.",
+    ],
+)
+def test_announcing_a_question_is_answered_without_searching(message: str) -> None:
+    classifier = FakeClassifier(intent="question")
+    deps = deps_with(classifier)
+
+    outcome = ask(deps, message)
+
+    assert isinstance(outcome.result, SmallTalk)
+    assert outcome.result.text == ANNOUNCE_REPLY
+    assert classifier.calls == []
+    assert deps.retriever.calls == []  # type: ignore[attr-defined]
+
+
+def test_a_real_question_after_the_announcement_is_still_a_question() -> None:
+    classifier = FakeClassifier(intent="question")
+
+    outcome = ask(deps_with(classifier), "Merhaba, bir şey sormak istiyorum, iç paça kaç?")
+
+    assert not isinstance(outcome.result, SmallTalk)
+    assert classifier.calls != []
+
+
+def test_classifier_can_recognise_an_announced_question() -> None:
+    outcome = ask(deps_with(FakeClassifier(intent="about_to_ask")), "Size danışacaklarım var")
+
+    assert isinstance(outcome.result, SmallTalk)
+    assert outcome.result.text == ANNOUNCE_REPLY
+
+
+def test_announcing_a_question_does_not_start_the_waiting_phrase() -> None:
+    events: list[dict[str, object]] = []
+    deps = deps_with(FakeClassifier(intent="question"))
+
+    asyncio.run(
+        answer_question(AskRequest(question="Bir şey soracağım", on_event=events.append), deps)
+    )
+
+    assert not any(event["type"] == "searching" for event in events)
+
+
+def test_classifier_accepts_the_announcing_intent() -> None:
+    assert _classify('{"intent": "about_to_ask"}', []) == "about_to_ask"
+
+
 def test_no_classifier_means_plain_not_found() -> None:
     outcome = ask(make_deps(FakeClient(NOT_FOUND), FakeRetriever(hits=[CHUNKS[0]])), "Neler var?")
 

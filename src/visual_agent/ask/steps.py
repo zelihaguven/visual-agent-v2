@@ -98,8 +98,9 @@ def _code_not_found(missing: Sequence[str], state: AskState, deps: AskDeps) -> N
             if doc_id in state.allowed
         )
     )
+    place = "seçilen belgelerde" if state.request.doc_ids else "belgelerde"
     return NotFound(
-        reason=f"{', '.join(item.upper() for item in missing)} seçilen belgelerde geçmiyor.",
+        reason=f"{', '.join(item.upper() for item in missing)} {place} geçmiyor.",
         suggested_doc_ids=suggested,
     )
 
@@ -119,7 +120,9 @@ async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
         scope=scope,
         scope_inherited=bool(inherited) and not explicit and not mentioned,
     )
-    identifiers = sorted(identifiers_in(state.question))
+    identifiers = sorted(
+        identifiers_in(state.question) | deps.identifiers.codes_in_speech(state.question)
+    )
     domain = _search_domain(current)
     missing = [item for item in identifiers if not deps.identifiers.lookup(item, domain)]
     if missing and len(missing) == len(identifiers):

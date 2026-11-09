@@ -66,6 +66,10 @@ _NOTICES = {
 }
 
 
+def fixed_notice_texts() -> tuple[str, ...]:
+    return tuple(text for notices in _NOTICES.values() for text in notices.values())
+
+
 def fixed_reply_texts() -> tuple[str, ...]:
     return tuple(text for replies in SMALL_TALK_REPLIES.values() for text in replies.values())
 
@@ -114,7 +118,13 @@ class PhraseCache:
                 greeting, *waiting = await asyncio.gather(
                     *(voice.synthesize(text) for text in (GREETING, *_WAITING))
                 )
-                await asyncio.gather(*(voice.synthesize(text) for text in fixed_reply_texts()))
+                await asyncio.gather(
+                    asyncio.gather(*(voice.synthesize(text) for text in fixed_reply_texts())),
+                    asyncio.gather(
+                        *(voice.synthesize(text) for text in fixed_notice_texts()),
+                        return_exceptions=True,
+                    ),
+                )
                 self._ready = PhrasesResponse(
                     greeting=_phrase(greeting), waiting=[_phrase(item) for item in waiting]
                 )

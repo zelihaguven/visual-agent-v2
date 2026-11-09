@@ -45,6 +45,20 @@ def test_prompt_tells_the_model_not_to_rewrite_commands() -> None:
     assert "komutu" in prompt
 
 
+@pytest.mark.parametrize(
+    "rule",
+    [
+        "dolgu sözlerini yok say",
+        "tiresiz",
+        "etiketi kopyalama",
+        "Yalnız sorulan değeri yaz",
+        "o sütun aranan sütundur",
+    ],
+)
+def test_prompt_handles_spoken_questions(rule: str) -> None:
+    assert rule in load_answer_prompt()
+
+
 def test_prompt_tells_the_model_not_to_repeat_a_wrong_user_value() -> None:
     assert "kullanıcının değerini tekrar etme" in load_answer_prompt()
 

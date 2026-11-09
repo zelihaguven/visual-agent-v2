@@ -5,6 +5,7 @@ import logging
 from dataclasses import replace
 
 from visual_agent.ask.deps import AskDeps
+from visual_agent.ask.intent import common_small_talk
 from visual_agent.ask.steps import AskState
 from visual_agent.conversation.grounding import is_grounded
 from visual_agent.domain.answer import VerificationStatus
@@ -28,7 +29,7 @@ async def resolve_context(state: AskState, deps: AskDeps) -> AskState:
     """Tamamlanamayan takip sorusu tahminle aranmaz; kullanıcıya geri sorulur."""
     request = state.request
     context = request.context
-    if context is None or deps.rewriter is None:
+    if context is None or deps.rewriter is None or common_small_talk(request.question):
         return state
     try:
         rewrite = await asyncio.wait_for(

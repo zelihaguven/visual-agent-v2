@@ -92,7 +92,7 @@ Her satır iki sorudur. Arada "Yeni konu" demeyin; ikinci soruyu birincinin heme
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 25 | Pe ne te bin yüz altmış iki modelinde kol boyu kaç? (PNT-1162) | Belgede yok. dikim-pdf s.2'deki ölçü noktaları: `İç paça`, `Dış paça`, `Bel`, `Kalça` | Bulunamadı | Yok | Model var, alan yok; başka satır uydurulmamalı | Sayı duyulmamalı. Duyuru: D | |
 | 26 | Yıllık izin kaç gün? | Dört belgenin hiçbirinde izin konusu yok | Bulunamadı | Yok | Konu tamamen dışarıda | Duyuru: D | |
-| 27 | Xe ye ze dokuz bin dokuz yüz doksan dokuz modelinin beli kaç? (XYZ-9999) | Bu kod dört belgede yok | Bulunamadı | Yok; altta "XYZ-9999 seçilen belgelerde geçmiyor." | Kod yoksa arama ve model çalışmamalı, anında dönmeli | Yazıya çevirme kodu bozarsa farklı yola gider, ekrandaki soruyu kontrol edin. Duyuru: D | |
+| 27 | Xe ye ze dokuz bin dokuz yüz doksan dokuz modelinin beli kaç? (XYZ-9999) | Bu kod dört belgede yok | Bulunamadı | Yok; altta "XYZ-9999 belgelerde geçmiyor." | Kod yoksa arama ve model çalışmamalı, anında dönmeli | Yazıya çevirme kodu bozarsa farklı yola gider, ekrandaki soruyu kontrol edin. Duyuru: D | |
 
 ### Sesli moda özel (28-30)
 

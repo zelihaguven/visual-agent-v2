@@ -15,8 +15,8 @@ Reply with one JSON object and nothing else: {"follows": true or false, "questio
 
 "follows" is true when the new message depends on the previous question: it asks the same thing \
 for another field, size, version or product, or it answers a clarifying question. It is false \
-when the new message is a complete question about another topic, or only a greeting, thanks or \
-goodbye; then leave "question" empty.
+when the new message is a complete question about another topic, only a greeting, thanks or \
+goodbye, or only announces that a question is coming; then leave "question" empty.
 
 When "follows" is true, write in "question" one complete question in the language of the new \
 message:

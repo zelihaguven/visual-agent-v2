@@ -92,6 +92,15 @@ def test_first_question_does_not_call_the_rewriter() -> None:
     assert outcome.question == "İç paça kaç?"
 
 
+def test_announcing_a_question_does_not_wait_for_the_rewriter() -> None:
+    rewriter = follows()
+
+    outcome = ask_with(deps_with(rewriter, FakeClient(VERIFIED)), "Merhaba, bir şey soracağım.")
+
+    assert rewriter.calls == []
+    assert outcome.context == PREVIOUS
+
+
 def test_follow_up_searches_and_answers_the_completed_question() -> None:
     client = FakeClient(VERIFIED)
     retriever = FakeRetriever()

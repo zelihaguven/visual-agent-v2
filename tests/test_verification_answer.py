@@ -166,6 +166,13 @@ def test_command_read_by_ocr_is_marked() -> None:
     assert verify_item(command, sources).from_figure
 
 
+def test_code_written_without_its_hyphen_matches_the_source() -> None:
+    sources = {1: PromptSource(number=1, text="GML-6473 Kalça: 48,0")}
+    candidate = item("GML6473 kalça 48,0.", quote="GML-6473 Kalça: 48,0")
+
+    assert verify_item(candidate, sources).ok
+
+
 def test_all_items_valid_is_verified() -> None:
     assert verify_answer(answer(item("76,5 cm.")), SOURCES).status is VerificationStatus.VERIFIED
 

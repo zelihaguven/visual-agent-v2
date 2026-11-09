@@ -25,7 +25,10 @@ function DocumentNotes({ title, report }: { title: string; report: DocumentRepor
         <li key={`${index}-${warning}`}>{warning}</li>
       ))}
       {report.uncertain_values > 0 && (
-        <li>{report.uncertain_values} değer belirsiz okundu; bu değerler cevaplarda gösterilmez.</li>
+        <li>
+          {report.uncertain_values} değer net okunamadı; cevapta gizlenir. Gerekirse belgeden kontrol
+          edin.
+        </li>
       )}
     </ul>
   );

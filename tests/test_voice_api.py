@@ -13,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import ApiServices, create_app
-from apps.api.voice import GREETING, MAX_AUDIO_BYTES, fixed_reply_texts
+from apps.api.voice import GREETING, MAX_AUDIO_BYTES, fixed_notice_texts, fixed_reply_texts
 from tests.test_api_documents import FakeRepository, _events
 from visual_agent.ask.deps import AskRequest
 from visual_agent.ask.streaming import INCOMPLETE_MESSAGE
@@ -321,8 +321,26 @@ def test_ready_phrases_are_generated_once(tmp_path: Path) -> None:
 
     assert first.status_code == 200
     assert second.json() == first.json()
-    assert len(voice.spoken) == 1 + len(first.json()["waiting"]) + len(fixed_reply_texts())
+    fixed = len(fixed_reply_texts()) + len(fixed_notice_texts())
+    assert len(voice.spoken) == 1 + len(first.json()["waiting"]) + fixed
     assert base64.b64decode(first.json()["greeting"]["audio"]).decode().startswith("Merhaba")
+
+
+def test_fixed_notices_are_prepared_with_the_phrases(tmp_path: Path) -> None:
+    voice = FakeVoice()
+
+    make_client(tmp_path, voice, [], ANSWERED).get("/api/voice/phrases")
+
+    assert (
+        "Bu bilgi belgelerde bulunamadı. Bir model ya da konu söylerseniz yardımcı olabilirim."
+        in (voice.spoken)
+    )
+
+
+def test_a_failing_notice_does_not_block_the_phrases(tmp_path: Path) -> None:
+    voice = FakeVoice(fail_on="Cevap tamamlanamadı, ekrana bakın.")
+
+    assert make_client(tmp_path, voice, [], ANSWERED).get("/api/voice/phrases").status_code == 200
 
 
 def test_fixed_replies_are_generated_once_and_answers_are_not_kept() -> None:

@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import re
 from dataclasses import replace
 
 from visual_agent.ask.deps import AskDeps
@@ -19,14 +20,25 @@ SMALL_TALK_REPLIES: dict[str, dict[Intent, str]] = {
         "how_are_you": "İyiyim, teşekkürler. Nasıl yardımcı olabilirim?",
         "thanks": "Rica ederim. Başka bir sorunuz var mı?",
         "goodbye": "Görüşmek üzere, iyi çalışmalar.",
+        "about_to_ask": "Tabii, sorunuzu dinliyorum.",
     },
     "en": {
         "greeting": "Hello, how can I help?",
         "how_are_you": "I am well, thank you. How can I help?",
         "thanks": "You are welcome. Anything else?",
         "goodbye": "Goodbye, have a good day.",
+        "about_to_ask": "Sure, go ahead.",
     },
 }
+
+_ANNOUNCING_RE = re.compile(
+    r"(?:(?:merhaba|merhabalar|selam|selamlar|günaydın|iyi günler|iyi akşamlar"
+    r"|tamam|peki|şimdi)[\s,.!]+)*"
+    r"(?:(?:sana|size)\s+)?"
+    r"(?:bir\s+(?:şey|soru)\s+(?:soracağım|soracaktım|sormak\s+istiyorum|sormak\s+istiyordum)"
+    r"|soru\s+soracağım"
+    r"|bir\s+sorum\s+(?:var|olacak|olacaktı))"
+)
 
 _COMMON_SMALL_TALK: dict[str, Intent] = {
     **dict.fromkeys(
@@ -46,12 +58,14 @@ _COMMON_SMALL_TALK: dict[str, Intent] = {
     **dict.fromkeys(
         ("görüşürüz", "hoşça kal", "hoşça kalın", "iyi çalışmalar", "bye", "goodbye"), "goodbye"
     ),
+    **dict.fromkeys(("i want to ask something", "i have a question"), "about_to_ask"),
 }
 
 
-def _common_small_talk(question: str) -> Intent | None:
+def common_small_talk(question: str) -> Intent | None:
     """Sık selamlar modele sorulmaz: anında ve her seferinde aynı tanınır."""
-    return _COMMON_SMALL_TALK.get(normalize(question).strip(" .,!?…"))
+    text = normalize(question).strip(" .,!?…")
+    return "about_to_ask" if _ANNOUNCING_RE.fullmatch(text) else _COMMON_SMALL_TALK.get(text)
 
 
 def _build_inventory(state: AskState, deps: AskDeps) -> Inventory:
@@ -83,7 +97,7 @@ def _result_for(intent: Intent, state: AskState, deps: AskDeps) -> AskResult | N
 async def _classified(state: AskState, deps: AskDeps) -> Intent:
     if state.request.doc_ids:
         return "question"
-    common = _common_small_talk(state.question)
+    common = common_small_talk(state.question)
     if common is not None:
         return common
     classifier = deps.intent_classifier
