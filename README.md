@@ -6,22 +6,42 @@ Durum: belge yükleme, işleme, kaynaklı soru-cevap, sohbet bağlamı, ses ve w
 
 Mikrofon tarayıcıda yalnız `localhost` ya da HTTPS üzerinden açılır. Ağdaki tabletlerden kullanmak için uygulama HTTPS arkasında yayınlanmalıdır. Ses yalnız bellekte işlenir, diske yazılmaz; konuşma modelleri `VA_STT_MODEL`, `VA_TTS_MODEL` ve `VA_TTS_VOICE` ile değiştirilir.
 
-## Çalıştırma
+## Kurulum
 
-Docker ile bütün servisler:
+Gereken: Docker (Compose ile) ve veri saklamayan uçlara erişimi olan bir OpenRouter anahtarı. GPU gerekmez, her şey CPU'da çalışır.
+
+1. Ayar dosyasını oluşturun ve içindeki `POSTGRES_PASSWORD` ile `VA_OPENROUTER_API_KEY` değerlerini doldurun. Bu dosya repoya girmez.
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Servisleri derleyip başlatın. İlk derleme paketleri indirir ve yavaş bağlantıda bir saate yaklaşabilir; sonraki kod güncellemeleri saniyeler sürer.
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+3. Belge işleme modellerini bir kez indirin. Modeller bir birimde kalır, her kurulumda bir kez yeterlidir.
+
+   ```bash
+   docker compose run --rm worker docling-tools models download layout tableformer rapidocr --output-dir /opt/docling-models
+   ```
+
+Arayüz: <http://127.0.0.1:8080>. Soru sormak için önce soldan belge yükleyin; işlenip "Hazır" olunca sorulabilir. Arama modelleri servis açılışında arka planda yüklenir, ilk açılışta internetten indirilir.
+
+### Güncelleme
 
 ```bash
-cp .env.example .env
-docker compose up --build
+git pull
+docker compose up -d --build
 ```
 
-Arayüz: <http://127.0.0.1:8080>
+Güncellemeden sonra açık sayfaları yenileyin. Yarım kalan belge işleri işçi açılınca kendiliğinden yeniden başlar.
 
-Belge işleme modelleri imaja gömülmez. Temiz kurulumda bir kez indirin:
+### Ağdan erişim
 
-```bash
-docker compose run --rm worker docling-tools models download layout tableformer rapidocr --output-dir /opt/docling-models
-```
+Arayüz varsayılan olarak yalnız bu bilgisayardan açılır. Tabletlerden kullanmadan önce [açık notlardaki](docs/acik-notlar.md) giriş ve HTTPS maddelerine bakın: giriş yokken ağdaki herkes belgeleri görebilir, mikrofon da yalnız HTTPS üzerinden açılır.
 
 ## Geliştirme
 
