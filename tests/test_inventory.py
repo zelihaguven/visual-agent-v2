@@ -14,9 +14,16 @@ from tests.test_voice_api import make_client as voice_client
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.orchestrator import answer_question
 from visual_agent.catalog.identifiers import build_identifier_index
+from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.document import DocumentMeta
-from visual_agent.domain.result import Answered, Inventory, InventoryDocument, NotFound
-from visual_agent.generation.inventory import make_inventory_classifier
+from visual_agent.domain.result import (
+    Answered,
+    Inventory,
+    InventoryDocument,
+    NotFound,
+    SmallTalk,
+)
+from visual_agent.generation.intent import Intent, make_intent_classifier
 from visual_agent.generation.json_model import JsonModel
 
 NOT_FOUND = {"tur": "bulunamadi", "cevap": [], "celiski_var": False}
@@ -29,25 +36,25 @@ ANSWER = {
 
 @dataclass
 class FakeClassifier:
-    verdict: bool = True
+    intent: Intent = "inventory"
     error: Exception | None = None
     delay: float = 0.0
     calls: list[str] = field(default_factory=list)
 
-    async def __call__(self, question: str) -> bool:
+    async def __call__(self, question: str) -> Intent:
         self.calls.append(question)
         if self.delay:
             await asyncio.sleep(self.delay)
         if self.error is not None:
             raise self.error
-        return self.verdict
+        return self.intent
 
 
 def deps_with(classifier: FakeClassifier, payload: object = NOT_FOUND) -> AskDeps:
     return replace(
         make_deps(FakeClient(payload)),
-        inventory_classifier=classifier,
-        inventory_limit_seconds=0.05,
+        intent_classifier=classifier,
+        intent_limit_seconds=0.05,
     )
 
 
@@ -94,7 +101,7 @@ def test_question_with_a_code_skips_the_classifier() -> None:
 
 
 def test_ordinary_question_is_answered_normally() -> None:
-    classifier = FakeClassifier(verdict=False)
+    classifier = FakeClassifier(intent="question")
 
     outcome = ask(deps_with(classifier, ANSWER), "İç paça kaç?")
 
@@ -187,14 +194,14 @@ def test_inventory_reaches_the_client_as_its_own_kind(tmp_path: Path) -> None:
     assert ANSWERED.status.value == "verified"
 
 
-def _classify(content: str, sent: list[dict[str, object]]) -> bool:
+def _classify(content: str, sent: list[dict[str, object]]) -> Intent:
     def handler(request: httpx.Request) -> httpx.Response:
         sent.append(json.loads(request.content))
         return httpx.Response(200, json={"choices": [{"message": {"content": content}}]})
 
-    async def run() -> bool:
+    async def run() -> Intent:
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-            classifier = make_inventory_classifier(
+            classifier = make_intent_classifier(
                 JsonModel(http, "https://r.test", "k", "m", ("p",), ())
             )
             return await classifier("Kaç belge var?")
@@ -205,13 +212,89 @@ def _classify(content: str, sent: list[dict[str, object]]) -> bool:
 def test_classifier_sends_only_the_question_with_zero_retention() -> None:
     sent: list[dict[str, object]] = []
 
-    assert _classify('{"inventory": true}', sent) is True
+    assert _classify('{"intent": "inventory"}', sent) == "inventory"
     provider = sent[0]["provider"]
     assert isinstance(provider, dict)
     assert provider["zdr"] is True
     assert "Kaç belge var?" in str(sent[0]["messages"])
 
 
-def test_classifier_treats_an_unclear_reply_as_no() -> None:
-    assert _classify('{"inventory": "belki"}', []) is False
-    assert _classify("metin", []) is False
+def test_classifier_treats_an_unclear_reply_as_a_question() -> None:
+    assert _classify('{"intent": "belki"}', []) == "question"
+    assert _classify("metin", []) == "question"
+
+
+@pytest.mark.parametrize(
+    ("intent", "question", "expected"),
+    [
+        ("greeting", "Merhaba", "Merhaba, nasıl yardımcı olabilirim?"),
+        ("how_are_you", "Nasılsın?", "İyiyim, teşekkürler. Nasıl yardımcı olabilirim?"),
+        ("thanks", "Teşekkürler", "Rica ederim. Başka bir sorunuz var mı?"),
+        ("goodbye", "Görüşürüz", "Görüşmek üzere, iyi çalışmalar."),
+    ],
+)
+def test_small_talk_gets_a_fixed_reply_without_search_or_model(
+    intent: Intent, question: str, expected: str
+) -> None:
+    deps = deps_with(FakeClassifier(intent=intent))
+
+    outcome = ask(deps, question)
+
+    assert outcome.result == SmallTalk(text=expected)
+    assert deps.answer_client.calls == []  # type: ignore[attr-defined]
+    assert deps.retriever.calls == []  # type: ignore[attr-defined]
+
+
+def test_small_talk_keeps_the_conversation_context() -> None:
+    context = ConversationContext(question="Bel kaç?", doc_ids=("a",))
+    deps = deps_with(FakeClassifier(intent="greeting"))
+    request = AskRequest("Merhaba", context=context)
+
+    outcome = asyncio.run(answer_question(request, deps))
+
+    assert outcome.context == context
+
+
+def _events_of(deps: AskDeps, question: str) -> list[str]:
+    events: list[dict[str, object]] = []
+    asyncio.run(answer_question(AskRequest(question, on_event=events.append), deps))
+    return [str(event["type"]) for event in events]
+
+
+@pytest.mark.parametrize(
+    ("intent", "question", "searches"),
+    [
+        ("greeting", "Merhaba", False),
+        ("inventory", "Kaç belge var?", False),
+        ("question", "İç paça kaç?", True),
+    ],
+)
+def test_searching_is_announced_only_when_a_search_will_run(
+    intent: Intent, question: str, searches: bool
+) -> None:
+    types = _events_of(deps_with(FakeClassifier(intent=intent), ANSWER), question)
+
+    assert ("searching" in types) is searches
+
+
+def test_question_with_a_code_is_announced_as_searching() -> None:
+    types = _events_of(deps_with(FakeClassifier(), ANSWER), "PNT-4417 iç paça kaç?")
+
+    assert "searching" in types
+    assert types.index("searching") < types.index("sources")
+
+
+def test_small_talk_is_spoken_as_written(tmp_path: Path) -> None:
+    voice = FakeVoice()
+
+    ask_events(
+        voice_client(tmp_path, voice, [], SmallTalk(text="Merhaba, nasıl yardımcı olabilirim?"))
+    )
+
+    assert voice.spoken == ["Merhaba, nasıl yardımcı olabilirim?"]
+
+
+def test_small_talk_reaches_the_client_as_its_own_kind(tmp_path: Path) -> None:
+    events = ask_events(voice_client(tmp_path, None, [], SmallTalk(text="Merhaba")), False)
+
+    assert events[-1]["result"] == {"kind": "small_talk", "text": "Merhaba"}

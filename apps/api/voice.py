@@ -9,10 +9,18 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
+from visual_agent.ask.intent import SMALL_TALK_REPLIES
 from visual_agent.ask.language import detect_language
 from visual_agent.ask.streaming import Event
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.result import Answered, AskResult, Clarify, Inventory, NotFound
+from visual_agent.domain.result import (
+    Answered,
+    AskResult,
+    Clarify,
+    Inventory,
+    NotFound,
+    SmallTalk,
+)
 from visual_agent.voice.client import Speech, Voice
 from visual_agent.voice.reading import spoken_text
 
@@ -50,6 +58,10 @@ _NOTICES = {
         "partial": "Some values could not be verified, please check the screen.",
     },
 }
+
+
+def fixed_reply_texts() -> tuple[str, ...]:
+    return tuple(text for replies in SMALL_TALK_REPLIES.values() for text in replies.values())
 
 
 class TranscriptResponse(BaseModel):
@@ -96,6 +108,7 @@ class PhraseCache:
                 greeting, *waiting = await asyncio.gather(
                     *(voice.synthesize(text) for text in (GREETING, *_WAITING))
                 )
+                await asyncio.gather(*(voice.synthesize(text) for text in fixed_reply_texts()))
                 self._ready = PhrasesResponse(
                     greeting=_phrase(greeting), waiting=[_phrase(item) for item in waiting]
                 )
@@ -141,6 +154,9 @@ class SpokenAnswer:
         """Değer içermeyen netleştirme sorusu okunur; diğer durumlarda sabit bildirim."""
         if isinstance(result, Clarify) and not any(c.isdigit() for c in result.question):
             self._speak(_NOTICE_INDEX, spoken_text(result.question, self._language))
+            return
+        if isinstance(result, SmallTalk):
+            self._speak(_NOTICE_INDEX, result.text)
             return
         if isinstance(result, Inventory):
             summary = _inventory_summary(result, self._language)

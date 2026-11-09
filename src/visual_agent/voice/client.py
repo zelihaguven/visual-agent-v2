@@ -3,7 +3,7 @@
 import base64
 import io
 import wave
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal, Protocol
 
 import httpx
@@ -25,6 +25,26 @@ class Voice(Protocol):
     async def transcribe(self, audio: bytes, audio_format: str) -> str: ...
 
     async def synthesize(self, text: str) -> Speech: ...
+
+
+@dataclass
+class CachingVoice:
+    """Yalnız sabit cümlelerin sesi saklanır; belge cevapları tutulmaz."""
+
+    inner: Voice
+    fixed_texts: tuple[str, ...]
+    _ready: dict[str, Speech] = field(default_factory=dict)
+
+    async def transcribe(self, audio: bytes, audio_format: str) -> str:
+        return await self.inner.transcribe(audio, audio_format)
+
+    async def synthesize(self, text: str) -> Speech:
+        if text in self._ready:
+            return self._ready[text]
+        speech = await self.inner.synthesize(text)
+        if text in self.fixed_texts:
+            self._ready[text] = speech
+        return speech
 
 
 def _wav_from_pcm(pcm: bytes) -> bytes:

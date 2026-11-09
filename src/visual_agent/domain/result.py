@@ -68,7 +68,13 @@ class Inventory(FrozenModel):
     code_count: int
 
 
-AskResult = Answered | Clarify | NotFound | Failed | Inventory
+class SmallTalk(FrozenModel):
+    """Selamlaşmaya verilen sabit cevap; model metni içermez."""
+
+    text: str
+
+
+AskResult = Answered | Clarify | NotFound | Failed | Inventory | SmallTalk
 
 
 class AskOutcome(FrozenModel):

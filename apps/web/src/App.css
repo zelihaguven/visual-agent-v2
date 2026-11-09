@@ -414,6 +414,10 @@ h1 {
   flex: none;
 }
 
+.small-talk {
+  margin: 0;
+}
+
 .inventory ul {
   display: grid;
   gap: 10px;

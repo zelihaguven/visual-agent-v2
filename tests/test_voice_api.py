@@ -13,13 +13,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import ApiServices, create_app
-from apps.api.voice import GREETING, MAX_AUDIO_BYTES
+from apps.api.voice import GREETING, MAX_AUDIO_BYTES, fixed_reply_texts
 from tests.test_api_documents import FakeRepository, _events
 from visual_agent.ask.deps import AskRequest
 from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.result import Answered, AskOutcome, AskResult, Clarify, Failed, NotFound
 from visual_agent.settings import Settings
-from visual_agent.voice.client import OpenRouterVoice, Speech
+from visual_agent.voice.client import CachingVoice, OpenRouterVoice, Speech
 
 
 @dataclass
@@ -271,8 +271,23 @@ def test_ready_phrases_are_generated_once(tmp_path: Path) -> None:
 
     assert first.status_code == 200
     assert second.json() == first.json()
-    assert len(voice.spoken) == 1 + len(first.json()["waiting"])
+    assert len(voice.spoken) == 1 + len(first.json()["waiting"]) + len(fixed_reply_texts())
     assert base64.b64decode(first.json()["greeting"]["audio"]).decode().startswith("Merhaba")
+
+
+def test_fixed_replies_are_generated_once_and_answers_are_not_kept() -> None:
+    inner = FakeVoice()
+    voice = CachingVoice(inner, ("Merhaba",))
+
+    async def run() -> None:
+        await voice.synthesize("Merhaba")
+        await voice.synthesize("Merhaba")
+        await voice.synthesize("Bel 5 cm.")
+        await voice.synthesize("Bel 5 cm.")
+
+    asyncio.run(run())
+
+    assert inner.spoken == ["Merhaba", "Bel 5 cm.", "Bel 5 cm."]
 
 
 def test_failed_phrases_are_tried_again(tmp_path: Path) -> None:

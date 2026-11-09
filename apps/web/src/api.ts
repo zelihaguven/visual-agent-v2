@@ -30,6 +30,7 @@ export type AskResult =
     }
   | { kind: "clarify"; question: string; options: { doc_id: string; label: string }[] }
   | { kind: "not_found"; reason: string; suggested_doc_ids: string[] }
+  | { kind: "small_talk"; text: string }
   | {
       kind: "inventory";
       documents: { doc_id: string; title: string; codes: string[]; code_count: number }[];
@@ -47,6 +48,7 @@ export type ConversationContext = {
 export type AskEvent =
   | { type: "status"; stage: string }
   | { type: "resolved"; question: string }
+  | { type: "searching" }
   | { type: "sources"; sources: Citation[] }
   | { type: "item_stream"; index: number; text: string }
   | {

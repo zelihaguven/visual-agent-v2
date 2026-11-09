@@ -65,5 +65,6 @@ docker run --rm --network none -v "$PWD/evals:/app/evals:ro" visual-agent-ingest
 | `src/visual_agent` | Çekirdek paket; katman sınırları testle korunur |
 | `evals` | Test belgesi üretimi ve ölçüm |
 | `docs/decisions` | Alınan kararlar |
+| `docs/acik-notlar.md` | Sonraya bırakılan konular |
 
 Ayarlar `VA_` önekli ortam değişkenlerinden okunur: [`settings.py`](src/visual_agent/settings.py).

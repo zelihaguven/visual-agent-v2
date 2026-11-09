@@ -4,7 +4,7 @@ import type { Turn, TurnItem } from "../turn";
 const STAGE_LABELS: Record<string, string> = {
   context: "Soru tamamlanıyor",
   scope: "Belgeler belirleniyor",
-  inventory: "Belgeler belirleniyor",
+  intent: "Hazırlanıyor",
   retrieve: "Kaynaklar aranıyor",
   generate: "Cevap yazılıyor",
   verify: "Kaynakla kontrol ediliyor",
@@ -254,6 +254,8 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: P
           )}
         </div>
       );
+    case "small_talk":
+      return <p className="small-talk">{result.text}</p>;
     case "inventory":
       return <InventoryView result={result} />;
     case "failed":

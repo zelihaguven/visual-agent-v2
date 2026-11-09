@@ -30,6 +30,7 @@ from visual_agent.domain.result import (
     Clarify,
     Inventory,
     NotFound,
+    SmallTalk,
 )
 from visual_agent.ingest.formats import UnsupportedFormat, detect_format
 from visual_agent.settings import Settings
@@ -110,6 +111,7 @@ def _result_payload(result: AskResult) -> dict[str, object]:
         (Clarify, "clarify"),
         (NotFound, "not_found"),
         (Inventory, "inventory"),
+        (SmallTalk, "small_talk"),
     ]
     kind = next((name for model, name in kinds if isinstance(result, model)), "failed")
     return {"kind": kind, **result.model_dump(mode="json")}

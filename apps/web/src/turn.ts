@@ -75,6 +75,7 @@ export function applyEvent(turn: Turn, event: AskEvent): Turn {
         sourceNumbers: event.source_numbers,
         fromFigure: false,
       });
+    case "searching":
     case "item_audio":
       return turn;
     case "audio_unavailable":

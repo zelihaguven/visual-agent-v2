@@ -30,7 +30,12 @@ type Props = {
   lastTurn: Turn | null;
   takeGreeting: () => PhraseAudio | null;
   playWaiting: () => void;
-  onAsk: (question: string, signal: AbortSignal, onAudio: () => void) => Promise<void>;
+  onAsk: (
+    question: string,
+    signal: AbortSignal,
+    onAudio: () => void,
+    onSearching: () => void,
+  ) => Promise<void>;
   onOpenSource: (citation: Citation) => void;
   onClose: () => void;
 };
@@ -77,13 +82,17 @@ export function ConversationMode(props: Props) {
         audio.stop();
         setPhase("listening");
       });
-      latest.current.playWaiting();
       const text = await transcribeSafely(recording);
       if (!text && !control.signal.aborted && !session.signal.aborted) {
         setNotice(NOT_HEARD);
       }
       if (text && !control.signal.aborted && !session.signal.aborted) {
-        await latest.current.onAsk(text, control.signal, () => setPhase("speaking"));
+        await latest.current.onAsk(
+          text,
+          control.signal,
+          () => setPhase("speaking"),
+          () => latest.current.playWaiting(),
+        );
       }
       await audio.whenIdle();
       turnControl.current = null;

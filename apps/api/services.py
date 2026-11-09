@@ -11,12 +11,13 @@ import httpx
 from qdrant_client import AsyncQdrantClient
 
 from apps.api.main import ApiServices
+from apps.api.voice import fixed_reply_texts
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.orchestrator import answer_question
 from visual_agent.catalog.repository import DocumentRepository
 from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.result import AskOutcome, Failed
-from visual_agent.generation.inventory import InventoryClassifier, make_inventory_classifier
+from visual_agent.generation.intent import IntentClassifier, make_intent_classifier
 from visual_agent.generation.json_model import JsonModel
 from visual_agent.generation.openrouter import (
     AnswerClient,
@@ -30,7 +31,7 @@ from visual_agent.generation.translate import Translator, make_translator
 from visual_agent.retrieval.hybrid import HybridRetriever
 from visual_agent.retrieval.qdrant_store import QdrantChunkStore
 from visual_agent.settings import Settings
-from visual_agent.voice.client import OpenRouterVoice, Voice
+from visual_agent.voice.client import CachingVoice, OpenRouterVoice, Voice
 
 COLLECTION = "documents"
 _MISSING_KEY = "Cevap servisi yapılandırılmamış. OpenRouter anahtarını ekleyin."
@@ -42,7 +43,7 @@ class _ModelClients:
     answer: AnswerClient
     translator: Translator
     rewriter: Rewriter
-    inventory_classifier: InventoryClassifier
+    intent_classifier: IntentClassifier
     system_prompt: str
 
 
@@ -101,7 +102,7 @@ class AskRuntime:
             answer=answer,
             translator=make_translator(helper_model),
             rewriter=make_rewriter(helper_model),
-            inventory_classifier=make_inventory_classifier(helper_model),
+            intent_classifier=make_intent_classifier(helper_model),
             system_prompt=load_answer_prompt(),
         )
 
@@ -125,7 +126,7 @@ class AskRuntime:
             system_prompt=clients.system_prompt,
             translator=clients.translator,
             rewriter=clients.rewriter,
-            inventory_classifier=clients.inventory_classifier,
+            intent_classifier=clients.intent_classifier,
         )
         return await answer_question(request, deps)
 
@@ -134,7 +135,7 @@ def _make_voice(settings: Settings, http: httpx.AsyncClient) -> Voice | None:
     key = settings.openrouter_api_key
     if key is None or not key.get_secret_value():
         return None
-    return OpenRouterVoice(
+    openrouter = OpenRouterVoice(
         http=http,
         base_url=str(settings.openrouter_url).rstrip("/"),
         api_key=key.get_secret_value(),
@@ -144,6 +145,7 @@ def _make_voice(settings: Settings, http: httpx.AsyncClient) -> Voice | None:
         tts_voice=settings.tts_voice,
         tts_format=settings.tts_format,
     )
+    return CachingVoice(openrouter, fixed_reply_texts())
 
 
 @asynccontextmanager

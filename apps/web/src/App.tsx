@@ -28,6 +28,7 @@ type AskOptions = {
   speak?: boolean;
   signal?: AbortSignal;
   onAudio?: () => void;
+  onSearching?: () => void;
 };
 
 export function App() {
@@ -80,7 +81,7 @@ export function App() {
   async function ask(
     question: string,
     docIds: string[] | null,
-    { context: turnContext, speak = false, signal, onAudio }: AskOptions,
+    { context: turnContext, speak = false, signal, onAudio, onSearching }: AskOptions,
   ) {
     nextId.current += 1;
     const id = String(nextId.current);
@@ -96,6 +97,9 @@ export function App() {
         speak,
         (event) => {
           updateTurn((turn) => applyEvent(turn, event));
+          if (event.type === "searching") {
+            onSearching?.();
+          }
           if (event.type === "item_audio") {
             audioQueue().enqueue(event.audio, event.mime);
             onAudio?.();
@@ -250,12 +254,13 @@ export function App() {
             lastTurn={turns.at(-1) ?? null}
             takeGreeting={takeGreeting}
             playWaiting={playWaitingPhrase}
-            onAsk={(question, signal, onAudio) =>
+            onAsk={(question, signal, onAudio, onSearching) =>
               ask(question, null, {
                 context: latestContext.current,
                 speak: true,
                 signal,
                 onAudio,
+                onSearching,
               })
             }
             onOpenSource={setSource}

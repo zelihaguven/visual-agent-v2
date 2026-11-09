@@ -24,7 +24,7 @@ from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.document import Chunk, DocumentMeta
 from visual_agent.domain.result import Answered, AskResult, Citation, Clarify, NotFound
-from visual_agent.generation.inventory import InventoryClassifier, make_inventory_classifier
+from visual_agent.generation.intent import IntentClassifier, make_intent_classifier
 from visual_agent.generation.json_model import JsonModel
 from visual_agent.generation.openrouter import (
     AnswerClient,
@@ -152,7 +152,7 @@ def to_record(question_id: str, result: AskResult) -> AnswerRecord:
 
 async def _answer_client(
     http: httpx.AsyncClient, settings: Settings, api_key: str
-) -> tuple[AnswerClient, Translator, Rewriter, InventoryClassifier]:
+) -> tuple[AnswerClient, Translator, Rewriter, IntentClassifier]:
     url = str(settings.openrouter_url).rstrip("/")
     index = await fetch_zdr_index(http, url, api_key)
     providers, ignored = select_providers(settings.answer_model, settings.answer_providers, index)
@@ -175,7 +175,7 @@ async def _answer_client(
         AnswerClient(http, base_url=url, api_key=api_key, options=options),
         make_translator(helper_model),
         make_rewriter(helper_model),
-        make_inventory_classifier(helper_model),
+        make_intent_classifier(helper_model),
     )
 
 
@@ -247,7 +247,7 @@ async def run(arguments: argparse.Namespace) -> dict[str, object]:
             load_answer_prompt(),
             translator,
             rewriter=rewriter,
-            inventory_classifier=classifier,
+            intent_classifier=classifier,
         )
         return await _full_run(gold, deps, arguments.work / "answers.json")
 

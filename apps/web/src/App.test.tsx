@@ -616,15 +616,40 @@ describe("App", () => {
       expect(create).toHaveBeenCalledTimes(1);
     });
 
-    it("plays a waiting phrase right after the user stops talking", async () => {
+    function replyApi(events: object[]) {
+      return stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse(PHRASES),
+        "/api/transcribe": () => jsonResponse({ text: "merhaba" }),
+        "/api/ask": () => sse(events),
+      });
+    }
+
+    it("plays a waiting phrase only when a search really starts", async () => {
       const create = stubAudio();
       hearInTurn("birinci");
-      const fetchMock = conversationApi(["soru"]);
+      const fetchMock = replyApi([{ type: "searching" }, { ...answered, context: NEXT }]);
 
       await open(fetchMock);
 
       await waitFor(() => expect(askBodiesOf(fetchMock)).toHaveLength(1));
-      await waitFor(() => expect(create.mock.calls.length).toBeGreaterThanOrEqual(3));
+      await waitFor(() => expect(create).toHaveBeenCalledTimes(2));
+    });
+
+    it("answers a greeting without a waiting phrase", async () => {
+      const create = stubAudio();
+      hearInTurn("birinci");
+      const smallTalk = { ...answered, result: { kind: "small_talk", text: "Merhaba!" } };
+      const fetchMock = replyApi([
+        { type: "item_audio", index: -1, audio: btoa("ses"), mime: "audio/wav" },
+        smallTalk,
+      ]);
+
+      await open(fetchMock);
+
+      expect((await screen.findAllByText("Merhaba!")).length).toBeGreaterThan(0);
+      await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(2));
+      expect(create).toHaveBeenCalledTimes(2);
     });
 
     it("asks to repeat instead of sending an empty transcript", async () => {
