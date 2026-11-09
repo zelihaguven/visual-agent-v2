@@ -7,12 +7,14 @@ from dataclasses import replace
 from visual_agent.ask.deps import AskDeps
 from visual_agent.ask.steps import AskState
 from visual_agent.conversation.grounding import is_grounded
+from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.result import Answered, Clarify
 from visual_agent.verification.text import identifiers_in
 
 logger = logging.getLogger(__name__)
 
+_CONTEXT_STATUSES = (VerificationStatus.VERIFIED, VerificationStatus.PARTIAL)
 _CANNOT_COMPLETE = (
     "Soruyu önceki konuşmayla birleştiremedim. Model ya da konuyu da yazarak yeniden sorar mısınız?"
 )
@@ -61,12 +63,12 @@ def _from_verified(state: AskState, result: Answered) -> ConversationContext | N
 
 
 def next_context(state: AskState) -> ConversationContext | None:
-    """Yalnız doğrulanmış cevap bağlamı değiştirir; netleştirme soruyu bekletir."""
+    """Tam ya da kısmen doğrulanmış cevap bağlamı değiştirir; netleştirme soruyu bekletir."""
     result = state.result
     previous = state.request.context
     if isinstance(result, Answered):
-        verified = result.status.value == "verified"
-        return (_from_verified(state, result) if verified else None) or previous
+        usable = result.status in _CONTEXT_STATUSES
+        return (_from_verified(state, result) if usable else None) or previous
     if isinstance(result, Clarify) and state.context_resolved:
         return ConversationContext(question=state.question, doc_ids=state.scope or ())
     return previous

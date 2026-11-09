@@ -425,6 +425,17 @@ def test_interrupted_stream_keeps_only_verified_items() -> None:
     assert any(event["type"] == "incomplete" for event in events)
 
 
+def test_answer_from_an_ocr_chunk_is_partial() -> None:
+    retriever = FakeRetriever(hits=[CHUNKS[0].model_copy(update={"from_ocr": True})])
+
+    outcome = ask(make_deps(FakeClient(answer_payload("76,5")), retriever), "iç paça kaç?")
+
+    assert isinstance(outcome.result, Answered)
+    assert outcome.result.status.value == "partial"
+    assert outcome.result.items[0].verified
+    assert outcome.result.items[0].from_figure
+
+
 def test_quoting_a_whole_command_shows_it_from_the_source() -> None:
     command = CHUNKS[2].text
     payload = answer_payload("Kolon adı bu komutla değişir.", quote=command.lower())

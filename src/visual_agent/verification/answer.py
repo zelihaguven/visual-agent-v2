@@ -90,7 +90,17 @@ def _token_problems(item: ModelItem, evidence: str, sources: Sources) -> list[st
     return problems
 
 
+def _rests_on_ocr(item: ModelItem, sources: Sources) -> bool:
+    numbers = [quote.source_no for quote in item.quotes]
+    if item.code_source_no is not None:
+        numbers.append(item.code_source_no)
+    return any(number in sources and sources[number].from_ocr for number in numbers)
+
+
 def _is_from_figure(item: ModelItem, sources: Sources) -> bool:
+    """OCR ile okunan kaynaklar birebir teyit edilemez; cevap kısmi doğrulanmış sayılır."""
+    if _rests_on_ocr(item, sources):
+        return True
     for quote in item.quotes:
         source = sources.get(quote.source_no)
         if source and source.generated and normalize(quote.text) in normalize(source.generated):

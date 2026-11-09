@@ -76,12 +76,18 @@ export type AskEvent =
 
 export type DocumentStatus = "queued" | "processing" | "ready" | "failed";
 
+export type DocumentReport = {
+  warnings: string[];
+  uncertain_values: number;
+};
+
 export type DocumentInfo = {
   doc_id: string;
   title: string;
   filename: string;
   status: DocumentStatus;
   error: string | null;
+  report: DocumentReport | null;
 };
 
 export type SourceView =

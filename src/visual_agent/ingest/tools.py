@@ -20,6 +20,7 @@ from visual_agent.ingest.elements import Element, ElementKind
 from visual_agent.ingest.images import (
     OcrSegment,
     group_lines,
+    image_skip_reason,
     lines_to_elements,
     with_uncertain_tokens,
 )
@@ -253,10 +254,23 @@ def parse_pdf(path: Path) -> list[Element]:
     return parse_with_docling(path)
 
 
+def _skip_reason(box: Box) -> str | None:
+    return image_skip_reason(box, _MIN_IMAGE_AREA_RATIO, _MIN_IMAGE_SIDE_POINTS)
+
+
 def _is_meaningful_image(box: Box) -> bool:
-    width, height = box.right - box.left, box.bottom - box.top
-    area_ratio = width * height / (box.page_width * box.page_height or 1.0)
-    return area_ratio >= _MIN_IMAGE_AREA_RATIO and min(width, height) >= _MIN_IMAGE_SIDE_POINTS
+    return _skip_reason(box) is None
+
+
+def skipped_image_warnings(pages: list[PageInfo]) -> list[str]:
+    """Boyut eşiğine takıldığı için okunmayan her görsel için bir uyarı."""
+    return [
+        f"Sayfa {info.page}: görsel okunmadı ({reason})."
+        for info in pages
+        if info.kind is PageKind.TEXT
+        for box in info.image_boxes
+        if (reason := _skip_reason(box)) is not None
+    ]
 
 
 def _tesseract_text(image: Image.Image, language: str, work: str) -> str:
@@ -357,4 +371,5 @@ def default_tools() -> IngestTools:
         parse_pdf=parse_pdf,
         read_embedded_images=read_embedded_images,
         recover_page_text=recover_page_text,
+        skipped_image_warnings=skipped_image_warnings,
     )

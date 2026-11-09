@@ -17,7 +17,7 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 ## Cevap kalitesi
 
 - Taranmış belgede bir etiket sorusu son sınavda "bulunamadı" oldu; gerçek taramalarda izlenecek.
-- Fotoğraftaki değerler doğrulanamıyor ve gösterilmiyor; gerçek fotoğraflarla denenecek.
+- Fotoğraf, gömülü görsel ve taramadan OCR ile okunan değerlerde iki okuma uyuşursa değer gösterilir, cevap "Kısmen doğrulandı" olur; uyuşmazsa değer gizlenir, cevap "Doğrulanamadı" olur. Kısa kenarı 50 pt'den ya da alanı sayfanın %2'sinden küçük görseller okunmaz, belge listesinde uyarı çıkar. Gerçek fotoğraflarla denenecek.
 - GPT-OSS 120B ve GLM 5.3 Flash isteklerimize cevap vermedi; istemci uyumsuzluğu çözülürse hız için yeniden ölçülebilir.
 - Aynı belgenin iki sürümü farklı değer verdiğinde model bazen sormak yerine ikisini de listeliyor.
 - Model değişince önceki beden bazen düşüyor; sistem o zaman bedeni yeniden soruyor.

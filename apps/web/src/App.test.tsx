@@ -304,6 +304,48 @@ describe("App", () => {
     expect(within(list).getByText("Belge işlenemedi.")).toBeInTheDocument();
   });
 
+  it("shows skipped images and uncertain OCR values of a document", async () => {
+    const warning = "Sayfa 1: görsel okunmadı (kısa kenarı 17 pt, en az 50 pt gerekir).";
+    stubApi({
+      "/api/documents": () =>
+        jsonResponse([
+          {
+            doc_id: "a",
+            title: "Föy",
+            filename: "a.docx",
+            status: "ready",
+            error: null,
+            report: { warnings: [warning], uncertain_values: 6 },
+          },
+        ]),
+    });
+    render(<App />);
+
+    const notes = await screen.findByRole("list", { name: "Föy uyarıları" });
+    expect(within(notes).getByText(warning)).toBeInTheDocument();
+    expect(within(notes).getByText(/6 değer belirsiz/)).toBeInTheDocument();
+  });
+
+  it("shows no warning list for a cleanly read document", async () => {
+    stubApi({
+      "/api/documents": () =>
+        jsonResponse([
+          {
+            doc_id: "a",
+            title: "Föy",
+            filename: "a.pdf",
+            status: "ready",
+            error: null,
+            report: { warnings: [], uncertain_values: 0 },
+          },
+        ]),
+    });
+    render(<App />);
+
+    await screen.findByText("Hazır");
+    expect(screen.queryByRole("list", { name: "Föy uyarıları" })).not.toBeInTheDocument();
+  });
+
   it("uploads a file and shows the server's rejection reason", async () => {
     const fetchMock = stubApi({
       "/api/documents": (_url, init) =>

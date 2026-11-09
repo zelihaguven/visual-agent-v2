@@ -137,6 +137,35 @@ def test_item_from_generated_figure_text_makes_answer_partial() -> None:
     assert result.status is VerificationStatus.PARTIAL
 
 
+def test_item_from_ocr_text_is_marked_and_makes_answer_partial() -> None:
+    sources = {1: PromptSource(number=1, text="Bağlantı limiti: 386", from_ocr=True)}
+    candidate = item("Bağlantı limiti 386.", quote="Bağlantı limiti: 386")
+
+    assert verify_item(candidate, sources).ok
+    assert verify_item(candidate, sources).from_figure
+    assert verify_answer(answer(candidate), sources).status is VerificationStatus.PARTIAL
+
+
+def test_one_ocr_item_makes_the_whole_answer_partial() -> None:
+    sources = {
+        1: PromptSource(number=1, text="M: 76,5"),
+        2: PromptSource(number=2, text="L: 80,5", from_ocr=True),
+    }
+    result = verify_answer(
+        answer(item("M 76,5.", quote="M: 76,5"), item("L 80,5.", quote="L: 80,5", source_no=2)),
+        sources,
+    )
+
+    assert result.status is VerificationStatus.PARTIAL
+
+
+def test_command_read_by_ocr_is_marked() -> None:
+    sources = {1: PromptSource(number=1, text="DROP TABLE T;", is_code=True, from_ocr=True)}
+    command = ModelItem(text="Tabloyu siler.", code_source_no=1)
+
+    assert verify_item(command, sources).from_figure
+
+
 def test_all_items_valid_is_verified() -> None:
     assert verify_answer(answer(item("76,5 cm.")), SOURCES).status is VerificationStatus.VERIFIED
 

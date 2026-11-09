@@ -206,6 +206,18 @@ def test_verified_answer_becomes_the_next_context() -> None:
     )
 
 
+def test_partially_verified_answer_becomes_the_next_context() -> None:
+    retriever = FakeRetriever(hits=[CHUNKS[0].model_copy(update={"from_ocr": True})])
+
+    outcome = ask_with(deps_with(follows(), FakeClient(VERIFIED), retriever), "Peki dış paça kaç?")
+
+    assert isinstance(outcome.result, Answered)
+    assert outcome.result.status is VerificationStatus.PARTIAL
+    assert outcome.context == ConversationContext(
+        question=RESOLVED, doc_ids=("a",), titles=("PNT-4417 ölçü föyü",)
+    )
+
+
 def test_unverified_answer_does_not_replace_the_context() -> None:
     payload = answer_payload("Dış paça 99 cm.", "Dış paça 99")
 
