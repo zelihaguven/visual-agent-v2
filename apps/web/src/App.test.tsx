@@ -718,6 +718,23 @@ describe("App", () => {
       pause.mockRestore();
     });
 
+    it("releases a microphone that opens after the user has already left", async () => {
+      stubAudio();
+      let finishOpening: (mic: object) => void = () => undefined;
+      listening.open.mockReturnValue(
+        new Promise((resolve) => {
+          finishOpening = resolve;
+        }),
+      );
+      await open(conversationApi([]));
+
+      fireEvent.click(screen.getByRole("button", { name: "Bitir" }));
+      finishOpening({ stream: {}, level: () => 0, close: listening.close });
+
+      await waitFor(() => expect(listening.close).toHaveBeenCalled());
+      expect(listening.listen).not.toHaveBeenCalled();
+    });
+
     it("explains when the microphone cannot be opened", async () => {
       stubAudio();
       listening.open.mockRejectedValue(new Error("izin yok"));

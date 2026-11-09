@@ -142,13 +142,22 @@ function record(stream: MediaStream): { stop: () => Promise<Blob>; cancel: () =>
   const parts: Blob[] = [];
   recorder.ondataavailable = (event) => parts.push(event.data);
   recorder.start();
+  const toBlob = () => new Blob(parts, { type: recorder.mimeType });
   return {
     stop: () =>
       new Promise((resolve) => {
-        recorder.onstop = () => resolve(new Blob(parts, { type: recorder.mimeType }));
+        if (recorder.state === "inactive") {
+          resolve(toBlob());
+          return;
+        }
+        recorder.onstop = () => resolve(toBlob());
         recorder.stop();
       }),
-    cancel: () => recorder.stop(),
+    cancel: () => {
+      if (recorder.state !== "inactive") {
+        recorder.stop();
+      }
+    },
   };
 }
 

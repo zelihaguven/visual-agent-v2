@@ -110,6 +110,10 @@ export function ConversationMode(props: Props) {
         setError(NO_MICROPHONE);
         return;
       }
+      if (session.signal.aborted) {
+        mic.close();
+        return;
+      }
       microphone = mic;
       const greeting = latest.current.takeGreeting();
       if (greeting !== null) {

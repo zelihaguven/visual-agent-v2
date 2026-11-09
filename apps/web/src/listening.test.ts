@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   INITIAL_BARGE,
@@ -6,8 +6,11 @@ import {
   bargeThreshold,
   speechThreshold,
   stepBarge,
+  listenForBargeIn,
+  listenForUtterance,
   stepVad,
   type BargeState,
+  type Microphone,
   type VadDecision,
   type VadState,
 } from "./listening";
@@ -111,5 +114,47 @@ describe("interrupting by voice", () => {
 
   it("does not trigger during calibration", () => {
     expect(runBarge(ticks(0.5, 450)).hasBarged).toBe(false);
+  });
+});
+
+describe("ending while the microphone is already closed", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  class ClosedRecorder {
+    state = "inactive";
+    mimeType = "audio/webm";
+    start() {}
+    stop() {
+      throw new DOMException("inactive", "InvalidStateError");
+    }
+  }
+
+  const microphone = { stream: {}, level: () => 0, close: () => undefined } as unknown as Microphone;
+
+  it("finishes listening without an error", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("MediaRecorder", ClosedRecorder);
+    const controller = new AbortController();
+    const result = listenForUtterance(microphone, () => undefined, controller.signal);
+
+    controller.abort();
+    await vi.advanceTimersByTimeAsync(60);
+
+    await expect(result).resolves.toBeNull();
+  });
+
+  it("finishes the interruption monitor without an error", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("MediaRecorder", ClosedRecorder);
+    const session = new AbortController();
+    const result = listenForBargeIn(microphone, session.signal, new AbortController().signal, () => undefined);
+
+    session.abort();
+    await vi.advanceTimersByTimeAsync(60);
+
+    await expect(result).resolves.toBeNull();
   });
 });

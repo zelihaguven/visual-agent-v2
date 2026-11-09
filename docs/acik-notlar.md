@@ -19,6 +19,11 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Aynı belgenin iki sürümü farklı değer verdiğinde model bazen sormak yerine ikisini de listeliyor.
 - Model değişince önceki beden bazen düşüyor; sistem o zaman bedeni yeniden soruyor.
 
+## Yayına almadan önce
+
+- Giriş kapalı: arayüz ağa açılırsa ağdaki herkes belge görebilir ve yükleyebilir. Şu an yalnız `127.0.0.1` adresine açık; tabletler için açmadan önce giriş ya da ağ kısıtı gerekir.
+- Yüklenen Office dosyaları işçide LibreOffice ile açılıyor; işçinin internet erişimi kapatılabilir.
+
 ## Kurulum
 
 - Temiz kurulumdaki Docling model indirme komutu bu bilgisayarda takıldı, çalıştığı doğrulanmadı.

@@ -45,6 +45,7 @@ async def _open_processor(settings: Settings) -> DocumentProcessor:
     pool = await asyncpg.create_pool(str(settings.database_url))
     repository = DocumentRepository(pool)
     await repository.migrate()
+    await repository.requeue_interrupted()
     store = QdrantChunkStore(AsyncQdrantClient(url=str(settings.qdrant_url)), COLLECTION)
     tools = default_tools()
 

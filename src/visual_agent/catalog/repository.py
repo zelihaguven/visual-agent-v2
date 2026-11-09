@@ -127,6 +127,13 @@ class DocumentRepository:
         )
         return [_to_chunk(row["payload"]) for row in rows]
 
+    async def requeue_interrupted(self) -> None:
+        """İşçi işlerken durduysa belge açılışta yeniden kuyruğa girer."""
+        await self._pool.execute(
+            "UPDATE documents SET status = 'queued', updated_at = now()"
+            " WHERE status = 'processing'"
+        )
+
     async def claim_next(self) -> StoredDocument | None:
         """Birden çok işçi aynı belgeyi alamaz."""
         row = await self._pool.fetchrow(
