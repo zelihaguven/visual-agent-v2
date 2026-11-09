@@ -19,6 +19,7 @@ from apps.api.preview import render_highlighted_page
 from visual_agent.ask.deps import AskRequest
 from visual_agent.ask.streaming import Event
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
+from visual_agent.domain.conversation import MAX_QUESTION_CHARS, ConversationContext
 from visual_agent.domain.document import Chunk
 from visual_agent.domain.result import (
     Answered,
@@ -34,7 +35,6 @@ logger = logging.getLogger(__name__)
 
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024
 _UPLOAD_CHUNK_BYTES = 1024 * 1024
-_MAX_QUESTION_CHARS = 2000
 _MAX_TITLE_CHARS = 200
 _GENERIC_ERROR = "Cevap hazırlanırken bir sorun oluştu. Lütfen yeniden deneyin."
 _END_OF_STREAM: Event = {"type": "__end__"}
@@ -65,8 +65,9 @@ class HealthResponse(BaseModel):
 
 
 class AskBody(BaseModel):
-    question: str = Field(max_length=_MAX_QUESTION_CHARS)
+    question: str = Field(max_length=MAX_QUESTION_CHARS)
     doc_ids: tuple[str, ...] | None = None
+    context: ConversationContext | None = None
 
     @field_validator("question")
     @classmethod
@@ -119,7 +120,10 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
         try:
             outcome = await services.ask(
                 AskRequest(
-                    question=request.question, doc_ids=request.doc_ids, on_event=queue.put_nowait
+                    question=request.question,
+                    doc_ids=request.doc_ids,
+                    context=request.context,
+                    on_event=queue.put_nowait,
                 )
             )
             queue.put_nowait(
@@ -127,6 +131,11 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
                     "type": "done",
                     "result": _result_payload(outcome.result),
                     "timings": outcome.timings,
+                    "question": outcome.question,
+                    "scope_inherited": outcome.scope_inherited,
+                    "context": outcome.context.model_dump(mode="json")
+                    if outcome.context is not None
+                    else None,
                 }
             )
         except Exception:

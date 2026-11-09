@@ -13,6 +13,8 @@ export type Turn = {
   id: string;
   question: string;
   docIds: string[] | null;
+  resolvedQuestion: string | null;
+  scopeInherited: boolean;
   stage: string | null;
   sources: Citation[];
   items: Record<number, TurnItem>;
@@ -26,6 +28,8 @@ export function newTurn(id: string, question: string, docIds: string[] | null = 
     id,
     question,
     docIds,
+    resolvedQuestion: null,
+    scopeInherited: false,
     stage: null,
     sources: [],
     items: {},
@@ -43,6 +47,8 @@ export function applyEvent(turn: Turn, event: AskEvent): Turn {
   switch (event.type) {
     case "status":
       return { ...turn, stage: event.stage };
+    case "resolved":
+      return { ...turn, resolvedQuestion: event.question };
     case "sources":
       return { ...turn, sources: event.sources };
     case "item_stream":
@@ -74,7 +80,7 @@ export function applyEvent(turn: Turn, event: AskEvent): Turn {
     case "incomplete":
       return { ...turn, notice: event.message };
     case "done":
-      return { ...turn, result: event.result, stage: null };
+      return { ...turn, result: event.result, scopeInherited: event.scope_inherited, stage: null };
     case "error":
       return { ...turn, error: event.message, stage: null };
   }

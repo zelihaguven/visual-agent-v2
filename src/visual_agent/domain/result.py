@@ -1,6 +1,7 @@
 """Bir sorunun olası sonuçları: her çıkış kendi tipindedir."""
 
 from visual_agent.domain.answer import VerificationStatus
+from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.document import Chunk, FrozenModel, SourceLocation
 
 
@@ -62,3 +63,6 @@ class AskOutcome(FrozenModel):
     cost_usd: float = 0.0
     provider: str | None = None
     first_verified_seconds: float | None = None
+    question: str = ""
+    context: ConversationContext | None = None
+    scope_inherited: bool = False

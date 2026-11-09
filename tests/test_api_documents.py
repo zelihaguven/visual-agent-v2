@@ -86,6 +86,42 @@ def test_invalid_question_is_rejected(tmp_path: Path, question: str) -> None:
     assert make_client(tmp_path).post("/api/ask", json={"question": question}).status_code == 422
 
 
+def test_context_reaches_the_pipeline_and_the_next_context_is_returned(tmp_path: Path) -> None:
+    received: list[AskRequest] = []
+    context = {"question": "Önceki soru?", "doc_ids": ["a"], "titles": ["Belge"]}
+
+    async def ask(request: AskRequest) -> AskOutcome:
+        received.append(request)
+        assert request.context is not None
+        return AskOutcome(
+            result=NotFound(),
+            timings={},
+            question="Tam soru?",
+            context=request.context,
+            scope_inherited=True,
+        )
+
+    services = ApiServices(repository=FakeRepository(), ask=ask, storage_directory=tmp_path)
+    client = TestClient(create_app(Settings(_env_file=None), services))
+
+    events = _events(client.post("/api/ask", json={"question": "Peki?", "context": context}).text)
+
+    assert received[0].context is not None
+    assert received[0].context.question == "Önceki soru?"
+    assert events[-1]["question"] == "Tam soru?"
+    assert events[-1]["scope_inherited"] is True
+    assert events[-1]["context"] == context
+
+
+@pytest.mark.parametrize(
+    "context", [{"question": ""}, {"question": "x" * 2001}, {"doc_ids": ["a"]}]
+)
+def test_invalid_context_is_rejected(tmp_path: Path, context: dict[str, object]) -> None:
+    body = {"question": "soru", "context": context}
+
+    assert make_client(tmp_path).post("/api/ask", json=body).status_code == 422
+
+
 def test_failure_during_answering_is_reported_without_details(tmp_path: Path) -> None:
     async def ask(request: AskRequest) -> AskOutcome:
         raise RuntimeError("gizli ayrıntı")

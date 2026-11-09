@@ -32,8 +32,15 @@ export type AskResult =
   | { kind: "not_found"; reason: string; suggested_doc_ids: string[] }
   | { kind: "failed"; reason: string; citations: Citation[] };
 
+export type ConversationContext = {
+  question: string;
+  doc_ids: string[];
+  titles: string[];
+};
+
 export type AskEvent =
   | { type: "status"; stage: string }
+  | { type: "resolved"; question: string }
   | { type: "sources"; sources: Citation[] }
   | { type: "item_stream"; index: number; text: string }
   | {
@@ -46,7 +53,14 @@ export type AskEvent =
   | { type: "item_unverified"; index: number; message: string; source_numbers: number[] }
   | { type: "reset" }
   | { type: "incomplete"; message: string }
-  | { type: "done"; result: AskResult; timings: Record<string, number> }
+  | {
+      type: "done";
+      result: AskResult;
+      timings: Record<string, number>;
+      question: string;
+      scope_inherited: boolean;
+      context: ConversationContext | null;
+    }
   | { type: "error"; message: string };
 
 export type DocumentStatus = "queued" | "processing" | "ready" | "failed";
@@ -82,12 +96,17 @@ function parseEvent(block: string): AskEvent | null {
 export async function askQuestion(
   question: string,
   docIds: string[] | null,
+  context: ConversationContext | null,
   onEvent: (event: AskEvent) => void,
 ): Promise<void> {
   const response = await fetch("/api/ask", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(docIds ? { question, doc_ids: docIds } : { question }),
+    body: JSON.stringify({
+      question,
+      ...(docIds ? { doc_ids: docIds } : {}),
+      ...(context ? { context } : {}),
+    }),
   });
   if (!response.ok || response.body === null) {
     throw new Error(`Soru gönderilemedi: ${response.status}`);

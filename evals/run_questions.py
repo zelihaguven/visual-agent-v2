@@ -21,8 +21,10 @@ from visual_agent.ask.steps import AskState, resolve_scope, retrieve
 from visual_agent.catalog.identifiers import build_identifier_index
 from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.domain.answer import VerificationStatus
+from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.document import Chunk, DocumentMeta
 from visual_agent.domain.result import Answered, AskResult, Citation, Clarify, NotFound
+from visual_agent.generation.json_model import JsonModel
 from visual_agent.generation.openrouter import (
     AnswerClient,
     AnswerClientOptions,
@@ -32,6 +34,7 @@ from visual_agent.generation.openrouter import (
     select_providers,
 )
 from visual_agent.generation.prompts import load_answer_prompt, load_answer_schema
+from visual_agent.generation.rewrite import Rewriter, make_rewriter
 from visual_agent.generation.translate import Translator, make_translator
 from visual_agent.retrieval.encoders import BgeM3Dense, Bm25Sparse
 from visual_agent.retrieval.hybrid import HybridRetriever
@@ -86,15 +89,15 @@ async def _index(
     )
 
 
-def _selected(gold: GoldSet) -> list[GoldQuestion]:
-    """Takip soruları sohbet katmanı (A6) gelene kadar dışarıda kalır."""
+def _standalone(gold: GoldSet) -> list[GoldQuestion]:
+    """Yalnız arama ölçümü: takip soruları tamamlanmadan aranamaz."""
     return [q for q in gold.questions if q.turn is None or q.turn == _FIRST_TURN]
 
 
 async def _retrieval_only(gold: GoldSet, deps: AskDeps) -> dict[str, object]:
     total = top1 = top_k = 0
     missed: list[dict[str, object]] = []
-    for question in _selected(gold):
+    for question in _standalone(gold):
         if not question.sources:
             continue
         state = await resolve_scope(AskState(AskRequest(question.text)), deps)
@@ -148,7 +151,7 @@ def to_record(question_id: str, result: AskResult) -> AnswerRecord:
 
 async def _answer_client(
     http: httpx.AsyncClient, settings: Settings, api_key: str
-) -> tuple[AnswerClient, Translator]:
+) -> tuple[AnswerClient, Translator, Rewriter]:
     url = str(settings.openrouter_url).rstrip("/")
     index = await fetch_zdr_index(http, url, api_key)
     providers, ignored = select_providers(settings.answer_model, settings.answer_providers, index)
@@ -164,24 +167,28 @@ async def _answer_client(
     translation_providers, translation_ignored = select_providers(
         settings.translation_model, settings.translation_providers, index
     )
-    translator = make_translator(
-        http,
-        base_url=url,
-        api_key=api_key,
-        model=settings.translation_model,
-        providers=translation_providers,
-        ignored_providers=translation_ignored,
+    helper_model = JsonModel(
+        http, url, api_key, settings.translation_model, translation_providers, translation_ignored
     )
-    return AnswerClient(http, base_url=url, api_key=api_key, options=options), translator
+    return (
+        AnswerClient(http, base_url=url, api_key=api_key, options=options),
+        make_translator(helper_model),
+        make_rewriter(helper_model),
+    )
 
 
 async def _full_run(gold: GoldSet, deps: AskDeps, output: Path) -> dict[str, object]:
-    questions = _selected(gold)
+    questions = list(gold.questions)
     records: list[AnswerRecord] = []
     rows: list[dict[str, object]] = []
+    contexts: dict[str, ConversationContext | None] = {}
     cost = 0.0
     for question in questions:
-        outcome = await answer_question(AskRequest(question.text), deps)
+        conversation = question.conversation_id
+        context = contexts.get(conversation) if conversation is not None else None
+        outcome = await answer_question(AskRequest(question.text, context=context), deps)
+        if conversation is not None:
+            contexts[conversation] = outcome.context
         record = to_record(question.question_id, outcome.result)
         records.append(record)
         cost += outcome.cost_usd
@@ -189,6 +196,7 @@ async def _full_run(gold: GoldSet, deps: AskDeps, output: Path) -> dict[str, obj
             {
                 "question": question.question_id,
                 "kind": question.kind.value,
+                "resolved_question": outcome.question,
                 "record": record.model_dump(mode="json"),
                 "score": score_question(question, record).model_dump(mode="json"),
                 "timings": outcome.timings,
@@ -226,9 +234,15 @@ async def run(arguments: argparse.Namespace) -> dict[str, object]:
 
     api_key = settings.openrouter_api_key.get_secret_value()
     async with httpx.AsyncClient() as http:
-        answer_client, translator = await _answer_client(http, settings, api_key)
+        answer_client, translator, rewriter = await _answer_client(http, settings, api_key)
         deps = AskDeps(
-            catalog, identifiers, retriever, answer_client, load_answer_prompt(), translator
+            catalog,
+            identifiers,
+            retriever,
+            answer_client,
+            load_answer_prompt(),
+            translator,
+            rewriter=rewriter,
         )
         return await _full_run(gold, deps, arguments.work / "answers.json")
 

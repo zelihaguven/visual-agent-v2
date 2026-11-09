@@ -4,6 +4,7 @@ import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, replace
 
+from visual_agent.ask.context import next_context, resolve_context
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.steps import AskState, generate, resolve_scope, retrieve, verify
 from visual_agent.domain.result import AskOutcome, Failed
@@ -20,6 +21,7 @@ class NamedStep:
 
 
 PIPELINE = (
+    NamedStep("context", resolve_context),
     NamedStep("scope", resolve_scope),
     NamedStep("retrieve", retrieve),
     NamedStep("generate", generate),
@@ -47,4 +49,7 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
         cost_usd=final.cost_usd,
         provider=final.provider,
         first_verified_seconds=final.first_verified_seconds,
+        question=final.question,
+        context=next_context(final),
+        scope_inherited=final.scope_inherited,
     )

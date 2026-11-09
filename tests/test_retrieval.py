@@ -6,6 +6,7 @@ import httpx
 from qdrant_client import AsyncQdrantClient
 
 from visual_agent.domain.document import Chunk, ChunkKind, SourceLocation
+from visual_agent.generation.json_model import JsonModel
 from visual_agent.generation.translate import (
     bm25_text,
     make_translator,
@@ -164,12 +165,7 @@ def test_translator_sends_only_the_question_with_zdr() -> None:
     async def run() -> str:
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
             translator = make_translator(
-                http,
-                base_url="https://router.test/api/v1",
-                api_key="k",
-                model="m",
-                providers=("alpha",),
-                ignored_providers=(),
+                JsonModel(http, "https://router.test/api/v1", "k", "m", ("alpha",), ())
             )
             return await translator("iç paça", "tr", ["en"])
 

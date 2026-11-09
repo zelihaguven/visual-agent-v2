@@ -403,3 +403,33 @@ def test_interrupted_stream_keeps_only_verified_items() -> None:
     assert outcome.result.status.value == "partial"
     assert [item.verified for item in outcome.result.items] == [True]
     assert any(event["type"] == "incomplete" for event in events)
+
+
+def test_quoting_a_whole_command_shows_it_from_the_source() -> None:
+    command = CHUNKS[2].text
+    payload = answer_payload("Kolon adı bu komutla değişir.", quote=command.lower())
+    retriever = FakeRetriever(hits=[CHUNKS[2]])
+
+    outcome = ask(make_deps(FakeClient(payload), retriever), "Kolon adı nasıl değişir?")
+
+    assert isinstance(outcome.result, Answered)
+    assert outcome.result.items[0].code == command
+
+
+def test_quoting_part_of_a_command_is_not_shown_as_the_command() -> None:
+    payload = answer_payload("Komut tabloyu değiştirir.", quote="ALTER TABLE T")
+    retriever = FakeRetriever(hits=[CHUNKS[2]])
+
+    outcome = ask(make_deps(FakeClient(payload), retriever), "Komut ne yapar?")
+
+    assert isinstance(outcome.result, Answered)
+    assert outcome.result.items[0].code is None
+
+
+def test_quoting_a_whole_table_row_is_not_shown_as_a_command() -> None:
+    payload = answer_payload("İç paça 76,5 cm.", quote=ROW)
+
+    outcome = ask(make_deps(FakeClient(payload)), "İç paça kaç?")
+
+    assert isinstance(outcome.result, Answered)
+    assert outcome.result.items[0].code is None

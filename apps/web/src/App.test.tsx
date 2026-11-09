@@ -38,6 +38,9 @@ function stubApi(routes: Record<string, Route>) {
 const answered = {
   type: "done",
   timings: {},
+  question: "soru",
+  scope_inherited: false,
+  context: null,
   result: {
     kind: "answered",
     status: "verified",
@@ -192,6 +195,9 @@ describe("App", () => {
           {
             type: "done",
             timings: {},
+            question: "soru",
+            scope_inherited: false,
+            context: null,
             result: {
               kind: "clarify",
               question: "Hangi model?",
@@ -223,6 +229,9 @@ describe("App", () => {
           {
             type: "done",
             timings: {},
+            question: "soru",
+            scope_inherited: false,
+            context: null,
             result: { kind: "not_found", reason: "", suggested_doc_ids: [] },
           },
         ]),
@@ -273,5 +282,93 @@ describe("App", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("desteklenmiyor");
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(true);
+  });
+
+  const CONTEXT = {
+    question: "PNT-4417 M beden iç paça kaç?",
+    doc_ids: ["d1"],
+    titles: ["PNT-4417 ölçü föyü"],
+  };
+  const askBodies = (fetchMock: ReturnType<typeof stubApi>) =>
+    fetchMock.mock.calls
+      .filter(([url]) => String(url) === "/api/ask")
+      .map(([, init]) => JSON.parse(String(init?.body)));
+
+  it("sends the last context with the next question and shows how it was understood", async () => {
+    const fetchMock = stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          { type: "resolved", question: "PNT-4417 M beden dış paça kaç?" },
+          { ...answered, context: CONTEXT },
+        ]),
+    });
+    render(<App />);
+    await ask("PNT-4417 M beden iç paça kaç?");
+    expect(await screen.findByRole("status")).toHaveTextContent("PNT-4417 ölçü föyü");
+
+    await ask("Peki dış paça?");
+
+    await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
+    expect(askBodies(fetchMock)[0]).toEqual({ question: "PNT-4417 M beden iç paça kaç?" });
+    expect(askBodies(fetchMock)[1]).toEqual({ question: "Peki dış paça?", context: CONTEXT });
+    expect(
+      (await screen.findAllByText("Anlaşılan soru: PNT-4417 M beden dış paça kaç?")).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("starts a new topic without the previous context", async () => {
+    const fetchMock = stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([{ ...answered, context: CONTEXT }]),
+    });
+    render(<App />);
+    await ask("ilk soru");
+    fireEvent.click(await screen.findByRole("button", { name: "Yeni konu" }));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+
+    await ask("ikinci soru");
+
+    await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
+    expect(askBodies(fetchMock)[1]).toEqual({ question: "ikinci soru" });
+  });
+
+  it("offers a wider search when a follow-up is not in the active document", async () => {
+    const fetchMock = stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          { type: "resolved", question: "PNT-4417 kordon boyu kaç?" },
+          {
+            type: "done",
+            timings: {},
+            question: "PNT-4417 kordon boyu kaç?",
+            scope_inherited: true,
+            context: CONTEXT,
+            result: { kind: "not_found", reason: "", suggested_doc_ids: [] },
+          },
+        ]),
+    });
+    render(<App />);
+    await ask("Peki kordon boyu?");
+    expect(await screen.findByText("Bu bilgi bu belgede yok.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Tüm belgelerde ara" }));
+
+    await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
+    expect(askBodies(fetchMock)[1]).toEqual({ question: "PNT-4417 kordon boyu kaç?" });
+  });
+
+  it("shows a command once when the sentence is only the command", async () => {
+    const command = "ALTER TABLE T RENAME COLUMN A TO B;";
+    const item = { ...answered.result.items[0], text: command, code: command };
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([{ ...answered, result: { ...answered.result, items: [item] } }]),
+    });
+    render(<App />);
+    await ask("komut ne");
+
+    expect(await screen.findAllByText(command)).toHaveLength(1);
   });
 });

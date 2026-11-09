@@ -16,6 +16,7 @@ from visual_agent.ask.orchestrator import answer_question
 from visual_agent.catalog.repository import DocumentRepository
 from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.result import AskOutcome, Failed
+from visual_agent.generation.json_model import JsonModel
 from visual_agent.generation.openrouter import (
     AnswerClient,
     AnswerClientOptions,
@@ -23,6 +24,7 @@ from visual_agent.generation.openrouter import (
     select_providers,
 )
 from visual_agent.generation.prompts import load_answer_prompt, load_answer_schema
+from visual_agent.generation.rewrite import Rewriter, make_rewriter
 from visual_agent.generation.translate import Translator, make_translator
 from visual_agent.retrieval.hybrid import HybridRetriever
 from visual_agent.retrieval.qdrant_store import QdrantChunkStore
@@ -37,6 +39,7 @@ class _ModelClients:
     retriever: HybridRetriever
     answer: AnswerClient
     translator: Translator
+    rewriter: Rewriter
     system_prompt: str
 
 
@@ -87,17 +90,14 @@ class AskRuntime:
         translation, translation_ignored = select_providers(
             settings.translation_model, settings.translation_providers, index
         )
+        helper_model = JsonModel(
+            self._http, url, api_key, settings.translation_model, translation, translation_ignored
+        )
         return _ModelClients(
             retriever=HybridRetriever(dense, sparse, self._store),
             answer=answer,
-            translator=make_translator(
-                self._http,
-                base_url=url,
-                api_key=api_key,
-                model=settings.translation_model,
-                providers=translation,
-                ignored_providers=translation_ignored,
-            ),
+            translator=make_translator(helper_model),
+            rewriter=make_rewriter(helper_model),
             system_prompt=load_answer_prompt(),
         )
 
@@ -120,6 +120,7 @@ class AskRuntime:
             answer_client=clients.answer,
             system_prompt=clients.system_prompt,
             translator=clients.translator,
+            rewriter=clients.rewriter,
         )
         return await answer_question(request, deps)
 

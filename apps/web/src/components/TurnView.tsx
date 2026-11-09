@@ -2,6 +2,7 @@ import type { AskResult, Citation } from "../api";
 import type { Turn, TurnItem } from "../turn";
 
 const STAGE_LABELS: Record<string, string> = {
+  context: "Soru tamamlanıyor",
   scope: "Belgeler belirleniyor",
   retrieve: "Kaynaklar aranıyor",
   generate: "Cevap yazılıyor",
@@ -17,7 +18,7 @@ const BADGES = {
 type Props = {
   turn: Turn;
   onOpenSource: (citation: Citation) => void;
-  onAskAgain: (question: string, docIds: string[]) => void;
+  onAskAgain: (question: string, docIds: string[] | null) => void;
 };
 
 export function citationLabel(citation: Citation): string {
@@ -109,7 +110,8 @@ function FinalAnswer({
       <ol className="answer-items">
         {result.items.map((item, index) => (
           <li key={index} className={`answer-item ${item.verified ? "is-verified" : "is-unverified"}`}>
-            {item.verified ? item.text : "Değer doğrulanamadı, kaynağa bakın."}
+            {!item.verified && "Değer doğrulanamadı, kaynağa bakın."}
+            {item.verified && item.text.trim() !== item.code?.trim() && item.text}
             {item.code !== null && (
               <pre className="code-block">
                 <code>{item.code}</code>
@@ -125,6 +127,7 @@ function FinalAnswer({
 
 function ResultView({ turn, onOpenSource, onAskAgain }: Props) {
   const { result } = turn;
+  const fullQuestion = turn.resolvedQuestion ?? turn.question;
   if (result === null) {
     return <StreamedItems turn={turn} onOpenSource={onOpenSource} />;
   }
@@ -141,7 +144,7 @@ function ResultView({ turn, onOpenSource, onAskAgain }: Props) {
                 key={option.doc_id}
                 type="button"
                 className="choice"
-                onClick={() => onAskAgain(turn.question, [option.doc_id])}
+                onClick={() => onAskAgain(fullQuestion, [option.doc_id])}
               >
                 {option.label}
               </button>
@@ -152,8 +155,17 @@ function ResultView({ turn, onOpenSource, onAskAgain }: Props) {
     case "not_found":
       return (
         <div>
-          <p className="notice">Bu bilgi belgelerde bulunamadı.</p>
+          <p className="notice">
+            {turn.scopeInherited ? "Bu bilgi bu belgede yok." : "Bu bilgi belgelerde bulunamadı."}
+          </p>
           {result.reason && <p className="muted">{result.reason}</p>}
+          {turn.scopeInherited && (
+            <div className="choices">
+              <button type="button" className="choice" onClick={() => onAskAgain(fullQuestion, null)}>
+                Tüm belgelerde ara
+              </button>
+            </div>
+          )}
         </div>
       );
     case "failed":
@@ -171,6 +183,9 @@ export function TurnView(props: Props) {
   return (
     <article className="turn">
       <p className="question">{turn.question}</p>
+      {turn.resolvedQuestion !== null && (
+        <p className="resolved">Anlaşılan soru: {turn.resolvedQuestion}</p>
+      )}
       <div className="answer" aria-live="polite">
         {turn.stage !== null && (
           <p className="stage">{STAGE_LABELS[turn.stage] ?? "Hazırlanıyor"}</p>

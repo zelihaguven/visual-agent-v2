@@ -32,7 +32,7 @@ from visual_agent.generation.openrouter import ServiceUnavailable, StreamCallbac
 from visual_agent.generation.parse import ParseFailure, parse_answer
 from visual_agent.generation.sources import build_user_message, to_prompt_sources
 from visual_agent.verification.answer import verify_answer
-from visual_agent.verification.text import identifiers_in
+from visual_agent.verification.text import identifiers_in, normalize
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,14 @@ class AskState:
     provider: str | None = None
     first_verified_seconds: float | None = None
     result: AskResult | None = None
+    resolved_question: str | None = None
+    inherited_doc_ids: tuple[str, ...] = ()
+    scope_inherited: bool = False
+    context_resolved: bool = True
+
+    @property
+    def question(self) -> str:
+        return self.resolved_question or self.request.question
 
 
 def _citation(hit: Hit) -> Citation:
@@ -100,13 +108,18 @@ async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
     """Kapsamı belirler; kod hiçbir yerde yoksa arama ve model çalışmadan durur."""
     request = state.request
     allowed = deps.catalog.visible_doc_ids(request.access)
-    mentioned = deps.catalog.mentioned_in(request.question, allowed)
+    mentioned = deps.catalog.mentioned_in(state.question, allowed)
     explicit = tuple(doc for doc in request.doc_ids or () if doc in allowed)
-    scope = explicit or mentioned or None
+    inherited = tuple(doc for doc in state.inherited_doc_ids if doc in allowed)
+    scope = explicit or mentioned or inherited or None
     current = replace(
-        state, language=detect_language(request.question), allowed=allowed, scope=scope
+        state,
+        language=detect_language(state.question),
+        allowed=allowed,
+        scope=scope,
+        scope_inherited=bool(inherited) and not explicit and not mentioned,
     )
-    identifiers = sorted(identifiers_in(request.question))
+    identifiers = sorted(identifiers_in(state.question))
     domain = _search_domain(current)
     missing = [item for item in identifiers if not deps.identifiers.lookup(item, domain)]
     if missing and len(missing) == len(identifiers):
@@ -116,7 +129,7 @@ async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
 
 async def _bm25_query(state: AskState, deps: AskDeps) -> str:
     """Çeviri yalnız soru dili ile belge dilleri farklıysa yapılır."""
-    question = state.request.question
+    question = state.question
     targets = deps.catalog.languages(_search_domain(state))
     if deps.translator is None or all(target == state.language for target in targets):
         return question
@@ -136,7 +149,7 @@ def _with_exact_chunks(state: AskState, found: Sequence[Hit], top_k: int) -> tup
 
 
 async def retrieve(state: AskState, deps: AskDeps) -> AskState:
-    query = state.request.question
+    query = state.question
     found = await deps.retriever.search(
         query, await _bm25_query(state, deps), state.scope, deps.top_k, state.request.access
     )
@@ -174,7 +187,7 @@ async def generate(state: AskState, deps: AskDeps) -> AskState:
         {"role": "system", "content": deps.system_prompt},
         {
             "role": "user",
-            "content": build_user_message(state.hits, state.request.question, state.language),
+            "content": build_user_message(state.hits, state.question, state.language),
         },
     ]
     assembler, callbacks = _stream_callbacks(state)
@@ -199,13 +212,28 @@ async def generate(state: AskState, deps: AskDeps) -> AskState:
     return replace(current, answer=parsed)
 
 
+def _hit_at(number: int, hits: Sequence[Hit]) -> Hit | None:
+    return hits[number - 1] if 1 <= number <= len(hits) else None
+
+
+def _code_hit(item: ModelItem, hits: Sequence[Hit]) -> Hit | None:
+    """Model komutu baştan sona alıntıladıysa komut yine kaynaktan gösterilir."""
+    if item.code_source_no is not None:
+        return _hit_at(item.code_source_no, hits)
+    for quote in item.quotes:
+        hit = _hit_at(quote.source_no, hits)
+        if (
+            hit is not None
+            and hit.chunk.kind is ChunkKind.CODE
+            and normalize(quote.text) == normalize(hit.chunk.text)
+        ):
+            return hit
+    return None
+
+
 def _answered_item(item: ModelItem, check: ItemCheck, hits: Sequence[Hit]) -> AnsweredItem:
     numbers = [n for n in check.source_numbers if 1 <= n <= len(hits)]
-    code_hit = (
-        hits[item.code_source_no - 1]
-        if item.code_source_no is not None and 1 <= item.code_source_no <= len(hits)
-        else None
-    )
+    code_hit = _code_hit(item, hits)
     return AnsweredItem(
         text=item.text,
         citations=tuple(_citation(hits[number - 1]) for number in dict.fromkeys(numbers)),

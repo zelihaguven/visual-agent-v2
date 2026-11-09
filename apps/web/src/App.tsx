@@ -1,7 +1,8 @@
 import { useRef, useState, type FormEvent } from "react";
 
-import { askQuestion, type Citation } from "./api";
+import { askQuestion, type Citation, type ConversationContext } from "./api";
 import "./App.css";
+import { ContextBar } from "./components/ContextBar";
 import { DocumentsPanel } from "./components/DocumentsPanel";
 import { SourcePanel } from "./components/SourcePanel";
 import { TurnView } from "./components/TurnView";
@@ -14,9 +15,14 @@ export function App() {
   const [draft, setDraft] = useState("");
   const [isAsking, setIsAsking] = useState(false);
   const [source, setSource] = useState<Citation | null>(null);
+  const [context, setContext] = useState<ConversationContext | null>(null);
   const nextId = useRef(0);
 
-  async function ask(question: string, docIds: string[] | null) {
+  async function ask(
+    question: string,
+    docIds: string[] | null,
+    turnContext: ConversationContext | null,
+  ) {
     nextId.current += 1;
     const id = String(nextId.current);
     const updateTurn = (change: (turn: Turn) => Turn) =>
@@ -24,8 +30,11 @@ export function App() {
     setTurns((current) => [...current, newTurn(id, question, docIds)]);
     setIsAsking(true);
     try {
-      await askQuestion(question, docIds, (event) => {
+      await askQuestion(question, docIds, turnContext, (event) => {
         updateTurn((turn) => applyEvent(turn, event));
+        if (event.type === "done") {
+          setContext(event.context);
+        }
       });
     } catch {
       updateTurn((turn) => applyEvent(turn, { type: "error", message: ASK_FAILED }));
@@ -39,7 +48,7 @@ export function App() {
     const question = draft.trim();
     if (question && !isAsking) {
       setDraft("");
-      void ask(question, null);
+      void ask(question, null, context);
     }
   }
 
@@ -57,10 +66,11 @@ export function App() {
               key={turn.id}
               turn={turn}
               onOpenSource={setSource}
-              onAskAgain={(question, docIds) => void ask(question, docIds)}
+              onAskAgain={(question, docIds) => void ask(question, docIds, null)}
             />
           ))}
         </div>
+        {context !== null && <ContextBar context={context} onClear={() => setContext(null)} />}
         <form className="composer" onSubmit={handleSubmit}>
           <label htmlFor="question" className="visually-hidden">
             Sorunuz
