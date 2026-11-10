@@ -96,6 +96,8 @@ max-complexity = 10
 python_version = "3.12"
 strict = true
 files = ["src", "apps", "evals", "tests"]
+# Ölçüm çıktıları ve oradaki tek seferlik betikler git dışıdır; denetimi kırmamalı.
+exclude = ["^evals/output/"]
 plugins = ["pydantic.mypy"]
 explicit_package_bases = true
 mypy_path = ["src", "."]
