@@ -30,3 +30,6 @@ class LazyIndexer:
         )
         await self._store.delete_document(doc_id)
         await self._store.upsert(chunks, access, dense_vectors, sparse_vectors)
+
+    async def remove(self, doc_id: str) -> None:
+        await self._store.delete_document(doc_id)

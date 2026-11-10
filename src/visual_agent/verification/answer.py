@@ -18,6 +18,7 @@ from visual_agent.verification.text import (
     FOREIGN_SCRIPT_RE,
     TOLERANCE_RE,
     canonical_number,
+    compact_identifier,
     identifiers_in,
     normalize,
     numbers_in,
@@ -83,14 +84,26 @@ def _token_problems(item: ModelItem, evidence: str, sources: Sources) -> list[st
     if stray_numbers:
         problems.append(f"cümlede kendi alıntısında olmayan sayı: {sorted(stray_numbers)}")
     cited = [sources[q.source_no].context for q in item.quotes if q.source_no in sources]
-    allowed = identifiers_in(" ".join([evidence, *cited]))
-    stray_identifiers = identifiers_in(item.text) - allowed
+    allowed = {compact_identifier(value) for value in identifiers_in(" ".join([evidence, *cited]))}
+    stray_identifiers = {
+        value for value in identifiers_in(item.text) if compact_identifier(value) not in allowed
+    }
     if stray_identifiers:
         problems.append(f"cümlede kaynakta olmayan teknik ad: {sorted(stray_identifiers)}")
     return problems
 
 
+def _rests_on_ocr(item: ModelItem, sources: Sources) -> bool:
+    numbers = [quote.source_no for quote in item.quotes]
+    if item.code_source_no is not None:
+        numbers.append(item.code_source_no)
+    return any(number in sources and sources[number].from_ocr for number in numbers)
+
+
 def _is_from_figure(item: ModelItem, sources: Sources) -> bool:
+    """OCR ile okunan kaynaklar birebir teyit edilemez; cevap kısmi doğrulanmış sayılır."""
+    if _rests_on_ocr(item, sources):
+        return True
     for quote in item.quotes:
         source = sources.get(quote.source_no)
         if source and source.generated and normalize(quote.text) in normalize(source.generated):

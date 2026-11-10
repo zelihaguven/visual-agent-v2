@@ -5,14 +5,17 @@ import logging
 from dataclasses import replace
 
 from visual_agent.ask.deps import AskDeps
+from visual_agent.ask.intent import common_small_talk
 from visual_agent.ask.steps import AskState
 from visual_agent.conversation.grounding import is_grounded
+from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.result import Answered, Clarify
-from visual_agent.verification.text import identifiers_in
+from visual_agent.verification.text import compact_identifier, identifiers_in
 
 logger = logging.getLogger(__name__)
 
+_CONTEXT_STATUSES = (VerificationStatus.VERIFIED, VerificationStatus.PARTIAL)
 _CANNOT_COMPLETE = (
     "Soruyu önceki konuşmayla birleştiremedim. Model ya da konuyu da yazarak yeniden sorar mısınız?"
 )
@@ -22,11 +25,17 @@ def _unresolved(state: AskState) -> AskState:
     return replace(state, context_resolved=False, result=Clarify(question=_CANNOT_COMPLETE))
 
 
+def _codes_in(text: str, deps: AskDeps) -> set[str]:
+    """Kodlar yazılışından bağımsız karşılaştırılır; söylenen kodlar da sayılır."""
+    codes = identifiers_in(text) | deps.identifiers.codes_in_speech(text)
+    return {compact_identifier(code) for code in codes}
+
+
 async def resolve_context(state: AskState, deps: AskDeps) -> AskState:
     """Tamamlanamayan takip sorusu tahminle aranmaz; kullanıcıya geri sorulur."""
     request = state.request
     context = request.context
-    if context is None or deps.rewriter is None:
+    if context is None or deps.rewriter is None or common_small_talk(request.question):
         return state
     try:
         rewrite = await asyncio.wait_for(
@@ -42,7 +51,7 @@ async def resolve_context(state: AskState, deps: AskDeps) -> AskState:
         return _unresolved(state)
     if request.on_event is not None:
         request.on_event({"type": "resolved", "question": rewrite.question})
-    has_new_identifier = bool(identifiers_in(request.question) - identifiers_in(context.question))
+    has_new_identifier = bool(_codes_in(request.question, deps) - _codes_in(context.question, deps))
     return replace(
         state,
         resolved_question=rewrite.question,
@@ -61,12 +70,12 @@ def _from_verified(state: AskState, result: Answered) -> ConversationContext | N
 
 
 def next_context(state: AskState) -> ConversationContext | None:
-    """Yalnız doğrulanmış cevap bağlamı değiştirir; netleştirme soruyu bekletir."""
+    """Tam ya da kısmen doğrulanmış cevap bağlamı değiştirir; netleştirme soruyu bekletir."""
     result = state.result
     previous = state.request.context
     if isinstance(result, Answered):
-        verified = result.status.value == "verified"
-        return (_from_verified(state, result) if verified else None) or previous
+        usable = result.status in _CONTEXT_STATUSES
+        return (_from_verified(state, result) if usable else None) or previous
     if isinstance(result, Clarify) and state.context_resolved:
         return ConversationContext(question=state.question, doc_ids=state.scope or ())
     return previous

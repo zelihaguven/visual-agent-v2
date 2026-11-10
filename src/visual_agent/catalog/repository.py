@@ -130,8 +130,15 @@ class DocumentRepository:
     async def requeue_interrupted(self) -> None:
         """İşçi işlerken durduysa belge açılışta yeniden kuyruğa girer."""
         await self._pool.execute(
+            "UPDATE documents SET status = 'queued', updated_at = now() WHERE status = 'processing'"
+        )
+
+    async def requeue(self, doc_id: str) -> None:
+        """Sonucu yazılamayan tek belgeyi kuyruğa döndürür; diğer işçilerin işine dokunmaz."""
+        await self._pool.execute(
             "UPDATE documents SET status = 'queued', updated_at = now()"
-            " WHERE status = 'processing'"
+            " WHERE doc_id = $1 AND status = 'processing'",
+            doc_id,
         )
 
     async def claim_next(self) -> StoredDocument | None:

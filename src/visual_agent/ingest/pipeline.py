@@ -48,6 +48,7 @@ class IngestTools:
     parse_pdf: Callable[[Path], list[Element]]
     read_embedded_images: Callable[[Path, list[PageInfo], str], list[Element]]
     recover_page_text: Callable[[Path, int], list[Element]]
+    skipped_image_warnings: Callable[[list[PageInfo]], list[str]]
 
 
 class IngestReport(FrozenModel):
@@ -137,8 +138,10 @@ def _build_report(
     chunks: Sequence[Chunk],
     pages: Sequence[PageInfo],
     outcome: OcrOutcome | None,
+    image_warnings: Sequence[str],
 ) -> IngestReport:
-    warnings = () if chunks else ("Belgeden okunabilir içerik çıkarılamadı.",)
+    empty = () if chunks else ("Belgeden okunabilir içerik çıkarılamadı.",)
+    warnings = (*empty, *image_warnings)
     return IngestReport(
         doc_id=meta.doc_id,
         page_count=len(pages),
@@ -163,6 +166,7 @@ def ingest_document(path: Path, meta: DocumentMeta, tools: IngestTools, work: Pa
     pages: list[PageInfo] = []
     outcome: OcrOutcome | None = None
     display_pdf: Path | None = None
+    image_warnings: list[str] = []
     if input_format in (InputFormat.SQL, InputFormat.TEXT):
         elements = parse_plain_text(path, input_format)
     elif input_format is InputFormat.SPREADSHEET:
@@ -173,5 +177,7 @@ def ingest_document(path: Path, meta: DocumentMeta, tools: IngestTools, work: Pa
         pdf_path = _pdf_source(path, input_format, tools, work)
         elements, pages, outcome = _elements_from_pdf(pdf_path, meta, tools, work)
         display_pdf = outcome.pdf_path
+        image_warnings = tools.skipped_image_warnings(pages)
     chunks = tuple(build_chunks(elements, meta))
-    return IngestResult(chunks, _build_report(meta, chunks, pages, outcome), display_pdf)
+    report = _build_report(meta, chunks, pages, outcome, image_warnings)
+    return IngestResult(chunks, report, display_pdf)

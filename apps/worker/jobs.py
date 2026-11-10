@@ -26,6 +26,8 @@ Ingest = Callable[[Path, DocumentMeta, Path], IngestResult]
 class JobRepository(Protocol):
     async def claim_next(self) -> StoredDocument | None: ...
 
+    async def requeue(self, doc_id: str) -> None: ...
+
     async def mark_ready(
         self,
         doc_id: str,
@@ -41,6 +43,8 @@ class JobRepository(Protocol):
 class Indexer(Protocol):
     async def index(self, doc_id: str, access: Sequence[str], chunks: Sequence[Chunk]) -> None: ...
 
+    async def remove(self, doc_id: str) -> None: ...
+
 
 def _document_language(chunks: Sequence[Chunk], fallback: str) -> str:
     sample = " ".join(chunk.text for chunk in chunks[:_LANGUAGE_SAMPLE_CHUNKS])
@@ -52,12 +56,24 @@ class DocumentProcessor:
         self._repository = repository
         self._indexer = indexer
         self._ingest = ingest
+        self._interrupted: str | None = None
 
     async def process_next(self) -> bool:
-        """Bir iş işlendiyse True döndürür."""
+        """Bir iş işlendiyse True döndürür; sonucu yazılamayan iş sonra kuyruğa döner."""
+        if self._interrupted is not None:
+            await self._repository.requeue(self._interrupted)
+            self._interrupted = None
         document = await self._repository.claim_next()
         if document is None:
             return False
+        try:
+            await self._process_and_record(document)
+        except Exception:
+            self._interrupted = document.doc_id
+            raise
+        return True
+
+    async def _process_and_record(self, document: StoredDocument) -> None:
         try:
             await self._process(document)
         except UnsupportedFormat as error:
@@ -65,7 +81,6 @@ class DocumentProcessor:
         except Exception:
             logger.exception("Belge işlenemedi: %s", document.doc_id)
             await self._repository.mark_failed(document.doc_id, _GENERIC_FAILURE)
-        return True
 
     async def _process(self, document: StoredDocument) -> None:
         source = Path(document.stored_path)
@@ -79,13 +94,24 @@ class DocumentProcessor:
             result = await asyncio.to_thread(self._ingest, source, meta, Path(work))
             display = self._keep_display_pdf(result.display_pdf, source)
         await self._indexer.index(document.doc_id, document.access, result.chunks)
-        await self._repository.mark_ready(
-            document.doc_id,
-            _document_language(result.chunks, document.language),
-            result.chunks,
-            result.report,
-            display,
-        )
+        try:
+            await self._repository.mark_ready(
+                document.doc_id,
+                _document_language(result.chunks, document.language),
+                result.chunks,
+                result.report,
+                display,
+            )
+        except Exception:
+            await self._discard_vectors(document.doc_id)
+            raise
+
+    async def _discard_vectors(self, doc_id: str) -> None:
+        """Temizlik başarısız olsa da belge hazır sayılmadığı için aramaya girmez."""
+        try:
+            await self._indexer.remove(doc_id)
+        except Exception:
+            logger.exception("Belgenin vektörleri temizlenemedi: %s", doc_id)
 
     @staticmethod
     def _keep_display_pdf(display_pdf: Path | None, source: Path) -> str | None:

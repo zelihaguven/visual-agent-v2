@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
+import { WAITING_DELAY_MS } from "./components/ConversationMode";
 import { applyEvent, newTurn } from "./turn";
 
 const listening = vi.hoisted(() => ({
@@ -302,6 +303,48 @@ describe("App", () => {
     const list = await screen.findByRole("list", { name: "Belgeler" });
     expect(within(list).getByText("İşleniyor")).toBeInTheDocument();
     expect(within(list).getByText("Belge işlenemedi.")).toBeInTheDocument();
+  });
+
+  it("shows skipped images and uncertain OCR values of a document", async () => {
+    const warning = "Sayfa 1: görsel okunmadı (kısa kenarı 17 pt, en az 50 pt gerekir).";
+    stubApi({
+      "/api/documents": () =>
+        jsonResponse([
+          {
+            doc_id: "a",
+            title: "Föy",
+            filename: "a.docx",
+            status: "ready",
+            error: null,
+            report: { warnings: [warning], uncertain_values: 6 },
+          },
+        ]),
+    });
+    render(<App />);
+
+    const notes = await screen.findByRole("list", { name: "Föy uyarıları" });
+    expect(within(notes).getByText(warning)).toBeInTheDocument();
+    expect(within(notes).getByText(/6 değer net okunamadı/)).toBeInTheDocument();
+  });
+
+  it("shows no warning list for a cleanly read document", async () => {
+    stubApi({
+      "/api/documents": () =>
+        jsonResponse([
+          {
+            doc_id: "a",
+            title: "Föy",
+            filename: "a.pdf",
+            status: "ready",
+            error: null,
+            report: { warnings: [], uncertain_values: 0 },
+          },
+        ]),
+    });
+    render(<App />);
+
+    await screen.findByText("Hazır");
+    expect(screen.queryByRole("list", { name: "Föy uyarıları" })).not.toBeInTheDocument();
   });
 
   it("uploads a file and shows the server's rejection reason", async () => {
@@ -625,15 +668,68 @@ describe("App", () => {
       });
     }
 
-    it("plays a waiting phrase only when a search really starts", async () => {
+    function pausedSse(first: object[], rest: object[], pauseMs: number) {
+      const encode = (events: object[]) =>
+        new TextEncoder().encode(events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join(""));
+      const body = new ReadableStream({
+        start(controller) {
+          controller.enqueue(encode(first));
+          setTimeout(() => {
+            controller.enqueue(encode(rest));
+            controller.close();
+          }, pauseMs);
+        },
+      });
+      return new Response(body, { status: 200, headers: { "content-type": "text/event-stream" } });
+    }
+
+    function pausedApi(first: object[], rest: object[]) {
+      return stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse(PHRASES),
+        "/api/transcribe": () => jsonResponse({ text: "merhaba" }),
+        "/api/ask": () => pausedSse(first, rest, WAITING_DELAY_MS + 200),
+      });
+    }
+
+    it("plays a waiting phrase when the answer is late", async () => {
+      const create = stubAudio();
+      hearInTurn("birinci");
+      const fetchMock = pausedApi([{ type: "searching" }], [{ ...answered, context: NEXT }]);
+
+      await open(fetchMock);
+
+      await waitFor(() => expect(create).toHaveBeenCalledTimes(2), {
+        timeout: WAITING_DELAY_MS + 1000,
+      });
+    });
+
+    it("skips the waiting phrase when the answer is quick", async () => {
       const create = stubAudio();
       hearInTurn("birinci");
       const fetchMock = replyApi([{ type: "searching" }, { ...answered, context: NEXT }]);
 
       await open(fetchMock);
 
-      await waitFor(() => expect(askBodiesOf(fetchMock)).toHaveLength(1));
-      await waitFor(() => expect(create).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(2));
+      await new Promise((resolve) => setTimeout(resolve, WAITING_DELAY_MS + 200));
+      expect(create).toHaveBeenCalledTimes(1);
+    });
+
+    it("skips the waiting phrase once the answer has started to play", async () => {
+      const create = stubAudio();
+      hearInTurn("birinci");
+      const fetchMock = pausedApi(
+        [{ type: "searching" }, { type: "item_audio", index: 0, audio: btoa("ses"), mime: "audio/wav" }],
+        [{ ...answered, context: NEXT }],
+      );
+
+      await open(fetchMock);
+
+      await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(2), {
+        timeout: WAITING_DELAY_MS + 1500,
+      });
+      expect(create).toHaveBeenCalledTimes(2);
     });
 
     it("answers a greeting without a waiting phrase", async () => {

@@ -1,3 +1,4 @@
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -5,7 +6,12 @@ import pytest
 from visual_agent.domain.document import Box, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.docling_parser import page_header_identifies
 from visual_agent.ingest.elements import Element, ElementKind
-from visual_agent.ingest.images import OcrSegment, group_lines, lines_to_elements
+from visual_agent.ingest.images import (
+    OcrSegment,
+    group_lines,
+    image_skip_reason,
+    lines_to_elements,
+)
 from visual_agent.ingest.pipeline import (
     IngestTools,
     OcrOutcome,
@@ -124,7 +130,47 @@ def _fake_tools(calls: list[str], page_kind: PageKind = PageKind.TEXT) -> Ingest
         parse_pdf=parse,
         read_embedded_images=images,
         recover_page_text=lambda path, page: [],
+        skipped_image_warnings=lambda pages: [],
     )
+
+
+def test_skipped_images_are_listed_in_the_report(tmp_path: Path) -> None:
+    path = tmp_path / "belge.pdf"
+    path.write_bytes(b"%PDF-x")
+    warning = "Sayfa 1: görsel okunmadı (kısa kenarı 17 pt, en az 50 pt gerekir)."
+    tools = replace(_fake_tools([]), skipped_image_warnings=lambda pages: [warning])
+
+    report = ingest_document(path, META, tools, tmp_path).report
+
+    assert report.warnings == (warning,)
+
+
+def _image_box(width: float, height: float) -> Box:
+    return Box(
+        page=1,
+        left=0,
+        top=0,
+        right=width,
+        bottom=height,
+        page_width=600,
+        page_height=800,
+    )
+
+
+def test_image_with_a_short_side_is_skipped_with_its_size() -> None:
+    reason = image_skip_reason(_image_box(300, 20), 0.0, 50.0)
+
+    assert reason == "kısa kenarı 20 pt, en az 50 pt gerekir"
+
+
+def test_image_with_a_small_area_is_skipped_with_its_ratio() -> None:
+    reason = image_skip_reason(_image_box(60, 60), 0.02, 50.0)
+
+    assert reason == "alanı sayfanın %0,8 kadarı, en az %2 gerekir"
+
+
+def test_image_at_the_limits_is_read() -> None:
+    assert image_skip_reason(_image_box(192, 50), 0.02, 50.0) is None
 
 
 def test_word_file_goes_through_pdf_and_embedded_image_reading(tmp_path: Path) -> None:

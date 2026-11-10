@@ -5,7 +5,9 @@ from typing import Literal, cast, get_args
 
 from visual_agent.generation.json_model import JsonModel
 
-Intent = Literal["question", "inventory", "greeting", "how_are_you", "thanks", "goodbye"]
+Intent = Literal[
+    "question", "inventory", "greeting", "how_are_you", "thanks", "goodbye", "about_to_ask"
+]
 
 _MAX_TOKENS = 20
 _PROMPT = """\
@@ -18,6 +20,8 @@ Choose exactly one intent:
 - "how_are_you": only asks how the assistant is.
 - "thanks": only thanks the assistant.
 - "goodbye": only says goodbye.
+- "about_to_ask": only announces that a question is coming, without asking it yet, such as \
+"I want to ask something".
 - "inventory": asks what the assistant holds: which documents, products or codes exist, how \
 many there are, or objects that the assistant should know them.
 - "question": anything else, including any request for a fact, value, procedure or policy, even \

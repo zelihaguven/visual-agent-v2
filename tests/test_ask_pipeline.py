@@ -1,7 +1,9 @@
 import asyncio
 import json
 from collections.abc import Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+
+import pytest
 
 from visual_agent.ask.orchestrator import AskDeps, AskRequest, answer_question
 from visual_agent.catalog.identifiers import build_identifier_index
@@ -186,6 +188,67 @@ def test_explicit_document_choice_wins() -> None:
     ask(make_deps(FakeClient(answer_payload("76,5")), retriever), "iç paça kaç?", ("b",))
 
     assert retriever.calls[0]["doc_ids"] == ("b",)
+
+
+def test_search_without_a_scope_covers_only_catalogued_documents() -> None:
+    retriever = FakeRetriever()
+
+    ask(make_deps(FakeClient(answer_payload("76,5")), retriever), "iç paça kaç?")
+
+    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
+
+
+CODE_CHUNK = chunk("a:9", "a", "Model GML-6473 kalça 48,0", ChunkKind.TEXT, title="Föy")
+
+
+@pytest.mark.parametrize(
+    "spoken", ["GML-6473", "GML6473", "gml-6473", "gml6473", "GML 6473", "gml 6473"]
+)
+def test_code_is_found_however_speech_wrote_it(spoken: str) -> None:
+    client = FakeClient(answer_payload("Kalça 48,0.", quote="kalça 48,0"))
+    retriever = FakeRetriever(hits=[])
+    deps = replace(make_deps(client, retriever), identifiers=build_identifier_index([CODE_CHUNK]))
+
+    outcome = ask(deps, f"{spoken} kalça kaç?")
+
+    assert isinstance(outcome.result, Answered)
+    assert "GML-6473" in client.calls[0][1]["content"]
+
+
+def test_letter_and_number_words_are_not_taken_for_a_code() -> None:
+    index = build_identifier_index([CODE_CHUNK])
+
+    assert index.codes_in_speech("M 40 bel kaç?") == set()
+
+
+def test_inventory_keeps_the_written_form_of_a_code() -> None:
+    assert build_identifier_index([CODE_CHUNK]).codes_of("a") == ("GML-6473",)
+
+
+def test_unknown_code_is_not_blamed_on_a_selection_the_user_never_made() -> None:
+    outcome = ask(make_deps(FakeClient(answer_payload("76,5"))), "XYZ9999 bel kaç?")
+
+    assert isinstance(outcome.result, NotFound)
+    assert outcome.result.reason == "XYZ9999 belgelerde geçmiyor."
+
+
+def test_unknown_code_in_a_chosen_document_says_so() -> None:
+    outcome = ask(make_deps(FakeClient(answer_payload("76,5"))), "XYZ9999 bel kaç?", ("b",))
+
+    assert isinstance(outcome.result, NotFound)
+    assert outcome.result.reason == "XYZ9999 seçilen belgelerde geçmiyor."
+
+
+def test_no_ready_document_means_not_found_without_searching() -> None:
+    retriever = FakeRetriever()
+    deps = replace(
+        make_deps(FakeClient(answer_payload("76,5")), retriever), catalog=DocumentCatalog()
+    )
+
+    outcome = ask(deps, "iç paça kaç?")
+
+    assert isinstance(outcome.result, NotFound)
+    assert retriever.calls == []
 
 
 def test_code_of_another_document_is_not_answered_from_the_chosen_one() -> None:
@@ -403,6 +466,17 @@ def test_interrupted_stream_keeps_only_verified_items() -> None:
     assert outcome.result.status.value == "partial"
     assert [item.verified for item in outcome.result.items] == [True]
     assert any(event["type"] == "incomplete" for event in events)
+
+
+def test_answer_from_an_ocr_chunk_is_partial() -> None:
+    retriever = FakeRetriever(hits=[CHUNKS[0].model_copy(update={"from_ocr": True})])
+
+    outcome = ask(make_deps(FakeClient(answer_payload("76,5")), retriever), "iç paça kaç?")
+
+    assert isinstance(outcome.result, Answered)
+    assert outcome.result.status.value == "partial"
+    assert outcome.result.items[0].verified
+    assert outcome.result.items[0].from_figure
 
 
 def test_quoting_a_whole_command_shows_it_from_the_source() -> None:

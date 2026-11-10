@@ -12,7 +12,7 @@ import httpx
 from qdrant_client import AsyncQdrantClient
 
 from apps.api.main import ApiServices
-from apps.api.voice import fixed_reply_texts
+from apps.api.voice import fixed_notice_texts, fixed_reply_texts
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.orchestrator import answer_question
 from visual_agent.catalog.repository import DocumentRepository
@@ -158,7 +158,7 @@ def _make_voice(settings: Settings, http: httpx.AsyncClient) -> Voice | None:
         tts_voice=settings.tts_voice,
         tts_format=settings.tts_format,
     )
-    return CachingVoice(openrouter, fixed_reply_texts())
+    return CachingVoice(openrouter, (*fixed_reply_texts(), *fixed_notice_texts()))
 
 
 @asynccontextmanager
@@ -180,6 +180,10 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
                 ask=runtime.ask,
                 storage_directory=storage,
                 voice=_make_voice(settings, http),
+                health_checks={
+                    "postgres": lambda: pool.fetchval("SELECT 1"),
+                    "qdrant": qdrant.get_collections,
+                },
             )
         finally:
             warm_up.cancel()

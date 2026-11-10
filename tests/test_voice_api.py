@@ -13,11 +13,20 @@ import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import ApiServices, create_app
-from apps.api.voice import GREETING, MAX_AUDIO_BYTES, fixed_reply_texts
+from apps.api.voice import GREETING, MAX_AUDIO_BYTES, fixed_notice_texts, fixed_reply_texts
 from tests.test_api_documents import FakeRepository, _events
 from visual_agent.ask.deps import AskRequest
+from visual_agent.ask.streaming import INCOMPLETE_MESSAGE
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.result import Answered, AskOutcome, AskResult, Clarify, Failed, NotFound
+from visual_agent.domain.result import (
+    Answered,
+    AnsweredItem,
+    AskOutcome,
+    AskResult,
+    Clarify,
+    Failed,
+    NotFound,
+)
 from visual_agent.settings import Settings
 from visual_agent.voice.client import CachingVoice, OpenRouterVoice, Speech
 
@@ -57,6 +66,7 @@ def verified(index: int, text: str, has_code: bool = False) -> dict[str, object]
 
 UNVERIFIED = {"type": "item_unverified", "index": 1, "message": "yok", "source_numbers": []}
 ANSWERED = Answered(status=VerificationStatus.VERIFIED, items=())
+OCR_ITEM = AnsweredItem(text="Limit 386.", citations=(), verified=True, from_figure=True)
 
 
 def make_client(
@@ -140,6 +150,22 @@ def test_command_is_not_read_aloud(tmp_path: Path) -> None:
             Answered(status=VerificationStatus.PARTIAL, items=()),
             "Bazı değerler doğrulanamadı, ekrana bakın.",
         ),
+        (
+            Answered(status=VerificationStatus.FAILED, items=(OCR_ITEM,)),
+            "Bazı değerler doğrulanamadı, ekrana bakın.",
+        ),
+        (
+            Answered(status=VerificationStatus.PARTIAL, items=(OCR_ITEM,)),
+            "Bu cevap görsel ya da taramadan okundu, kaynağı ekrandan kontrol edin.",
+        ),
+        (
+            Answered(
+                status=VerificationStatus.PARTIAL,
+                items=(OCR_ITEM,),
+                problems=(INCOMPLETE_MESSAGE,),
+            ),
+            "Cevap tamamlanamadı, ekrana bakın.",
+        ),
     ],
 )
 def test_unverified_outcomes_read_a_fixed_notice(
@@ -148,6 +174,30 @@ def test_unverified_outcomes_read_a_fixed_notice(
     voice = FakeVoice()
 
     ask_events(make_client(tmp_path, voice, [], result))
+
+    assert voice.spoken == [expected]
+
+
+@pytest.mark.parametrize(
+    ("result", "expected"),
+    [
+        (
+            Answered(status=VerificationStatus.PARTIAL, items=(OCR_ITEM,)),
+            "This answer was read from an image or scan, please check the source on screen.",
+        ),
+        (
+            Answered(status=VerificationStatus.PARTIAL, items=(), problems=(INCOMPLETE_MESSAGE,)),
+            "The answer could not be completed, please check the screen.",
+        ),
+    ],
+)
+def test_partial_notice_follows_the_question_language(
+    tmp_path: Path, result: AskResult, expected: str
+) -> None:
+    voice = FakeVoice()
+    client = make_client(tmp_path, voice, [], result)
+
+    client.post("/api/ask", json={"question": "What is the waist?", "speak": True})
 
     assert voice.spoken == [expected]
 
@@ -271,8 +321,26 @@ def test_ready_phrases_are_generated_once(tmp_path: Path) -> None:
 
     assert first.status_code == 200
     assert second.json() == first.json()
-    assert len(voice.spoken) == 1 + len(first.json()["waiting"]) + len(fixed_reply_texts())
+    fixed = len(fixed_reply_texts()) + len(fixed_notice_texts())
+    assert len(voice.spoken) == 1 + len(first.json()["waiting"]) + fixed
     assert base64.b64decode(first.json()["greeting"]["audio"]).decode().startswith("Merhaba")
+
+
+def test_fixed_notices_are_prepared_with_the_phrases(tmp_path: Path) -> None:
+    voice = FakeVoice()
+
+    make_client(tmp_path, voice, [], ANSWERED).get("/api/voice/phrases")
+
+    assert (
+        "Bu bilgi belgelerde bulunamadı. Bir model ya da konu söylerseniz yardımcı olabilirim."
+        in (voice.spoken)
+    )
+
+
+def test_a_failing_notice_does_not_block_the_phrases(tmp_path: Path) -> None:
+    voice = FakeVoice(fail_on="Cevap tamamlanamadı, ekrana bakın.")
+
+    assert make_client(tmp_path, voice, [], ANSWERED).get("/api/voice/phrases").status_code == 200
 
 
 def test_fixed_replies_are_generated_once_and_answers_are_not_kept() -> None:

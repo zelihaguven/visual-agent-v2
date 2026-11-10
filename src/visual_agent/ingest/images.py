@@ -82,6 +82,21 @@ def _line_box(line: Sequence[OcrSegment], image_box: Box) -> Box:
     )
 
 
+def image_skip_reason(box: Box, min_area_ratio: float, min_side_points: float) -> str | None:
+    """Görsel okunmayacaksa kullanıcıya gösterilecek neden; okunacaksa None."""
+    width, height = box.right - box.left, box.bottom - box.top
+    side = min(width, height)
+    area_ratio = width * height / (box.page_width * box.page_height or 1.0)
+    reasons = []
+    if side < min_side_points:
+        reasons.append(f"kısa kenarı {side:.0f} pt, en az {min_side_points:.0f} pt gerekir")
+    if area_ratio < min_area_ratio:
+        percent = f"{area_ratio * 100:.1f}".replace(".", ",")
+        minimum = f"{min_area_ratio * 100:.0f}"
+        reasons.append(f"alanı sayfanın %{percent} kadarı, en az %{minimum} gerekir")
+    return "; ".join(reasons) or None
+
+
 def replace_box(box: Box, *, left: float, top: float, right: float, bottom: float) -> Box:
     return box.model_copy(update={"left": left, "top": top, "right": right, "bottom": bottom})
 

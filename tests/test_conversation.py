@@ -92,6 +92,15 @@ def test_first_question_does_not_call_the_rewriter() -> None:
     assert outcome.question == "İç paça kaç?"
 
 
+def test_announcing_a_question_does_not_wait_for_the_rewriter() -> None:
+    rewriter = follows()
+
+    outcome = ask_with(deps_with(rewriter, FakeClient(VERIFIED)), "Merhaba, bir şey soracağım.")
+
+    assert rewriter.calls == []
+    assert outcome.context == PREVIOUS
+
+
 def test_follow_up_searches_and_answers_the_completed_question() -> None:
     client = FakeClient(VERIFIED)
     retriever = FakeRetriever()
@@ -120,8 +129,33 @@ def test_new_code_in_the_message_lifts_the_inherited_scope() -> None:
 
     outcome = ask_with(deps_with(rewriter, FakeClient(payload), retriever), "Peki E050 için?")
 
-    assert retriever.calls[0]["doc_ids"] is None
+    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
     assert not outcome.scope_inherited
+
+
+def test_spoken_new_code_lifts_the_inherited_scope() -> None:
+    retriever = FakeRetriever(hits=[CHUNKS[1]])
+    rewriter = follows("e050 M beden iç paça kaç?")
+    payload = answer_payload("E050 motor arızasıdır.", "Hata E050 motor arızasıdır.")
+
+    outcome = ask_with(deps_with(rewriter, FakeClient(payload), retriever), "Peki e050 için?")
+
+    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
+    assert not outcome.scope_inherited
+
+
+def test_same_code_in_another_spelling_keeps_the_scope() -> None:
+    retriever = FakeRetriever(hits=[CHUNKS[1]])
+    previous = ConversationContext(question="E050 nedir?", doc_ids=("b",), titles=("Kılavuz",))
+    rewriter = follows("e050 çözümü nedir?")
+    payload = answer_payload("E050 motor arızasıdır.", "Hata E050 motor arızasıdır.")
+
+    outcome = ask_with(
+        deps_with(rewriter, FakeClient(payload), retriever), "Peki e050 çözümü?", previous
+    )
+
+    assert retriever.calls[0]["doc_ids"] == ("b",)
+    assert outcome.scope_inherited
 
 
 def test_context_for_a_document_no_longer_visible_is_ignored() -> None:
@@ -130,7 +164,7 @@ def test_context_for_a_document_no_longer_visible_is_ignored() -> None:
 
     ask_with(deps_with(follows(), FakeClient(VERIFIED), retriever), "Peki dış paça?", stale)
 
-    assert retriever.calls[0]["doc_ids"] is None
+    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
 
 
 def test_previous_answer_never_reaches_the_rewriter_or_the_sources() -> None:
@@ -152,7 +186,7 @@ def test_unrelated_question_drops_the_context() -> None:
     )
 
     assert retriever.calls[0]["query"] == "İzin kaç gün?"
-    assert retriever.calls[0]["doc_ids"] is None
+    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
     assert not outcome.scope_inherited
 
 
@@ -201,6 +235,18 @@ def test_verified_answer_becomes_the_next_context() -> None:
     outcome = ask_with(deps_with(follows(), FakeClient(VERIFIED)), "Peki dış paça kaç?")
 
     assert isinstance(outcome.result, Answered)
+    assert outcome.context == ConversationContext(
+        question=RESOLVED, doc_ids=("a",), titles=("PNT-4417 ölçü föyü",)
+    )
+
+
+def test_partially_verified_answer_becomes_the_next_context() -> None:
+    retriever = FakeRetriever(hits=[CHUNKS[0].model_copy(update={"from_ocr": True})])
+
+    outcome = ask_with(deps_with(follows(), FakeClient(VERIFIED), retriever), "Peki dış paça kaç?")
+
+    assert isinstance(outcome.result, Answered)
+    assert outcome.result.status is VerificationStatus.PARTIAL
     assert outcome.context == ConversationContext(
         question=RESOLVED, doc_ids=("a",), titles=("PNT-4417 ölçü föyü",)
     )

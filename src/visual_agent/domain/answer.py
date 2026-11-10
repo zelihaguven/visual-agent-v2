@@ -76,6 +76,7 @@ class PromptSource(_Frozen):
     generated: str = ""
     ocr_uncertain: tuple[str, ...] = ()
     is_code: bool = False
+    from_ocr: bool = False
 
 
 class ItemCheck(_Frozen):

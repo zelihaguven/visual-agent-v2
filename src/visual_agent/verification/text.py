@@ -28,6 +28,7 @@ _IDENTIFIER_RE = re.compile(
     r")(?![\w-])"
 )
 _BACKTICK_RE = re.compile(r"`([^`\n]+)`")
+_IDENTIFIER_SEPARATOR_RE = re.compile(r"[-_\s]+")
 
 _WORD_NUMBER_LISTS = (
     "one two three four five six seven eight nine ten eleven twelve",
@@ -108,6 +109,11 @@ def word_numbers(text: str) -> set[str]:
 
 def fold_identifier(value: str) -> str:
     return value.replace("İ", "i").casefold()
+
+
+def compact_identifier(value: str) -> str:
+    """Tire, alt çizgi ve boşluk farkını yok sayan biçim; söylenen kodlar böyle eşleşir."""
+    return _IDENTIFIER_SEPARATOR_RE.sub("", fold_identifier(value))
 
 
 def identifier_spans(text: str) -> list[tuple[int, int]]:

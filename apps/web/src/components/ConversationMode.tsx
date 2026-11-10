@@ -12,6 +12,7 @@ import type { Turn } from "../turn";
 import { TurnView } from "./TurnView";
 
 const LEVEL_GAIN = 7;
+export const WAITING_DELAY_MS = 2000;
 
 type Phase = "starting" | "listening" | "thinking" | "speaking";
 
@@ -87,12 +88,23 @@ export function ConversationMode(props: Props) {
         setNotice(NOT_HEARD);
       }
       if (text && !control.signal.aborted && !session.signal.aborted) {
+        let waitingTimer: number | undefined;
         await latest.current.onAsk(
           text,
           control.signal,
-          () => setPhase("speaking"),
-          () => latest.current.playWaiting(),
+          () => {
+            window.clearTimeout(waitingTimer);
+            setPhase("speaking");
+          },
+          () => {
+            waitingTimer = window.setTimeout(() => {
+              if (!control.signal.aborted) {
+                latest.current.playWaiting();
+              }
+            }, WAITING_DELAY_MS);
+          },
         );
+        window.clearTimeout(waitingTimer);
       }
       await audio.whenIdle();
       turnControl.current = null;

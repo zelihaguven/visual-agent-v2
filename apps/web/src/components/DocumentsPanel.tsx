@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ChangeEvent } from "react";
 
-import { listDocuments, uploadDocument, type DocumentInfo } from "../api";
+import { listDocuments, uploadDocument, type DocumentInfo, type DocumentReport } from "../api";
 
 const POLL_MILLISECONDS = 3000;
 const ACCEPTED_TYPES = ".pdf,.docx,.doc,.pptx,.ppt,.odt,.rtf,.xlsx,.xls,.jpg,.jpeg,.png,.tif,.tiff,.sql,.txt,.md";
@@ -13,6 +13,25 @@ const STATUS_LABELS: Record<DocumentInfo["status"], string> = {
 
 function isPending(document: DocumentInfo): boolean {
   return document.status === "queued" || document.status === "processing";
+}
+
+function DocumentNotes({ title, report }: { title: string; report: DocumentReport }) {
+  if (report.warnings.length === 0 && report.uncertain_values === 0) {
+    return null;
+  }
+  return (
+    <ul className="document-notes" aria-label={`${title} uyarıları`}>
+      {report.warnings.map((warning, index) => (
+        <li key={`${index}-${warning}`}>{warning}</li>
+      ))}
+      {report.uncertain_values > 0 && (
+        <li>
+          {report.uncertain_values} değer net okunamadı; cevapta gizlenir. Gerekirse belgeden kontrol
+          edin.
+        </li>
+      )}
+    </ul>
+  );
 }
 
 export function DocumentsPanel() {
@@ -87,6 +106,9 @@ export function DocumentsPanel() {
             <span className="document-title">{document.title}</span>
             <span className={`status is-${document.status}`}>{STATUS_LABELS[document.status]}</span>
             {document.error !== null && <span className="document-error">{document.error}</span>}
+            {document.report !== null && (
+              <DocumentNotes title={document.title} report={document.report} />
+            )}
           </li>
         ))}
       </ul>

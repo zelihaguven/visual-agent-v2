@@ -184,6 +184,18 @@ h2 {
   font-size: 0.8125rem;
 }
 
+.document-notes {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 2px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-warn);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
 .status {
   align-self: start;
   font-size: 0.75rem;

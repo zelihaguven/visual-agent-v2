@@ -3,6 +3,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import pytest
+
 from apps.worker.jobs import DocumentProcessor
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
 from visual_agent.catalog.snapshot import SnapshotProvider
@@ -39,9 +41,15 @@ class FakeRepository:
     failed: list[tuple[str, str]] = field(default_factory=list)
     version_value: str = "1"
     load_calls: int = 0
+    ready_error: Exception | None = None
+    failed_error: Exception | None = None
+    requeues: list[str] = field(default_factory=list)
 
     async def claim_next(self) -> StoredDocument | None:
         return self.queued.pop(0) if self.queued else None
+
+    async def requeue(self, doc_id: str) -> None:
+        self.requeues.append(doc_id)
 
     async def mark_ready(
         self,
@@ -51,9 +59,13 @@ class FakeRepository:
         report: IngestReport,
         display_pdf: str | None,
     ) -> None:
+        if self.ready_error is not None:
+            raise self.ready_error
         self.ready.append((doc_id, chunks, display_pdf))
 
     async def mark_failed(self, doc_id: str, message: str) -> None:
+        if self.failed_error is not None:
+            raise self.failed_error
         self.failed.append((doc_id, message))
 
     async def version(self) -> str:
@@ -68,11 +80,18 @@ class FakeRepository:
 class FakeIndexer:
     indexed: list[tuple[str, int]] = field(default_factory=list)
     error: Exception | None = None
+    removed: list[str] = field(default_factory=list)
+    remove_error: Exception | None = None
 
     async def index(self, doc_id: str, access: Sequence[str], chunks: Sequence[Chunk]) -> None:
         if self.error is not None:
             raise self.error
         self.indexed.append((doc_id, len(chunks)))
+
+    async def remove(self, doc_id: str) -> None:
+        if self.remove_error is not None:
+            raise self.remove_error
+        self.removed.append(doc_id)
 
 
 def document(tmp_path: Path) -> StoredDocument:
@@ -139,6 +158,74 @@ def test_document_is_not_ready_if_indexing_fails(tmp_path: Path) -> None:
 
     assert repository.ready == []
     assert repository.failed[0][0] == "d"
+
+
+def test_vectors_are_removed_when_the_database_rejects_the_document(tmp_path: Path) -> None:
+    repository = FakeRepository(
+        queued=[document(tmp_path)], ready_error=ValueError("geçersiz karakter")
+    )
+    indexer = FakeIndexer()
+    processor = make_processor(repository, indexer, None)
+
+    assert asyncio.run(processor.process_next()) is True
+
+    assert indexer.removed == ["d"]
+    assert repository.failed[0][0] == "d"
+
+
+def test_vectors_stay_when_the_document_is_marked_ready(tmp_path: Path) -> None:
+    indexer = FakeIndexer()
+    processor = make_processor(FakeRepository(queued=[document(tmp_path)]), indexer, None)
+
+    asyncio.run(processor.process_next())
+
+    assert indexer.removed == []
+
+
+def test_document_is_still_failed_when_vector_cleanup_fails(tmp_path: Path) -> None:
+    repository = FakeRepository(queued=[document(tmp_path)], ready_error=ValueError("geçersiz"))
+    indexer = FakeIndexer(remove_error=ConnectionError("qdrant"))
+    processor = make_processor(repository, indexer, None)
+
+    asyncio.run(processor.process_next())
+
+    assert repository.failed[0][0] == "d"
+
+
+def test_document_is_requeued_after_a_database_outage(tmp_path: Path) -> None:
+    outage = ConnectionError("postgres kapalı")
+    repository = FakeRepository(
+        queued=[document(tmp_path)], ready_error=outage, failed_error=outage
+    )
+    processor = make_processor(repository, FakeIndexer(), None)
+
+    async def run() -> None:
+        with pytest.raises(ConnectionError):
+            await processor.process_next()
+        assert repository.requeues == []
+        await processor.process_next()
+
+    asyncio.run(run())
+
+    assert repository.requeues == ["d"]
+
+
+def test_requeue_runs_only_once_after_an_outage(tmp_path: Path) -> None:
+    outage = ConnectionError("postgres kapalı")
+    repository = FakeRepository(
+        queued=[document(tmp_path)], ready_error=outage, failed_error=outage
+    )
+    processor = make_processor(repository, FakeIndexer(), None)
+
+    async def run() -> None:
+        with pytest.raises(ConnectionError):
+            await processor.process_next()
+        await processor.process_next()
+        await processor.process_next()
+
+    asyncio.run(run())
+
+    assert repository.requeues == ["d"]
 
 
 def test_failure_message_does_not_expose_internal_errors(tmp_path: Path) -> None:
