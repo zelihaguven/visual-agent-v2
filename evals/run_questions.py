@@ -153,7 +153,7 @@ def to_record(question_id: str, result: AskResult) -> AnswerRecord:
     )
 
 
-async def _answer_client(
+async def build_answer_clients(
     http: httpx.AsyncClient, settings: Settings, api_key: str
 ) -> tuple[AnswerClient, Translator, Rewriter, IntentClassifier]:
     url = str(settings.openrouter_url).rstrip("/")
@@ -317,7 +317,7 @@ async def _measure(
         )
         counts = transport.counts
     async with httpx.AsyncClient(transport=transport) as http:
-        answer_client, translator, rewriter, classifier = await _answer_client(
+        answer_client, translator, rewriter, classifier = await build_answer_clients(
             http, settings, api_key
         )
         deps = AskDeps(
