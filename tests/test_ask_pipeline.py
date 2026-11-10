@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
 
@@ -514,9 +515,15 @@ def test_quoting_a_whole_table_row_is_not_shown_as_a_command() -> None:
     assert outcome.result.items[0].code is None
 
 
-def test_translation_time_is_reported_apart_from_the_search() -> None:
+def test_translation_time_is_reported_apart_from_the_search(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Saat sahtedir, yalnız çeviri sırasında ilerler; zamanlayıcı çözünürlüğüne bağlı değil."""
+    now = [100.0]
+    monkeypatch.setattr(time, "perf_counter", lambda: now[0])
+
     async def translator(question: str, source: str, targets: Sequence[str]) -> str:
-        await asyncio.sleep(0.05)
+        now[0] += 5.0
         return "inseam value"
 
     deps = make_deps(
@@ -528,8 +535,8 @@ def test_translation_time_is_reported_apart_from_the_search() -> None:
 
     timings = ask(deps, "iç paça nedir").timings
 
-    assert timings["translate"] >= 0.05
-    assert timings["retrieve"] < timings["translate"]
+    assert timings["translate"] == 5.0
+    assert timings["retrieve"] == 0.0
     assert {"context", "scope", "intent", "generate", "verify"} <= set(timings)
 
 
