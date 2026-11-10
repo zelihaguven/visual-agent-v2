@@ -29,7 +29,7 @@ from visual_agent.domain.result import (
     Hit,
     NotFound,
 )
-from visual_agent.generation.openrouter import ServiceUnavailable, StreamCallbacks
+from visual_agent.generation.openrouter import AttemptRecord, ServiceUnavailable, StreamCallbacks
 from visual_agent.generation.parse import ParseFailure, parse_answer
 from visual_agent.generation.sources import build_user_message, to_prompt_sources
 from visual_agent.verification.answer import code_source_number, verify_answer
@@ -61,6 +61,8 @@ class AskState:
     scope_inherited: bool = False
     context_resolved: bool = True
     translate_seconds: float | None = None
+    provider_attempts: int = 0
+    provider_seconds: float = 0.0
 
     @property
     def question(self) -> str:
@@ -217,6 +219,15 @@ def _partial_result(assembler: StreamAssembler, hits: Sequence[Hit]) -> Answered
     )
 
 
+def _with_attempts(state: AskState, attempts: Sequence[AttemptRecord]) -> AskState:
+    """Sağlayıcı yedeğine düşüldü mü ve sağlayıcılar toplam ne kadar bekletti."""
+    return replace(
+        state,
+        provider_attempts=len(attempts),
+        provider_seconds=sum(attempt.seconds for attempt in attempts),
+    )
+
+
 async def generate(state: AskState, deps: AskDeps) -> AskState:
     citations = tuple(_citation(hit) for hit in state.hits)
     messages = [
@@ -229,11 +240,14 @@ async def generate(state: AskState, deps: AskDeps) -> AskState:
     assembler, callbacks = _stream_callbacks(state)
     try:
         stream = await deps.answer_client.stream(messages, callbacks)
-    except ServiceUnavailable:
+    except ServiceUnavailable as error:
         logger.exception("Cevap servisine ulaşılamadı")
-        return replace(state, result=Failed(reason=_SERVICE_DOWN, citations=citations))
+        return replace(
+            _with_attempts(state, error.attempts),
+            result=Failed(reason=_SERVICE_DOWN, citations=citations),
+        )
     current = replace(
-        state,
+        _with_attempts(state, stream.attempts),
         cost_usd=stream.cost_usd,
         provider=stream.provider,
         first_verified_seconds=assembler.first_verified_seconds if assembler else None,

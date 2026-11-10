@@ -54,7 +54,9 @@ CREATE TABLE IF NOT EXISTS question_log (
     cost_usd REAL NOT NULL,
     first_verified_seconds REAL,
     total_seconds REAL NOT NULL,
-    timings TEXT NOT NULL
+    timings TEXT NOT NULL,
+    provider_attempts INTEGER NOT NULL DEFAULT 0,
+    provider_wait_seconds REAL
 );
 CREATE INDEX IF NOT EXISTS question_log_time_idx ON question_log (created_at);
 """
@@ -72,8 +74,13 @@ def problem_kinds(problems: Sequence[str]) -> tuple[str, ...]:
 
 _COLUMNS = (
     "created_at, question, resolved_question, input_mode, result_kind, verification_status,"
-    " problems, cited_doc_ids, provider, cost_usd, first_verified_seconds, total_seconds, timings"
+    " problems, cited_doc_ids, provider, cost_usd, first_verified_seconds, total_seconds, timings,"
+    " provider_attempts, provider_wait_seconds"
 )
+_ADDED_COLUMNS = {
+    "provider_attempts": "INTEGER NOT NULL DEFAULT 0",
+    "provider_wait_seconds": "REAL",
+}
 
 
 class QuestionRecord(BaseModel):
@@ -92,6 +99,8 @@ class QuestionRecord(BaseModel):
     first_verified_seconds: float | None = None
     total_seconds: float
     timings: dict[str, float] = {}
+    provider_attempts: int = 0
+    provider_wait_seconds: float | None = None
 
 
 def _now() -> str:
@@ -150,6 +159,8 @@ def record_for(
             for step, seconds in outcome.timings.items()
             if follow_up or step != "context"
         },
+        provider_attempts=outcome.provider_attempts,
+        provider_wait_seconds=outcome.provider_seconds if outcome.provider_attempts else None,
     )
 
 
@@ -168,6 +179,8 @@ def _row_values(record: QuestionRecord) -> tuple[object, ...]:
         record.first_verified_seconds,
         record.total_seconds,
         json.dumps(record.timings),
+        record.provider_attempts,
+        record.provider_wait_seconds,
     )
 
 
@@ -186,7 +199,17 @@ def _from_row(row: sqlite3.Row) -> QuestionRecord:
         first_verified_seconds=row["first_verified_seconds"],
         total_seconds=row["total_seconds"],
         timings=json.loads(row["timings"]),
+        provider_attempts=row["provider_attempts"],
+        provider_wait_seconds=row["provider_wait_seconds"],
     )
+
+
+def _add_missing_columns(connection: sqlite3.Connection) -> None:
+    """Önceki sürümde açılmış tabloya sonradan eklenen sütunlar eklenir."""
+    present = {row[1] for row in connection.execute("PRAGMA table_info(question_log)")}
+    for name, definition in _ADDED_COLUMNS.items():
+        if name not in present:
+            connection.execute(f"ALTER TABLE question_log ADD COLUMN {name} {definition}")
 
 
 def _reduce_stored_problems(connection: sqlite3.Connection) -> int:
@@ -208,6 +231,7 @@ class QuestionLog:
 
     async def migrate(self) -> None:
         await self._db.migrate(_SCHEMA)
+        await self._db.run(_add_missing_columns)
         await self._db.run(_reduce_stored_problems)
 
     async def add(self, record: QuestionRecord) -> None:
@@ -262,6 +286,14 @@ def summary_lines(records: Sequence[QuestionRecord]) -> list[str]:
     for step in steps:
         values = [record.timings[step] for record in records if step in record.timings]
         lines.append(f"  {STEP_LABELS[step]}: {_seconds(values)}")
+    asked = [record for record in records if record.provider_attempts]
+    retried = [record for record in asked if record.provider_attempts > 1]
+    if asked:
+        lines.append(
+            f"birden çok sağlayıcı denemesi: {len(retried)}/{len(asked)} soru"
+            f" (%{100 * len(retried) / len(asked):.0f}); sağlayıcı bekleme "
+            + _seconds([r.provider_wait_seconds for r in asked if r.provider_wait_seconds])
+        )
     cost = sum(record.cost_usd for record in records)
     lines.append(f"maliyet: {cost:.5f} $")
     return lines

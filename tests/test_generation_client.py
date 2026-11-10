@@ -266,3 +266,11 @@ def test_failing_ui_callback_does_not_break_the_stream() -> None:
     client = make_client(lambda _: httpx.Response(200, content=sse("tamam")))
 
     assert stream_with(client, StreamCallbacks(on_delta=explode)).content == "tamam"
+
+
+def test_failed_attempts_travel_with_service_unavailable() -> None:
+    with pytest.raises(ServiceUnavailable) as raised:
+        stream_with(make_client(lambda _: httpx.Response(500)))
+
+    assert [attempt.provider for attempt in raised.value.attempts] == ["alpha", "beta"]
+    assert all(attempt.seconds >= 0 for attempt in raised.value.attempts)

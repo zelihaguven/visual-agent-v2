@@ -84,6 +84,8 @@ class AskOutcome(FrozenModel):
     cost_usd: float = 0.0
     provider: str | None = None
     first_verified_seconds: float | None = None
+    provider_attempts: int = 0
+    provider_seconds: float = 0.0
     question: str = ""
     context: ConversationContext | None = None
     scope_inherited: bool = False

@@ -63,6 +63,8 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
         cost_usd=final.cost_usd,
         provider=final.provider,
         first_verified_seconds=final.first_verified_seconds,
+        provider_attempts=final.provider_attempts,
+        provider_seconds=final.provider_seconds,
         question=final.question,
         context=next_context(final),
         scope_inherited=final.scope_inherited,

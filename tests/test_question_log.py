@@ -328,3 +328,59 @@ def test_existing_records_are_reduced_to_diagnosis_kinds(tmp_path: Path) -> None
         "cümlede kaynakta olmayan teknik ad",
         "alıntı [n] kaynakta birebir değil",
     )
+
+
+def test_provider_attempts_and_wait_are_recorded() -> None:
+    outcome = ANSWERED.model_copy(update={"provider_attempts": 2, "provider_seconds": 3.75})
+
+    record = record_for("Soru?", "text", "answered", outcome, 4.0, 3.9)
+
+    assert (record.provider_attempts, record.provider_wait_seconds) == (2, 3.75)
+    assert record_for("Soru?", "text", "error", None, 1.0, None).provider_wait_seconds is None
+
+
+def test_summary_shows_the_share_of_questions_that_needed_another_provider() -> None:
+    records = [
+        _record(provider_attempts=1, provider_wait_seconds=1.0),
+        _record(provider_attempts=2, provider_wait_seconds=3.5),
+        _record(provider_attempts=1, provider_wait_seconds=1.2),
+        _record(provider_attempts=1, provider_wait_seconds=0.9),
+        _record(result_kind="small_talk"),
+    ]
+
+    lines = summary_lines(records)
+
+    assert any(line.startswith("birden çok sağlayıcı denemesi: 1/4 soru (%25)") for line in lines)
+
+
+def test_older_log_table_gains_the_new_columns(tmp_path: Path) -> None:
+    import sqlite3
+
+    database = tmp_path / "va.db"
+    connection = sqlite3.connect(database)
+    connection.executescript(
+        "CREATE TABLE question_log (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at TEXT NOT NULL,"
+        " question TEXT NOT NULL, resolved_question TEXT, input_mode TEXT NOT NULL,"
+        " result_kind TEXT NOT NULL, verification_status TEXT, problems TEXT NOT NULL,"
+        " cited_doc_ids TEXT NOT NULL, provider TEXT, cost_usd REAL NOT NULL,"
+        " first_verified_seconds REAL, total_seconds REAL NOT NULL, timings TEXT NOT NULL);"
+        "INSERT INTO question_log (created_at, question, input_mode, result_kind, problems,"
+        " cited_doc_ids, cost_usd, total_seconds, timings)"
+        " VALUES ('2026-11-10', 'eski', 'text', 'answered', '[]', '[]', 0, 1.0, '{}');"
+    )
+    connection.close()
+    log = open_log(database)
+
+    async def run() -> list[QuestionRecord]:
+        await log.migrate()
+        await log.add(_record(question="yeni", provider_attempts=2, provider_wait_seconds=2.0))
+        return await log.last(2)
+
+    newest, oldest = asyncio.run(run())
+
+    assert (newest.question, newest.provider_attempts) == ("yeni", 2)
+    assert (oldest.question, oldest.provider_attempts, oldest.provider_wait_seconds) == (
+        "eski",
+        0,
+        None,
+    )
