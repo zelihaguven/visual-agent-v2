@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import httpx
-from qdrant_client import AsyncQdrantClient
 
 from apps.api.main import ApiServices
 from apps.api.voice import fixed_notice_texts, fixed_reply_texts
@@ -29,7 +28,7 @@ from visual_agent.generation.prompts import load_answer_prompt, load_answer_sche
 from visual_agent.generation.rewrite import Rewriter, make_rewriter
 from visual_agent.generation.translate import Translator, make_translator
 from visual_agent.retrieval.hybrid import HybridRetriever
-from visual_agent.retrieval.qdrant_store import QdrantChunkStore
+from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
 from visual_agent.settings import Settings
 from visual_agent.voice.client import CachingVoice, OpenRouterVoice, Voice
 
@@ -164,7 +163,7 @@ def _make_voice(settings: Settings, http: httpx.AsyncClient) -> Voice | None:
 async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
     repository = open_repository(Path(settings.database_path))
     await repository.migrate()
-    qdrant = AsyncQdrantClient(url=str(settings.qdrant_url))
+    qdrant = open_client(str(settings.qdrant_url), settings.qdrant_path)
     storage = Path(settings.storage_directory)
     storage.mkdir(parents=True, exist_ok=True)
     async with httpx.AsyncClient() as http:

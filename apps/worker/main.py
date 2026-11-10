@@ -14,6 +14,11 @@ from visual_agent.settings import Settings
 
 logger = logging.getLogger(__name__)
 
+EMBEDDED_QDRANT_REFUSED = (
+    "Gömülü Qdrant klasörü tek sürece kilitlenir; ayrı işçi yalnız Qdrant sunucusuyla"
+    " (VA_QDRANT_URL) çalışır. Yerelde işçi API sürecinin içinde çalışır."
+)
+
 
 def run_worker(
     stop: threading.Event,
@@ -35,19 +40,18 @@ def run_worker(
 
 
 async def _open_processor(settings: Settings) -> DocumentProcessor:
-    from qdrant_client import AsyncQdrantClient
 
     from apps.api.services import COLLECTION
     from apps.worker.indexing import LazyIndexer
     from visual_agent.catalog.repository import open_repository
     from visual_agent.ingest.pipeline import ingest_document
     from visual_agent.ingest.tools import default_tools
-    from visual_agent.retrieval.qdrant_store import QdrantChunkStore
+    from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
 
     repository = open_repository(Path(settings.database_path))
     await repository.migrate()
     await repository.requeue_interrupted()
-    store = QdrantChunkStore(AsyncQdrantClient(url=str(settings.qdrant_url)), COLLECTION)
+    store = QdrantChunkStore(open_client(str(settings.qdrant_url), None), COLLECTION)
     tools = default_tools()
 
     def ingest(path: Path, meta: DocumentMeta, work: Path) -> IngestResult:
@@ -59,6 +63,8 @@ async def _open_processor(settings: Settings) -> DocumentProcessor:
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
     settings = Settings()
+    if settings.qdrant_path is not None:
+        raise SystemExit(EMBEDDED_QDRANT_REFUSED)
     stop = threading.Event()
 
     def request_stop(signum: int, _frame: object) -> None:

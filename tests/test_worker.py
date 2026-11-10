@@ -69,3 +69,14 @@ def test_worker_waits_between_polls_until_stopped() -> None:
         timer.cancel()
 
     assert polls >= 1
+
+
+def test_separate_worker_refuses_the_embedded_qdrant_folder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        worker_main, "Settings", lambda: Settings(_env_file=None, qdrant_path="data/qdrant")
+    )
+
+    with pytest.raises(SystemExit, match="tek sürece kilitlenir"):
+        worker_main.main()

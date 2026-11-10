@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import Sequence
 from dataclasses import dataclass
+from pathlib import Path
 
 import httpx
 from qdrant_client import AsyncQdrantClient
@@ -14,7 +15,7 @@ from visual_agent.generation.translate import (
 from visual_agent.retrieval.fusion import ScoredChunk, is_table_of_contents, rrf_fuse
 from visual_agent.retrieval.hybrid import HybridRetriever
 from visual_agent.retrieval.normalization import normalize_for_bm25
-from visual_agent.retrieval.qdrant_store import QdrantChunkStore
+from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
 
 
 def _chunk(chunk_id: str, doc_id: str, text: str, access: tuple[str, ...] = ("all",)) -> Chunk:
@@ -175,3 +176,29 @@ def test_translator_sends_only_the_question_with_zdr() -> None:
     assert isinstance(provider, dict)
     assert provider["zdr"] is True and provider["data_collection"] == "deny"
     assert "iç paça" in str(recorder.body["messages"])
+
+
+def test_embedded_folder_keeps_vectors_after_reopening(tmp_path: Path) -> None:
+    folder = str(tmp_path / "qdrant")
+
+    async def write() -> None:
+        client = open_client("http://kullanilmaz:6333", folder)
+        store = QdrantChunkStore(client, "test")
+        await store.ensure_collection(dense_size=2)
+        await store.upsert([_chunk("1", "a", "elma")], ("all",), [[1.0, 0.0]], [{1: 1.0}])
+        await client.close()
+
+    async def read() -> list[str]:
+        client = open_client("http://kullanilmaz:6333", folder)
+        arms = await QdrantChunkStore(client, "test").search([1.0, 0.0], {1: 1.0}, None, None, 5)
+        await client.close()
+        return [item.chunk.chunk_id for item in arms[0]]
+
+    asyncio.run(write())
+    assert asyncio.run(read()) == ["1"]
+
+
+def test_server_client_is_used_without_a_folder() -> None:
+    client = open_client("http://127.0.0.1:6333", None)
+
+    assert client.init_options["url"] == "http://127.0.0.1:6333"
