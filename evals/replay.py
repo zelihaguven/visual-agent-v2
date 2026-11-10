@@ -28,9 +28,9 @@ import httpx
 
 from evals.answer_cache import CachingTransport
 from evals.gold import GoldSet
-from evals.index_cache import load_or_ingest
+from evals.index_cache import read_chunks
 from evals.run_documents import catalog_of, question_row
-from evals.run_questions import _full_run, gold_catalog, load_chunks, select_questions
+from evals.run_questions import _full_run, gold_catalog, select_questions
 from visual_agent.ask.clients import ask_deps, build_model_clients
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.orchestrator import answer_question
@@ -88,6 +88,16 @@ async def replay_rows(
     return replayed
 
 
+def _cached_chunks(work: Path) -> dict[str, list[Chunk]]:
+    """Yeniden değerlendirme belge işlemez ve --work altına hiçbir şey yazmaz."""
+    chunks = read_chunks(work)
+    if chunks is None:
+        raise SystemExit(
+            f"{work} altında parça önbelleği (chunks.json) yok; önce ölçümü çalıştırın"
+        )
+    return chunks
+
+
 def _offline(cache_dir: Path) -> CachingTransport:
     return CachingTransport(httpx.AsyncHTTPTransport(), cache_dir, offline=True)
 
@@ -101,7 +111,7 @@ def _api_key(settings: Settings) -> str:
 
 async def replay_documents(arguments: argparse.Namespace) -> dict[str, Any]:
     settings = Settings()
-    chunks, _ = load_or_ingest([], arguments.work)
+    chunks = _cached_chunks(arguments.work)
     by_id = {chunk.chunk_id: chunk for items in chunks.values() for chunk in items}
     rows = json.loads(arguments.rows.read_text(encoding="utf-8"))
     transport = _offline(arguments.cache_dir)
@@ -125,7 +135,7 @@ async def replay_questions(arguments: argparse.Namespace) -> dict[str, Any]:
 
     settings = Settings()
     gold = GoldSet.model_validate_json((arguments.set / "gold.json").read_text(encoding="utf-8"))
-    chunks = load_chunks(gold, arguments.set, arguments.work)
+    chunks = _cached_chunks(arguments.work)
     flat = [chunk for items in chunks.values() for chunk in items]
     transport = _offline(arguments.cache_dir)
     with tempfile.TemporaryDirectory() as copy:

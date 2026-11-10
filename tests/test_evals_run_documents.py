@@ -5,10 +5,12 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import pytest
 from qdrant_client import AsyncQdrantClient
 
+from evals import index_cache
 from evals.answer_cache import CacheCounts, CachingTransport, Usage
-from evals.index_cache import chunks_fingerprint, ensure_index, load_or_ingest
+from evals.index_cache import chunks_fingerprint, ensure_index, load_or_ingest, read_chunks
 from evals.run_documents import ask_all, folder_documents, question_row
 from tests.test_ask_pipeline import CHUNKS, FakeClient, FakeRetriever, answer_payload, make_deps
 from visual_agent.ask.language import document_language
@@ -186,3 +188,31 @@ def test_each_file_in_a_folder_is_a_document_named_after_it(tmp_path: Path) -> N
         ("a.md", "a.md", "a"),
         ("b.md", "b.md", "b"),
     ]
+
+
+def _failing_ingest(documents: object) -> tuple[dict[str, list[Chunk]], dict[str, str], float]:
+    return {"a.md": [_chunk("a.md", 0)]}, {"b.md": "ValueError: bozuk"}, 0.1
+
+
+def test_partial_ingest_is_kept_when_allowed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(index_cache, "_ingest_all", _failing_ingest)
+
+    chunks, manifest = load_or_ingest([], tmp_path)
+
+    assert manifest["errors"] == {"b.md": "ValueError: bozuk"}
+    assert (tmp_path / "chunks.json").exists()
+
+
+def test_failed_ingest_leaves_no_cache_so_the_next_run_retries(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(index_cache, "_ingest_all", _failing_ingest)
+
+    chunks, manifest = load_or_ingest([], tmp_path, keep_partial=False)
+
+    assert manifest["errors"] == {"b.md": "ValueError: bozuk"}
+    assert not (tmp_path / "chunks.json").exists()
+    assert not (tmp_path / "ingest.json").exists()
+    assert read_chunks(tmp_path) is None

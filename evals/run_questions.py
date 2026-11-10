@@ -52,7 +52,7 @@ def load_chunks(gold: GoldSet, set_directory: Path, work: Path) -> dict[str, lis
         (set_directory / document.filename, _meta(gold, document.doc_id))
         for document in gold.documents
     ]
-    chunks, manifest = load_or_ingest(documents, work)
+    chunks, manifest = load_or_ingest(documents, work, keep_partial=False)
     if manifest.get("errors"):
         raise SystemExit(f"belge işlenemedi: {manifest['errors']}")
     return chunks

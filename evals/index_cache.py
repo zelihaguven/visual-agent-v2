@@ -52,21 +52,30 @@ def _ingest_all(documents: Documents) -> tuple[dict[str, list[Chunk]], dict[str,
     return chunks, errors, time.perf_counter() - started
 
 
+def read_chunks(work: Path) -> dict[str, list[Chunk]] | None:
+    """Var olan parça önbelleği; yoksa None. Hiçbir şey yazmaz."""
+    cache = work / _CHUNKS_FILE
+    if not cache.exists():
+        return None
+    raw = json.loads(cache.read_text(encoding="utf-8"))
+    return {doc: [Chunk.model_validate(item) for item in items] for doc, items in raw.items()}
+
+
 def load_or_ingest(
-    documents: Documents, work: Path
+    documents: Documents, work: Path, keep_partial: bool = True
 ) -> tuple[dict[str, list[Chunk]], dict[str, Any]]:
-    """Parça önbelleği varsa okunur; yoksa belgeler işlenir. Hatalar raporda döner."""
-    cache, manifest_path = work / _CHUNKS_FILE, work / _INGEST_FILE
-    if cache.exists():
-        raw = json.loads(cache.read_text(encoding="utf-8"))
-        chunks = {doc: [Chunk.model_validate(item) for item in items] for doc, items in raw.items()}
+    """Parça önbelleği varsa okunur; yoksa belgeler işlenir. Hatalar raporda döner.
+
+    keep_partial=False: işlenemeyen belge varsa önbellek yazılmaz; sonraki koşu yeniden dener.
+    """
+    manifest_path = work / _INGEST_FILE
+    cached = read_chunks(work)
+    if cached is not None:
         manifest = (
             json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
         )
-        return chunks, manifest
+        return cached, manifest
     chunks, errors, seconds = _ingest_all(documents)
-    payload = {doc: [c.model_dump(mode="json") for c in items] for doc, items in chunks.items()}
-    cache.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     manifest = {
         "files": len(chunks) + len(errors),
         "documents": len(chunks),
@@ -74,6 +83,10 @@ def load_or_ingest(
         "ingest_seconds": round(seconds, 1),
         "errors": errors,
     }
+    if errors and not keep_partial:
+        return chunks, manifest
+    payload = {doc: [c.model_dump(mode="json") for c in items] for doc, items in chunks.items()}
+    (work / _CHUNKS_FILE).write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")
     return chunks, manifest
 

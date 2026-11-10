@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 from evals.answer_cache import CacheCounts, CachingTransport, OfflineMiss
-from evals.replay import RecordedRetriever, replay_rows
+from evals.replay import RecordedRetriever, _cached_chunks, replay_rows
 from tests.test_ask_pipeline import CHUNKS, FakeClient, answer_payload, make_deps
 
 URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -60,3 +60,10 @@ def test_recorded_chunks_are_returned_in_the_recorded_order(tmp_path: Path) -> N
     ]
     assert replayed[0]["offline_misses"] == 0
     assert replayed[0]["id"] == "1"
+
+
+def test_replay_without_saved_chunks_stops_and_writes_nothing(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit, match="chunks.json"):
+        _cached_chunks(tmp_path)
+
+    assert list(tmp_path.iterdir()) == []
