@@ -1,0 +1,1610 @@
+[
+ {
+  "question": "dikim-excel-olcu",
+  "kind": "table_lookup",
+  "resolved_question": "PNT-1126 modelinde S beden dış paça kaç?",
+  "record": {
+   "question_id": "dikim-excel-olcu",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "PNT-1126 modelinde S beden dış paça 103,0 cm'dir.",
+     "sources": [
+      {
+       "doc_id": "dikim-excel",
+       "page": null,
+       "sheet": "Ölçü tablosu",
+       "row": 5
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-excel-olcu",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 2.999999196617864e-06,
+   "scope": 0.0007105000004230533,
+   "intent": 0.00022229999922274146,
+   "retrieve": 0.14615060000141966,
+   "generate": 2.4025574999996024,
+   "verify": 0.00040470000021741726
+  },
+  "cost_usd": 0.00023543,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-excel-yok",
+  "kind": "not_in_document",
+  "resolved_question": "PNT-1126 modelinde kordon boyu kaç?",
+  "record": {
+   "question_id": "dikim-excel-yok",
+   "outcome": "not_found",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "dikim-excel-yok",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 2.099999619531445e-06,
+   "scope": 0.0002285999999003252,
+   "intent": 2.789999962260481e-05,
+   "retrieve": 0.1337930999998207,
+   "generate": 1.0067643000002136,
+   "verify": 4.670000089390669e-05
+  },
+  "cost_usd": 0.00020102,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-excel-etiket",
+  "kind": "direct",
+  "resolved_question": "PNT-1126 S beden için hangi etiket takılıyor?",
+  "record": {
+   "question_id": "dikim-excel-etiket",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "PNT-1126 S beden için ETK-6154 etiket kodu kullanılmaktadır.",
+     "sources": [
+      {
+       "doc_id": "dikim-excel",
+       "page": null,
+       "sheet": "Etiket kodları",
+       "row": 4
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-excel-etiket",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 7.999988156370819e-07,
+   "scope": 0.0002268999996886123,
+   "intent": 3.219999962311704e-05,
+   "retrieve": 0.11229800000000978,
+   "generate": 1.2672430999991775,
+   "verify": 0.0002905000001192093
+  },
+  "cost_usd": 0.00022387,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-pdf-olcu",
+  "kind": "table_lookup",
+  "resolved_question": "PNT-1162 modelinde L beden bel kaç?",
+  "record": {
+   "question_id": "dikim-pdf-olcu",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "PNT-1162 modelinde L beden bel 42,5 cm'dir.",
+     "sources": [
+      {
+       "doc_id": "dikim-pdf",
+       "page": 2,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-pdf-olcu",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.0999992809956893e-06,
+   "scope": 0.0002164999987144256,
+   "intent": 2.570000106061343e-05,
+   "retrieve": 0.10562580000078015,
+   "generate": 1.4981978999985586,
+   "verify": 0.00026979999893228523
+  },
+  "cost_usd": 0.00022739,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-pdf-yok",
+  "kind": "not_in_document",
+  "resolved_question": "PNT-1162 modelinde kordon boyu kaç?",
+  "record": {
+   "question_id": "dikim-pdf-yok",
+   "outcome": "not_found",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "dikim-pdf-yok",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.7000002117129043e-06,
+   "scope": 0.0002055000004475005,
+   "intent": 2.300000051036477e-05,
+   "retrieve": 0.10464929999943706,
+   "generate": 0.7400898000014422,
+   "verify": 7.840000034775585e-05
+  },
+  "cost_usd": 0.00019808,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-pdf-etiket",
+  "kind": "direct",
+  "resolved_question": "PNT-1162 L beden için hangi etiket takılıyor?",
+  "record": {
+   "question_id": "dikim-pdf-etiket",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "L beden için ETK-3353 etiket kodu takılmaktadır.",
+     "sources": [
+      {
+       "doc_id": "dikim-pdf",
+       "page": 3,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-pdf-etiket",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.5000005078036338e-06,
+   "scope": 0.0004817000008188188,
+   "intent": 6.200000098033343e-05,
+   "retrieve": 0.15046190000066417,
+   "generate": 1.1762849999995524,
+   "verify": 0.0003692999998747837
+  },
+  "cost_usd": 0.00021767,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-word-olcu",
+  "kind": "table_lookup",
+  "resolved_question": "CKT-7308 modelinde S beden dış paça kaç?",
+  "record": {
+   "question_id": "dikim-word-olcu",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "CKT-7308 modelinde S beden dış paça 100,0 cm'dir.",
+     "sources": [
+      {
+       "doc_id": "dikim-word",
+       "page": 1,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-word-olcu",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.5000005078036338e-06,
+   "scope": 0.00040040000021690503,
+   "intent": 4.670000089390669e-05,
+   "retrieve": 0.142448600001444,
+   "generate": 1.36370050000005,
+   "verify": 0.0006400999991456047
+  },
+  "cost_usd": 0.00021991,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-word-yok",
+  "kind": "not_in_document",
+  "resolved_question": "CKT-7308 modelinde kordon boyu kaç?",
+  "record": {
+   "question_id": "dikim-word-yok",
+   "outcome": "not_found",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "dikim-word-yok",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.2000000424450263e-06,
+   "scope": 0.00023549999968963675,
+   "intent": 2.5100000129896216e-05,
+   "retrieve": 0.1383335000009538,
+   "generate": 1.1072033000000374,
+   "verify": 6.929999835847411e-05
+  },
+  "cost_usd": 0.00018856,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-word-etiket",
+  "kind": "direct",
+  "resolved_question": "CKT-7308 S beden için hangi etiket takılıyor?",
+  "record": {
+   "question_id": "dikim-word-etiket",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "CKT-7308 S beden için ETK-7825 etiket kodu kullanılmaktadır.",
+     "sources": [
+      {
+       "doc_id": "dikim-word",
+       "page": 1,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-word-etiket",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.5000005078036338e-06,
+   "scope": 0.0004222999996272847,
+   "intent": 5.439999949885532e-05,
+   "retrieve": 0.14147630000115896,
+   "generate": 3.0682935000004363,
+   "verify": 0.00023890000011306256
+  },
+  "cost_usd": 0.00021005,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-tarama-olcu",
+  "kind": "in_image",
+  "resolved_question": "GML-6473 modelinde M beden bel kaç?",
+  "record": {
+   "question_id": "dikim-tarama-olcu",
+   "outcome": "answered",
+   "badge": "partial",
+   "items": [
+    {
+     "text": "GML-6473 modelinde M beden bel 38,0 cm'dir.",
+     "sources": [
+      {
+       "doc_id": "dikim-tarama",
+       "page": 2,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-tarama-olcu",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.0000003385357559e-06,
+   "scope": 0.00021809999998367857,
+   "intent": 2.2799998987466097e-05,
+   "retrieve": 0.13850379999894358,
+   "generate": 3.1677383000005648,
+   "verify": 0.00045959999988554046
+  },
+  "cost_usd": 0.0002198,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-tarama-yok",
+  "kind": "not_in_document",
+  "resolved_question": "GML-6473 modelinde kordon boyu kaç?",
+  "record": {
+   "question_id": "dikim-tarama-yok",
+   "outcome": "not_found",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "dikim-tarama-yok",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.8999999156221747e-06,
+   "scope": 0.00039850000030128285,
+   "intent": 4.169999920122791e-05,
+   "retrieve": 0.14698830000088492,
+   "generate": 0.8926687000002858,
+   "verify": 5.9300000430084765e-05
+  },
+  "cost_usd": 0.00018961,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-tarama-etiket",
+  "kind": "direct",
+  "resolved_question": "GML-6473 M beden için hangi etiket takılıyor?",
+  "record": {
+   "question_id": "dikim-tarama-etiket",
+   "outcome": "not_found",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "dikim-tarama-etiket",
+   "outcome_ok": false,
+   "values_ok": false,
+   "source_ok": false,
+   "foreign_tokens": [],
+   "passed": false,
+   "verified_wrong": false,
+   "false_reject": true,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.2000000424450263e-06,
+   "scope": 0.0004129999997530831,
+   "intent": 5.649999911838677e-05,
+   "retrieve": 0.13898540000081994,
+   "generate": 0.8119771000001492,
+   "verify": 3.9999998989515007e-05
+  },
+  "cost_usd": 0.00018968,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-foto-olcu",
+  "kind": "in_image",
+  "resolved_question": "MNT-8598 modelinde M beden bel kaç?",
+  "record": {
+   "question_id": "dikim-foto-olcu",
+   "outcome": "answered",
+   "badge": "failed",
+   "items": []
+  },
+  "score": {
+   "question_id": "dikim-foto-olcu",
+   "outcome_ok": true,
+   "values_ok": false,
+   "source_ok": false,
+   "foreign_tokens": [],
+   "passed": false,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.2000000424450263e-06,
+   "scope": 0.00024219999977503903,
+   "intent": 2.860000131477136e-05,
+   "retrieve": 0.12571349999961967,
+   "generate": 1.1997881999996025,
+   "verify": 0.0006836000011389842
+  },
+  "cost_usd": 0.00020738,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-foto-yok",
+  "kind": "not_in_document",
+  "resolved_question": "MNT-8598 modelinde kordon boyu kaç?",
+  "record": {
+   "question_id": "dikim-foto-yok",
+   "outcome": "not_found",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "dikim-foto-yok",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.0099998689838685e-05,
+   "scope": 0.0005467000009957701,
+   "intent": 4.690000059781596e-05,
+   "retrieve": 0.14880040000025474,
+   "generate": 0.8246827000002668,
+   "verify": 4.079999962414149e-05
+  },
+  "cost_usd": 0.00018093,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-excel-netlestir",
+  "kind": "clarify",
+  "resolved_question": "PNT-1126 modelinde i̇ç paça kaç?",
+  "record": {
+   "question_id": "dikim-excel-netlestir",
+   "outcome": "clarify",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "dikim-excel-netlestir",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.2000000424450263e-06,
+   "scope": 0.0010859000012715114,
+   "intent": 6.880000000819564e-05,
+   "retrieve": 0.15960780000023078,
+   "generate": 0.8373890000002575,
+   "verify": 0.00010140000085812062
+  },
+  "cost_usd": 0.00021129,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-pdf-yanlis-onay",
+  "kind": "confirm_wrong",
+  "resolved_question": "PNT-1162 M beden iç paça 76,5 cm miydi?",
+  "record": {
+   "question_id": "dikim-pdf-yanlis-onay",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "Belgede PNT-1162 M beden iç paça için 74,5 cm yazıyor.",
+     "sources": [
+      {
+       "doc_id": "dikim-pdf",
+       "page": 2,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-pdf-yanlis-onay",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.999998858082108e-06,
+   "scope": 0.0004042999989906093,
+   "intent": 4.86999997519888e-05,
+   "retrieve": 0.20116690000031667,
+   "generate": 1.7309581999998045,
+   "verify": 0.00046070000098552555
+  },
+  "cost_usd": 0.00022958,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-sohbet-1-t1",
+  "kind": "table_lookup",
+  "resolved_question": "PNT-1126 M beden iç paça 74,0 cm miydi?",
+  "record": {
+   "question_id": "dikim-sohbet-1-t1",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "Evet, PNT-1126 M beden iç paça ölçüsü 74,0 cm'dir.",
+     "sources": [
+      {
+       "doc_id": "dikim-excel",
+       "page": null,
+       "sheet": "Ölçü tablosu",
+       "row": 4
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-sohbet-1-t1",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.3000008038943633e-06,
+   "scope": 0.00033939999957510736,
+   "intent": 4.079999962414149e-05,
+   "retrieve": 0.15467270000044664,
+   "generate": 1.7613247000008414,
+   "verify": 0.000304600000163191
+  },
+  "cost_usd": 0.00023476,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-sohbet-1-t2",
+  "kind": "follow_up",
+  "resolved_question": "PNT-1126 M beden dış paça kaç?",
+  "record": {
+   "question_id": "dikim-sohbet-1-t2",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "PNT-1126 M beden dış paça 105,0 cm'dir.",
+     "sources": [
+      {
+       "doc_id": "dikim-excel",
+       "page": null,
+       "sheet": "Ölçü tablosu",
+       "row": 5
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-sohbet-1-t2",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 0.6380346999994799,
+   "scope": 0.00039939999987836927,
+   "intent": 4.5900000259280205e-05,
+   "retrieve": 0.14268790000096487,
+   "generate": 1.1756809999988036,
+   "verify": 0.0005470999985845992
+  },
+  "cost_usd": 0.00023461,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-sohbet-1-t3",
+  "kind": "not_in_document",
+  "resolved_question": "PNT-1126 M beden kordon boyu kaç?",
+  "record": {
+   "question_id": "dikim-sohbet-1-t3",
+   "outcome": "not_found",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "dikim-sohbet-1-t3",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 0.6643117000003258,
+   "scope": 0.0003600000000005821,
+   "intent": 3.980000110459514e-05,
+   "retrieve": 0.1434568999993644,
+   "generate": 0.8432858000014676,
+   "verify": 4.6499999371008016e-05
+  },
+  "cost_usd": 0.00020102,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-sohbet-1-t4",
+  "kind": "follow_up",
+  "resolved_question": "PNT-1162 modelinde iç paça kaç?",
+  "record": {
+   "question_id": "dikim-sohbet-1-t4",
+   "outcome": "clarify",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "dikim-sohbet-1-t4",
+   "outcome_ok": false,
+   "values_ok": false,
+   "source_ok": false,
+   "foreign_tokens": [],
+   "passed": false,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 0.6296564999993279,
+   "scope": 0.0003780999995797174,
+   "intent": 3.6100000215810724e-05,
+   "retrieve": 0.133718900000531,
+   "generate": 1.1388633000005939,
+   "verify": 5.810000038763974e-05
+  },
+  "cost_usd": 0.00020855,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-sohbet-2-t1",
+  "kind": "table_lookup",
+  "resolved_question": "CKT-7308 S beden bel kaç?",
+  "record": {
+   "question_id": "dikim-sohbet-2-t1",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "CKT-7308 S beden bel 38,0 cm'dir.",
+     "sources": [
+      {
+       "doc_id": "dikim-word",
+       "page": 1,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-sohbet-2-t1",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.3000008038943633e-06,
+   "scope": 0.0002244000006612623,
+   "intent": 2.2399999579647556e-05,
+   "retrieve": 0.12628220000078727,
+   "generate": 1.185966400000325,
+   "verify": 0.0004423000009410316
+  },
+  "cost_usd": 0.00021589,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-sohbet-2-t2",
+  "kind": "follow_up",
+  "resolved_question": "CKT-7308 L beden bel kaç?",
+  "record": {
+   "question_id": "dikim-sohbet-2-t2",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "CKT-7308 L beden bel ölçüsü 42,0 cm'dir.",
+     "sources": [
+      {
+       "doc_id": "dikim-word",
+       "page": 1,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-sohbet-2-t2",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 0.560049000001527,
+   "scope": 0.00039259999903151765,
+   "intent": 3.5000000934815034e-05,
+   "retrieve": 0.12873020000006363,
+   "generate": 1.0040329000003112,
+   "verify": 0.00024789999952190556
+  },
+  "cost_usd": 0.00021657,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-sohbet-2-t3",
+  "kind": "follow_up",
+  "resolved_question": "CKT-7308 L beden etiketi ne?",
+  "record": {
+   "question_id": "dikim-sohbet-2-t3",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "L beden etiketi ETK-7827'dir.",
+     "sources": [
+      {
+       "doc_id": "dikim-word",
+       "page": 1,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-sohbet-2-t3",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 0.570893399999477,
+   "scope": 0.00023430000146618113,
+   "intent": 1.759999940986745e-05,
+   "retrieve": 0.12601709999944433,
+   "generate": 0.9800304000000324,
+   "verify": 0.000305800000205636
+  },
+  "cost_usd": 0.00020678,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-revizyon-belirli",
+  "kind": "table_lookup",
+  "resolved_question": "SRT-4294 Rev B, M beden iç paça kaç?",
+  "record": {
+   "question_id": "dikim-revizyon-belirli",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "SRT-4294 Rev B için M beden iç paça ölçüsü 74,0 cm'dir.",
+     "sources": [
+      {
+       "doc_id": "dikim-rev-b",
+       "page": 2,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "dikim-revizyon-belirli",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.3999997463542968e-06,
+   "scope": 0.00039740000102028716,
+   "intent": 4.2499999835854396e-05,
+   "retrieve": 0.151202100001683,
+   "generate": 1.4240153999999166,
+   "verify": 0.0003214999996998813
+  },
+  "cost_usd": 0.00023712,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "dikim-revizyon-netlestir",
+  "kind": "clarify",
+  "resolved_question": "SRT-4294 M beden iç paça kaç?",
+  "record": {
+   "question_id": "dikim-revizyon-netlestir",
+   "outcome": "clarify",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "dikim-revizyon-netlestir",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.0999992809956893e-06,
+   "scope": 0.00023010000040812884,
+   "intent": 2.1699999706470408e-05,
+   "retrieve": 0.13680700000077195,
+   "generate": 1.034736100000373,
+   "verify": 6.740000026184134e-05
+  },
+  "cost_usd": 0.00021727,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "sql-kolon-adi",
+  "kind": "direct",
+  "resolved_question": "Kuzey Sorgu'da DEPO_SAYIM tablosunda SIP_TARIH kolonunun adını SIPARIS_TARIHI yapan komut nedir?",
+  "record": {
+   "question_id": "sql-kolon-adi",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "DEPO_SAYIM tablosunda SIP_TARIH kolonunun adını SIPARIS_TARIHI olarak değiştirir. ALTER TABLE DEPO_SAYIM RENAME COLUMN SIP_TARIH TO SIPARIS_TARIHI;",
+     "sources": [
+      {
+       "doc_id": "sql-kilavuz",
+       "page": 2,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "sql-kolon-adi",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.2000000424450263e-06,
+   "scope": 0.0005228999998507788,
+   "intent": 4.7900000936351717e-05,
+   "retrieve": 0.20465230000081647,
+   "generate": 1.4849022999987938,
+   "verify": 0.0005199999995966209
+  },
+  "cost_usd": 0.00022058,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "sql-ekran-uzunluk",
+  "kind": "in_image",
+  "resolved_question": "SIPARIS_KALEM tablosunda DEPO_KODU kolonunun uzunluğu kaç?",
+  "record": {
+   "question_id": "sql-ekran-uzunluk",
+   "outcome": "answered",
+   "badge": "partial",
+   "items": [
+    {
+     "text": "SIPARIS_KALEM tablosunda DEPO_KODU kolonunun uzunluğu 59'dur.",
+     "sources": [
+      {
+       "doc_id": "sql-ekran",
+       "page": 1,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "sql-ekran-uzunluk",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.4999986888142303e-06,
+   "scope": 0.0007251999995787628,
+   "intent": 6.480000047304202e-05,
+   "retrieve": 0.155332799999087,
+   "generate": 1.2267150999996375,
+   "verify": 0.0002691000008780975
+  },
+  "cost_usd": 0.00021989,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "sql-sozluk-uzunluk",
+  "kind": "table_lookup",
+  "resolved_question": "FATURA_BASLIK tablosunda TESLIM_TARIHI uzunluğu kaç?",
+  "record": {
+   "question_id": "sql-sozluk-uzunluk",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "FATURA_BASLIK tablosunda TESLIM_TARIHI uzunluğu 94'tür.",
+     "sources": [
+      {
+       "doc_id": "sql-sozluk",
+       "page": null,
+       "sheet": "Kolon sözlüğü",
+       "row": 5
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "sql-sozluk-uzunluk",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.2000000424450263e-06,
+   "scope": 0.0003913000000466127,
+   "intent": 3.090000063821208e-05,
+   "retrieve": 0.18017700000018522,
+   "generate": 1.9172779000000446,
+   "verify": 0.00054679999993823
+  },
+  "cost_usd": 0.00022757,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "sql-rapor-tablo",
+  "kind": "direct",
+  "resolved_question": "Aylık ciro raporu hangi tabloyu okuyor?",
+  "record": {
+   "question_id": "sql-rapor-tablo",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "SIPARIS_BASLIK tablosunu okur. SELECT SUM(TUTAR) FROM SIPARIS_BASLIK;",
+     "sources": [
+      {
+       "doc_id": "sql-rapor",
+       "page": null,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "sql-rapor-tablo",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.4000015653437003e-06,
+   "scope": 0.00034729999970295466,
+   "intent": 0.6983866999999009,
+   "retrieve": 0.13539769999988494,
+   "generate": 1.537901800000327,
+   "verify": 0.00020669999867095612
+  },
+  "cost_usd": 0.00017864,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "sql-zaman-asimi",
+  "kind": "direct",
+  "resolved_question": "Sorgu zaman aşımı varsayılan olarak kaç saniye?",
+  "record": {
+   "question_id": "sql-zaman-asimi",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "Sorgu zaman aşımı varsayılan değeri 75 saniyedir.",
+     "sources": [
+      {
+       "doc_id": "sql-notlar",
+       "page": 1,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "sql-zaman-asimi",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.1000010999850929e-06,
+   "scope": 0.00019520000023476314,
+   "intent": 0.3422516999999061,
+   "retrieve": 0.1444292999985919,
+   "generate": 1.4956191000001127,
+   "verify": 0.0003063000003749039
+  },
+  "cost_usd": 0.0002024,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "sql-netlestir",
+  "kind": "clarify",
+  "resolved_question": "MUSTERI_KODU kolonunun uzunluğu kaç?",
+  "record": {
+   "question_id": "sql-netlestir",
+   "outcome": "clarify",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "sql-netlestir",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.7000002117129043e-06,
+   "scope": 0.00030780000088270754,
+   "intent": 2.680000034160912e-05,
+   "retrieve": 0.13007099999958882,
+   "generate": 1.080040499999086,
+   "verify": 9.630000022298191e-05
+  },
+  "cost_usd": 0.00020818,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "sql-yok",
+  "kind": "not_in_document",
+  "resolved_question": "Kuzey Sorgu'da yedekleme nasıl yapılır?",
+  "record": {
+   "question_id": "sql-yok",
+   "outcome": "not_found",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "sql-yok",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.8000009731622413e-06,
+   "scope": 0.0002559000004112022,
+   "intent": 0.306344499998886,
+   "retrieve": 0.14783270000043558,
+   "generate": 0.9655070999997406,
+   "verify": 7.530000038968865e-05
+  },
+  "cost_usd": 0.00018807,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "sql-sohbet-1-t1",
+  "kind": "direct",
+  "resolved_question": "DEPO_SAYIM tablosunda SIP_TARIH kolonunu SIPARIS_TARIHI olarak nasıl değiştiririm?",
+  "record": {
+   "question_id": "sql-sohbet-1-t1",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "DEPO_SAYIM tablosunda SIP_TARIH kolonunu SIPARIS_TARIHI olarak değiştirmek için ALTER TABLE DEPO_SAYIM RENAME COLUMN SIP_TARIH TO SIPARIS_TARIHI; komutu kullanılır. ALTER TABLE DEPO_SAYIM RENAME COLUMN SIP_TARIH TO SIPARIS_TARIHI;",
+     "sources": [
+      {
+       "doc_id": "sql-kilavuz",
+       "page": 2,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "sql-sohbet-1-t1",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.2999989849049598e-06,
+   "scope": 0.0008254999993368983,
+   "intent": 6.800000119255856e-05,
+   "retrieve": 0.2057064000000537,
+   "generate": 3.4282036000004155,
+   "verify": 0.00035799999932351056
+  },
+  "cost_usd": 0.00023095,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "sql-sohbet-1-t2",
+  "kind": "follow_up",
+  "resolved_question": "DEPO_SAYIM tablosuna yeni bir kolon eklerken kullanılan komut nedir?",
+  "record": {
+   "question_id": "sql-sohbet-1-t2",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "DEPO_SAYIM tablosuna yeni bir kolon eklemek için kullanılan komut ALTER TABLE DEPO_SAYIM ADD BIRIM_FIYAT VARCHAR(87); şeklindedir. ALTER TABLE DEPO_SAYIM ADD BIRIM_FIYAT VARCHAR(87);",
+     "sources": [
+      {
+       "doc_id": "sql-kilavuz",
+       "page": 3,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "sql-sohbet-1-t2",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 0.6389746000004379,
+   "scope": 0.00029850000100850593,
+   "intent": 3.370000013092067e-05,
+   "retrieve": 0.19117689999984577,
+   "generate": 1.5703468000010616,
+   "verify": 0.00030610000067099463
+  },
+  "cost_usd": 0.00021033,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "sql-sohbet-1-t3",
+  "kind": "not_in_document",
+  "resolved_question": "Peki yedekleme nasıl yapılır?",
+  "record": {
+   "question_id": "sql-sohbet-1-t3",
+   "outcome": "not_found",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "sql-sohbet-1-t3",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 0.44727640000019164,
+   "scope": 0.00041880000026139896,
+   "intent": 0.8366769000003842,
+   "retrieve": 0.12801459999900544,
+   "generate": 0.8351817000002484,
+   "verify": 4.760000047099311e-05
+  },
+  "cost_usd": 0.00018905,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "ik-izin-kidem",
+  "kind": "table_lookup",
+  "resolved_question": "5-15 yıl kıdemde yıllık izin kaç gün?",
+  "record": {
+   "question_id": "ik-izin-kidem",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "5-15 yıl kıdemde yıllık izin 20 gündür.",
+     "sources": [
+      {
+       "doc_id": "ik-izin",
+       "page": 2,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "ik-izin-kidem",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.0000003385357559e-06,
+   "scope": 0.0004260000005160691,
+   "intent": 0.4241135000011127,
+   "retrieve": 0.14088669999910053,
+   "generate": 1.6989233999993303,
+   "verify": 0.0003887999992002733
+  },
+  "cost_usd": 0.00020946,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "ik-yol-yardimi",
+  "kind": "table_lookup",
+  "resolved_question": "C derecesinde aylık yol yardımı ne kadar?",
+  "record": {
+   "question_id": "ik-yol-yardimi",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "C derecesinde aylık yol yardımı 1200 TL'dir.",
+     "sources": [
+      {
+       "doc_id": "ik-yan-haklar",
+       "page": null,
+       "sheet": "Yol yardımı",
+       "row": 6
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "ik-yol-yardimi",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.2000000424450263e-06,
+   "scope": 0.00020450000010896474,
+   "intent": 0.5367674000008265,
+   "retrieve": 0.16019720000076632,
+   "generate": 1.1347112000003108,
+   "verify": 0.00024200000007112976
+  },
+  "cost_usd": 0.00020453,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "ik-ihbar-suresi",
+  "kind": "direct",
+  "resolved_question": "İhbar süresi kaç gün?",
+  "record": {
+   "question_id": "ik-ihbar-suresi",
+   "outcome": "answered",
+   "badge": "verified",
+   "items": [
+    {
+     "text": "İhbar süresi 17 gündür.",
+     "sources": [
+      {
+       "doc_id": "ik-ihbar",
+       "page": 1,
+       "sheet": null,
+       "row": null
+      }
+     ]
+    }
+   ]
+  },
+  "score": {
+   "question_id": "ik-ihbar-suresi",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 2.5000008463393897e-06,
+   "scope": 0.0003581000000849599,
+   "intent": 0.3853182000002562,
+   "retrieve": 0.1396652000003087,
+   "generate": 1.102434299999004,
+   "verify": 0.00036860000000160653
+  },
+  "cost_usd": 0.00020087,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "ik-netlestir",
+  "kind": "clarify",
+  "resolved_question": "Yıllık izin kaç gün?",
+  "record": {
+   "question_id": "ik-netlestir",
+   "outcome": "clarify",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "ik-netlestir",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 1.7000002117129043e-06,
+   "scope": 0.0003916000005119713,
+   "intent": 0.28598819999933767,
+   "retrieve": 0.12838960000044608,
+   "generate": 2.1336295000000973,
+   "verify": 9.490000047662761e-05
+  },
+  "cost_usd": 0.00020428,
+  "provider": "deepinfra"
+ },
+ {
+  "question": "ik-yok",
+  "kind": "not_in_document",
+  "resolved_question": "Kreş yardımı ne kadar?",
+  "record": {
+   "question_id": "ik-yok",
+   "outcome": "not_found",
+   "badge": "none",
+   "items": []
+  },
+  "score": {
+   "question_id": "ik-yok",
+   "outcome_ok": true,
+   "values_ok": true,
+   "source_ok": true,
+   "foreign_tokens": [],
+   "passed": true,
+   "verified_wrong": false,
+   "false_reject": false,
+   "skipped_clarification": false
+  },
+  "cache": "live",
+  "timings": {
+   "context": 2.3000011424301192e-06,
+   "scope": 0.00036390000059327576,
+   "intent": 0.7421931999997469,
+   "retrieve": 0.12419250000129978,
+   "generate": 0.9245950000004086,
+   "verify": 7.060000098135788e-05
+  },
+  "cost_usd": 0.00018695,
+  "provider": "deepinfra"
+ }
+]
