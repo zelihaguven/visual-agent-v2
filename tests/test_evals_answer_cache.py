@@ -2,9 +2,11 @@ import asyncio
 from pathlib import Path
 
 import httpx
+import pytest
 
 from evals.answer_cache import CacheCounts, CachingTransport
-from evals.run_questions import cache_label
+from evals.gold import GoldQuestion, GoldSet, Outcome, QuestionKind
+from evals.run_questions import cache_label, select_questions
 
 URL = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -135,3 +137,44 @@ def test_question_is_live_only_without_any_cached_request() -> None:
     assert cache_label(CacheCounts(hits=0, misses=0)) == "live"
     assert cache_label(CacheCounts(hits=2, misses=0)) == "cached"
     assert cache_label(CacheCounts(hits=1, misses=1)) == "partial"
+
+
+def _gold_with_conversation() -> GoldSet:
+    def question(question_id: str, conversation: str | None, turn: int | None) -> GoldQuestion:
+        return GoldQuestion(
+            question_id=question_id,
+            text=question_id,
+            kind=QuestionKind.FOLLOW_UP if conversation else QuestionKind.DIRECT,
+            domain="dikim",
+            outcome=Outcome.ANSWERED,
+            conversation_id=conversation,
+            turn=turn,
+        )
+
+    return GoldSet(
+        seed=7,
+        documents=(),
+        questions=(
+            question("tek", None, None),
+            question("s-t1", "s", 1),
+            question("s-t2", "s", 2),
+            question("s-t3", "s", 3),
+            question("diger", None, None),
+        ),
+        document_texts={},
+    )
+
+
+def test_follow_up_is_asked_with_the_earlier_turns_of_its_conversation() -> None:
+    picked = select_questions(_gold_with_conversation(), ["s-t2", "diger"])
+
+    assert [q.question_id for q in picked] == ["s-t1", "s-t2", "diger"]
+
+
+def test_without_a_selection_every_question_is_asked() -> None:
+    assert len(select_questions(_gold_with_conversation(), None)) == 5
+
+
+def test_unknown_question_is_refused() -> None:
+    with pytest.raises(ValueError, match="yok-boyle"):
+        select_questions(_gold_with_conversation(), ["yok-boyle"])

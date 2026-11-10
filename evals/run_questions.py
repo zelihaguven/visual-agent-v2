@@ -189,10 +189,34 @@ def cache_label(delta: CacheCounts) -> str:
     return "cached" if delta.hits else "live"
 
 
+def select_questions(gold: GoldSet, wanted: Sequence[str] | None) -> list[GoldQuestion]:
+    """Seçilen sorular ve takip sorularının sohbetteki önceki turları, altın veri sırasıyla."""
+    if not wanted:
+        return list(gold.questions)
+    unknown = sorted(set(wanted) - {q.question_id for q in gold.questions})
+    if unknown:
+        raise ValueError(f"sette olmayan sorular: {', '.join(unknown)}")
+    picked = [q for q in gold.questions if q.question_id in wanted]
+    last_turn: dict[str, int] = {}
+    for question in picked:
+        if question.conversation_id is not None:
+            conversation = question.conversation_id
+            last_turn[conversation] = max(last_turn.get(conversation, 0), question.turn or 0)
+    return [
+        q
+        for q in gold.questions
+        if q in picked
+        or (q.conversation_id in last_turn and (q.turn or 0) <= last_turn[q.conversation_id])
+    ]
+
+
 async def _full_run(
-    gold: GoldSet, deps: AskDeps, output: Path, counts: CacheCounts
+    questions: Sequence[GoldQuestion],
+    gold: GoldSet,
+    deps: AskDeps,
+    output: Path,
+    counts: CacheCounts,
 ) -> dict[str, object]:
-    questions = list(gold.questions)
     records: list[AnswerRecord] = []
     rows: list[dict[str, object]] = []
     contexts: dict[str, ConversationContext | None] = {}
@@ -285,9 +309,13 @@ async def _measure(
         return report
 
     api_key = key.get_secret_value()
-    transport = CachingTransport(
-        httpx.AsyncHTTPTransport(), arguments.cache_dir, refresh=arguments.refresh_cache
-    )
+    counts = CacheCounts()
+    transport: httpx.AsyncBaseTransport = httpx.AsyncHTTPTransport()
+    if not arguments.no_cache:
+        transport = CachingTransport(
+            transport, arguments.cache_dir, refresh=arguments.refresh_cache
+        )
+        counts = transport.counts
     async with httpx.AsyncClient(transport=transport) as http:
         answer_client, translator, rewriter, classifier = await _answer_client(
             http, settings, api_key
@@ -302,7 +330,27 @@ async def _measure(
             rewriter=rewriter,
             intent_classifier=classifier,
         )
-        return await _full_run(gold, deps, arguments.work / "answers.json", transport.counts)
+        questions = select_questions(gold, arguments.questions)
+        if arguments.repeat == 1:
+            return await _full_run(questions, gold, deps, arguments.work / "answers.json", counts)
+        return await _repeated(arguments, questions, gold, deps, counts)
+
+
+async def _repeated(
+    arguments: argparse.Namespace,
+    questions: Sequence[GoldQuestion],
+    gold: GoldSet,
+    deps: AskDeps,
+    counts: CacheCounts,
+) -> dict[str, object]:
+    """Kararlılık ölçümü: aynı sorular art arda sorulur, her soru kaç kez geçti sayılır."""
+    passed: dict[str, int] = {q.question_id: 0 for q in questions}
+    for attempt in range(1, arguments.repeat + 1):
+        output = arguments.work / f"answers-{attempt}.json"
+        await _full_run(questions, gold, deps, output, counts)
+        for row in json.loads(output.read_text(encoding="utf-8")):
+            passed[row["question"]] += int(row["score"]["passed"])
+    return {"repeat": arguments.repeat, "passed": passed}
 
 
 class _NoModel:
@@ -322,6 +370,15 @@ def main() -> None:
     parser.add_argument(
         "--refresh-cache", action="store_true", help="önbellekteki cevapları yeniden sor"
     )
+    parser.add_argument(
+        "--no-cache", action="store_true", help="önbelleği hiç kullanma ve değiştirme"
+    )
+    parser.add_argument(
+        "--questions",
+        type=lambda text: [item.strip() for item in text.split(",") if item.strip()],
+        help="yalnız bu sorular (virgülle); takip sorularının önceki turları da sorulur",
+    )
+    parser.add_argument("--repeat", type=int, default=1, help="aynı soruları kaç kez sor")
     arguments = parser.parse_args()
     arguments.work.mkdir(parents=True, exist_ok=True)
     json.dump(asyncio.run(run(arguments)), sys.stdout, ensure_ascii=False, indent=1)
