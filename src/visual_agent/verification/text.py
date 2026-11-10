@@ -3,6 +3,8 @@
 import re
 import unicodedata
 
+from markdown_it import MarkdownIt
+
 _NUMBER = r"\d+(?:[.,]\d+)?"
 _NUMBER_RE = re.compile(_NUMBER)
 TOLERANCE_RE = re.compile(rf"({_NUMBER})\s*\(\s*±\s*({_NUMBER})\s*\)")
@@ -72,39 +74,40 @@ def normalize(text: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"\s*-\s*", "-", folded)).strip()
 
 
-_PAIRED_STRONG_RE = re.compile(r"(?<![\w*\\])(\*{2,3})(?=\S)(.+?)(?<=\S)(?<!\\)\1(?![\w*])")
-_PAIRED_CODE_RE = re.compile(r"(?<![\w`\\])`([^`\n]+)`(?![\w`])")
-_STRONG_MARK_RE = re.compile(r"(?<!\\)\*{2,3}")
-_ESCAPED_RE = re.compile(r"\\([\\`*_{}\[\]()#+\-.!|>~])")
 _QUOTE_MARKS = str.maketrans({mark: '"' for mark in "'‘’‚‛“”„‟«»"})
-
-
-def _finish(text: str) -> str:
-    """Her biçimde geçerli kurallar: kaçış ters bölüsü, tırnak türü, boşluk."""
-    return normalize(_ESCAPED_RE.sub(r"\1", text).translate(_QUOTE_MARKS))
+# Yalnız satır içi vurgu, satır içi kod ve kaçış; başlık, liste, tablo, bağlantı, HTML kapalı.
+_MARKDOWN = MarkdownIt("zero").enable(["emphasis", "backticks", "escape"])
+_INTRAWORD_STARS_RE = re.compile(r"(?<=[^\W_])\*+(?=[^\W_])")
+_UNESCAPED_UNDERSCORE_RE = re.compile(r"(?<!\\)_")
+_PLAIN_TOKENS = {"text", "text_special", "code_inline"}
 
 
 def quote_form(text: str) -> str:
-    """Tırnak ve boşluk dışında biçime dokunmayan karşılaştırma biçimi (birebir yol)."""
+    """Birebir yol: yalnız tırnak türü ve boşluk tek biçime iner."""
     return normalize(text.translate(_QUOTE_MARKS))
 
 
-def source_plain_form(text: str) -> str:
-    """Parça metninden yalnız eşli markdown işaretleri kalkar: **kalın**, ***kalın-italik***, `kod`.
+def _escape_content_marks(text: str) -> str:
+    """Biçim bilinmediği için kelime içindeki yıldız (2*3, x**2) ve alt çizgi içerik sayılır."""
+    stars = _INTRAWORD_STARS_RE.sub(lambda match: "\\*" * len(match.group()), text)
+    return _UNESCAPED_UNDERSCORE_RE.sub(r"\\_", stars)
 
-    Kaynak biçimi denetimde bilinmediği için eşsiz ya da kelimeye gömülü işaret içerik sayılır
-    (pass **kwargs, 2**3); tek yıldız hiç silinmez (ABC*, *.txt). Saklanan metin değişmez.
+
+def markdown_plain_form(text: str) -> str:
+    """Sade yol: markdown vurgusu, satır içi kod işareti ve kaçış standart ayrıştırıcıyla kalkar.
+
+    Hangi yıldızın vurgu, hangisinin içerik olduğuna CommonMark ayrıştırıcısı karar verir
+    (pass **kwargs ve ABC* içerik kalır). Alıntıya ve parçaya aynı biçimde uygulanır; saklanan
+    ve gösterilen metin değişmez. Sonra tırnak ve boşluk birebir yoldaki gibi tek biçime iner.
     """
-    return _finish(_PAIRED_CODE_RE.sub(r"\1", _PAIRED_STRONG_RE.sub(r"\2", text)))
-
-
-def quote_plain_form(text: str) -> str:
-    """Model alıntısından bütün ** / *** grupları ve ters tırnaklar kalkar; tek yıldız kalır.
-
-    Alıntı kaynağın bir parçasıdır, eşi alıntının dışında kalmış işaret de biçimdir. Bu biçim
-    yalnız source_plain_form ile karşılaştırılır: kaynakta içerik sayılan işaret orada kalır.
-    """
-    return _finish(_STRONG_MARK_RE.sub("", text).replace("`", ""))
+    tokens = _MARKDOWN.parseInline(_escape_content_marks(text))
+    plain = "".join(
+        child.content
+        for token in tokens
+        for child in token.children or ()
+        if child.type in _PLAIN_TOKENS
+    )
+    return quote_form(plain)
 
 
 def _expand_citation(match: re.Match[str]) -> str:

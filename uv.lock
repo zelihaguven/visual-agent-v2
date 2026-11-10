@@ -2476,6 +2476,7 @@ source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
+    { name = "markdown-it-py" },
     { name = "pillow" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -2528,6 +2529,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
     { name = "fastembed", marker = "extra == 'retrieval'", specifier = ">=0.7" },
     { name = "httpx", specifier = ">=0.28.1" },
+    { name = "markdown-it-py", specifier = ">=4.0" },
     { name = "numpy", marker = "extra == 'ingest'", specifier = ">=1.26" },
     { name = "ocrmypdf", marker = "extra == 'ingest'", specifier = ">=16.10" },
     { name = "onnxruntime", marker = "extra == 'ingest'", specifier = ">=1.20" },

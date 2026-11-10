@@ -1,9 +1,9 @@
-"""Alıntı denetimi: yalnız biçim farkı yok sayılır, içerik sayılabilecek işaret korunur."""
+"""Alıntı denetimi: yalnız biçim farkı yok sayılır, içerik olabilecek işaret korunur."""
 
 import pytest
 
 from visual_agent.verification.quote import field_quote_matches, quote_matches
-from visual_agent.verification.text import quote_form, quote_plain_form, source_plain_form
+from visual_agent.verification.text import markdown_plain_form, quote_form
 
 # Gerçek örnekler: parça metni ve modelin alıntısı (FastReact tur 1, sorular 2, 12, 15, 7, 17).
 LOG_SOURCE = (
@@ -29,6 +29,11 @@ RELEASE_SOURCE = (
     " Additional Fucntionality* **Ref 17394 — New reporting function @SPLITPART to allow splitting"
     " of data in a reporting field** Functionality has been added to allow the splitting of data"
 )
+RELEASE_QUOTE = (
+    "Software Releases > 4.44 › Release content › New Enhancements And Additional"
+    " Fucntionality* **Ref 17394 — New reporting function @SPLITPART to allow"
+)
+KWARGS_SOURCE = "pass **kwargs and **bold** text"
 
 
 @pytest.mark.parametrize(
@@ -50,14 +55,10 @@ RELEASE_SOURCE = (
             " the best estimated date based on where the order has been planned.",
             POSSIBLE_SOURCE,
         ),
-        (
-            "Software Releases > 4.44 › Release content › New Enhancements And Additional"
-            " Fucntionality* **Ref 17394 — New reporting function @SPLITPART to allow",
-            RELEASE_SOURCE,
-        ),
+        (RELEASE_QUOTE, RELEASE_SOURCE),
     ],
 )
-def test_quotes_differing_only_in_format_are_accepted(quote: str, source: str) -> None:
+def test_real_quotes_differing_only_in_format_are_accepted(quote: str, source: str) -> None:
     assert quote_matches(quote, source)
 
 
@@ -68,9 +69,10 @@ def test_quotes_differing_only_in_format_are_accepted(quote: str, source: str) -
         ("Use Archive Orders, then save.", "Use **Archive Orders**, then save."),
         ("Set it to bold-italic now", "Set it to ***bold-italic*** now"),
         ("Enter P.CODE here", "Enter `P.CODE` here"),
+        ("pass **kwargs and bold text", KWARGS_SOURCE),
     ],
 )
-def test_paired_markdown_marks_before_punctuation_are_format(quote: str, source: str) -> None:
+def test_markdown_emphasis_and_code_marks_are_format(quote: str, source: str) -> None:
     assert quote_matches(quote, source)
 
 
@@ -79,8 +81,11 @@ def test_paired_markdown_marks_before_punctuation_are_format(quote: str, source:
     [
         ("Enter ABC to match", "Enter ABC* to match"),
         ("Filter .txt files only", "Filter *.txt files only"),
+        ("pass kwargs and", KWARGS_SOURCE),
         ("pass kwargs to the function", "pass **kwargs to the function"),
-        ("result is 23 and 42", "result is 2**3 and 4**2"),
+        ("result is 234", "result is 2*3*4"),
+        ("x2 + y2", "x**2 + y**2"),
+        ("call init now", "call __init__ now"),
     ],
 )
 def test_marks_that_may_be_content_are_not_dropped(quote: str, source: str) -> None:
@@ -88,7 +93,13 @@ def test_marks_that_may_be_content_are_not_dropped(quote: str, source: str) -> N
 
 
 @pytest.mark.parametrize(
-    "source", ["Enter ABC* to match", "pass **kwargs to the function", "Use `ls -la` here"]
+    "source",
+    [
+        "Enter ABC* to match",
+        "pass **kwargs to the function",
+        "Use `ls -la` here",
+        "result is 2*3*4",
+    ],
 )
 def test_a_verbatim_quote_of_content_marks_is_accepted(source: str) -> None:
     assert quote_matches(source, source)
@@ -106,11 +117,7 @@ def test_a_verbatim_quote_of_content_marks_is_accepted(source: str) -> None:
         ("Use @SUMS in the layout.", "Use `@SUM` in the layout."),
         ("Only turn this on if asked to by FastReact staff.", LOG_SOURCE),
         ("Only turn this on if you are explicitly asked to by FastReact staff.", LOG_SOURCE),
-        (
-            "Software Releases > 4.44 › Release content › New Enhancements And Additional"
-            " Fucntionality* **Ref 17349 — New reporting function @SPLITPART to allow",
-            RELEASE_SOURCE,
-        ),
+        (RELEASE_QUOTE.replace("17394", "17349"), RELEASE_SOURCE),
     ],
 )
 def test_quotes_with_a_different_value_code_or_wording_are_still_rejected(
@@ -119,7 +126,7 @@ def test_quotes_with_a_different_value_code_or_wording_are_still_rejected(
     assert not quote_matches(quote, source)
 
 
-def test_labeled_quote_matches_through_paired_marks() -> None:
+def test_labeled_quote_matches_through_emphasis() -> None:
     assert quote_matches("Week numbers: Enabled", "**Week numbers:** Enabled | Year 1: x")
     assert field_quote_matches("Week numbers: Enabled", "Week numbers: Enabled | Year 1: x")
 
@@ -131,30 +138,18 @@ def test_labeled_quote_matches_through_paired_marks() -> None:
         ("Use **Archive Orders**, then", "use archive orders, then"),
         ("`EF.NAME` alanı", "ef.name alanı"),
         ("An asterisk ‘\\*’", 'an asterisk "*"'),
-        ("*Context: Help › Index*", "*context: help › index*"),
-        ("pass **kwargs and 2**3", "pass **kwargs and 2**3"),
+        ("*Context: Help › Index*", "context: help › index"),
+        (KWARGS_SOURCE, "pass **kwargs and bold text"),
         ("ABC* and *.txt", "abc* and *.txt"),
-        ("O.QTY_WEEK~1 and P^WC:n", "o.qty_week~1 and p^wc:n"),
+        ("2*3*4 and x**2", "2*3*4 and x**2"),
+        ("O.QTY_WEEK~1, __init__ and _x_", "o.qty_week~1, __init__ and _x_"),
+        ("# Başlık [bağlantı](x) | a | b", "# başlık [bağlantı](x) | a | b"),
         ("C:\\Program Files\\FastReact", "c:\\program files\\fastreact"),
         ("“possible”  date\nnext", '"possible" date next'),
     ],
 )
-def test_source_side_removes_only_paired_marks(text: str, expected: str) -> None:
-    assert source_plain_form(text) == expected
-
-
-@pytest.mark.parametrize(
-    ("text", "expected"),
-    [
-        ("Fucntionality* **Ref 17394", "fucntionality* ref 17394"),
-        ("`P.CODE` alanı", "p.code alanı"),
-        ("ABC* and *.txt", "abc* and *.txt"),
-    ],
-)
-def test_quote_side_removes_every_strong_mark_but_keeps_single_stars(
-    text: str, expected: str
-) -> None:
-    assert quote_plain_form(text) == expected
+def test_parser_removes_only_emphasis_code_marks_and_escapes(text: str, expected: str) -> None:
+    assert markdown_plain_form(text) == expected
 
 
 def test_verbatim_way_changes_only_quote_marks_and_spacing() -> None:
@@ -162,4 +157,4 @@ def test_verbatim_way_changes_only_quote_marks_and_spacing() -> None:
 
 
 def test_escaped_asterisks_are_literal_not_emphasis() -> None:
-    assert source_plain_form("\\*\\*not bold\\*\\*") == "**not bold**"
+    assert markdown_plain_form("\\*\\*not bold\\*\\*") == "**not bold**"

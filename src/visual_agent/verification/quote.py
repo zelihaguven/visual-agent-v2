@@ -1,18 +1,15 @@
 """Alıntının kaynakla birebir eşleşmesi; yalnız biçim farkı yok sayılır.
 
-İki yol denenir: birebir yol (tırnak ve boşluk dışında biçime dokunmaz) ve sade yol (kaynakta
-yalnız eşli markdown işaretleri, alıntıda bütün ** ve ters tırnaklar kalkar). Kaynak biçimi
-(markdown, PDF, Word) denetimde bilinmez; bu yüzden kaynakta eşsiz işaret içerik sayılır.
+İki yol denenir, ikisinde de alıntıya ve parçaya aynı biçim uygulanır:
+1. Birebir yol: yalnız tırnak türü ve boşluk tek biçime iner (quote_form).
+2. Sade yol: markdown vurgusu, satır içi kod işareti ve kaçış standart ayrıştırıcıyla kalkar
+   (markdown_plain_form). Kaynak biçimi (markdown, PDF, Word) denetimde bilinmez.
+İkisi de tutmazsa alıntı reddedilir.
 """
 
 from collections.abc import Callable
 
-from visual_agent.verification.text import (
-    CUT_CITATION_RE,
-    quote_form,
-    quote_plain_form,
-    source_plain_form,
-)
+from visual_agent.verification.text import CUT_CITATION_RE, markdown_plain_form, quote_form
 
 QUOTE_LIMIT = 150
 _CUT_MARGIN = 15
@@ -22,10 +19,7 @@ _LABEL_SEPARATOR = ": "
 _MAX_LABEL_LENGTH = 80
 
 Form = Callable[[str], str]
-_WAYS: tuple[tuple[Form, Form], ...] = (
-    (quote_form, quote_form),
-    (quote_plain_form, source_plain_form),
-)
+_FORMS: tuple[Form, ...] = (quote_form, markdown_plain_form)
 
 
 def _labeled_cells(line: str) -> list[tuple[str, str]]:
@@ -37,14 +31,14 @@ def _labeled_cells(line: str) -> list[tuple[str, str]]:
     return cells
 
 
-def _field_matches(quote: str, source: str, quote_way: Form, source_way: Form) -> bool:
+def _field_matches(quote: str, source: str, form: Form) -> bool:
     label, separator, value = quote.strip().partition(_LABEL_SEPARATOR)
     value = value.strip()
     if not separator or not value or "|" in value or "|" in label:
         return False
-    wanted_label, wanted_value = quote_way(label), quote_way(value)
+    wanted_label, wanted_value = form(label), form(value)
     return any(
-        source_way(cell_label) == wanted_label and wanted_value in source_way(cell_value)
+        form(cell_label) == wanted_label and wanted_value in form(cell_value)
         for line in source.splitlines()
         for cell_label, cell_value in _labeled_cells(line)
     )
@@ -52,14 +46,14 @@ def _field_matches(quote: str, source: str, quote_way: Form, source_way: Form) -
 
 def field_quote_matches(quote: str, source: str) -> bool:
     """Etiketli hücre alıntısı, aynı etiketin hücresinde bitişik geçmelidir."""
-    return any(_field_matches(quote, source, q, s) for q, s in _WAYS)
+    return any(_field_matches(quote, source, form) for form in _FORMS)
 
 
-def _cut_prefix_matches(quote: str, normalized_source: str, quote_way: Form) -> bool:
+def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
     """Uzunluk sınırına dayanıp sonu bozulan alıntının başı kaynakla örtüşüyorsa kabul eder."""
     if len(quote) < QUOTE_LIMIT - _CUT_MARGIN:
         return False
-    normalized = quote_way(quote)
+    normalized = form(quote)
     words = normalized.split(" ")
     for count in range(len(words) - 1, 0, -1):
         head = " ".join(words[:count])
@@ -68,18 +62,18 @@ def _cut_prefix_matches(quote: str, normalized_source: str, quote_way: Form) -> 
     return False
 
 
-def _matches(quote: str, source: str, quote_way: Form, source_way: Form) -> bool:
+def _matches(quote: str, source: str, form: Form) -> bool:
     without_citation = CUT_CITATION_RE.sub("", quote)
-    normalized_quote = quote_way(without_citation)
+    normalized_quote = form(without_citation)
     if not normalized_quote:
         return False
-    normalized_source = source_way(source)
+    normalized_source = form(source)
     return (
         normalized_quote in normalized_source
-        or _field_matches(without_citation, source, quote_way, source_way)
-        or _cut_prefix_matches(quote, normalized_source, quote_way)
+        or _field_matches(without_citation, source, form)
+        or _cut_prefix_matches(quote, normalized_source, form)
     )
 
 
 def quote_matches(quote: str, source: str) -> bool:
-    return any(_matches(quote, source, q, s) for q, s in _WAYS)
+    return any(_matches(quote, source, form) for form in _FORMS)
