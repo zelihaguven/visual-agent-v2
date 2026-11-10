@@ -80,3 +80,31 @@ def test_health_does_not_wait_for_a_hanging_dependency(monkeypatch: pytest.Monke
 
     assert response.status_code == 503
     assert response.json()["dependencies"] == {"database": False}
+
+
+def _web_build(tmp_path: Path) -> Path:
+    (tmp_path / "assets").mkdir()
+    (tmp_path / "index.html").write_text("<html>arayüz</html>", encoding="utf-8")
+    (tmp_path / "assets" / "app-1a2b.js").write_text("console.log(1)", encoding="utf-8")
+    return tmp_path
+
+
+def test_built_web_interface_is_served_from_the_api_port(tmp_path: Path) -> None:
+    client = TestClient(
+        create_app(Settings(_env_file=None, web_directory=str(_web_build(tmp_path))))
+    )
+
+    page = client.get("/")
+    asset = client.get("/assets/app-1a2b.js")
+
+    assert page.status_code == 200 and "arayüz" in page.text
+    assert page.headers["cache-control"] == "no-cache"
+    assert asset.headers["cache-control"].endswith("immutable")
+    assert client.get("/api/health").json()["status"] == "ok"
+
+
+def test_missing_web_build_leaves_only_the_api(tmp_path: Path) -> None:
+    client = TestClient(create_app(Settings(_env_file=None, web_directory=str(tmp_path))))
+
+    assert client.get("/").status_code == 404
+    assert client.get("/api/health").status_code == 200

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import httpx
+import pytest
 from qdrant_client import AsyncQdrantClient
 
 from visual_agent.domain.document import Chunk, ChunkKind, SourceLocation
@@ -12,6 +13,7 @@ from visual_agent.generation.translate import (
     bm25_text,
     make_translator,
 )
+from visual_agent.retrieval import qdrant_store
 from visual_agent.retrieval.fusion import ScoredChunk, is_table_of_contents, rrf_fuse
 from visual_agent.retrieval.hybrid import HybridRetriever
 from visual_agent.retrieval.normalization import normalize_for_bm25
@@ -198,7 +200,10 @@ def test_embedded_folder_keeps_vectors_after_reopening(tmp_path: Path) -> None:
     assert asyncio.run(read()) == ["1"]
 
 
-def test_server_client_is_used_without_a_folder() -> None:
-    client = open_client("http://127.0.0.1:6333", None)
+def test_server_client_is_used_without_a_folder(monkeypatch: pytest.MonkeyPatch) -> None:
+    opened: list[dict[str, object]] = []
+    monkeypatch.setattr(qdrant_store, "AsyncQdrantClient", lambda **kwargs: opened.append(kwargs))
 
-    assert client.init_options["url"] == "http://127.0.0.1:6333"
+    open_client("http://127.0.0.1:6333", None)
+
+    assert opened == [{"url": "http://127.0.0.1:6333"}]

@@ -13,7 +13,9 @@ from typing import Annotated, Literal, Protocol
 
 from fastapi import APIRouter, Depends, FastAPI, Form, HTTPException, Response, UploadFile
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
+from starlette.types import Scope
 
 from apps.api.preview import render_highlighted_page
 from apps.api.voice import SpokenAnswer, voice_router
@@ -336,6 +338,25 @@ def _document_router(app: FastAPI) -> APIRouter:
     return router
 
 
+class WebFiles(StaticFiles):
+    """Derlenmiş arayüz: adları içerik özetli dosyalar uzun, sayfanın kendisi hiç saklanmaz."""
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        response = await super().get_response(path, scope)
+        immutable = Path(path).parts[:1] == ("assets",) and response.status_code == 200
+        response.headers["Cache-Control"] = (
+            "public, max-age=31536000, immutable" if immutable else "no-cache"
+        )
+        return response
+
+
+def _mount_web(app: FastAPI, directory: str | None) -> None:
+    """Sunucuda arayüzü nginx sunar; yerelde aynı porttan API verir."""
+    if directory is None or not (Path(directory) / "index.html").is_file():
+        return
+    app.mount("/", WebFiles(directory=directory, html=True), name="web")
+
+
 @asynccontextmanager
 async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
@@ -359,4 +380,5 @@ def create_app(settings: Settings | None = None, services: ApiServices | None = 
     app.include_router(
         voice_router(lambda: app.state.services.voice if app.state.services else None)
     )
+    _mount_web(app, resolved.web_directory)
     return app
