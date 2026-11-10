@@ -30,4 +30,5 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 
 ## Kurulum
 
-- Temiz kurulumdaki Docling model indirme komutu bu bilgisayarda takıldı, çalıştığı doğrulanmadı.
+- Sunucu (Docker) kurulumundaki Docling model indirme komutu (`docling-tools models download`) önceki bilgisayarda takıldı ve hiç doğrulanmadı. Yerel kurulumda bu komut kullanılmıyor, modeller ilk belgede kendiliğinden iniyor. Sunucuya ilk kurulumda denenecek; takılırsa nedeni bulunacak.
+- Docker paketi (compose, imajlar) SQLite ve tek süreç değişikliğinden sonra bu bilgisayarda denenemedi; yalnız CI'daki `services` işi açılışı sınıyor. Sunucuya kurulurken API ve işçinin aynı SQLite birimini paylaşması uçtan uca denenecek.
