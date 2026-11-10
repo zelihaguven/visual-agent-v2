@@ -19,6 +19,7 @@ from tests.test_ask_pipeline import (
 )
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.orchestrator import answer_question
+from visual_agent.ask.steps import CONTEXT_GONE_QUESTION
 from visual_agent.conversation.grounding import is_grounded
 from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.conversation import ConversationContext
@@ -156,15 +157,6 @@ def test_same_code_in_another_spelling_keeps_the_scope() -> None:
 
     assert retriever.calls[0]["doc_ids"] == ("b",)
     assert outcome.scope_inherited
-
-
-def test_context_for_a_document_no_longer_visible_is_ignored() -> None:
-    retriever = FakeRetriever()
-    stale = ConversationContext(question=PREVIOUS.question, doc_ids=("gizli",))
-
-    ask_with(deps_with(follows(), FakeClient(VERIFIED), retriever), "Peki dış paça?", stale)
-
-    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
 
 
 def test_previous_answer_never_reaches_the_rewriter_or_the_sources() -> None:
@@ -369,3 +361,58 @@ def test_rewriter_rejects_a_reply_without_the_expected_fields() -> None:
 
 def test_rewriter_accepts_a_reply_that_marks_a_new_topic() -> None:
     assert _rewrite_call('{"follows": false}', []) == Rewrite(follows=False, question="")
+
+
+GONE = ConversationContext(question=PREVIOUS.question, doc_ids=("silindi",), titles=("Eski föy",))
+
+
+def test_follow_up_whose_documents_are_all_gone_asks_which_document() -> None:
+    retriever = FakeRetriever()
+
+    outcome = ask_with(
+        deps_with(follows(), FakeClient(VERIFIED), retriever), "Peki dış paça?", GONE
+    )
+
+    assert isinstance(outcome.result, Clarify)
+    assert outcome.result.question == CONTEXT_GONE_QUESTION
+    assert retriever.calls == []
+
+
+def test_code_carried_from_a_deleted_document_asks_which_document() -> None:
+    previous = ConversationContext(question="PNT-9999 M beden bel kaç?", doc_ids=("silindi",))
+    retriever = FakeRetriever()
+    deps = deps_with(follows("PNT-9999 M beden kalça kaç?"), FakeClient(VERIFIED), retriever)
+
+    outcome = ask_with(deps, "Peki kalça?", previous)
+
+    assert isinstance(outcome.result, Clarify)
+    assert outcome.result.question == CONTEXT_GONE_QUESTION
+    assert retriever.calls == []
+
+
+def test_new_code_after_the_document_is_gone_is_searched_normally() -> None:
+    retriever = FakeRetriever()
+    deps = deps_with(follows("PNT-4417 M beden dış paça kaç?"), FakeClient(VERIFIED), retriever)
+
+    outcome = ask_with(deps, "Peki PNT-4417 dış paça?", GONE)
+
+    assert not isinstance(outcome.result, Clarify)
+    assert len(retriever.calls) == 1
+
+
+def test_named_document_after_the_document_is_gone_is_searched_there() -> None:
+    retriever = FakeRetriever()
+    deps = deps_with(follows("SQL kılavuzu dış paça ne diyor?"), FakeClient(VERIFIED), retriever)
+
+    ask_with(deps, "Peki SQL kılavuzu ne diyor?", GONE)
+
+    assert retriever.calls[0]["doc_ids"] == ("c",)
+
+
+def test_follow_up_keeps_the_documents_that_are_still_there() -> None:
+    retriever = FakeRetriever()
+    partly = ConversationContext(question=PREVIOUS.question, doc_ids=("a", "silindi"))
+
+    ask_with(deps_with(follows(), FakeClient(VERIFIED), retriever), "Peki dış paça?", partly)
+
+    assert retriever.calls[0]["doc_ids"] == ("a",)

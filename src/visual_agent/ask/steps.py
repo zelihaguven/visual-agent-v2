@@ -105,6 +105,28 @@ def _code_not_found(missing: Sequence[str], state: AskState, deps: AskDeps) -> N
     )
 
 
+CONTEXT_GONE_QUESTION = (
+    "Önceki belge silinmiş ya da şu an yeniden işleniyor. Hangi belgeden soruyorsunuz?"
+)
+
+
+def _context_documents_gone(
+    state: AskState, deps: AskDeps, allowed: Sequence[str], explicit: Sequence[str]
+) -> bool:
+    """Takip sorusunun belgelerinin hepsi gitti ve kullanıcı yeni belge ya da kod söylemedi.
+
+    Tamamlanan soru kodu bağlamdan taşıdığı için yalnız kullanıcının kendi mesajına bakılır.
+    """
+    if not state.inherited_doc_ids or explicit:
+        return False
+    if any(doc in allowed for doc in state.inherited_doc_ids):
+        return False
+    own = state.request.question
+    if deps.catalog.mentioned_in(own, allowed):
+        return False
+    return not (identifiers_in(own) or deps.identifiers.codes_in_speech(own))
+
+
 async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
     """Kapsamı belirler; kod hiçbir yerde yoksa arama ve model çalışmadan durur."""
     request = state.request
@@ -113,6 +135,8 @@ async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
     explicit = tuple(doc for doc in request.doc_ids or () if doc in allowed)
     inherited = tuple(doc for doc in state.inherited_doc_ids if doc in allowed)
     scope = explicit or mentioned or inherited or None
+    if _context_documents_gone(state, deps, allowed, explicit):
+        return replace(state, allowed=allowed, result=Clarify(question=CONTEXT_GONE_QUESTION))
     current = replace(
         state,
         language=detect_language(state.question),
