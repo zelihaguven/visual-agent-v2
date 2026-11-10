@@ -217,14 +217,18 @@ async def _full_run(
                 "kind": question.kind.value,
                 "resolved_question": outcome.question,
                 "record": record.model_dump(mode="json"),
-                "score": score_question(question, record).model_dump(mode="json"),
+                "score": score_question(question, record, gold.document_texts).model_dump(
+                    mode="json"
+                ),
                 "cache": label,
                 "timings": outcome.timings if live else None,
                 "cost_usd": outcome.cost_usd if live else None,
                 "provider": outcome.provider,
             }
         )
-    scores = [score_question(q, r) for q, r in zip(questions, records, strict=True)]
+    scores = [
+        score_question(q, r, gold.document_texts) for q, r in zip(questions, records, strict=True)
+    ]
     summary = summarize(questions, scores).model_dump(mode="json")
     output.write_text(json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")
     return {

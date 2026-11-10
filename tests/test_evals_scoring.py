@@ -1,6 +1,7 @@
 import pytest
 
-from evals.gold import Badge, GoldQuestion, GoldSource, Outcome, QuestionKind
+from evals.gold import Badge, GoldQuestion, GoldSet, GoldSource, Outcome, QuestionKind
+from evals.rescore import rescore
 from evals.scoring import (
     AnswerItem,
     AnswerRecord,
@@ -165,3 +166,125 @@ def test_compare_runs_lists_questions_that_changed() -> None:
     assert compare_runs([good], [bad]).regressed == ("q1",)
     assert compare_runs([bad], [good]).improved == ("q1",)
     assert compare_runs([good], [good]).regressed == ()
+
+
+REV_A, REV_B = GoldSource(doc_id="rev-a"), GoldSource(doc_id="rev-b")
+REVISIONS = CLARIFY.model_copy(
+    update={"text": "SRT-9874 M beden iç paça kaç?", "differing_values": ("74,0", "75,0")}
+)
+DOCUMENTS = {
+    "rev-a": "SRT-9874 Rev A | M | İç paça 74,0",
+    "rev-b": "SRT-9874 Rev B | M | İç paça 75,0",
+}
+
+
+def listed(
+    *items: tuple[str, tuple[GoldSource, ...]], badge: Badge = Badge.VERIFIED
+) -> AnswerRecord:
+    return AnswerRecord(
+        question_id="q3",
+        outcome=Outcome.ANSWERED,
+        badge=badge,
+        items=tuple(AnswerItem(text=text, sources=sources) for text, sources in items),
+    )
+
+
+def test_listing_every_differing_value_with_its_source_is_a_skipped_clarification() -> None:
+    record = listed(
+        ("SRT-9874 Rev B belgesine göre M beden iç paça 75,0'dır.", (REV_B,)),
+        ("SRT-9874 Rev A belgesine göre M beden iç paça 74,0'dır.", (REV_A,)),
+    )
+
+    score = score_question(REVISIONS, record, DOCUMENTS)
+
+    assert score.skipped_clarification
+    assert not score.verified_wrong
+    assert not score.passed
+
+
+def test_giving_only_some_differing_values_is_a_guess_and_verified_wrong() -> None:
+    record = listed(("SRT-9874 M beden iç paça 75,0.", (REV_B,)))
+
+    score = score_question(REVISIONS, record, DOCUMENTS)
+
+    assert score.verified_wrong
+    assert not score.skipped_clarification
+
+
+def test_value_attributed_to_a_document_without_it_is_verified_wrong() -> None:
+    record = listed(
+        ("Rev A: iç paça 75,0.", (REV_A,)),
+        ("Rev B: iç paça 74,0.", (REV_B,)),
+    )
+
+    assert score_question(REVISIONS, record, DOCUMENTS).verified_wrong
+
+
+def test_uncited_values_are_verified_wrong() -> None:
+    record = listed(("İç paça 74,0 ya da 75,0.", ()))
+
+    assert score_question(REVISIONS, record, DOCUMENTS).verified_wrong
+
+
+def test_an_extra_value_besides_the_differing_ones_is_verified_wrong() -> None:
+    record = listed(
+        ("Rev A: 74,0.", (REV_A,)),
+        ("Rev B: 75,0, tolerans 0,5.", (REV_B,)),
+    )
+
+    assert score_question(REVISIONS, record, DOCUMENTS).verified_wrong
+
+
+def test_without_document_texts_sources_cannot_be_confirmed() -> None:
+    record = listed(("Rev A: 74,0.", (REV_A,)), ("Rev B: 75,0.", (REV_B,)))
+
+    assert score_question(REVISIONS, record).verified_wrong
+
+
+def test_clarify_question_without_differing_values_stays_verified_wrong() -> None:
+    record = listed(("İç paça 76,5 cm.", (SOURCE,)))
+
+    assert score_question(CLARIFY, record, {"spec-1": "İç paça 76,5"}).verified_wrong
+
+
+def test_unbadged_listing_is_neither_skipped_nor_verified_wrong() -> None:
+    record = listed(("Rev A: 74,0.", (REV_A,)), ("Rev B: 75,0.", (REV_B,)), badge=Badge.FAILED)
+
+    score = score_question(REVISIONS, record, DOCUMENTS)
+
+    assert not score.skipped_clarification and not score.verified_wrong
+
+
+def test_summary_counts_skipped_clarifications_separately() -> None:
+    skipped = listed(("Rev A: 74,0.", (REV_A,)), ("Rev B: 75,0.", (REV_B,)))
+    guessed = listed(("Rev B: 75,0.", (REV_B,)))
+    scores = [
+        score_question(REVISIONS, skipped, DOCUMENTS),
+        score_question(REVISIONS, guessed, DOCUMENTS),
+    ]
+
+    summary = summarize([REVISIONS, REVISIONS], scores)
+
+    assert (summary.skipped_clarifications, summary.verified_wrong) == (1, 1)
+
+
+def test_saved_answers_are_rescored_without_the_model() -> None:
+    gold = GoldSet(seed=11, documents=(), questions=(LOOKUP, REVISIONS), document_texts=DOCUMENTS)
+    skipped = listed(("Rev A: 74,0.", (REV_A,)), ("Rev B: 75,0.", (REV_B,)))
+    rows = [
+        {"question": "q3", "record": skipped.model_dump(mode="json"), "score": {"eski": True}},
+        {"question": "q1", "record": answered("İç paça 76,5 cm.").model_dump(mode="json")},
+    ]
+
+    updated, summary = rescore(gold, rows)
+
+    assert [row["question"] for row in updated] == ["q1", "q3"]
+    assert updated[1]["score"]["skipped_clarification"] is True
+    assert (summary.passed, summary.verified_wrong, summary.skipped_clarifications) == (1, 0, 1)
+
+
+def test_rescoring_refuses_a_run_with_missing_answers() -> None:
+    gold = GoldSet(seed=11, documents=(), questions=(LOOKUP,), document_texts={})
+
+    with pytest.raises(ValueError, match="q1"):
+        rescore(gold, [])
