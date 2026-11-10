@@ -193,7 +193,7 @@ def test_document_is_still_failed_when_vector_cleanup_fails(tmp_path: Path) -> N
 
 
 def test_document_is_requeued_after_a_database_outage(tmp_path: Path) -> None:
-    outage = ConnectionError("postgres kapalı")
+    outage = ConnectionError("veritabanı kilitli")
     repository = FakeRepository(
         queued=[document(tmp_path)], ready_error=outage, failed_error=outage
     )
@@ -211,7 +211,7 @@ def test_document_is_requeued_after_a_database_outage(tmp_path: Path) -> None:
 
 
 def test_requeue_runs_only_once_after_an_outage(tmp_path: Path) -> None:
-    outage = ConnectionError("postgres kapalı")
+    outage = ConnectionError("veritabanı kilitli")
     repository = FakeRepository(
         queued=[document(tmp_path)], ready_error=outage, failed_error=outage
     )

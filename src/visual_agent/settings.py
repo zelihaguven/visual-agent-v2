@@ -2,7 +2,7 @@
 
 from typing import Literal, Self
 
-from pydantic import AnyHttpUrl, Field, PostgresDsn, SecretStr, model_validator
+from pydantic import AnyHttpUrl, Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     auth_enabled: bool = False
     qdrant_url: AnyHttpUrl = AnyHttpUrl("http://localhost:6333")
-    database_url: PostgresDsn | None = None
+    database_path: str = "data/visual_agent.db"
     worker_poll_seconds: float = Field(default=5.0, gt=0)
     storage_directory: str = "data/documents"
     openrouter_api_key: SecretStr | None = None

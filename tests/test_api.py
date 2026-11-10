@@ -52,19 +52,19 @@ def test_health_reports_service_is_up_and_login_is_off() -> None:
 
 
 def test_health_is_ok_when_every_dependency_answers() -> None:
-    response = _client_with({"postgres": _up, "qdrant": _up}).get("/api/health")
+    response = _client_with({"database": _up, "qdrant": _up}).get("/api/health")
 
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert response.json()["dependencies"] == {"postgres": True, "qdrant": True}
+    assert response.json()["dependencies"] == {"database": True, "qdrant": True}
 
 
 def test_health_is_unavailable_when_a_dependency_fails() -> None:
-    response = _client_with({"postgres": _up, "qdrant": _down}).get("/api/health")
+    response = _client_with({"database": _up, "qdrant": _down}).get("/api/health")
 
     assert response.status_code == 503
     assert response.json()["status"] == "unavailable"
-    assert response.json()["dependencies"] == {"postgres": True, "qdrant": False}
+    assert response.json()["dependencies"] == {"database": True, "qdrant": False}
 
 
 def test_health_does_not_expose_connection_details() -> None:
@@ -76,7 +76,7 @@ def test_health_does_not_expose_connection_details() -> None:
 def test_health_does_not_wait_for_a_hanging_dependency(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(api_main, "_HEALTH_TIMEOUT_SECONDS", 0.01)
 
-    response = _client_with({"postgres": _hangs}).get("/api/health")
+    response = _client_with({"database": _hangs}).get("/api/health")
 
     assert response.status_code == 503
-    assert response.json()["dependencies"] == {"postgres": False}
+    assert response.json()["dependencies"] == {"database": False}

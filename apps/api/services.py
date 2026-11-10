@@ -1,4 +1,4 @@
-"""Gerçek bağımlılıkları kurar: Postgres, Qdrant, modeller ve OpenRouter."""
+"""Gerçek bağımlılıkları kurar: SQLite, Qdrant, modeller ve OpenRouter."""
 
 import asyncio
 import logging
@@ -7,7 +7,6 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-import asyncpg
 import httpx
 from qdrant_client import AsyncQdrantClient
 
@@ -15,7 +14,7 @@ from apps.api.main import ApiServices
 from apps.api.voice import fixed_notice_texts, fixed_reply_texts
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.orchestrator import answer_question
-from visual_agent.catalog.repository import DocumentRepository
+from visual_agent.catalog.repository import open_repository
 from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.result import AskOutcome, Failed
 from visual_agent.generation.intent import IntentClassifier, make_intent_classifier
@@ -163,8 +162,7 @@ def _make_voice(settings: Settings, http: httpx.AsyncClient) -> Voice | None:
 
 @asynccontextmanager
 async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
-    pool = await asyncpg.create_pool(str(settings.database_url))
-    repository = DocumentRepository(pool)
+    repository = open_repository(Path(settings.database_path))
     await repository.migrate()
     qdrant = AsyncQdrantClient(url=str(settings.qdrant_url))
     storage = Path(settings.storage_directory)
@@ -181,11 +179,10 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
                 storage_directory=storage,
                 voice=_make_voice(settings, http),
                 health_checks={
-                    "postgres": lambda: pool.fetchval("SELECT 1"),
+                    "database": repository.ping,
                     "qdrant": qdrant.get_collections,
                 },
             )
         finally:
             warm_up.cancel()
             await qdrant.close()
-            await pool.close()

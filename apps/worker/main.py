@@ -1,4 +1,4 @@
-"""Belge işleme işçisi. A3'e kadar yalnız kuyruğu bekleyen döngüdür."""
+"""Ayrı süreç olarak çalışan belge işleme işçisi (sunucu kurulumu)."""
 
 import asyncio
 import logging
@@ -35,18 +35,16 @@ def run_worker(
 
 
 async def _open_processor(settings: Settings) -> DocumentProcessor:
-    import asyncpg
     from qdrant_client import AsyncQdrantClient
 
     from apps.api.services import COLLECTION
     from apps.worker.indexing import LazyIndexer
-    from visual_agent.catalog.repository import DocumentRepository
+    from visual_agent.catalog.repository import open_repository
     from visual_agent.ingest.pipeline import ingest_document
     from visual_agent.ingest.tools import default_tools
     from visual_agent.retrieval.qdrant_store import QdrantChunkStore
 
-    pool = await asyncpg.create_pool(str(settings.database_url))
-    repository = DocumentRepository(pool)
+    repository = open_repository(Path(settings.database_path))
     await repository.migrate()
     await repository.requeue_interrupted()
     store = QdrantChunkStore(AsyncQdrantClient(url=str(settings.qdrant_url)), COLLECTION)
@@ -70,16 +68,13 @@ def main() -> None:
     signal.signal(signal.SIGTERM, request_stop)
     signal.signal(signal.SIGINT, request_stop)
     logger.info("İşçi başladı")
-    if settings.database_url is None:
-        run_worker(stop, settings.worker_poll_seconds)
-    else:
-        loop = asyncio.new_event_loop()
-        processor = loop.run_until_complete(_open_processor(settings))
-        run_worker(
-            stop,
-            settings.worker_poll_seconds,
-            lambda: loop.run_until_complete(processor.process_next()),
-        )
+    loop = asyncio.new_event_loop()
+    processor = loop.run_until_complete(_open_processor(settings))
+    run_worker(
+        stop,
+        settings.worker_poll_seconds,
+        lambda: loop.run_until_complete(processor.process_next()),
+    )
     logger.info("İşçi durdu")
 
 

@@ -339,7 +339,7 @@ def _document_router(app: FastAPI) -> APIRouter:
 @asynccontextmanager
 async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
-    if app.state.services is not None or settings.database_url is None:
+    if app.state.services is not None:
         yield
         return
     from apps.api.services import open_services

@@ -4,7 +4,6 @@ version = "0.1.0"
 description = "Belgelere kaynak göstererek cevap veren soru-cevap aracı"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "asyncpg>=0.32.0",
     "fastapi>=0.115",
     "httpx>=0.28.1",
     "pillow>=13.0.0",
@@ -79,7 +78,7 @@ pythonpath = ["."]
 addopts = "--strict-markers --cov=visual_agent --cov=apps --cov=evals --cov-report=term-missing --cov-fail-under=80"
 
 [tool.coverage.run]
-omit = ["*/ingest/tools.py", "*/ingest/docling_parser.py", "*/retrieval/encoders.py", "*/catalog/repository.py", "apps/api/services.py", "apps/worker/indexing.py", "evals/ingest_check.py", "evals/run_questions.py"]
+omit = ["*/ingest/tools.py", "*/ingest/docling_parser.py", "*/retrieval/encoders.py", "apps/api/services.py", "apps/worker/indexing.py", "evals/ingest_check.py", "evals/run_questions.py"]
 
 [tool.ruff]
 line-length = 100
@@ -101,5 +100,5 @@ explicit_package_bases = true
 mypy_path = ["src", "."]
 
 [[tool.mypy.overrides]]
-module = ["asyncpg.*", "fastembed.*", "sentence_transformers.*", "docling.*", "numpy.*", "docx.*", "openpyxl.*", "pikepdf.*", "pypdfium2.*", "rapidocr.*", "reportlab.*"]
+module = ["fastembed.*", "sentence_transformers.*", "docling.*", "numpy.*", "docx.*", "openpyxl.*", "pikepdf.*", "pypdfium2.*", "rapidocr.*", "reportlab.*"]
 ignore_missing_imports = true

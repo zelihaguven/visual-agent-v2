@@ -10,7 +10,7 @@ Mikrofon tarayıcıda yalnız `localhost` ya da HTTPS üzerinden açılır. Ağd
 
 Gereken: Docker (Compose ile) ve veri saklamayan uçlara erişimi olan bir OpenRouter anahtarı. GPU gerekmez, her şey CPU'da çalışır.
 
-1. Ayar dosyasını oluşturun ve içindeki `POSTGRES_PASSWORD` ile `VA_OPENROUTER_API_KEY` değerlerini doldurun. Bu dosya repoya girmez.
+1. Ayar dosyasını oluşturun ve içindeki `VA_OPENROUTER_API_KEY` değerini doldurun. Bu dosya repoya girmez.
 
    ```bash
    cp .env.example .env
