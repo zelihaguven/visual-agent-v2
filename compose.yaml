@@ -23,6 +23,7 @@ services:
       VA_DATABASE_PATH: /data/db/visual_agent.db
       VA_OPENROUTER_API_KEY: ${VA_OPENROUTER_API_KEY:-}
       VA_STORAGE_DIRECTORY: /data/documents
+      VA_WORKER_IN_PROCESS: "false"
     volumes: &app-volumes
       - documents_data:/data/documents
       - database_data:/data/db

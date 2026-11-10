@@ -1,13 +1,13 @@
-"""Ayrı süreç olarak çalışan belge işleme işçisi (sunucu kurulumu)."""
+"""Belge işleme işçisi: yerelde API sürecinin içinde, sunucuda ayrı süreç olarak çalışır."""
 
 import asyncio
 import logging
 import signal
 import threading
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
-from apps.worker.jobs import DocumentProcessor
+from apps.worker.jobs import DocumentProcessor, Ingest
 from visual_agent.domain.document import DocumentMeta
 from visual_agent.ingest.pipeline import IngestResult
 from visual_agent.settings import Settings
@@ -39,25 +39,48 @@ def run_worker(
     return polls
 
 
-async def _open_processor(settings: Settings) -> DocumentProcessor:
+async def process_until_stopped(
+    process_next: Callable[[], Awaitable[bool]], stop: asyncio.Event, poll_seconds: float
+) -> int:
+    """API içindeki işçi: run_worker ile aynı kural, olay döngüsünü bloklamadan."""
+    polls = 0
+    while not stop.is_set():
+        try:
+            if await process_next():
+                continue
+        except Exception:
+            logger.warning("İş alınamadı; bir sonraki turda yeniden denenecek", exc_info=True)
+        try:
+            await asyncio.wait_for(stop.wait(), poll_seconds)
+        except TimeoutError:
+            polls += 1
+    return polls
 
-    from apps.api.services import COLLECTION
-    from apps.worker.indexing import LazyIndexer
-    from visual_agent.catalog.repository import open_repository
+
+def default_ingest() -> Ingest:
+    """Belge işleme araçları ağırdır; yalnız işçi açılırken yüklenir."""
     from visual_agent.ingest.pipeline import ingest_document
     from visual_agent.ingest.tools import default_tools
+
+    tools = default_tools()
+
+    def ingest(path: Path, meta: DocumentMeta, work: Path) -> IngestResult:
+        return ingest_document(path, meta, tools, work)
+
+    return ingest
+
+
+async def _open_processor(settings: Settings) -> DocumentProcessor:
+    from apps.api.services import COLLECTION
+    from apps.worker.indexing import LazyIndexer, SharedEncoders
+    from visual_agent.catalog.repository import open_repository
     from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
 
     repository = open_repository(Path(settings.database_path))
     await repository.migrate()
     await repository.requeue_interrupted()
     store = QdrantChunkStore(open_client(str(settings.qdrant_url), None), COLLECTION)
-    tools = default_tools()
-
-    def ingest(path: Path, meta: DocumentMeta, work: Path) -> IngestResult:
-        return ingest_document(path, meta, tools, work)
-
-    return DocumentProcessor(repository, LazyIndexer(store), ingest)
+    return DocumentProcessor(repository, LazyIndexer(store, SharedEncoders()), default_ingest())
 
 
 def main() -> None:

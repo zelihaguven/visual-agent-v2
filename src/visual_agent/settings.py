@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     qdrant_path: str | None = None
     database_path: str = "data/visual_agent.db"
     worker_poll_seconds: float = Field(default=5.0, gt=0)
+    worker_in_process: bool = True
     storage_directory: str = "data/documents"
     openrouter_api_key: SecretStr | None = None
     openrouter_url: AnyHttpUrl = AnyHttpUrl("https://openrouter.ai/api/v1")
