@@ -1,6 +1,6 @@
-"""Alıntının kaynakla birebir eşleşmesi."""
+"""Alıntının kaynakla birebir eşleşmesi; yalnız biçim farkı (quote_form) yok sayılır."""
 
-from visual_agent.verification.text import CUT_CITATION_RE, normalize
+from visual_agent.verification.text import CUT_CITATION_RE, quote_form
 
 QUOTE_LIMIT = 150
 _CUT_MARGIN = 15
@@ -25,9 +25,9 @@ def field_quote_matches(quote: str, source: str) -> bool:
     value = value.strip()
     if not separator or not value or "|" in value or "|" in label:
         return False
-    wanted_label, wanted_value = normalize(label), normalize(value)
+    wanted_label, wanted_value = quote_form(label), quote_form(value)
     return any(
-        normalize(cell_label) == wanted_label and wanted_value in normalize(cell_value)
+        quote_form(cell_label) == wanted_label and wanted_value in quote_form(cell_value)
         for line in source.splitlines()
         for cell_label, cell_value in _labeled_cells(line)
     )
@@ -37,7 +37,7 @@ def _cut_prefix_matches(quote: str, normalized_source: str) -> bool:
     """Uzunluk sınırına dayanıp sonu bozulan alıntının başı kaynakla örtüşüyorsa kabul eder."""
     if len(quote) < QUOTE_LIMIT - _CUT_MARGIN:
         return False
-    normalized = normalize(quote)
+    normalized = quote_form(quote)
     words = normalized.split(" ")
     for count in range(len(words) - 1, 0, -1):
         head = " ".join(words[:count])
@@ -48,10 +48,10 @@ def _cut_prefix_matches(quote: str, normalized_source: str) -> bool:
 
 def quote_matches(quote: str, source: str) -> bool:
     without_citation = CUT_CITATION_RE.sub("", quote)
-    normalized_quote = normalize(without_citation)
+    normalized_quote = quote_form(without_citation)
     if not normalized_quote:
         return False
-    normalized_source = normalize(source)
+    normalized_source = quote_form(source)
     return (
         normalized_quote in normalized_source
         or field_quote_matches(without_citation, source)

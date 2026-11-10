@@ -72,6 +72,27 @@ def normalize(text: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"\s*-\s*", "-", folded)).strip()
 
 
+_EMPHASIS_MARK_RE = re.compile(
+    r"(?<=[^\s*\\])\*{1,3}(?=\s|$)|(?:(?<=\s)|^)\*{1,3}(?=[^\s*])", re.MULTILINE
+)
+_ESCAPED_RE = re.compile(r"\\([\\`*_{}\[\]()#+\-.!|>~])")
+_QUOTE_MARKS = str.maketrans({mark: '"' for mark in "'‘’‚‛“”„‟«»"})
+
+
+def quote_form(text: str) -> str:
+    """Alıntı denetiminin karşılaştırma biçimi; iki tarafa da aynı uygulanır.
+
+    Yalnız biçim farkı yok sayılır: markdown vurgu yıldızları, satır içi kod işareti, markdown
+    kaçış ters bölüsü ve tırnak türü. Vurgu yıldızı eş aranmadan, konumundan tanınır: bir yanı
+    kelimeye yapışık, öbür yanı boşluk ya da satır başı/sonu olan yıldız grubu. Böylece alıntı
+    biçimlendirmenin ortasından başlasa da iki taraf aynı biçime iner; iki yanı yapışık (2*3)
+    ya da iki yanı boş (a * b) yıldız içeriktir, kalır. Rakam, ayraç, birim, kelime, kelime
+    içindeki alt çizgi ve nokta olduğu gibi kalır. Saklanan ve gösterilen metin değişmez.
+    """
+    unmarked = _EMPHASIS_MARK_RE.sub("", text).replace("`", "")
+    return normalize(_ESCAPED_RE.sub(r"\1", unmarked).translate(_QUOTE_MARKS))
+
+
 def _expand_citation(match: re.Match[str]) -> str:
     numbers: list[int] = []
     for part in re.split(r"\s*[,;]\s*", match.group(1)):
