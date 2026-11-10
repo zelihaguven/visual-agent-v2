@@ -11,6 +11,7 @@ Kayıt başarısız olursa cevap etkilenmez. Okumak için HTTP ucu yoktur:
 import argparse
 import json
 import logging
+import re
 import sqlite3
 import statistics
 from collections import Counter
@@ -57,6 +58,18 @@ CREATE TABLE IF NOT EXISTS question_log (
 );
 CREATE INDEX IF NOT EXISTS question_log_time_idx ON question_log (created_at);
 """
+_SOURCE_NUMBER = re.compile(r"\[\d+\]")
+
+
+def problem_kind(problem: str) -> str:
+    """Tanının yalnız türü kalır: cevaptaki sayı, kod ya da alıntı kayda girmez."""
+    return _SOURCE_NUMBER.sub("[n]", problem.split(":", 1)[0]).strip()
+
+
+def problem_kinds(problems: Sequence[str]) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(problem_kind(problem) for problem in problems))
+
+
 _COLUMNS = (
     "created_at, question, resolved_question, input_mode, result_kind, verification_status,"
     " problems, cited_doc_ids, provider, cost_usd, first_verified_seconds, total_seconds, timings"
@@ -126,7 +139,7 @@ def record_for(
         input_mode=input_mode,
         result_kind=kind,
         verification_status=answered.status.value if answered else None,
-        problems=problems,
+        problems=problem_kinds(problems),
         cited_doc_ids=cited,
         provider=outcome.provider,
         cost_usd=outcome.cost_usd,
@@ -176,12 +189,26 @@ def _from_row(row: sqlite3.Row) -> QuestionRecord:
     )
 
 
+def _reduce_stored_problems(connection: sqlite3.Connection) -> int:
+    """Eski kayıtlardaki tam tanı metinleri türlerine indirilir; yeniden çalışması zararsızdır."""
+    changed = 0
+    for row_id, stored in connection.execute("SELECT id, problems FROM question_log").fetchall():
+        reduced = json.dumps(list(problem_kinds(json.loads(stored))), ensure_ascii=False)
+        if reduced != stored:
+            connection.execute(
+                "UPDATE question_log SET problems = ? WHERE id = ?", (reduced, row_id)
+            )
+            changed += 1
+    return changed
+
+
 class QuestionLog:
     def __init__(self, database: SqliteDatabase) -> None:
         self._db = database
 
     async def migrate(self) -> None:
         await self._db.migrate(_SCHEMA)
+        await self._db.run(_reduce_stored_problems)
 
     async def add(self, record: QuestionRecord) -> None:
         values = _row_values(record)

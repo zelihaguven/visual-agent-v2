@@ -12,6 +12,7 @@ from apps.api.main import ApiServices, create_app
 from apps.api.question_log import (
     QuestionRecord,
     open_log,
+    problem_kind,
     record_for,
     record_lines,
     summary_lines,
@@ -71,7 +72,7 @@ def test_record_keeps_kind_verification_sources_and_steps_but_not_the_answer() -
     assert record.verification_status == "partial"
     assert record.problems == (
         "aynı cümle tekrar ediyor",
-        "cümlede kendi alıntısında olmayan sayı: ['98']",
+        "cümlede kendi alıntısında olmayan sayı",
     )
     assert record.cited_doc_ids == ("a", "b")
     assert (record.provider, record.cost_usd) == ("deepinfra", 0.0004)
@@ -257,3 +258,73 @@ def test_record_line_shows_missing_first_sentence_and_provider() -> None:
 
     assert "ilk     -" in line
     assert "deepinfra" in line
+
+
+@pytest.mark.parametrize(
+    ("problem", "kind"),
+    [
+        ("cümlede kaynakta olmayan teknik ad: ['pnt-1162']", "cümlede kaynakta olmayan teknik ad"),
+        (
+            "cümlede kendi alıntısında olmayan sayı: ['80', '76']",
+            "cümlede kendi alıntısında olmayan sayı",
+        ),
+        ("tolerans düşmüş: ±0,5 cm", "tolerans düşmüş"),
+        ("OCR değeri belirsiz: 7O", "OCR değeri belirsiz"),
+        ("alıntı [3] kaynakta birebir değil", "alıntı [n] kaynakta birebir değil"),
+        ("kod kaynağı [12] geçersiz", "kod kaynağı [n] geçersiz"),
+        ("aynı cümle tekrar ediyor", "aynı cümle tekrar ediyor"),
+    ],
+)
+def test_only_the_kind_of_a_diagnosis_is_kept(problem: str, kind: str) -> None:
+    assert problem_kind(problem) == kind
+
+
+def test_repeated_diagnoses_are_kept_once_and_carry_no_answer_values() -> None:
+    outcome = ANSWERED.model_copy(
+        update={
+            "result": Answered(
+                status=VerificationStatus.FAILED,
+                items=(
+                    AnsweredItem(
+                        text="PNT-1162 L beden bel 80 cm.",
+                        citations=(_citation("a"),),
+                        verified=False,
+                        problems=("cümlede kaynakta olmayan teknik ad: ['pnt-1162']",),
+                    ),
+                ),
+                problems=("cümlede kaynakta olmayan teknik ad: ['pnt-1162']",),
+            )
+        }
+    )
+
+    record = record_for("Peki L beden?", "text", "answered", outcome, 1.0, None)
+
+    assert record.problems == ("cümlede kaynakta olmayan teknik ad",)
+    stored = json.dumps(record.problems, ensure_ascii=False).lower()
+    assert "pnt-1162" not in stored and "80" not in stored
+
+
+def test_existing_records_are_reduced_to_diagnosis_kinds(tmp_path: Path) -> None:
+    database = tmp_path / "va.db"
+    log = open_log(database)
+    old = _record(
+        problems=(
+            "cümlede kaynakta olmayan teknik ad: ['pnt-1162']",
+            "cümlede kaynakta olmayan teknik ad: ['pnt-1162']",
+            "alıntı [2] kaynakta birebir değil",
+        )
+    )
+
+    async def run() -> list[QuestionRecord]:
+        await log.migrate()
+        await log.add(old)
+        await log.migrate()
+        await log.migrate()
+        return await log.last(1)
+
+    records = asyncio.run(run())
+
+    assert records[0].problems == (
+        "cümlede kaynakta olmayan teknik ad",
+        "alıntı [n] kaynakta birebir değil",
+    )
