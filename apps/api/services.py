@@ -14,41 +14,26 @@ from apps.api.main import ApiServices
 from apps.api.question_log import open_log
 from apps.api.voice import fixed_notice_texts, fixed_reply_texts
 from apps.worker.indexing import LazyIndexer, SharedEncoders
-from visual_agent.ask.deps import AskDeps, AskRequest
+from visual_agent.ask.clients import ModelClients, ask_deps, build_model_clients
+from visual_agent.ask.deps import AskRequest
 from visual_agent.ask.orchestrator import answer_question
 from visual_agent.catalog.repository import DocumentRepository, open_repository
 from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.result import AskOutcome, Failed
-from visual_agent.generation.intent import IntentClassifier, make_intent_classifier
-from visual_agent.generation.json_model import JsonModel
-from visual_agent.generation.openrouter import (
-    AnswerClient,
-    AnswerClientOptions,
-    fetch_zdr_index,
-    select_providers,
-)
-from visual_agent.generation.prompts import load_answer_prompt, load_answer_schema
-from visual_agent.generation.rewrite import Rewriter, make_rewriter
-from visual_agent.generation.translate import Translator, make_translator
 from visual_agent.retrieval.hybrid import HybridRetriever
-from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
+from visual_agent.retrieval.qdrant_store import COLLECTION, QdrantChunkStore, open_client
 from visual_agent.settings import Settings
 from visual_agent.voice.client import CachingVoice, OpenRouterVoice, Voice
 
 logger = logging.getLogger(__name__)
 
-COLLECTION = "documents"
 _MISSING_KEY = "Cevap servisi yapılandırılmamış. OpenRouter anahtarını ekleyin."
 
 
 @dataclass(frozen=True)
 class _ModelClients:
     retriever: HybridRetriever
-    answer: AnswerClient
-    translator: Translator
-    rewriter: Rewriter
-    intent_classifier: IntentClassifier
-    system_prompt: str
+    models: ModelClients
 
 
 class AskRuntime:
@@ -71,42 +56,10 @@ class AskRuntime:
         self._lock = asyncio.Lock()
 
     async def _build_clients(self, api_key: str) -> _ModelClients:
-        settings = self._settings
-        url = str(settings.openrouter_url).rstrip("/")
         dense, sparse = await self._encoders.get()
         await self._store.ensure_collection(dense.size)
-        index = await fetch_zdr_index(self._http, url, api_key)
-        providers, ignored = select_providers(
-            settings.answer_model, settings.answer_providers, index
-        )
-        answer = AnswerClient(
-            self._http,
-            base_url=url,
-            api_key=api_key,
-            options=AnswerClientOptions(
-                model=settings.answer_model,
-                providers=providers,
-                ignored_providers=ignored,
-                schema=load_answer_schema(),
-                max_tokens=settings.answer_max_tokens,
-                first_token_seconds=settings.answer_first_token_seconds,
-                runaway_whitespace_limit=settings.stream_runaway_limit,
-            ),
-        )
-        translation, translation_ignored = select_providers(
-            settings.translation_model, settings.translation_providers, index
-        )
-        helper_model = JsonModel(
-            self._http, url, api_key, settings.translation_model, translation, translation_ignored
-        )
-        return _ModelClients(
-            retriever=HybridRetriever(dense, sparse, self._store),
-            answer=answer,
-            translator=make_translator(helper_model),
-            rewriter=make_rewriter(helper_model),
-            intent_classifier=make_intent_classifier(helper_model),
-            system_prompt=load_answer_prompt(),
-        )
+        models = await build_model_clients(self._http, self._settings, api_key)
+        return _ModelClients(retriever=HybridRetriever(dense, sparse, self._store), models=models)
 
     async def _ensure_clients(self, api_key: str) -> _ModelClients:
         async with self._lock:
@@ -130,16 +83,7 @@ class AskRuntime:
             return AskOutcome(result=Failed(reason=_MISSING_KEY), timings={})
         clients = await self._ensure_clients(key.get_secret_value())
         snapshot = await self._snapshots.current()
-        deps = AskDeps(
-            catalog=snapshot.catalog,
-            identifiers=snapshot.identifiers,
-            retriever=clients.retriever,
-            answer_client=clients.answer,
-            system_prompt=clients.system_prompt,
-            translator=clients.translator,
-            rewriter=clients.rewriter,
-            intent_classifier=clients.intent_classifier,
-        )
+        deps = ask_deps(snapshot.catalog, snapshot.identifiers, clients.retriever, clients.models)
         return await answer_question(request, deps)
 
 

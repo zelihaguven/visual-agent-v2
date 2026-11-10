@@ -8,15 +8,10 @@ import httpx
 from qdrant_client import AsyncQdrantClient
 
 from evals.answer_cache import CacheCounts, CachingTransport, Usage
-from evals.run_documents import (
-    ask_all,
-    chunks_fingerprint,
-    document_language,
-    ensure_index,
-    load_or_ingest,
-    question_row,
-)
+from evals.index_cache import chunks_fingerprint, ensure_index, load_or_ingest
+from evals.run_documents import ask_all, folder_documents, question_row
 from tests.test_ask_pipeline import CHUNKS, FakeClient, FakeRetriever, answer_payload, make_deps
+from visual_agent.ask.language import document_language
 from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.document import Chunk, ChunkKind, SourceLocation
 from visual_agent.domain.result import (
@@ -113,7 +108,7 @@ def test_saved_chunks_are_reused_without_processing_again(tmp_path: Path) -> Non
     )
     (tmp_path / "ingest.json").write_text(json.dumps({"files": 1, "errors": {}}), encoding="utf-8")
 
-    chunks, manifest = load_or_ingest(tmp_path / "olmayan-klasor", tmp_path)
+    chunks, manifest = load_or_ingest([], tmp_path)
 
     assert [c.chunk_id for c in chunks["a.md"]] == ["a.md:0"]
     assert manifest["files"] == 1
@@ -167,3 +162,27 @@ def test_answered_questions_are_read_back_instead_of_asked_again(tmp_path: Path)
     assert [row["id"] for row in both] == ["1", "2"]
     assert len(client.calls) == 2
     assert [row["id"] for row in json.loads(output.read_text(encoding="utf-8"))] == ["1", "2"]
+
+
+def test_saved_chunks_without_a_report_are_still_reused(tmp_path: Path) -> None:
+    (tmp_path / "chunks.json").write_text(
+        json.dumps({"a.md": [_chunk("a.md", 0).model_dump(mode="json")]}), encoding="utf-8"
+    )
+
+    chunks, manifest = load_or_ingest([], tmp_path)
+
+    assert [c.chunk_id for c in chunks["a.md"]] == ["a.md:0"]
+    assert manifest == {}
+
+
+def test_each_file_in_a_folder_is_a_document_named_after_it(tmp_path: Path) -> None:
+    for name in ("b.md", "a.md"):
+        (tmp_path / name).write_text("x", encoding="utf-8")
+    (tmp_path / "alt").mkdir()
+
+    documents = folder_documents(tmp_path)
+
+    assert [(path.name, meta.doc_id, meta.title) for path, meta in documents] == [
+        ("a.md", "a.md", "a"),
+        ("b.md", "b.md", "b"),
+    ]
