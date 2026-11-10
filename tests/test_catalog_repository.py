@@ -172,10 +172,12 @@ def test_processing_again_replaces_previous_chunks(tmp_path: Path) -> None:
     repository = _repository(tmp_path)
 
     async def run() -> list[Chunk]:
-        await repository.create_document(_document("a"))
+        await repository.create_document(_document("a", DocumentStatus.PROCESSING))
         await repository.mark_ready(
             "a", "tr", [_chunk("a", 0), _chunk("a", 1)], Report(pages=1), None
         )
+        await repository.reprocess("a")
+        await repository.claim_next()
         await repository.mark_ready("a", "tr", [_chunk("a", 5)], Report(pages=1), None)
         return list((await repository.load_ready())[1])
 
@@ -202,7 +204,7 @@ def test_failure_message_is_recorded(tmp_path: Path) -> None:
     repository = _repository(tmp_path)
 
     async def run() -> StoredDocument | None:
-        await repository.create_document(_document("a"))
+        await repository.create_document(_document("a", DocumentStatus.PROCESSING))
         await repository.mark_failed("a", "Belge işlenemedi.")
         return await repository.get_document("a")
 
@@ -215,10 +217,9 @@ def test_only_ready_documents_reach_the_search_catalog(tmp_path: Path) -> None:
     repository = _repository(tmp_path)
 
     async def run() -> tuple[list[str], list[str]]:
-        await repository.create_document(_document("a"))
-        await repository.create_document(_document("b"))
+        await repository.create_document(_document("a", DocumentStatus.PROCESSING))
+        await repository.create_document(_document("b", DocumentStatus.PROCESSING))
         await repository.mark_ready("a", "tr", [_chunk("a", 0)], Report(pages=1), None)
-        await repository.mark_ready("b", "tr", [_chunk("b", 0)], Report(pages=1), None)
         await repository.mark_failed("b", "bozuk")
         documents, chunks = await repository.load_ready()
         return [d.doc_id for d in documents], [c.chunk_id for c in chunks]
@@ -230,7 +231,7 @@ def test_ready_document_access_groups_reach_the_catalog(tmp_path: Path) -> None:
     repository = _repository(tmp_path)
 
     async def run() -> tuple[str, ...]:
-        await repository.create_document(_document("a"))
+        await repository.create_document(_document("a", DocumentStatus.PROCESSING))
         await repository.mark_ready("a", "tr", [], Report(pages=0), None)
         return (await repository.load_ready())[0][0].access
 
@@ -242,7 +243,7 @@ def test_version_changes_only_when_ready_documents_change(tmp_path: Path) -> Non
 
     async def run() -> list[str]:
         versions = [await repository.version()]
-        await repository.create_document(_document("a"))
+        await repository.create_document(_document("a", DocumentStatus.PROCESSING))
         versions.append(await repository.version())
         await repository.mark_ready("a", "tr", [_chunk("a", 0)], Report(pages=1), None)
         versions.append(await repository.version())
@@ -255,3 +256,143 @@ def test_version_changes_only_when_ready_documents_change(tmp_path: Path) -> Non
 
 def test_ping_answers_when_the_file_is_reachable(tmp_path: Path) -> None:
     asyncio.run(_repository(tmp_path).ping())
+
+
+def _ready_document(repository: DocumentRepository, doc_id: str) -> None:
+    async def run() -> None:
+        await repository.create_document(_document(doc_id, DocumentStatus.PROCESSING))
+        await repository.mark_ready(
+            doc_id, "tr", [_chunk(doc_id, 0, sheet="Ölçüler")], Report(pages=1), None
+        )
+
+    asyncio.run(run())
+
+
+def test_document_being_deleted_disappears_everywhere_at_once(tmp_path: Path) -> None:
+    repository = _repository(tmp_path)
+    _ready_document(repository, "a")
+    _ready_document(repository, "b")
+
+    deleting = asyncio.run(repository.mark_deleting("a"))
+
+    assert deleting is not None and deleting.doc_id == "a"
+    assert [d.doc_id for d in asyncio.run(repository.list_documents())] == ["b"]
+    assert asyncio.run(repository.get_document("a")) is None
+    assert asyncio.run(repository.get_chunk("a:0")) is None
+    assert asyncio.run(repository.sheet_chunks("a", "Ölçüler")) == []
+    documents, chunks = asyncio.run(repository.load_ready())
+    assert [d.doc_id for d in documents] == ["b"] and [c.doc_id for c in chunks] == ["b"]
+    assert [d.doc_id for d in asyncio.run(repository.deleting_documents())] == ["a"]
+
+
+def test_deleting_an_unknown_document_finds_nothing(tmp_path: Path) -> None:
+    assert asyncio.run(_repository(tmp_path).mark_deleting("yok")) is None
+
+
+def test_purge_removes_the_record_and_its_chunks(tmp_path: Path) -> None:
+    repository = _repository(tmp_path)
+    _ready_document(repository, "a")
+
+    async def run() -> int:
+        await repository.mark_deleting("a")
+        await repository.purge("a")
+        return len(await repository.deleting_documents())
+
+    assert asyncio.run(run()) == 0
+    connection = connect(tmp_path / "veri" / "katalog.db")
+    try:
+        assert connection.execute("SELECT count(*) FROM chunks").fetchone()[0] == 0
+        assert connection.execute("SELECT count(*) FROM documents").fetchone()[0] == 0
+    finally:
+        connection.close()
+
+
+def test_purge_never_removes_a_document_that_is_not_being_deleted(tmp_path: Path) -> None:
+    repository = _repository(tmp_path)
+    _ready_document(repository, "a")
+
+    asyncio.run(repository.purge("a"))
+
+    assert asyncio.run(repository.get_document("a")) is not None
+
+
+def test_document_deleted_while_processing_is_never_marked_ready(tmp_path: Path) -> None:
+    repository = _repository(tmp_path)
+
+    async def run() -> bool:
+        await repository.create_document(_document("a"))
+        await repository.claim_next()
+        await repository.mark_deleting("a")
+        return await repository.mark_ready("a", "tr", [_chunk("a", 0)], Report(pages=1), None)
+
+    assert asyncio.run(run()) is False
+    assert [d.status for d in asyncio.run(repository.deleting_documents())] == [
+        DocumentStatus.DELETING
+    ]
+    connection = connect(tmp_path / "veri" / "katalog.db")
+    try:
+        assert connection.execute("SELECT count(*) FROM chunks").fetchone()[0] == 0
+    finally:
+        connection.close()
+
+
+def test_purged_document_cannot_come_back_from_the_worker(tmp_path: Path) -> None:
+    repository = _repository(tmp_path)
+
+    async def run() -> bool:
+        await repository.create_document(_document("a"))
+        await repository.claim_next()
+        await repository.mark_deleting("a")
+        await repository.purge("a")
+        await repository.mark_failed("a", "geç kalan hata")
+        return await repository.mark_ready("a", "tr", [_chunk("a", 0)], Report(pages=1), None)
+
+    assert asyncio.run(run()) is False
+    assert asyncio.run(repository.list_documents()) == []
+
+
+def test_failure_does_not_overwrite_a_deletion(tmp_path: Path) -> None:
+    repository = _repository(tmp_path)
+
+    async def run() -> list[StoredDocument]:
+        await repository.create_document(_document("a"))
+        await repository.claim_next()
+        await repository.mark_deleting("a")
+        await repository.mark_failed("a", "geç kalan hata")
+        return await repository.deleting_documents()
+
+    assert [d.doc_id for d in asyncio.run(run())] == ["a"]
+
+
+@pytest.mark.parametrize("status", [DocumentStatus.READY, DocumentStatus.FAILED])
+def test_ready_or_failed_document_can_be_processed_again(
+    tmp_path: Path, status: DocumentStatus
+) -> None:
+    repository = _repository(tmp_path)
+
+    async def run() -> StoredDocument | None:
+        failed = _document("a", status).model_copy(update={"error": "eski hata"})
+        await repository.create_document(failed)
+        return await repository.reprocess("a")
+
+    again = asyncio.run(run())
+
+    assert again is not None
+    assert (again.status, again.error) == (DocumentStatus.QUEUED, None)
+    assert asyncio.run(repository.claim_next()) is not None
+
+
+@pytest.mark.parametrize(
+    "status", [DocumentStatus.QUEUED, DocumentStatus.PROCESSING, DocumentStatus.DELETING]
+)
+def test_queued_processing_or_deleted_document_is_not_reprocessed(
+    tmp_path: Path, status: DocumentStatus
+) -> None:
+    repository = _repository(tmp_path)
+
+    async def run() -> StoredDocument | None:
+        await repository.create_document(_document("a", status))
+        return await repository.reprocess("a")
+
+    assert asyncio.run(run()) is None
+    assert asyncio.run(repository.reprocess("yok")) is None

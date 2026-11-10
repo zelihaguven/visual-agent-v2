@@ -36,9 +36,11 @@ class JobRepository(Protocol):
         chunks: Sequence[Chunk],
         report: IngestReport,
         display_pdf: str | None,
-    ) -> None: ...
+    ) -> bool: ...
 
     async def mark_failed(self, doc_id: str, message: str) -> None: ...
+
+    async def purge(self, doc_id: str) -> None: ...
 
 
 class Indexer(Protocol):
@@ -96,7 +98,7 @@ class DocumentProcessor:
             display = self._keep_display_pdf(result.display_pdf, source)
         await self._indexer.index(document.doc_id, document.access, result.chunks)
         try:
-            await self._repository.mark_ready(
+            ready = await self._repository.mark_ready(
                 document.doc_id,
                 _document_language(result.chunks, document.language),
                 result.chunks,
@@ -106,13 +108,27 @@ class DocumentProcessor:
         except Exception:
             await self._discard_vectors(document.doc_id)
             raise
+        if not ready:
+            await self._discard_deleted(document)
 
-    async def _discard_vectors(self, doc_id: str) -> None:
+    async def _discard_vectors(self, doc_id: str) -> bool:
         """Temizlik başarısız olsa da belge hazır sayılmadığı için aramaya girmez."""
         try:
             await self._indexer.remove(doc_id)
         except Exception:
             logger.exception("Belgenin vektörleri temizlenemedi: %s", doc_id)
+            return False
+        return True
+
+    async def _discard_deleted(self, document: StoredDocument) -> None:
+        """Belge işlenirken silindi: bu işin yazdığı vektörler ve dosyalar da kalmaz."""
+        logger.info("Belge işlenirken silindi, sonucu atılıyor: %s", document.doc_id)
+        vectors_removed = await self._discard_vectors(document.doc_id)
+        directory = Path(document.stored_path).parent
+        if directory.name == document.doc_id:
+            shutil.rmtree(directory, ignore_errors=True)
+        if vectors_removed and not directory.exists():
+            await self._repository.purge(document.doc_id)
 
     @staticmethod
     def _keep_display_pdf(display_pdf: Path | None, source: Path) -> str | None:

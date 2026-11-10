@@ -180,6 +180,24 @@ export async function uploadDocument(file: File): Promise<void> {
   }
 }
 
+export async function deleteDocument(docId: string): Promise<void> {
+  const response = await fetch(`/api/documents/${encodeURIComponent(docId)}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+}
+
+export async function reprocessDocument(docId: string): Promise<void> {
+  const response = await fetch(`/api/documents/${encodeURIComponent(docId)}/reprocess`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+}
+
 export async function fetchSource(chunkId: string): Promise<SourceView> {
   const response = await fetch(`/api/chunks/${encodeURIComponent(chunkId)}/source`);
   if (!response.ok) {

@@ -53,6 +53,18 @@ class FakeRepository:
     async def sheet_chunks(self, doc_id: str, sheet: str) -> Sequence[Chunk]:
         return [CHUNK]
 
+    async def reprocess(self, doc_id: str) -> StoredDocument | None:
+        return None
+
+    async def mark_deleting(self, doc_id: str) -> StoredDocument | None:
+        return None
+
+    async def deleting_documents(self) -> list[StoredDocument]:
+        return []
+
+    async def purge(self, doc_id: str) -> None:
+        return None
+
 
 def make_client(tmp_path: Path, repository: FakeRepository | None = None) -> TestClient:
     async def ask(request: AskRequest) -> AskOutcome:

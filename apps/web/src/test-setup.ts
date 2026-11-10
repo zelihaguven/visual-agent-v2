@@ -5,6 +5,7 @@ import { afterEach, vi } from "vitest";
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 window.HTMLMediaElement.prototype.play = async () => undefined;

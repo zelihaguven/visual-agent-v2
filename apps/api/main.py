@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from starlette.types import Scope
 
+from apps.api.documents import RemoveVectors, delete_document
 from apps.api.preview import render_highlighted_page
 from apps.api.voice import SpokenAnswer, voice_router
 from visual_agent.ask.deps import AskRequest
@@ -61,6 +62,18 @@ class Repository(Protocol):
 
     async def sheet_chunks(self, doc_id: str, sheet: str) -> Sequence[Chunk]: ...
 
+    async def reprocess(self, doc_id: str) -> StoredDocument | None: ...
+
+    async def mark_deleting(self, doc_id: str) -> StoredDocument | None: ...
+
+    async def deleting_documents(self) -> list[StoredDocument]: ...
+
+    async def purge(self, doc_id: str) -> None: ...
+
+
+async def _no_vectors(doc_id: str) -> None:
+    """Vektör deposu bağlanmamış (testler)."""
+
 
 @dataclass(frozen=True)
 class ApiServices:
@@ -69,6 +82,7 @@ class ApiServices:
     storage_directory: Path
     voice: Voice | None = None
     health_checks: Mapping[str, HealthCheck] = field(default_factory=dict)
+    remove_vectors: RemoveVectors = _no_vectors
 
 
 class HealthResponse(BaseModel):
@@ -287,6 +301,42 @@ async def _chunk_source(chunk: Chunk, services: ApiServices) -> dict[str, object
     return {"kind": "text", "text": chunk.text, "title": chunk.title}
 
 
+def _library_router(app: FastAPI) -> APIRouter:
+    """Belge listesi, yükleme, silme ve yeniden işleme."""
+    router = APIRouter(prefix="/api")
+    ServicesDep = Annotated[ApiServices, Depends(_require_services(app))]
+
+    @router.get("/documents", response_model=list[DocumentResponse])
+    async def documents(services: ServicesDep) -> list[DocumentResponse]:
+        return [_document_response(d) for d in await services.repository.list_documents()]
+
+    @router.post("/documents", response_model=DocumentResponse, status_code=201)
+    async def upload(
+        file: UploadFile, services: ServicesDep, title: Annotated[str, Form()] = ""
+    ) -> DocumentResponse:
+        return _document_response(await _store_upload(file, title, services))
+
+    @router.delete("/documents/{doc_id}", status_code=204)
+    async def delete(doc_id: str, services: ServicesDep) -> Response:
+        deleted = await delete_document(
+            doc_id, services.repository, services.remove_vectors, services.storage_directory
+        )
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Belge bulunamadı.")
+        return Response(status_code=204)
+
+    @router.post("/documents/{doc_id}/reprocess", response_model=DocumentResponse)
+    async def reprocess(doc_id: str, services: ServicesDep) -> DocumentResponse:
+        document = await services.repository.reprocess(doc_id)
+        if document is not None:
+            return _document_response(document)
+        if await services.repository.get_document(doc_id) is None:
+            raise HTTPException(status_code=404, detail="Belge bulunamadı.")
+        raise HTTPException(status_code=409, detail="Belge zaten sırada ya da işleniyor.")
+
+    return router
+
+
 def _document_router(app: FastAPI) -> APIRouter:
     router = APIRouter(prefix="/api")
     ServicesDep = Annotated[ApiServices, Depends(_require_services(app))]
@@ -298,16 +348,6 @@ def _document_router(app: FastAPI) -> APIRouter:
             media_type="text/event-stream",
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
-
-    @router.get("/documents", response_model=list[DocumentResponse])
-    async def documents(services: ServicesDep) -> list[DocumentResponse]:
-        return [_document_response(d) for d in await services.repository.list_documents()]
-
-    @router.post("/documents", response_model=DocumentResponse, status_code=201)
-    async def upload(
-        file: UploadFile, services: ServicesDep, title: Annotated[str, Form()] = ""
-    ) -> DocumentResponse:
-        return _document_response(await _store_upload(file, title, services))
 
     @router.get("/chunks/{chunk_id}/source")
     async def source(chunk_id: str, services: ServicesDep) -> dict[str, object]:
@@ -377,6 +417,7 @@ def create_app(settings: Settings | None = None, services: ApiServices | None = 
     app.state.services = services
     app.include_router(_health_router(app))
     app.include_router(_document_router(app))
+    app.include_router(_library_router(app))
     app.include_router(
         voice_router(lambda: app.state.services.voice if app.state.services else None)
     )
