@@ -207,3 +207,10 @@ def test_server_client_is_used_without_a_folder(monkeypatch: pytest.MonkeyPatch)
     open_client("http://127.0.0.1:6333", None)
 
     assert opened == [{"url": "http://127.0.0.1:6333"}]
+
+
+def test_deleting_before_the_collection_exists_removes_nothing_and_succeeds() -> None:
+    async def run() -> None:
+        await QdrantChunkStore(AsyncQdrantClient(":memory:"), "henuz-yok").delete_document("d")
+
+    asyncio.run(run())

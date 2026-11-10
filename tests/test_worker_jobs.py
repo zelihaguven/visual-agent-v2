@@ -72,10 +72,13 @@ class FakeRepository:
     async def purge(self, doc_id: str) -> None:
         self.purged.append(doc_id)
 
-    async def mark_failed(self, doc_id: str, message: str) -> None:
+    async def mark_failed(self, doc_id: str, message: str) -> bool:
         if self.failed_error is not None:
             raise self.failed_error
+        if doc_id in self.deleted:
+            return False
         self.failed.append((doc_id, message))
+        return True
 
     async def version(self) -> str:
         return self.version_value
@@ -303,3 +306,16 @@ def test_deleted_document_record_stays_when_its_vectors_cannot_be_removed(
     asyncio.run(make_processor(repository, indexer, None).process_next())
 
     assert repository.purged == []
+
+
+def test_failed_processing_of_a_deleted_document_still_cleans_up(tmp_path: Path) -> None:
+    queued = document(tmp_path)
+    repository = FakeRepository(queued=[queued], deleted={"d"})
+    indexer = FakeIndexer()
+
+    asyncio.run(make_processor(repository, indexer, None, error=True).process_next())
+
+    assert repository.failed == []
+    assert indexer.removed == ["d"]
+    assert not Path(queued.stored_path).parent.exists()
+    assert repository.purged == ["d"]

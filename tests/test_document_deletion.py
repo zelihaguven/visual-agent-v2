@@ -311,3 +311,16 @@ def test_next_question_after_deleting_the_context_document_does_not_fail(
     outcome = asyncio.run(answer_question(AskRequest("Peki kalça?", context=context), deps))
 
     assert not isinstance(outcome.result, Failed)
+
+
+def test_queued_document_is_fully_deleted_before_any_vector_exists(tmp_path: Path) -> None:
+    repository, storage = _repository(tmp_path), tmp_path / "belgeler"
+
+    async def run() -> list[StoredDocument]:
+        store = QdrantChunkStore(AsyncQdrantClient(":memory:"), "henuz-yok")
+        await repository.create_document(_stored(storage, "d", DocumentStatus.QUEUED))
+        await delete_document("d", repository, store.delete_document, storage)
+        return await repository.deleting_documents()
+
+    assert asyncio.run(run()) == []
+    assert not (storage / "d").exists()

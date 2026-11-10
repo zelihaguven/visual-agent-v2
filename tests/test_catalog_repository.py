@@ -358,7 +358,8 @@ def test_failure_does_not_overwrite_a_deletion(tmp_path: Path) -> None:
         await repository.create_document(_document("a"))
         await repository.claim_next()
         await repository.mark_deleting("a")
-        await repository.mark_failed("a", "geç kalan hata")
+        written = await repository.mark_failed("a", "geç kalan hata")
+        assert written is False
         return await repository.deleting_documents()
 
     assert [d.doc_id for d in asyncio.run(run())] == ["a"]
@@ -396,3 +397,13 @@ def test_queued_processing_or_deleted_document_is_not_reprocessed(
 
     assert asyncio.run(run()) is None
     assert asyncio.run(repository.reprocess("yok")) is None
+
+
+def test_failure_is_written_for_a_document_being_processed(tmp_path: Path) -> None:
+    repository = _repository(tmp_path)
+
+    async def run() -> bool:
+        await repository.create_document(_document("a", DocumentStatus.PROCESSING))
+        return await repository.mark_failed("a", "bozuk")
+
+    assert asyncio.run(run()) is True

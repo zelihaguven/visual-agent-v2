@@ -140,7 +140,12 @@ async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
     inherited = tuple(doc for doc in state.inherited_doc_ids if doc in allowed)
     scope = explicit or mentioned or inherited or None
     if _context_documents_gone(state, deps, allowed, explicit):
-        return replace(state, allowed=allowed, result=Clarify(question=CONTEXT_GONE_QUESTION))
+        return replace(
+            state,
+            allowed=allowed,
+            scope=state.inherited_doc_ids,
+            result=Clarify(question=CONTEXT_GONE_QUESTION),
+        )
     current = replace(
         state,
         language=detect_language(state.question),

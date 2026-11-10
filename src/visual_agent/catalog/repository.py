@@ -265,15 +265,18 @@ class DocumentRepository:
 
         return await self._db.run(lambda connection: _transaction(connection, write))
 
-    async def mark_failed(self, doc_id: str, message: str) -> None:
-        """Arada silinen belgenin durumu ezilmez."""
-        await self._db.run(
-            lambda connection: connection.execute(
-                f"UPDATE documents SET status = 'failed', error = ?, updated_at = {_NOW}"  # noqa: S608
-                " WHERE doc_id = ? AND status = 'processing'",
-                (message, doc_id),
+    async def mark_failed(self, doc_id: str, message: str) -> bool:
+        """Arada silinen belgenin durumu ezilmez; o durumda False döner."""
+        updated: int = await self._db.run(
+            lambda connection: (
+                connection.execute(
+                    f"UPDATE documents SET status = 'failed', error = ?, updated_at = {_NOW}"  # noqa: S608
+                    " WHERE doc_id = ? AND status = 'processing'",
+                    (message, doc_id),
+                ).rowcount
             )
         )
+        return updated > 0
 
     async def reprocess(self, doc_id: str) -> StoredDocument | None:
         """Hazır ya da işlenemeyen belge kuyruğa döner; sıradaki ya da işlenene dokunulmaz."""

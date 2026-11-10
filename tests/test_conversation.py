@@ -416,3 +416,16 @@ def test_follow_up_keeps_the_documents_that_are_still_there() -> None:
     ask_with(deps_with(follows(), FakeClient(VERIFIED), retriever), "Peki dış paça?", partly)
 
     assert retriever.calls[0]["doc_ids"] == ("a",)
+
+
+def test_gone_documents_stay_in_the_context_so_the_next_follow_up_asks_again() -> None:
+    retriever = FakeRetriever()
+    deps = deps_with(follows(), FakeClient(VERIFIED), retriever)
+
+    first = ask_with(deps, "Peki dış paça?", GONE)
+    second = ask_with(deps, "Peki bel?", first.context)
+
+    assert first.context is not None and first.context.doc_ids == ("silindi",)
+    assert isinstance(second.result, Clarify)
+    assert second.result.question == CONTEXT_GONE_QUESTION
+    assert retriever.calls == []

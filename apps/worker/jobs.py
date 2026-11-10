@@ -38,7 +38,7 @@ class JobRepository(Protocol):
         display_pdf: str | None,
     ) -> bool: ...
 
-    async def mark_failed(self, doc_id: str, message: str) -> None: ...
+    async def mark_failed(self, doc_id: str, message: str) -> bool: ...
 
     async def purge(self, doc_id: str) -> None: ...
 
@@ -80,10 +80,15 @@ class DocumentProcessor:
         try:
             await self._process(document)
         except (UnsupportedFormat, MissingTool) as error:
-            await self._repository.mark_failed(document.doc_id, str(error))
+            await self._fail(document, str(error))
         except Exception:
             logger.exception("Belge işlenemedi: %s", document.doc_id)
-            await self._repository.mark_failed(document.doc_id, _GENERIC_FAILURE)
+            await self._fail(document, _GENERIC_FAILURE)
+
+    async def _fail(self, document: StoredDocument, message: str) -> None:
+        """Belge işlenirken silindiyse hata yazılmaz; geride kalanları işçi temizler."""
+        if not await self._repository.mark_failed(document.doc_id, message):
+            await self._discard_deleted(document)
 
     async def _process(self, document: StoredDocument) -> None:
         source = Path(document.stored_path)
