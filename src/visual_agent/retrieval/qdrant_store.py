@@ -9,6 +9,8 @@ from qdrant_client import AsyncQdrantClient, models
 from visual_agent.domain.document import Chunk
 from visual_agent.retrieval.fusion import ScoredChunk
 
+COLLECTION = "documents"
+"""Uygulamanın parça koleksiyonu; uygulama, işçi ve belge klasörü ölçümü aynı adı kullanır."""
 _DENSE = "dense"
 _SPARSE = "bm25"
 _POINT_NAMESPACE = uuid.UUID("7a1e9d10-3f5b-4a54-9c0e-0d3b2f6a8c11")

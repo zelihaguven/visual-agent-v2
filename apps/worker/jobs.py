@@ -8,7 +8,7 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Protocol
 
-from visual_agent.ask.language import detect_language
+from visual_agent.ask.language import document_language
 from visual_agent.catalog.repository import StoredDocument
 from visual_agent.domain.document import Chunk, DocumentMeta
 from visual_agent.ingest.external import MissingTool
@@ -17,7 +17,6 @@ from visual_agent.ingest.pipeline import IngestReport, IngestResult
 
 logger = logging.getLogger(__name__)
 
-_LANGUAGE_SAMPLE_CHUNKS = 40
 _GENERIC_FAILURE = "Belge işlenemedi. Dosyanın bozuk olmadığını kontrol edip yeniden yükleyin."
 _DISPLAY_NAME = "display.pdf"
 
@@ -47,11 +46,6 @@ class Indexer(Protocol):
     async def index(self, doc_id: str, access: Sequence[str], chunks: Sequence[Chunk]) -> None: ...
 
     async def remove(self, doc_id: str) -> None: ...
-
-
-def _document_language(chunks: Sequence[Chunk], fallback: str) -> str:
-    sample = " ".join(chunk.text for chunk in chunks[:_LANGUAGE_SAMPLE_CHUNKS])
-    return detect_language(sample) if sample else fallback
 
 
 class DocumentProcessor:
@@ -105,7 +99,7 @@ class DocumentProcessor:
         try:
             ready = await self._repository.mark_ready(
                 document.doc_id,
-                _document_language(result.chunks, document.language),
+                document_language(result.chunks, document.language),
                 result.chunks,
                 result.report,
                 display,

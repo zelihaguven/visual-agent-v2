@@ -4,8 +4,7 @@ import argparse
 import asyncio
 import json
 import sys
-import tempfile
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from pathlib import Path
 
 import httpx
@@ -13,10 +12,12 @@ from qdrant_client import AsyncQdrantClient
 
 from evals.answer_cache import CacheCounts, CachingTransport
 from evals.gold import Badge, GoldQuestion, GoldSet, GoldSource, Outcome
+from evals.index_cache import ensure_index, load_or_ingest
 from evals.ingest_check import question_found
 from evals.scoring import AnswerItem, AnswerRecord, score_question, summarize
+from visual_agent.ask.clients import ask_deps, build_model_clients
 from visual_agent.ask.deps import AskDeps, AskRequest
-from visual_agent.ask.language import detect_language
+from visual_agent.ask.language import detect_language, document_language
 from visual_agent.ask.orchestrator import answer_question
 from visual_agent.ask.steps import AskState, resolve_scope, retrieve
 from visual_agent.catalog.identifiers import build_identifier_index
@@ -25,19 +26,7 @@ from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.document import Chunk, DocumentMeta
 from visual_agent.domain.result import Answered, AskResult, Citation, Clarify, NotFound
-from visual_agent.generation.intent import IntentClassifier, make_intent_classifier
-from visual_agent.generation.json_model import JsonModel
-from visual_agent.generation.openrouter import (
-    AnswerClient,
-    AnswerClientOptions,
-    StreamCallbacks,
-    StreamResult,
-    fetch_zdr_index,
-    select_providers,
-)
-from visual_agent.generation.prompts import load_answer_prompt, load_answer_schema
-from visual_agent.generation.rewrite import Rewriter, make_rewriter
-from visual_agent.generation.translate import Translator, make_translator
+from visual_agent.generation.openrouter import StreamCallbacks, StreamResult
 from visual_agent.retrieval.encoders import BgeM3Dense, Bm25Sparse
 from visual_agent.retrieval.hybrid import HybridRetriever
 from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
@@ -49,6 +38,7 @@ _FIRST_TURN = 1
 
 
 def _meta(gold: GoldSet, doc_id: str) -> DocumentMeta:
+    """Belge işleme (OCR dili dahil) altın verideki metinden okunan dille yapılır."""
     text = gold.document_texts[doc_id]
     return DocumentMeta(
         doc_id=doc_id,
@@ -57,40 +47,25 @@ def _meta(gold: GoldSet, doc_id: str) -> DocumentMeta:
     )
 
 
-def _load_chunks(gold: GoldSet, set_directory: Path, cache: Path) -> dict[str, list[Chunk]]:
-    if cache.exists():
-        raw = json.loads(cache.read_text(encoding="utf-8"))
-        return {doc: [Chunk.model_validate(item) for item in items] for doc, items in raw.items()}
-    from visual_agent.ingest.external import locate_tools
-    from visual_agent.ingest.pipeline import ingest_document
-    from visual_agent.ingest.tools import default_tools
-
-    settings = Settings()
-    tools = default_tools(locate_tools(settings.soffice_path, settings.tesseract_path))
-    chunks: dict[str, list[Chunk]] = {}
-    for document in gold.documents:
-        with tempfile.TemporaryDirectory() as work:
-            result = ingest_document(
-                set_directory / document.filename,
-                _meta(gold, document.doc_id),
-                tools,
-                Path(work),
-            )
-        chunks[document.doc_id] = list(result.chunks)
-    payload = {doc: [c.model_dump(mode="json") for c in items] for doc, items in chunks.items()}
-    cache.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+def load_chunks(gold: GoldSet, set_directory: Path, work: Path) -> dict[str, list[Chunk]]:
+    documents = [
+        (set_directory / document.filename, _meta(gold, document.doc_id))
+        for document in gold.documents
+    ]
+    chunks, manifest = load_or_ingest(documents, work, keep_partial=False)
+    if manifest.get("errors"):
+        raise SystemExit(f"belge işlenemedi: {manifest['errors']}")
     return chunks
 
 
-async def _index(
-    chunks: Iterable[Chunk], dense: BgeM3Dense, sparse: Bm25Sparse, store: QdrantChunkStore
-) -> None:
-    await store.recreate_collection(dense.size)
-    items = list(chunks)
-    texts = [chunk.embed_text for chunk in items]
-    await store.upsert(
-        items, ("all",), dense.encode_documents(texts), sparse.encode_documents(texts)
-    )
+def gold_catalog(gold: GoldSet, chunks: dict[str, list[Chunk]]) -> DocumentCatalog:
+    """Katalog dili, uygulamadaki gibi belgenin parçalarından okunur."""
+    catalog = DocumentCatalog()
+    for document in gold.documents:
+        meta = _meta(gold, document.doc_id)
+        language = document_language(chunks[document.doc_id], meta.language)
+        catalog.add(meta.model_copy(update={"language": language}))
+    return catalog
 
 
 def _standalone(gold: GoldSet) -> list[GoldQuestion]:
@@ -150,35 +125,6 @@ def to_record(question_id: str, result: AskResult) -> AnswerRecord:
         outcome=Outcome.ANSWERED,
         badge=badges.get(result.status, Badge.FAILED),
         items=items,
-    )
-
-
-async def build_answer_clients(
-    http: httpx.AsyncClient, settings: Settings, api_key: str
-) -> tuple[AnswerClient, Translator, Rewriter, IntentClassifier]:
-    url = str(settings.openrouter_url).rstrip("/")
-    index = await fetch_zdr_index(http, url, api_key)
-    providers, ignored = select_providers(settings.answer_model, settings.answer_providers, index)
-    options = AnswerClientOptions(
-        model=settings.answer_model,
-        providers=providers,
-        ignored_providers=ignored,
-        schema=load_answer_schema(),
-        max_tokens=settings.answer_max_tokens,
-        first_token_seconds=settings.answer_first_token_seconds,
-        runaway_whitespace_limit=settings.stream_runaway_limit,
-    )
-    translation_providers, translation_ignored = select_providers(
-        settings.translation_model, settings.translation_providers, index
-    )
-    helper_model = JsonModel(
-        http, url, api_key, settings.translation_model, translation_providers, translation_ignored
-    )
-    return (
-        AnswerClient(http, base_url=url, api_key=api_key, options=options),
-        make_translator(helper_model),
-        make_rewriter(helper_model),
-        make_intent_classifier(helper_model),
     )
 
 
@@ -267,11 +213,9 @@ async def _full_run(
 async def run(arguments: argparse.Namespace) -> dict[str, object]:
     settings = Settings()
     gold = GoldSet.model_validate_json((arguments.set / "gold.json").read_text(encoding="utf-8"))
-    chunks = _load_chunks(gold, arguments.set, arguments.work / "chunks.json")
+    chunks = load_chunks(gold, arguments.set, arguments.work)
     flat = [chunk for items in chunks.values() for chunk in items]
-    catalog = DocumentCatalog()
-    for document in gold.documents:
-        catalog.add(_meta(gold, document.doc_id))
+    catalog = gold_catalog(gold, chunks)
     dense, sparse = BgeM3Dense(), Bm25Sparse()
     client = _qdrant(arguments)
     try:
@@ -297,7 +241,7 @@ async def _measure(
     client: AsyncQdrantClient,
 ) -> dict[str, object]:
     store = QdrantChunkStore(client, _COLLECTION)
-    await _index(flat, dense, sparse, store)
+    await ensure_index(flat, dense, sparse, store, arguments.work)
     retriever = HybridRetriever(dense, sparse, store)
     identifiers = build_identifier_index(flat)
     key = settings.openrouter_api_key
@@ -317,19 +261,8 @@ async def _measure(
         )
         counts = transport.counts
     async with httpx.AsyncClient(transport=transport) as http:
-        answer_client, translator, rewriter, classifier = await build_answer_clients(
-            http, settings, api_key
-        )
-        deps = AskDeps(
-            catalog,
-            identifiers,
-            retriever,
-            answer_client,
-            load_answer_prompt(),
-            translator,
-            rewriter=rewriter,
-            intent_classifier=classifier,
-        )
+        clients = await build_model_clients(http, settings, api_key)
+        deps = ask_deps(catalog, identifiers, retriever, clients)
         questions = select_questions(gold, arguments.questions)
         if arguments.repeat == 1:
             return await _full_run(questions, gold, deps, arguments.work / "answers.json", counts)

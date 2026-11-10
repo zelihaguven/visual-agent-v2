@@ -163,15 +163,28 @@ def _read_entry(path: Path, request: httpx.Request) -> tuple[httpx.Response, Usa
     return response, usage_from_body(body, encoding)
 
 
+class OfflineMiss(httpx.ConnectError):
+    """Çevrimdışı değerlendirmede önbellekte olmayan model isteği gönderilmez."""
+
+
 class CachingTransport(httpx.AsyncBaseTransport):
-    """Yalnız başarılı ve sonuna kadar okunmuş model cevapları saklanır."""
+    """Yalnız başarılı ve sonuna kadar okunmuş model cevapları saklanır.
+
+    offline: önbellekte olmayan model isteği ağa gitmez, OfflineMiss olur ve ıska sayılır;
+    istemci bunu sağlayıcı hatası gibi karşılar. Model dışı istekler (ZDR listesi) gider.
+    """
 
     def __init__(
-        self, inner: httpx.AsyncBaseTransport, directory: Path, refresh: bool = False
+        self,
+        inner: httpx.AsyncBaseTransport,
+        directory: Path,
+        refresh: bool = False,
+        offline: bool = False,
     ) -> None:
         self._inner = inner
         self._directory = directory
         self._refresh = refresh
+        self._offline = offline
         self.counts = CacheCounts()
         self.usage = Usage()
         directory.mkdir(parents=True, exist_ok=True)
@@ -187,6 +200,8 @@ class CachingTransport(httpx.AsyncBaseTransport):
             self.usage.add(usage)
             return response
         self.counts.misses += 1
+        if self._offline:
+            raise OfflineMiss("önbellekte yok; çevrimdışı değerlendirme", request=request)
         response = await self._inner.handle_async_request(request)
         if response.status_code != _OK:
             return response

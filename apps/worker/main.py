@@ -75,10 +75,9 @@ def default_ingest(settings: Settings) -> Ingest:
 
 
 async def _open_processor(settings: Settings) -> DocumentProcessor:
-    from apps.api.services import COLLECTION
     from apps.worker.indexing import LazyIndexer, SharedEncoders
     from visual_agent.catalog.repository import open_repository
-    from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
+    from visual_agent.retrieval.qdrant_store import COLLECTION, QdrantChunkStore, open_client
 
     repository = open_repository(Path(settings.database_path))
     await repository.migrate()
