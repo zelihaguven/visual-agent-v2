@@ -507,3 +507,29 @@ def test_quoting_a_whole_table_row_is_not_shown_as_a_command() -> None:
 
     assert isinstance(outcome.result, Answered)
     assert outcome.result.items[0].code is None
+
+
+def test_translation_time_is_reported_apart_from_the_search() -> None:
+    async def translator(question: str, source: str, targets: Sequence[str]) -> str:
+        await asyncio.sleep(0.05)
+        return "inseam value"
+
+    deps = make_deps(
+        FakeClient(answer_payload("76,5")),
+        FakeRetriever(),
+        translator,
+        {"a": "en", "b": "en", "c": "en"},
+    )
+
+    timings = ask(deps, "iç paça nedir").timings
+
+    assert timings["translate"] >= 0.05
+    assert timings["retrieve"] < timings["translate"]
+    assert {"context", "scope", "intent", "generate", "verify"} <= set(timings)
+
+
+def test_no_translation_time_without_a_translation() -> None:
+    timings = ask(make_deps(FakeClient(answer_payload("76,5"))), "iç paça nedir").timings
+
+    assert "translate" not in timings
+    assert "retrieve" in timings

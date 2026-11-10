@@ -26,6 +26,7 @@ const ASK_FAILED = "Cevap alınamadı. Bağlantınızı kontrol edip yeniden den
 type AskOptions = {
   context: ConversationContext | null;
   speak?: boolean;
+  dictated?: boolean;
   signal?: AbortSignal;
   onAudio?: () => void;
   onSearching?: () => void;
@@ -43,6 +44,7 @@ export function App() {
   const nextId = useRef(0);
   const audio = useRef<AudioQueue | null>(null);
   const draftInput = useRef<HTMLInputElement>(null);
+  const draftFromVoice = useRef(false);
   const phrases = useRef<VoicePhrases | null>(null);
   const hasGreeted = useRef(false);
   const waitingTurn = useRef(0);
@@ -81,7 +83,7 @@ export function App() {
   async function ask(
     question: string,
     docIds: string[] | null,
-    { context: turnContext, speak = false, signal, onAudio, onSearching }: AskOptions,
+    { context: turnContext, speak = false, dictated = false, signal, onAudio, onSearching }: AskOptions,
   ) {
     nextId.current += 1;
     const id = String(nextId.current);
@@ -109,6 +111,7 @@ export function App() {
           }
         },
         signal,
+        dictated,
       );
     } catch {
       updateTurn((turn) =>
@@ -127,7 +130,9 @@ export function App() {
     if (question && !isAsking) {
       setDraft("");
       setVoiceError(null);
-      void ask(question, null, { context });
+      const dictated = draftFromVoice.current;
+      draftFromVoice.current = false;
+      void ask(question, null, { context, dictated });
     }
   }
 
@@ -184,6 +189,7 @@ export function App() {
 
   function handleTranscript(text: string) {
     setVoiceError(null);
+    draftFromVoice.current = true;
     setDraft(text);
     draftInput.current?.focus();
   }
@@ -225,7 +231,12 @@ export function App() {
             maxLength={2000}
             autoComplete="off"
             placeholder="Sorunuzu yazın"
-            onChange={(event) => setDraft(event.target.value)}
+            onChange={(event) => {
+              if (event.target.value === "") {
+                draftFromVoice.current = false;
+              }
+              setDraft(event.target.value);
+            }}
           />
           <MicButton isDisabled={isAsking} onTranscript={handleTranscript} onError={setVoiceError} />
           {canListen() && (

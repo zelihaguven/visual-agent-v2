@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import shutil
+import time
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
 from contextlib import asynccontextmanager
@@ -19,6 +20,7 @@ from starlette.types import Scope
 
 from apps.api.documents import RemoveVectors, delete_document
 from apps.api.preview import render_highlighted_page
+from apps.api.question_log import InputMode, QuestionRecord, record_for
 from apps.api.voice import SpokenAnswer, voice_router
 from visual_agent.ask.deps import AskRequest
 from visual_agent.ask.language import detect_language
@@ -75,6 +77,10 @@ async def _no_vectors(doc_id: str) -> None:
     """Vektör deposu bağlanmamış (testler)."""
 
 
+class QuestionRecorder(Protocol):
+    async def record(self, record: QuestionRecord) -> None: ...
+
+
 @dataclass(frozen=True)
 class ApiServices:
     repository: Repository
@@ -83,6 +89,7 @@ class ApiServices:
     voice: Voice | None = None
     health_checks: Mapping[str, HealthCheck] = field(default_factory=dict)
     remove_vectors: RemoveVectors = _no_vectors
+    question_log: QuestionRecorder | None = None
 
 
 class HealthResponse(BaseModel):
@@ -96,6 +103,7 @@ class AskBody(BaseModel):
     doc_ids: tuple[str, ...] | None = None
     context: ConversationContext | None = None
     speak: bool = False
+    input_mode: InputMode = "text"
 
     @field_validator("question")
     @classmethod
@@ -142,6 +150,52 @@ def _sse(event: Event) -> str:
     return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
 
+class _AskClock:
+    """Süre kullanıcının gözünden ölçülür: istek gelişinden ilk doğrulanmış cümleye."""
+
+    def __init__(self, sink: Callable[[Event], None]) -> None:
+        self._sink = sink
+        self._started = time.perf_counter()
+        self.first_verified: float | None = None
+
+    def __call__(self, event: Event) -> None:
+        if event.get("type") == "item_verified" and self.first_verified is None:
+            self.first_verified = self.elapsed()
+        self._sink(event)
+
+    def elapsed(self) -> float:
+        return time.perf_counter() - self._started
+
+
+_PENDING_RECORDS: set[asyncio.Task[None]] = set()
+
+
+def _record_finished(task: asyncio.Task[None]) -> None:
+    _PENDING_RECORDS.discard(task)
+    if not task.cancelled() and task.exception() is not None:
+        logger.warning("Soru kaydı yazılamadı: %s", type(task.exception()).__name__)
+
+
+def _record_question(
+    request: AskBody, services: ApiServices, outcome: AskOutcome | None, clock: _AskClock
+) -> None:
+    """Kayıt arka planda yazılır: yavaşlasa ya da başarısız olsa da cevap beklemez."""
+    if services.question_log is None:
+        return
+    record = record_for(
+        request.question,
+        "voice" if request.speak else request.input_mode,
+        str(_result_payload(outcome.result)["kind"]) if outcome is not None else "error",
+        outcome,
+        clock.elapsed(),
+        clock.first_verified,
+        follow_up=request.context is not None,
+    )
+    task = asyncio.create_task(services.question_log.record(record))
+    _PENDING_RECORDS.add(task)
+    task.add_done_callback(_record_finished)
+
+
 async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterator[str]:
     """Soru hattının olaylarını üretildikleri anda istemciye taşır."""
     queue: asyncio.Queue[Event] = asyncio.Queue()
@@ -150,18 +204,20 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
         if request.speak and services.voice is not None
         else None
     )
-    sink = spoken.on_event if spoken is not None else queue.put_nowait
+    clock = _AskClock(spoken.on_event if spoken is not None else queue.put_nowait)
 
     async def run() -> None:
+        outcome: AskOutcome | None = None
         try:
             outcome = await services.ask(
                 AskRequest(
                     question=request.question,
                     doc_ids=request.doc_ids,
                     context=request.context,
-                    on_event=sink,
+                    on_event=clock,
                 )
             )
+            _record_question(request, services, outcome, clock)
             queue.put_nowait(
                 {
                     "type": "done",
@@ -179,6 +235,8 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
                 await spoken.finish()
         except Exception:
             logger.exception("Soru cevaplanamadı")
+            if outcome is None:
+                _record_question(request, services, None, clock)
             queue.put_nowait({"type": "error", "message": _GENERIC_ERROR})
         finally:
             queue.put_nowait(_END_OF_STREAM)

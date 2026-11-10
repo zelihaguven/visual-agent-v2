@@ -31,6 +31,17 @@ PIPELINE = (
 )
 
 
+def _split_translation(timings: dict[str, float], translate: float | None) -> dict[str, float]:
+    """Çeviri arama adımının içinde çalışır; gecikme kararı için ayrı süre olarak görünür."""
+    if translate is None or "retrieve" not in timings:
+        return timings
+    return {
+        **timings,
+        "retrieve": max(timings["retrieve"] - translate, 0.0),
+        "translate": translate,
+    }
+
+
 async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
     state = AskState(request=request)
     timings: dict[str, float] = {}
@@ -43,6 +54,7 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
         if state.result is not None:
             break
     final = replace(state, result=state.result or Failed(reason="Cevap üretilemedi."))
+    timings = _split_translation(timings, final.translate_seconds)
     assert final.result is not None
     return AskOutcome(
         result=final.result,

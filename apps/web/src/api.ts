@@ -120,6 +120,7 @@ export async function askQuestion(
   speak: boolean,
   onEvent: (event: AskEvent) => void,
   signal?: AbortSignal,
+  dictated = false,
 ): Promise<void> {
   const response = await fetch("/api/ask", {
     method: "POST",
@@ -130,6 +131,7 @@ export async function askQuestion(
       ...(docIds ? { doc_ids: docIds } : {}),
       ...(context ? { context } : {}),
       ...(speak ? { speak } : {}),
+      ...(dictated ? { input_mode: "voice" } : {}),
     }),
   });
   if (!response.ok || response.body === null) {

@@ -938,6 +938,32 @@ describe("App", () => {
       expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/ask")).toBe(false);
     });
 
+    it("marks a dictated question as spoken, and the next typed one as written", async () => {
+      stubBrowserRecording();
+      const fetchMock = stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/transcribe": () => jsonResponse({ text: "PNT-1162 bel kaç" }),
+        "/api/ask": () => sse([answered]),
+      });
+      const askBodies = (mock: typeof fetchMock) =>
+        mock.mock.calls
+          .filter(([url]) => String(url) === "/api/ask")
+          .map(([, init]) => JSON.parse(String(init?.body)));
+      render(<App />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Konuşarak sor" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Kaydı bitir" }));
+      await waitFor(() => expect(screen.getByLabelText("Sorunuz")).toHaveValue("PNT-1162 bel kaç"));
+      fireEvent.click(screen.getByRole("button", { name: "Sor" }));
+      await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(1));
+      fireEvent.change(screen.getByLabelText("Sorunuz"), { target: { value: "elle yazılan" } });
+      fireEvent.click(await screen.findByRole("button", { name: "Sor" }));
+
+      await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
+      expect(askBodies(fetchMock)[0]).toEqual({ question: "PNT-1162 bel kaç", input_mode: "voice" });
+      expect(askBodies(fetchMock)[1]).toEqual({ question: "elle yazılan" });
+    });
+
     it("explains a failed transcription", async () => {
       stubBrowserRecording();
       stubApi({

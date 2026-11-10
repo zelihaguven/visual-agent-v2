@@ -11,6 +11,7 @@ import httpx
 
 from apps.api.documents import retry_deletions
 from apps.api.main import ApiServices
+from apps.api.question_log import open_log
 from apps.api.voice import fixed_notice_texts, fixed_reply_texts
 from apps.worker.indexing import LazyIndexer, SharedEncoders
 from visual_agent.ask.deps import AskDeps, AskRequest
@@ -204,6 +205,8 @@ async def _retry_deletions(
 async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
     repository = open_repository(Path(settings.database_path))
     await repository.migrate()
+    question_log = open_log(Path(settings.database_path))
+    await question_log.migrate()
     qdrant = open_client(str(settings.qdrant_url), settings.qdrant_path)
     store = QdrantChunkStore(qdrant, COLLECTION)
     encoders = SharedEncoders()
@@ -231,6 +234,7 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
                     "qdrant": qdrant.get_collections,
                 },
                 remove_vectors=store.delete_document,
+                question_log=question_log,
             )
         finally:
             stop.set()
