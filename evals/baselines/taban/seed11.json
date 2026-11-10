@@ -1,0 +1,72 @@
+{
+ "seed": 11,
+ "set": "son sınav",
+ "tarih": "2026-11-10",
+ "makine": "Windows 11, Docker'sız yerel kurulum (0003), gömülü Qdrant",
+ "olcum_commit": "441a394",
+ "puanlama_commit": "95e1870",
+ "komut": "python -m evals.run_questions --set evals/output/set11 --work evals/output/run11-taban",
+ "araclar": {
+  "tesseract": "tesseract v5.4.0.20240606",
+  "libreoffice": "26.8.2",
+  "docling": "2.149.0",
+  "ocrmypdf": "17.13.0",
+  "rapidocr": "3.10.0",
+  "cevap_modeli": "google/gemma-4-26b-a4b-it"
+ },
+ "ozet": {
+  "total": 40,
+  "passed": 37,
+  "verified_wrong": 0,
+  "false_rejects": 0,
+  "by_kind": {
+   "table_lookup": [
+    9,
+    9
+   ],
+   "not_in_document": [
+    9,
+    9
+   ],
+   "direct": [
+    9,
+    9
+   ],
+   "in_image": [
+    2,
+    3
+   ],
+   "clarify": [
+    3,
+    4
+   ],
+   "confirm_wrong": [
+    1,
+    1
+   ],
+   "follow_up": [
+    4,
+    5
+   ]
+  },
+  "skipped_clarifications": 1
+ },
+ "maliyet_usd_canli_sorular": 0.00653,
+ "onbellek": {
+  "canli": 30,
+  "onbellekten": 0,
+  "kismen_onbellekten": 10
+ },
+ "kararsiz": {
+  "aciklama": "Önbelleksiz 5 tekrarda kaç kez geçti. Adım 5 karşılaştırmasında bu sorular gerileme sayılmadan önce ayrıca incelenir.",
+  "sorular": {
+   "dikim-revizyon-netlestir": "1/5",
+   "dikim-sohbet-1-t4": "0/5"
+  }
+ },
+ "gecmeyenler": [
+  "dikim-foto-olcu",
+  "dikim-sohbet-1-t4",
+  "dikim-revizyon-netlestir"
+ ]
+}

@@ -1,4 +1,4 @@
-"""Üretilen seti uçtan uca çalıştırır ve puanlar (işçi imajında, Qdrant ile)."""
+"""Üretilen seti uçtan uca çalıştırır ve puanlar (yerelde gömülü Qdrant ile ya da sunucuda)."""
 
 import argparse
 import asyncio
@@ -11,6 +11,7 @@ from pathlib import Path
 import httpx
 from qdrant_client import AsyncQdrantClient
 
+from evals.answer_cache import CacheCounts, CachingTransport
 from evals.gold import Badge, GoldQuestion, GoldSet, GoldSource, Outcome
 from evals.ingest_check import question_found
 from evals.scoring import AnswerItem, AnswerRecord, score_question, summarize
@@ -39,7 +40,7 @@ from visual_agent.generation.rewrite import Rewriter, make_rewriter
 from visual_agent.generation.translate import Translator, make_translator
 from visual_agent.retrieval.encoders import BgeM3Dense, Bm25Sparse
 from visual_agent.retrieval.hybrid import HybridRetriever
-from visual_agent.retrieval.qdrant_store import QdrantChunkStore
+from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
 from visual_agent.settings import Settings
 
 _COLLECTION = "evaluation"
@@ -60,10 +61,12 @@ def _load_chunks(gold: GoldSet, set_directory: Path, cache: Path) -> dict[str, l
     if cache.exists():
         raw = json.loads(cache.read_text(encoding="utf-8"))
         return {doc: [Chunk.model_validate(item) for item in items] for doc, items in raw.items()}
+    from visual_agent.ingest.external import locate_tools
     from visual_agent.ingest.pipeline import ingest_document
     from visual_agent.ingest.tools import default_tools
 
-    tools = default_tools()
+    settings = Settings()
+    tools = default_tools(locate_tools(settings.soffice_path, settings.tesseract_path))
     chunks: dict[str, list[Chunk]] = {}
     for document in gold.documents:
         with tempfile.TemporaryDirectory() as work:
@@ -179,37 +182,86 @@ async def _answer_client(
     )
 
 
-async def _full_run(gold: GoldSet, deps: AskDeps, output: Path) -> dict[str, object]:
-    questions = list(gold.questions)
+def cache_label(delta: CacheCounts) -> str:
+    """Önbellekten gelen istek varsa sorunun süresi ve maliyeti gerçek değildir."""
+    if delta.hits and delta.misses:
+        return "partial"
+    return "cached" if delta.hits else "live"
+
+
+def select_questions(gold: GoldSet, wanted: Sequence[str] | None) -> list[GoldQuestion]:
+    """Seçilen sorular ve takip sorularının sohbetteki önceki turları, altın veri sırasıyla."""
+    if not wanted:
+        return list(gold.questions)
+    unknown = sorted(set(wanted) - {q.question_id for q in gold.questions})
+    if unknown:
+        raise ValueError(f"sette olmayan sorular: {', '.join(unknown)}")
+    picked = [q for q in gold.questions if q.question_id in wanted]
+    last_turn: dict[str, int] = {}
+    for question in picked:
+        if question.conversation_id is not None:
+            conversation = question.conversation_id
+            last_turn[conversation] = max(last_turn.get(conversation, 0), question.turn or 0)
+    return [
+        q
+        for q in gold.questions
+        if q in picked
+        or (q.conversation_id in last_turn and (q.turn or 0) <= last_turn[q.conversation_id])
+    ]
+
+
+async def _full_run(
+    questions: Sequence[GoldQuestion],
+    gold: GoldSet,
+    deps: AskDeps,
+    output: Path,
+    counts: CacheCounts,
+) -> dict[str, object]:
     records: list[AnswerRecord] = []
     rows: list[dict[str, object]] = []
     contexts: dict[str, ConversationContext | None] = {}
     cost = 0.0
+    labels: dict[str, int] = {"live": 0, "cached": 0, "partial": 0}
     for question in questions:
         conversation = question.conversation_id
         context = contexts.get(conversation) if conversation is not None else None
+        before = counts.snapshot()
         outcome = await answer_question(AskRequest(question.text, context=context), deps)
+        label = cache_label(counts.since(before))
+        labels[label] += 1
+        live = label == "live"
         if conversation is not None:
             contexts[conversation] = outcome.context
         record = to_record(question.question_id, outcome.result)
         records.append(record)
-        cost += outcome.cost_usd
+        cost += outcome.cost_usd if live else 0.0
         rows.append(
             {
                 "question": question.question_id,
                 "kind": question.kind.value,
                 "resolved_question": outcome.question,
                 "record": record.model_dump(mode="json"),
-                "score": score_question(question, record).model_dump(mode="json"),
-                "timings": outcome.timings,
-                "cost_usd": outcome.cost_usd,
+                "score": score_question(question, record, gold.document_texts).model_dump(
+                    mode="json"
+                ),
+                "cache": label,
+                "timings": outcome.timings if live else None,
+                "cost_usd": outcome.cost_usd if live else None,
                 "provider": outcome.provider,
             }
         )
-    scores = [score_question(q, r) for q, r in zip(questions, records, strict=True)]
+    scores = [
+        score_question(q, r, gold.document_texts) for q, r in zip(questions, records, strict=True)
+    ]
     summary = summarize(questions, scores).model_dump(mode="json")
     output.write_text(json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")
-    return {**summary, "cost_usd": round(cost, 5)}
+    return {
+        **summary,
+        "cost_usd_live_questions": round(cost, 5),
+        "questions_live": labels["live"],
+        "questions_from_cache": labels["cached"],
+        "questions_partly_from_cache": labels["partial"],
+    }
 
 
 async def run(arguments: argparse.Namespace) -> dict[str, object]:
@@ -221,21 +273,50 @@ async def run(arguments: argparse.Namespace) -> dict[str, object]:
     for document in gold.documents:
         catalog.add(_meta(gold, document.doc_id))
     dense, sparse = BgeM3Dense(), Bm25Sparse()
-    client = AsyncQdrantClient(url=str(settings.qdrant_url))
+    client = _qdrant(arguments)
+    try:
+        return await _measure(arguments, settings, gold, catalog, flat, dense, sparse, client)
+    finally:
+        await client.close()
+
+
+def _qdrant(arguments: argparse.Namespace) -> AsyncQdrantClient:
+    """Varsayılan: --work altında ölçüme özel gömülü klasör; uygulamanın klasörüne dokunmaz."""
+    folder = None if arguments.qdrant_url else str(arguments.work / "qdrant")
+    return open_client(arguments.qdrant_url or "", folder)
+
+
+async def _measure(
+    arguments: argparse.Namespace,
+    settings: Settings,
+    gold: GoldSet,
+    catalog: DocumentCatalog,
+    flat: list[Chunk],
+    dense: BgeM3Dense,
+    sparse: Bm25Sparse,
+    client: AsyncQdrantClient,
+) -> dict[str, object]:
     store = QdrantChunkStore(client, _COLLECTION)
     await _index(flat, dense, sparse, store)
     retriever = HybridRetriever(dense, sparse, store)
     identifiers = build_identifier_index(flat)
-
-    if arguments.retrieval_only or settings.openrouter_api_key is None:
+    key = settings.openrouter_api_key
+    if arguments.retrieval_only or key is None or not key.get_secret_value():
         no_model = AskDeps(catalog, identifiers, retriever, _NoModel(), "")
         report = await _retrieval_only(gold, no_model)
-        if settings.openrouter_api_key is None:
+        if not arguments.retrieval_only:
             report["note"] = "OpenRouter anahtarı yok; yalnız arama ölçüldü."
         return report
 
-    api_key = settings.openrouter_api_key.get_secret_value()
-    async with httpx.AsyncClient() as http:
+    api_key = key.get_secret_value()
+    counts = CacheCounts()
+    transport: httpx.AsyncBaseTransport = httpx.AsyncHTTPTransport()
+    if not arguments.no_cache:
+        transport = CachingTransport(
+            transport, arguments.cache_dir, refresh=arguments.refresh_cache
+        )
+        counts = transport.counts
+    async with httpx.AsyncClient(transport=transport) as http:
         answer_client, translator, rewriter, classifier = await _answer_client(
             http, settings, api_key
         )
@@ -249,7 +330,27 @@ async def run(arguments: argparse.Namespace) -> dict[str, object]:
             rewriter=rewriter,
             intent_classifier=classifier,
         )
-        return await _full_run(gold, deps, arguments.work / "answers.json")
+        questions = select_questions(gold, arguments.questions)
+        if arguments.repeat == 1:
+            return await _full_run(questions, gold, deps, arguments.work / "answers.json", counts)
+        return await _repeated(arguments, questions, gold, deps, counts)
+
+
+async def _repeated(
+    arguments: argparse.Namespace,
+    questions: Sequence[GoldQuestion],
+    gold: GoldSet,
+    deps: AskDeps,
+    counts: CacheCounts,
+) -> dict[str, object]:
+    """Kararlılık ölçümü: aynı sorular art arda sorulur, her soru kaç kez geçti sayılır."""
+    passed: dict[str, int] = {q.question_id: 0 for q in questions}
+    for attempt in range(1, arguments.repeat + 1):
+        output = arguments.work / f"answers-{attempt}.json"
+        await _full_run(questions, gold, deps, output, counts)
+        for row in json.loads(output.read_text(encoding="utf-8")):
+            passed[row["question"]] += int(row["score"]["passed"])
+    return {"repeat": arguments.repeat, "passed": passed}
 
 
 class _NoModel:
@@ -262,8 +363,22 @@ class _NoModel:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Soru hattını üretilen setle ölçer.")
     parser.add_argument("--set", type=Path, default=Path("evals/output/set"))
-    parser.add_argument("--work", type=Path, default=Path("/tmp/run"))
+    parser.add_argument("--work", type=Path, default=Path("evals/output/run"))
     parser.add_argument("--retrieval-only", action="store_true")
+    parser.add_argument("--qdrant-url", help="gömülü klasör yerine Qdrant sunucusu")
+    parser.add_argument("--cache-dir", type=Path, default=Path("evals/output/answer-cache"))
+    parser.add_argument(
+        "--refresh-cache", action="store_true", help="önbellekteki cevapları yeniden sor"
+    )
+    parser.add_argument(
+        "--no-cache", action="store_true", help="önbelleği hiç kullanma ve değiştirme"
+    )
+    parser.add_argument(
+        "--questions",
+        type=lambda text: [item.strip() for item in text.split(",") if item.strip()],
+        help="yalnız bu sorular (virgülle); takip sorularının önceki turları da sorulur",
+    )
+    parser.add_argument("--repeat", type=int, default=1, help="aynı soruları kaç kez sor")
     arguments = parser.parse_args()
     arguments.work.mkdir(parents=True, exist_ok=True)
     json.dump(asyncio.run(run(arguments)), sys.stdout, ensure_ascii=False, indent=1)

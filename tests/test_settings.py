@@ -40,3 +40,14 @@ def test_settings_cannot_be_changed_after_creation() -> None:
 
     with pytest.raises(ValidationError):
         settings.worker_poll_seconds = 1.0  # type: ignore[misc]
+
+
+def test_qdrant_server_is_used_when_no_folder_is_given() -> None:
+    assert make_settings().qdrant_path is None
+    assert make_settings(qdrant_path="  ").qdrant_path is None
+
+
+def test_qdrant_folder_is_read_from_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("VA_QDRANT_PATH", "data/qdrant")
+
+    assert make_settings().qdrant_path == "data/qdrant"

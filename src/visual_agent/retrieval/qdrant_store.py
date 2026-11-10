@@ -2,6 +2,7 @@
 
 import uuid
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 
 from qdrant_client import AsyncQdrantClient, models
 
@@ -15,6 +16,14 @@ _ACCESS_ALL = "all"
 _UPSERT_BATCH = 64
 
 SparseVector = Mapping[int, float]
+
+
+def open_client(url: str, path: str | None) -> AsyncQdrantClient:
+    """Yol verilirse gömülü Qdrant (klasör tek sürece kilitlenir), yoksa sunucu."""
+    if path is not None:
+        Path(path).mkdir(parents=True, exist_ok=True)
+        return AsyncQdrantClient(path=path)
+    return AsyncQdrantClient(url=url)
 
 
 def _point_id(chunk_id: str) -> str:

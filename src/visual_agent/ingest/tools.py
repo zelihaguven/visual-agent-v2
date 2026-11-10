@@ -1,10 +1,12 @@
-"""Dış araçlar: LibreOffice, Tesseract, RapidOCR ve Docling. Yalnız işçi imajında çalışır."""
+"""Dış araçlar: LibreOffice, Tesseract, RapidOCR ve Docling. İşçide çalışır (yerel ya da imaj)."""
 
 import logging
 import shutil
 import subprocess
+import sys
 import tempfile
 from collections.abc import Iterable
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +19,7 @@ from PIL import Image, ImageOps
 from visual_agent.domain.document import Box, SourceLocation
 from visual_agent.ingest.docling_parser import parse_with_docling
 from visual_agent.ingest.elements import Element, ElementKind
+from visual_agent.ingest.external import ExternalTools, locate_tools
 from visual_agent.ingest.images import (
     OcrSegment,
     group_lines,
@@ -56,11 +59,11 @@ _IMAGE_PAGE_DPI = 150
 _TESSERACT_PAGE_MODES = ("6", "11")
 
 
-def _soffice(path: Path, work: Path, target: str) -> Path:
-    profile = tempfile.mkdtemp(prefix="lo-profile-", dir=work)
+def _soffice(path: Path, work: Path, target: str, executable: str) -> Path:
+    profile = Path(tempfile.mkdtemp(prefix="lo-profile-", dir=work))
     command = [
-        "soffice",
-        f"-env:UserInstallation=file://{profile}",
+        executable,
+        f"-env:UserInstallation={profile.resolve().as_uri()}",
         "--headless",
         "--convert-to",
         target,
@@ -73,12 +76,12 @@ def _soffice(path: Path, work: Path, target: str) -> Path:
     return work / f"{path.stem}.{target}"
 
 
-def office_to_pdf(path: Path, work: Path) -> Path:
-    return _soffice(path, work, "pdf")
+def office_to_pdf(path: Path, work: Path, external: ExternalTools) -> Path:
+    return _soffice(path, work, "pdf", external.require_soffice())
 
 
-def legacy_spreadsheet_to_xlsx(path: Path, work: Path) -> Path:
-    return _soffice(path, work, "xlsx")
+def legacy_spreadsheet_to_xlsx(path: Path, work: Path, external: ExternalTools) -> Path:
+    return _soffice(path, work, "xlsx", external.require_soffice())
 
 
 def image_to_pdf(path: Path, work: Path) -> Path:
@@ -130,9 +133,13 @@ def inspect_pdf(path: Path) -> list[PageInfo]:
         document.close()
 
 
-def _run_ocrmypdf(source: Path, target: Path, flag: str, language: str, pages: list[int]) -> None:
+def _run_ocrmypdf(
+    source: Path, target: Path, flag: str, language: str, pages: list[int], env: dict[str, str]
+) -> None:
     deskew = ["--deskew"] if flag == "--skip-text" else []
     command = [
+        sys.executable,
+        "-m",
         "ocrmypdf",
         "-l",
         language,
@@ -151,7 +158,7 @@ def _run_ocrmypdf(source: Path, target: Path, flag: str, language: str, pages: l
         str(source),
         str(target),
     ]
-    subprocess.run(command, check=True, capture_output=True, timeout=_OCR_TIMEOUT_SECONDS)
+    subprocess.run(command, check=True, capture_output=True, timeout=_OCR_TIMEOUT_SECONDS, env=env)
 
 
 def _rapid_engine() -> Any:
@@ -214,7 +221,9 @@ def _decide_page(
     return choice, tuple(unconfirmed_tokens(new, second))
 
 
-def run_ocr(path: Path, pages: list[PageInfo], language: str, work: Path) -> OcrOutcome:
+def run_ocr(
+    path: Path, pages: list[PageInfo], language: str, work: Path, external: ExternalTools
+) -> OcrOutcome:
     groups: dict[str, list[PageInfo]] = {}
     for info in pages:
         if info.kind in _OCR_FLAGS:
@@ -222,13 +231,17 @@ def run_ocr(path: Path, pages: list[PageInfo], language: str, work: Path) -> Ocr
     if not groups:
         return OcrOutcome(pdf_path=path, ocr_pages={})
     tesseract_language = _TESSERACT_LANGUAGES.get(language, "eng")
+    external.require_tesseract(tesseract_language)
+    environment = external.subprocess_environment()
     engine = _rapid_engine()
     result_path = work / f"{path.stem}.ocr.pdf"
     chosen: dict[int, Path] = {}
     uncertain: dict[int, tuple[str, ...]] = {}
     for index, (flag, infos) in enumerate(groups.items()):
         target = work / f"{path.stem}.group{index}.pdf"
-        _run_ocrmypdf(path, target, flag, tesseract_language, [info.page for info in infos])
+        _run_ocrmypdf(
+            path, target, flag, tesseract_language, [info.page for info in infos], environment
+        )
         for info in infos:
             choice, tokens = _decide_page(engine, path, target, info)
             if choice is LayerChoice.NEW:
@@ -273,13 +286,13 @@ def skipped_image_warnings(pages: list[PageInfo]) -> list[str]:
     ]
 
 
-def _tesseract_text(image: Image.Image, language: str, work: str) -> str:
+def _tesseract_text(image: Image.Image, language: str, work: str, executable: str) -> str:
     """Tablolarda blok modu son sütunları kaçırır; seyrek mod da okunup birleştirilir."""
     source = Path(work) / "crop.png"
     image.save(source)
     readings = [
         subprocess.run(
-            ["tesseract", str(source), "stdout", "-l", language, "--psm", mode],
+            [executable, str(source), "stdout", "-l", language, "--psm", mode],
             check=True,
             capture_output=True,
             timeout=_OCR_TIMEOUT_SECONDS,
@@ -317,20 +330,24 @@ def _segments_in_page_points(
     ]
 
 
-def _read_image(engine: Any, page_image: Image.Image, box: Box, language: str) -> list[Element]:
+def _read_image(
+    engine: Any, page_image: Image.Image, box: Box, language: str, tesseract: str
+) -> list[Element]:
     crop = _crop(page_image, box)
     raw = _rapid_segments(engine, crop)
     if not raw:
         return []
     elements = lines_to_elements(group_lines(_segments_in_page_points(raw, box)), box)
     with tempfile.TemporaryDirectory() as work:
-        second = _tesseract_text(crop, language, work)
+        second = _tesseract_text(crop, language, work, tesseract)
     first = " ".join(text for text, _ in raw)
     tokens = unconfirmed_tokens(first, second)
     return [with_uncertain_tokens(element, tokens) for element in elements]
 
 
-def read_embedded_images(path: Path, pages: list[PageInfo], language: str) -> list[Element]:
+def read_embedded_images(
+    path: Path, pages: list[PageInfo], language: str, external: ExternalTools
+) -> list[Element]:
     """Metinli sayfalardaki gömülü görselleri okur; tamamı taranmış sayfalar OCR yolundan geçer."""
     targets = [
         (info.page, box)
@@ -342,13 +359,14 @@ def read_embedded_images(path: Path, pages: list[PageInfo], language: str) -> li
     if not targets:
         return []
     tesseract_language = _TESSERACT_LANGUAGES.get(language, "eng")
+    tesseract = external.require_tesseract(tesseract_language)
     engine = _rapid_engine()
     document = pypdfium2.PdfDocument(path)
     try:
         elements: list[Element] = []
         for page_number, box in targets:
             image = _render_page(document, page_number)
-            elements += _read_image(engine, image, box, tesseract_language)
+            elements += _read_image(engine, image, box, tesseract_language, tesseract)
         return elements
     finally:
         document.close()
@@ -361,15 +379,17 @@ def recover_page_text(path: Path, page: int) -> list[Element]:
     return [Element(ElementKind.TEXT, " ".join(text.split()), SourceLocation(page=page))]
 
 
-def default_tools() -> IngestTools:
+def default_tools(external: ExternalTools | None = None) -> IngestTools:
+    """Araç yolları verilmezse PATH'te aranır."""
+    found = external if external is not None else locate_tools(None, None)
     return IngestTools(
-        office_to_pdf=office_to_pdf,
-        legacy_spreadsheet_to_xlsx=legacy_spreadsheet_to_xlsx,
+        office_to_pdf=partial(office_to_pdf, external=found),
+        legacy_spreadsheet_to_xlsx=partial(legacy_spreadsheet_to_xlsx, external=found),
         image_to_pdf=image_to_pdf,
         inspect_pdf=inspect_pdf,
-        run_ocr=run_ocr,
+        run_ocr=partial(run_ocr, external=found),
         parse_pdf=parse_pdf,
-        read_embedded_images=read_embedded_images,
+        read_embedded_images=partial(read_embedded_images, external=found),
         recover_page_text=recover_page_text,
         skipped_image_warnings=skipped_image_warnings,
     )

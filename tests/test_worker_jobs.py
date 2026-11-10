@@ -9,6 +9,7 @@ from apps.worker.jobs import DocumentProcessor
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
 from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
+from visual_agent.ingest.external import SOFFICE_MISSING, MissingTool
 from visual_agent.ingest.pipeline import IngestReport, IngestResult
 
 
@@ -193,7 +194,7 @@ def test_document_is_still_failed_when_vector_cleanup_fails(tmp_path: Path) -> N
 
 
 def test_document_is_requeued_after_a_database_outage(tmp_path: Path) -> None:
-    outage = ConnectionError("postgres kapalı")
+    outage = ConnectionError("veritabanı kilitli")
     repository = FakeRepository(
         queued=[document(tmp_path)], ready_error=outage, failed_error=outage
     )
@@ -211,7 +212,7 @@ def test_document_is_requeued_after_a_database_outage(tmp_path: Path) -> None:
 
 
 def test_requeue_runs_only_once_after_an_outage(tmp_path: Path) -> None:
-    outage = ConnectionError("postgres kapalı")
+    outage = ConnectionError("veritabanı kilitli")
     repository = FakeRepository(
         queued=[document(tmp_path)], ready_error=outage, failed_error=outage
     )
@@ -257,3 +258,14 @@ def test_snapshot_exposes_catalog_and_identifiers() -> None:
 
     assert snapshot.catalog.title("d") == "PNT-4417 föy"
     assert snapshot.identifiers.lookup("PNT-4417") == ("d:0",)
+
+
+def test_missing_tool_is_reported_with_its_own_message(tmp_path: Path) -> None:
+    repository = FakeRepository(queued=[document(tmp_path)])
+
+    def ingest(path: Path, meta: DocumentMeta, work: Path) -> IngestResult:
+        raise MissingTool(SOFFICE_MISSING)
+
+    asyncio.run(DocumentProcessor(repository, FakeIndexer(), ingest).process_next())
+
+    assert repository.failed == [("d", SOFFICE_MISSING)]

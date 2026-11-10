@@ -2,7 +2,7 @@
 
 from typing import Literal, Self
 
-from pydantic import AnyHttpUrl, Field, PostgresDsn, SecretStr, model_validator
+from pydantic import AnyHttpUrl, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,9 +16,14 @@ class Settings(BaseSettings):
 
     auth_enabled: bool = False
     qdrant_url: AnyHttpUrl = AnyHttpUrl("http://localhost:6333")
-    database_url: PostgresDsn | None = None
+    qdrant_path: str | None = None
+    database_path: str = "data/visual_agent.db"
     worker_poll_seconds: float = Field(default=5.0, gt=0)
+    worker_in_process: bool = True
     storage_directory: str = "data/documents"
+    web_directory: str | None = "apps/web/dist"
+    soffice_path: str | None = None
+    tesseract_path: str | None = None
     openrouter_api_key: SecretStr | None = None
     openrouter_url: AnyHttpUrl = AnyHttpUrl("https://openrouter.ai/api/v1")
     answer_model: str = "google/gemma-4-26b-a4b-it"
@@ -33,6 +38,14 @@ class Settings(BaseSettings):
     tts_model: str = "google/gemini-3.8-flash-lite-tts"
     tts_voice: str = "Kore"
     tts_format: Literal["mp3", "pcm"] = "pcm"
+
+    @field_validator(
+        "qdrant_path", "web_directory", "soffice_path", "tesseract_path", mode="before"
+    )
+    @classmethod
+    def empty_path_means_server(cls, value: object) -> object:
+        """Boş yol verilmemiş sayılır: Qdrant sunucusu, arayüzsüz API, araçlar PATH'ten."""
+        return None if isinstance(value, str) and not value.strip() else value
 
     @model_validator(mode="after")
     def reject_unimplemented_login(self) -> Self:

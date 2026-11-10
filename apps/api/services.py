@@ -1,4 +1,4 @@
-"""Gerçek bağımlılıkları kurar: Postgres, Qdrant, modeller ve OpenRouter."""
+"""Gerçek bağımlılıkları kurar: SQLite, Qdrant, modeller ve OpenRouter."""
 
 import asyncio
 import logging
@@ -7,15 +7,14 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-import asyncpg
 import httpx
-from qdrant_client import AsyncQdrantClient
 
 from apps.api.main import ApiServices
 from apps.api.voice import fixed_notice_texts, fixed_reply_texts
+from apps.worker.indexing import LazyIndexer, SharedEncoders
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.orchestrator import answer_question
-from visual_agent.catalog.repository import DocumentRepository
+from visual_agent.catalog.repository import DocumentRepository, open_repository
 from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.result import AskOutcome, Failed
 from visual_agent.generation.intent import IntentClassifier, make_intent_classifier
@@ -30,7 +29,7 @@ from visual_agent.generation.prompts import load_answer_prompt, load_answer_sche
 from visual_agent.generation.rewrite import Rewriter, make_rewriter
 from visual_agent.generation.translate import Translator, make_translator
 from visual_agent.retrieval.hybrid import HybridRetriever
-from visual_agent.retrieval.qdrant_store import QdrantChunkStore
+from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
 from visual_agent.settings import Settings
 from visual_agent.voice.client import CachingVoice, OpenRouterVoice, Voice
 
@@ -59,22 +58,20 @@ class AskRuntime:
         http: httpx.AsyncClient,
         store: QdrantChunkStore,
         snapshots: SnapshotProvider,
+        encoders: SharedEncoders,
     ) -> None:
         self._settings = settings
         self._http = http
         self._store = store
+        self._encoders = encoders
         self._snapshots = snapshots
         self._clients: _ModelClients | None = None
         self._lock = asyncio.Lock()
 
     async def _build_clients(self, api_key: str) -> _ModelClients:
-        from visual_agent.retrieval.encoders import BgeM3Dense, Bm25Sparse
-
         settings = self._settings
         url = str(settings.openrouter_url).rstrip("/")
-        dense, sparse = await asyncio.gather(
-            asyncio.to_thread(BgeM3Dense), asyncio.to_thread(Bm25Sparse)
-        )
+        dense, sparse = await self._encoders.get()
         await self._store.ensure_collection(dense.size)
         index = await fetch_zdr_index(self._http, url, api_key)
         providers, ignored = select_providers(
@@ -161,19 +158,51 @@ def _make_voice(settings: Settings, http: httpx.AsyncClient) -> Voice | None:
     return CachingVoice(openrouter, (*fixed_reply_texts(), *fixed_notice_texts()))
 
 
+async def _process_documents(
+    repository: DocumentRepository,
+    store: QdrantChunkStore,
+    encoders: SharedEncoders,
+    stop: asyncio.Event,
+    settings: Settings,
+) -> None:
+    """İşçi API sürecinde: gömülü Qdrant klasörü ve embedding modeli paylaşılır.
+
+    İşçi modülleri burada yüklenir: sunucudaki API imajında belge işleme paketleri yoktur.
+    """
+    await repository.requeue_interrupted()
+    try:
+        from apps.worker.jobs import DocumentProcessor
+        from apps.worker.main import default_ingest, process_until_stopped
+
+        ingest = await asyncio.to_thread(default_ingest, settings)
+    except ImportError:
+        logger.error(
+            "Belge işleme paketleri kurulu değil; yüklenen belgeler kuyrukta bekleyecek."
+            " Kurulum: uv sync --extra ingest --extra retrieval"
+        )
+        return
+    processor = DocumentProcessor(repository, LazyIndexer(store, encoders), ingest)
+    logger.info("Belge işçisi API sürecinde başladı")
+    await process_until_stopped(processor.process_next, stop, settings.worker_poll_seconds)
+
+
 @asynccontextmanager
 async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
-    pool = await asyncpg.create_pool(str(settings.database_url))
-    repository = DocumentRepository(pool)
+    repository = open_repository(Path(settings.database_path))
     await repository.migrate()
-    qdrant = AsyncQdrantClient(url=str(settings.qdrant_url))
+    qdrant = open_client(str(settings.qdrant_url), settings.qdrant_path)
+    store = QdrantChunkStore(qdrant, COLLECTION)
+    encoders = SharedEncoders()
     storage = Path(settings.storage_directory)
     storage.mkdir(parents=True, exist_ok=True)
+    stop = asyncio.Event()
     async with httpx.AsyncClient() as http:
-        runtime = AskRuntime(
-            settings, http, QdrantChunkStore(qdrant, COLLECTION), SnapshotProvider(repository)
-        )
-        warm_up = asyncio.create_task(runtime.warm_up())
+        runtime = AskRuntime(settings, http, store, SnapshotProvider(repository), encoders)
+        background = [asyncio.create_task(runtime.warm_up())]
+        if settings.worker_in_process:
+            background.append(
+                asyncio.create_task(_process_documents(repository, store, encoders, stop, settings))
+            )
         try:
             yield ApiServices(
                 repository=repository,
@@ -181,11 +210,13 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
                 storage_directory=storage,
                 voice=_make_voice(settings, http),
                 health_checks={
-                    "postgres": lambda: pool.fetchval("SELECT 1"),
+                    "database": repository.ping,
                     "qdrant": qdrant.get_collections,
                 },
             )
         finally:
-            warm_up.cancel()
+            stop.set()
+            for task in background:
+                task.cancel()
+            await asyncio.gather(*background, return_exceptions=True)
             await qdrant.close()
-            await pool.close()

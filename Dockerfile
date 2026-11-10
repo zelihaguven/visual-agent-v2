@@ -17,7 +17,7 @@ RUN uv sync --frozen --no-dev --extra retrieval --no-install-project
 COPY --from=source / ./
 RUN uv sync --frozen --no-dev --extra retrieval
 ENV HOME=/home/appuser FASTEMBED_CACHE_PATH=/home/appuser/.cache/fastembed
-RUN mkdir -p /data/documents /home/appuser/.cache && chown -R appuser /data /home/appuser/.cache
+RUN mkdir -p /data/documents /data/db /home/appuser/.cache && chown -R appuser /data /home/appuser/.cache
 USER appuser
 EXPOSE 8000
 CMD ["uvicorn", "apps.api.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
@@ -38,7 +38,7 @@ RUN python -c "from rapidocr import RapidOCR; RapidOCR()" \
     && chmod -R a+rX /app/.venv
 COPY --from=source / ./
 RUN uv sync --frozen --no-dev --extra ingest --extra retrieval
-RUN mkdir -p /data/documents /opt/docling-models /home/appuser/.cache/huggingface /home/appuser/.cache/fastembed \
+RUN mkdir -p /data/documents /data/db /opt/docling-models /home/appuser/.cache/huggingface /home/appuser/.cache/fastembed \
     && chown -R appuser /data /opt/docling-models /home/appuser/.cache
 USER appuser
 CMD ["python", "-m", "apps.worker.main"]

@@ -12,21 +12,6 @@ services:
       timeout: 3s
       retries: 20
 
-  postgres:
-    image: postgres:17-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: visual_agent
-      POSTGRES_DB: visual_agent
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?.env dosyasında POSTGRES_PASSWORD tanımlayın}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U visual_agent -d visual_agent"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
   api:
     build:
       context: .
@@ -35,16 +20,16 @@ services:
     environment: &app-environment
       VA_AUTH_ENABLED: ${VA_AUTH_ENABLED:-false}
       VA_QDRANT_URL: http://qdrant:6333
-      VA_DATABASE_URL: postgresql://visual_agent:${POSTGRES_PASSWORD}@postgres:5432/visual_agent
+      VA_DATABASE_PATH: /data/db/visual_agent.db
       VA_OPENROUTER_API_KEY: ${VA_OPENROUTER_API_KEY:-}
       VA_STORAGE_DIRECTORY: /data/documents
+      VA_WORKER_IN_PROCESS: "false"
     volumes: &app-volumes
       - documents_data:/data/documents
+      - database_data:/data/db
       - model_cache:/home/appuser/.cache
     depends_on:
       qdrant:
-        condition: service_healthy
-      postgres:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/api/health', timeout=2)"]
@@ -61,12 +46,11 @@ services:
     environment: *app-environment
     volumes:
       - documents_data:/data/documents
+      - database_data:/data/db
       - model_cache:/home/appuser/.cache
       - docling_models:/opt/docling-models
     depends_on:
       qdrant:
-        condition: service_healthy
-      postgres:
         condition: service_healthy
 
   web:
@@ -88,4 +72,4 @@ volumes:
   model_cache:
   docling_models:
   qdrant_data:
-  postgres_data:
+  database_data:

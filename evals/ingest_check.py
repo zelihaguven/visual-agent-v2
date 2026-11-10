@@ -11,6 +11,7 @@ from pathlib import Path
 from evals.gold import GoldQuestion, GoldSet, GoldSource
 from evals.scoring import extract_tokens
 from visual_agent.domain.document import Chunk, DocumentMeta
+from visual_agent.settings import Settings
 
 
 def source_matches(chunk: Chunk, source: GoldSource) -> bool:
@@ -54,11 +55,13 @@ def blocked_values(question: GoldQuestion, chunks: Sequence[Chunk]) -> list[str]
 
 
 def run(set_directory: Path) -> dict[str, object]:
+    from visual_agent.ingest.external import locate_tools
     from visual_agent.ingest.pipeline import ingest_document
     from visual_agent.ingest.tools import default_tools
 
     gold = GoldSet.model_validate_json((set_directory / "gold.json").read_text(encoding="utf-8"))
-    tools = default_tools()
+    settings = Settings()
+    tools = default_tools(locate_tools(settings.soffice_path, settings.tesseract_path))
     chunks: dict[str, tuple[Chunk, ...]] = {}
     per_document: list[dict[str, object]] = []
     for document in gold.documents:
