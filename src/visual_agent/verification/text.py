@@ -72,25 +72,39 @@ def normalize(text: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"\s*-\s*", "-", folded)).strip()
 
 
-_EMPHASIS_MARK_RE = re.compile(
-    r"(?<=[^\s*\\])\*{1,3}(?=\s|$)|(?:(?<=\s)|^)\*{1,3}(?=[^\s*])", re.MULTILINE
-)
+_PAIRED_STRONG_RE = re.compile(r"(?<![\w*\\])(\*{2,3})(?=\S)(.+?)(?<=\S)(?<!\\)\1(?![\w*])")
+_PAIRED_CODE_RE = re.compile(r"(?<![\w`\\])`([^`\n]+)`(?![\w`])")
+_STRONG_MARK_RE = re.compile(r"(?<!\\)\*{2,3}")
 _ESCAPED_RE = re.compile(r"\\([\\`*_{}\[\]()#+\-.!|>~])")
 _QUOTE_MARKS = str.maketrans({mark: '"' for mark in "'‘’‚‛“”„‟«»"})
 
 
-def quote_form(text: str) -> str:
-    """Alıntı denetiminin karşılaştırma biçimi; iki tarafa da aynı uygulanır.
+def _finish(text: str) -> str:
+    """Her biçimde geçerli kurallar: kaçış ters bölüsü, tırnak türü, boşluk."""
+    return normalize(_ESCAPED_RE.sub(r"\1", text).translate(_QUOTE_MARKS))
 
-    Yalnız biçim farkı yok sayılır: markdown vurgu yıldızları, satır içi kod işareti, markdown
-    kaçış ters bölüsü ve tırnak türü. Vurgu yıldızı eş aranmadan, konumundan tanınır: bir yanı
-    kelimeye yapışık, öbür yanı boşluk ya da satır başı/sonu olan yıldız grubu. Böylece alıntı
-    biçimlendirmenin ortasından başlasa da iki taraf aynı biçime iner; iki yanı yapışık (2*3)
-    ya da iki yanı boş (a * b) yıldız içeriktir, kalır. Rakam, ayraç, birim, kelime, kelime
-    içindeki alt çizgi ve nokta olduğu gibi kalır. Saklanan ve gösterilen metin değişmez.
+
+def quote_form(text: str) -> str:
+    """Tırnak ve boşluk dışında biçime dokunmayan karşılaştırma biçimi (birebir yol)."""
+    return normalize(text.translate(_QUOTE_MARKS))
+
+
+def source_plain_form(text: str) -> str:
+    """Parça metninden yalnız eşli markdown işaretleri kalkar: **kalın**, ***kalın-italik***, `kod`.
+
+    Kaynak biçimi denetimde bilinmediği için eşsiz ya da kelimeye gömülü işaret içerik sayılır
+    (pass **kwargs, 2**3); tek yıldız hiç silinmez (ABC*, *.txt). Saklanan metin değişmez.
     """
-    unmarked = _EMPHASIS_MARK_RE.sub("", text).replace("`", "")
-    return normalize(_ESCAPED_RE.sub(r"\1", unmarked).translate(_QUOTE_MARKS))
+    return _finish(_PAIRED_CODE_RE.sub(r"\1", _PAIRED_STRONG_RE.sub(r"\2", text)))
+
+
+def quote_plain_form(text: str) -> str:
+    """Model alıntısından bütün ** / *** grupları ve ters tırnaklar kalkar; tek yıldız kalır.
+
+    Alıntı kaynağın bir parçasıdır, eşi alıntının dışında kalmış işaret de biçimdir. Bu biçim
+    yalnız source_plain_form ile karşılaştırılır: kaynakta içerik sayılan işaret orada kalır.
+    """
+    return _finish(_STRONG_MARK_RE.sub("", text).replace("`", ""))
 
 
 def _expand_citation(match: re.Match[str]) -> str:
