@@ -21,7 +21,7 @@ Gereken: Windows (ya da macOS/Linux), veri saklamayan uçlara erişimi olan bir 
 
 Tesseract ya da LibreOffice yoksa uygulama yine açılır: açılışta hangi belgelerin işlenemeyeceği yazılır, o belgeler listede kendi hata mesajıyla görünür. PDF, .xlsx, metin ve SQL dosyaları bunlarsız çalışır.
 
-1. Ayar dosyasını oluşturun ve içindeki `VA_OPENROUTER_API_KEY` değerini doldurun. Bu dosya repoya girmez.
+1. Ayar dosyasını oluşturun; `VA_OPENROUTER_API_KEY` satırının başındaki `#` işaretini kaldırıp anahtarı yazın. Bu dosya repoya girmez.
 
    ```powershell
    copy .env.example .env
