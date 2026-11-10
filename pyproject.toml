@@ -6,6 +6,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi>=0.115",
     "httpx>=0.28.1",
+    "markdown-it-py>=4.0",
     "pillow>=13.0.0",
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
@@ -96,6 +97,8 @@ max-complexity = 10
 python_version = "3.12"
 strict = true
 files = ["src", "apps", "evals", "tests"]
+# Ölçüm çıktıları ve oradaki tek seferlik betikler git dışıdır; denetimi kırmamalı.
+exclude = ["^evals/output/"]
 plugins = ["pydantic.mypy"]
 explicit_package_bases = true
 mypy_path = ["src", "."]

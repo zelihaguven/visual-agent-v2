@@ -3,6 +3,8 @@
 import re
 import unicodedata
 
+from markdown_it import MarkdownIt
+
 _NUMBER = r"\d+(?:[.,]\d+)?"
 _NUMBER_RE = re.compile(_NUMBER)
 TOLERANCE_RE = re.compile(rf"({_NUMBER})\s*\(\s*±\s*({_NUMBER})\s*\)")
@@ -70,6 +72,42 @@ def normalize(text: str) -> str:
     for original, replacement in (("’", "'"), ("“", '"'), ("”", '"'), ("–", "-"), ("—", "-")):
         folded = folded.replace(original, replacement)
     return re.sub(r"\s+", " ", re.sub(r"\s*-\s*", "-", folded)).strip()
+
+
+_QUOTE_MARKS = str.maketrans({mark: '"' for mark in "'‘’‚‛“”„‟«»"})
+# Yalnız satır içi vurgu, satır içi kod ve kaçış; başlık, liste, tablo, bağlantı, HTML kapalı.
+_MARKDOWN = MarkdownIt("zero").enable(["emphasis", "backticks", "escape"])
+_INTRAWORD_STARS_RE = re.compile(r"(?<=[^\W_])\*+(?=[^\W_])")
+_UNESCAPED_UNDERSCORE_RE = re.compile(r"(?<!\\)_")
+_PLAIN_TOKENS = {"text", "text_special", "code_inline"}
+
+
+def quote_form(text: str) -> str:
+    """Birebir yol: yalnız tırnak türü ve boşluk tek biçime iner."""
+    return normalize(text.translate(_QUOTE_MARKS))
+
+
+def _escape_content_marks(text: str) -> str:
+    """Biçim bilinmediği için kelime içindeki yıldız (2*3, x**2) ve alt çizgi içerik sayılır."""
+    stars = _INTRAWORD_STARS_RE.sub(lambda match: "\\*" * len(match.group()), text)
+    return _UNESCAPED_UNDERSCORE_RE.sub(r"\\_", stars)
+
+
+def markdown_plain_form(text: str) -> str:
+    """Sade yol: markdown vurgusu, satır içi kod işareti ve kaçış standart ayrıştırıcıyla kalkar.
+
+    Hangi yıldızın vurgu, hangisinin içerik olduğuna CommonMark ayrıştırıcısı karar verir
+    (pass **kwargs ve ABC* içerik kalır). Alıntıya ve parçaya aynı biçimde uygulanır; saklanan
+    ve gösterilen metin değişmez. Sonra tırnak ve boşluk birebir yoldaki gibi tek biçime iner.
+    """
+    tokens = _MARKDOWN.parseInline(_escape_content_marks(text))
+    plain = "".join(
+        child.content
+        for token in tokens
+        for child in token.children or ()
+        if child.type in _PLAIN_TOKENS
+    )
+    return quote_form(plain)
 
 
 def _expand_citation(match: re.Match[str]) -> str:

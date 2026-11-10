@@ -1,11 +1,12 @@
 import argparse
 import asyncio
+import gzip
 from pathlib import Path
 
 import httpx
 import pytest
 
-from evals.answer_cache import CacheCounts, CachingTransport
+from evals.answer_cache import CacheCounts, CachingTransport, Usage, usage_from_body
 from evals.gold import GoldQuestion, GoldSet, Outcome, QuestionKind
 from evals.run_questions import (
     DEFAULT_CACHE_DIR,
@@ -228,3 +229,58 @@ def test_repeat_must_be_positive() -> None:
 
 def test_repeat_report_says_the_cache_was_not_used() -> None:
     assert NO_CACHE_NOTE == "önbellek kullanılmadı"
+
+
+SSE_WITH_USAGE = (
+    b'data: {"choices":[{"delta":{"content":"x"}}]}\n\n'
+    b'data: {"choices":[],"usage":{"prompt_tokens":120,"completion_tokens":30,"cost":0.0004}}\n\n'
+    b"data: [DONE]\n\n"
+)
+
+
+def test_usage_is_read_from_a_streamed_answer() -> None:
+    usage = usage_from_body(SSE_WITH_USAGE, None)
+
+    assert (usage.requests, usage.prompt_tokens, usage.completion_tokens) == (1, 120, 30)
+    assert usage.cost_usd == 0.0004
+
+
+def test_usage_is_read_from_a_compressed_json_answer() -> None:
+    body = gzip.compress(
+        b'{"choices":[],"usage":{"prompt_tokens":50,"completion_tokens":5,"cost":0.00002}}'
+    )
+
+    usage = usage_from_body(body, "gzip")
+
+    assert (usage.prompt_tokens, usage.completion_tokens, usage.cost_usd) == (50, 5, 0.00002)
+
+
+def test_answer_without_usage_still_counts_as_a_request() -> None:
+    assert usage_from_body(b"bozuk", "gzip") == Usage(requests=1)
+    assert usage_from_body(b'{"choices":[]}', None) == Usage(requests=1)
+
+
+def test_usage_is_counted_for_live_and_cached_answers(tmp_path: Path) -> None:
+    def handle(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=SSE_WITH_USAGE)
+
+    async def run() -> list[Usage]:
+        seen = []
+        for _ in range(2):
+            transport = CachingTransport(httpx.MockTransport(handle), tmp_path)
+            async with httpx.AsyncClient(transport=transport) as client:
+                await _ask(client, {"soru": "bel"})
+            seen.append(transport.usage)
+        return seen
+
+    live, cached = asyncio.run(run())
+
+    assert live == cached == Usage(1, 120, 30, 0.0004)
+
+
+def test_usage_difference_is_taken_per_question() -> None:
+    usage = Usage(2, 100, 10, 0.001)
+    before = usage.snapshot()
+    usage.add(Usage(1, 40, 4, 0.0005))
+
+    assert usage.since(before) == Usage(1, 40, 4, 0.0005)

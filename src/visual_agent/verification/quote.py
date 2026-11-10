@@ -1,6 +1,15 @@
-"""Alıntının kaynakla birebir eşleşmesi."""
+"""Alıntının kaynakla birebir eşleşmesi; yalnız biçim farkı yok sayılır.
 
-from visual_agent.verification.text import CUT_CITATION_RE, normalize
+İki yol denenir, ikisinde de alıntıya ve parçaya aynı biçim uygulanır:
+1. Birebir yol: yalnız tırnak türü ve boşluk tek biçime iner (quote_form).
+2. Sade yol: markdown vurgusu, satır içi kod işareti ve kaçış standart ayrıştırıcıyla kalkar
+   (markdown_plain_form). Kaynak biçimi (markdown, PDF, Word) denetimde bilinmez.
+İkisi de tutmazsa alıntı reddedilir.
+"""
+
+from collections.abc import Callable
+
+from visual_agent.verification.text import CUT_CITATION_RE, markdown_plain_form, quote_form
 
 QUOTE_LIMIT = 150
 _CUT_MARGIN = 15
@@ -8,6 +17,9 @@ _CUT_MAX_TAIL = 20
 _CELL_SEPARATOR = " | "
 _LABEL_SEPARATOR = ": "
 _MAX_LABEL_LENGTH = 80
+
+Form = Callable[[str], str]
+_FORMS: tuple[Form, ...] = (quote_form, markdown_plain_form)
 
 
 def _labeled_cells(line: str) -> list[tuple[str, str]]:
@@ -19,25 +31,29 @@ def _labeled_cells(line: str) -> list[tuple[str, str]]:
     return cells
 
 
-def field_quote_matches(quote: str, source: str) -> bool:
-    """Etiketli hücre alıntısı, aynı etiketin hücresinde bitişik geçmelidir."""
+def _field_matches(quote: str, source: str, form: Form) -> bool:
     label, separator, value = quote.strip().partition(_LABEL_SEPARATOR)
     value = value.strip()
     if not separator or not value or "|" in value or "|" in label:
         return False
-    wanted_label, wanted_value = normalize(label), normalize(value)
+    wanted_label, wanted_value = form(label), form(value)
     return any(
-        normalize(cell_label) == wanted_label and wanted_value in normalize(cell_value)
+        form(cell_label) == wanted_label and wanted_value in form(cell_value)
         for line in source.splitlines()
         for cell_label, cell_value in _labeled_cells(line)
     )
 
 
-def _cut_prefix_matches(quote: str, normalized_source: str) -> bool:
+def field_quote_matches(quote: str, source: str) -> bool:
+    """Etiketli hücre alıntısı, aynı etiketin hücresinde bitişik geçmelidir."""
+    return any(_field_matches(quote, source, form) for form in _FORMS)
+
+
+def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
     """Uzunluk sınırına dayanıp sonu bozulan alıntının başı kaynakla örtüşüyorsa kabul eder."""
     if len(quote) < QUOTE_LIMIT - _CUT_MARGIN:
         return False
-    normalized = normalize(quote)
+    normalized = form(quote)
     words = normalized.split(" ")
     for count in range(len(words) - 1, 0, -1):
         head = " ".join(words[:count])
@@ -46,14 +62,18 @@ def _cut_prefix_matches(quote: str, normalized_source: str) -> bool:
     return False
 
 
-def quote_matches(quote: str, source: str) -> bool:
+def _matches(quote: str, source: str, form: Form) -> bool:
     without_citation = CUT_CITATION_RE.sub("", quote)
-    normalized_quote = normalize(without_citation)
+    normalized_quote = form(without_citation)
     if not normalized_quote:
         return False
-    normalized_source = normalize(source)
+    normalized_source = form(source)
     return (
         normalized_quote in normalized_source
-        or field_quote_matches(without_citation, source)
-        or _cut_prefix_matches(quote, normalized_source)
+        or _field_matches(without_citation, source, form)
+        or _cut_prefix_matches(quote, normalized_source, form)
     )
+
+
+def quote_matches(quote: str, source: str) -> bool:
+    return any(_matches(quote, source, form) for form in _FORMS)
