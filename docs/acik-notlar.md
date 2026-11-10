@@ -21,6 +21,7 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - GPT-OSS 120B ve GLM 5.3 Flash isteklerimize cevap vermedi; istemci uyumsuzluğu çözülürse hız için yeniden ölçülebilir.
 - Aynı belgenin iki sürümü farklı değer verdiğinde model bazen sormak yerine ikisini de listeliyor. Taban ölçümünde görüldü ([0004](decisions/0004-olcum-sonuclari.md)): değerler ve kaynakları doğru, yalnız netleştirme atlandı. `dikim-revizyon-netlestir`: seed 7'de 5/5, seed 11'de 1/5; fark belgeden mi modelin rastgeleliğinden mi geliyor, ölçülmedi. Gerçek belgelerde ne sıklıkla olduğuna bakılacak.
 - Model değişince önceki beden düşüyor; sistem o zaman bedeni yeniden soruyor. `dikim-sohbet-1-t4` iki sette önbelleksiz 10 tekrarın hiçbirinde geçmedi, yani her seferinde oluyor: takip sorusunu tamamlayan yardımcı model bedeni düşürüyor. Çözüm bekliyor.
+- Alıntı denetimi (sade yol): satır içi kod içindeki alt çizgi ya da kelime içi yıldız (`` `my_var` ``, `` `x**2` ``) ayrıştırıcıdan önce kaçışla korunduğu için kodun içinde ters bölü kalıyor; bu kodu ters tırnaksız alıntılayan doğru alıntı reddediliyor (Bugbot, PR #4, "Code spans keep pre-escaped marks"). Yalnız haksız ret, gerileme değil; sonra ele alınacak.
 
 ## Belge yönetimi
 
