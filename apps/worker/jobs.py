@@ -11,6 +11,7 @@ from typing import Protocol
 from visual_agent.ask.language import detect_language
 from visual_agent.catalog.repository import StoredDocument
 from visual_agent.domain.document import Chunk, DocumentMeta
+from visual_agent.ingest.external import MissingTool
 from visual_agent.ingest.formats import UnsupportedFormat
 from visual_agent.ingest.pipeline import IngestReport, IngestResult
 
@@ -76,7 +77,7 @@ class DocumentProcessor:
     async def _process_and_record(self, document: StoredDocument) -> None:
         try:
             await self._process(document)
-        except UnsupportedFormat as error:
+        except (UnsupportedFormat, MissingTool) as error:
             await self._repository.mark_failed(document.doc_id, str(error))
         except Exception:
             logger.exception("Belge işlenemedi: %s", document.doc_id)

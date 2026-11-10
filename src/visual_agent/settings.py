@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     worker_in_process: bool = True
     storage_directory: str = "data/documents"
     web_directory: str | None = "apps/web/dist"
+    soffice_path: str | None = None
+    tesseract_path: str | None = None
     openrouter_api_key: SecretStr | None = None
     openrouter_url: AnyHttpUrl = AnyHttpUrl("https://openrouter.ai/api/v1")
     answer_model: str = "google/gemma-4-26b-a4b-it"
@@ -37,10 +39,12 @@ class Settings(BaseSettings):
     tts_voice: str = "Kore"
     tts_format: Literal["mp3", "pcm"] = "pcm"
 
-    @field_validator("qdrant_path", "web_directory", mode="before")
+    @field_validator(
+        "qdrant_path", "web_directory", "soffice_path", "tesseract_path", mode="before"
+    )
     @classmethod
     def empty_path_means_server(cls, value: object) -> object:
-        """Boş yol verilmemiş sayılır: Qdrant sunucusuna bağlanılır, arayüz sunulmaz."""
+        """Boş yol verilmemiş sayılır: Qdrant sunucusu, arayüzsüz API, araçlar PATH'ten."""
         return None if isinstance(value, str) and not value.strip() else value
 
     @model_validator(mode="after")

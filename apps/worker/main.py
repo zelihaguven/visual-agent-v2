@@ -57,12 +57,16 @@ async def process_until_stopped(
     return polls
 
 
-def default_ingest() -> Ingest:
-    """Belge işleme araçları ağırdır; yalnız işçi açılırken yüklenir."""
+def default_ingest(settings: Settings) -> Ingest:
+    """Belge işleme araçları ağırdır; yalnız işçi açılırken yüklenir. Eksik araç bildirilir."""
+    from visual_agent.ingest.external import locate_tools
     from visual_agent.ingest.pipeline import ingest_document
     from visual_agent.ingest.tools import default_tools
 
-    tools = default_tools()
+    external = locate_tools(settings.soffice_path, settings.tesseract_path)
+    for problem in external.problems():
+        logger.warning(problem)
+    tools = default_tools(external)
 
     def ingest(path: Path, meta: DocumentMeta, work: Path) -> IngestResult:
         return ingest_document(path, meta, tools, work)
@@ -80,7 +84,9 @@ async def _open_processor(settings: Settings) -> DocumentProcessor:
     await repository.migrate()
     await repository.requeue_interrupted()
     store = QdrantChunkStore(open_client(str(settings.qdrant_url), None), COLLECTION)
-    return DocumentProcessor(repository, LazyIndexer(store, SharedEncoders()), default_ingest())
+    return DocumentProcessor(
+        repository, LazyIndexer(store, SharedEncoders()), default_ingest(settings)
+    )
 
 
 def main() -> None:

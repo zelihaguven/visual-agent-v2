@@ -165,12 +165,12 @@ async def _process_documents(
     store: QdrantChunkStore,
     encoders: SharedEncoders,
     stop: asyncio.Event,
-    poll_seconds: float,
+    settings: Settings,
 ) -> None:
     """İşçi API sürecinde: gömülü Qdrant klasörü ve embedding modeli paylaşılır."""
     await repository.requeue_interrupted()
     try:
-        ingest = await asyncio.to_thread(default_ingest)
+        ingest = await asyncio.to_thread(default_ingest, settings)
     except ImportError:
         logger.error(
             "Belge işleme paketleri kurulu değil; yüklenen belgeler kuyrukta bekleyecek."
@@ -179,7 +179,7 @@ async def _process_documents(
         return
     processor = DocumentProcessor(repository, LazyIndexer(store, encoders), ingest)
     logger.info("Belge işçisi API sürecinde başladı")
-    await process_until_stopped(processor.process_next, stop, poll_seconds)
+    await process_until_stopped(processor.process_next, stop, settings.worker_poll_seconds)
 
 
 @asynccontextmanager
@@ -197,11 +197,7 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
         background = [asyncio.create_task(runtime.warm_up())]
         if settings.worker_in_process:
             background.append(
-                asyncio.create_task(
-                    _process_documents(
-                        repository, store, encoders, stop, settings.worker_poll_seconds
-                    )
-                )
+                asyncio.create_task(_process_documents(repository, store, encoders, stop, settings))
             )
         try:
             yield ApiServices(

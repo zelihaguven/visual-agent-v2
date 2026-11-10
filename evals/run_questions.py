@@ -60,10 +60,12 @@ def _load_chunks(gold: GoldSet, set_directory: Path, cache: Path) -> dict[str, l
     if cache.exists():
         raw = json.loads(cache.read_text(encoding="utf-8"))
         return {doc: [Chunk.model_validate(item) for item in items] for doc, items in raw.items()}
+    from visual_agent.ingest.external import locate_tools
     from visual_agent.ingest.pipeline import ingest_document
     from visual_agent.ingest.tools import default_tools
 
-    tools = default_tools()
+    settings = Settings()
+    tools = default_tools(locate_tools(settings.soffice_path, settings.tesseract_path))
     chunks: dict[str, list[Chunk]] = {}
     for document in gold.documents:
         with tempfile.TemporaryDirectory() as work:
