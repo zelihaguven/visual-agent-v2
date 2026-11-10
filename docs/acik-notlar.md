@@ -19,8 +19,8 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Taranmış belgede bir etiket sorusu son sınavda "bulunamadı" oldu; gerçek taramalarda izlenecek.
 - Fotoğraf, gömülü görsel ve taramadan OCR ile okunan değerlerde iki okuma uyuşursa değer gösterilir, cevap "Kısmen doğrulandı" olur; uyuşmazsa değer gizlenir, cevap "Doğrulanamadı" olur. Kısa kenarı 50 pt'den ya da alanı sayfanın %2'sinden küçük görseller okunmaz, belge listesinde uyarı çıkar. Gerçek fotoğraflarla denenecek.
 - GPT-OSS 120B ve GLM 5.3 Flash isteklerimize cevap vermedi; istemci uyumsuzluğu çözülürse hız için yeniden ölçülebilir.
-- Aynı belgenin iki sürümü farklı değer verdiğinde model bazen sormak yerine ikisini de listeliyor. Taban ölçümünde görüldü ([0004](decisions/0004-olcum-sonuclari.md)): değerler ve kaynakları doğru, yalnız netleştirme atlandı (son sınavda 5 tekrarın 4'ünde). Gerçek belgelerde ne sıklıkla olduğuna bakılacak.
-- Model değişince önceki beden bazen düşüyor; sistem o zaman bedeni yeniden soruyor.
+- Aynı belgenin iki sürümü farklı değer verdiğinde model bazen sormak yerine ikisini de listeliyor. Taban ölçümünde görüldü ([0004](decisions/0004-olcum-sonuclari.md)): değerler ve kaynakları doğru, yalnız netleştirme atlandı. Önbelleksiz 5 tekrarda geliştirme setinde 5/5, son sınavda 1/5 geçti; yani belge düzenine bağlı. Gerçek belgelerde ne sıklıkla olduğuna bakılacak.
+- Model değişince önceki beden düşüyor; sistem o zaman bedeni yeniden soruyor. `dikim-sohbet-1-t4` iki sette önbelleksiz 10 tekrarın hiçbirinde geçmedi, yani her seferinde oluyor: takip sorusunu tamamlayan yardımcı model bedeni düşürüyor. Çözüm bekliyor.
 
 ## Yayına almadan önce
 
