@@ -22,6 +22,10 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Aynı belgenin iki sürümü farklı değer verdiğinde model bazen sormak yerine ikisini de listeliyor. Taban ölçümünde görüldü ([0004](decisions/0004-olcum-sonuclari.md)): değerler ve kaynakları doğru, yalnız netleştirme atlandı. Önbelleksiz 5 tekrarda geliştirme setinde 5/5, son sınavda 1/5 geçti; yani belge düzenine bağlı. Gerçek belgelerde ne sıklıkla olduğuna bakılacak.
 - Model değişince önceki beden düşüyor; sistem o zaman bedeni yeniden soruyor. `dikim-sohbet-1-t4` iki sette önbelleksiz 10 tekrarın hiçbirinde geçmedi, yani her seferinde oluyor: takip sorusunu tamamlayan yardımcı model bedeni düşürüyor. Çözüm bekliyor.
 
+## Belge yönetimi
+
+- Hazır bir belge yeniden işlenirken, işlem bitene kadar aramada görünmüyor; eski hali de kullanılamıyor. Pilot için kabul edildi. Eski sürümü işlem bitene kadar aramada tutmak ayrı bir tasarım ister (iki sürümün parçaları ve vektörleri bir süre birlikte durur).
+
 ## Yayına almadan önce
 
 - Giriş kapalı: arayüz ağa açılırsa ağdaki herkes belge görebilir ve yükleyebilir. Şu an yalnız `127.0.0.1` adresine açık; tabletler için açmadan önce giriş ya da ağ kısıtı gerekir.
