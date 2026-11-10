@@ -12,8 +12,6 @@ import httpx
 from apps.api.main import ApiServices
 from apps.api.voice import fixed_notice_texts, fixed_reply_texts
 from apps.worker.indexing import LazyIndexer, SharedEncoders
-from apps.worker.jobs import DocumentProcessor
-from apps.worker.main import default_ingest, process_until_stopped
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.orchestrator import answer_question
 from visual_agent.catalog.repository import DocumentRepository, open_repository
@@ -167,9 +165,15 @@ async def _process_documents(
     stop: asyncio.Event,
     settings: Settings,
 ) -> None:
-    """İşçi API sürecinde: gömülü Qdrant klasörü ve embedding modeli paylaşılır."""
+    """İşçi API sürecinde: gömülü Qdrant klasörü ve embedding modeli paylaşılır.
+
+    İşçi modülleri burada yüklenir: sunucudaki API imajında belge işleme paketleri yoktur.
+    """
     await repository.requeue_interrupted()
     try:
+        from apps.worker.jobs import DocumentProcessor
+        from apps.worker.main import default_ingest, process_until_stopped
+
         ingest = await asyncio.to_thread(default_ingest, settings)
     except ImportError:
         logger.error(

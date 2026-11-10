@@ -1,4 +1,6 @@
 import asyncio
+import subprocess
+import sys
 from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
 from typing import cast
@@ -108,3 +110,17 @@ def test_missing_web_build_leaves_only_the_api(tmp_path: Path) -> None:
 
     assert client.get("/").status_code == 404
     assert client.get("/api/health").status_code == 200
+
+
+def test_api_starts_without_document_processing_packages() -> None:
+    """Sunucudaki API imajında openpyxl, Docling ve OCR paketleri yoktur."""
+    code = (
+        "import sys; import apps.api.services, apps.api.main; "
+        "loaded = [m for m in ('visual_agent.ingest.pipeline', 'openpyxl', 'docling') "
+        "if m in sys.modules]; print(loaded); sys.exit(1 if loaded else 0)"
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, check=False
+    )
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
