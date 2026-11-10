@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 from pathlib import Path
 
@@ -6,7 +7,13 @@ import pytest
 
 from evals.answer_cache import CacheCounts, CachingTransport
 from evals.gold import GoldQuestion, GoldSet, Outcome, QuestionKind
-from evals.run_questions import cache_label, select_questions
+from evals.run_questions import (
+    DEFAULT_CACHE_DIR,
+    NO_CACHE_NOTE,
+    cache_label,
+    check_cache_arguments,
+    select_questions,
+)
 
 URL = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -178,3 +185,46 @@ def test_without_a_selection_every_question_is_asked() -> None:
 def test_unknown_question_is_refused() -> None:
     with pytest.raises(ValueError, match="yok-boyle"):
         select_questions(_gold_with_conversation(), ["yok-boyle"])
+
+
+def _arguments(**overrides: object) -> argparse.Namespace:
+    values: dict[str, object] = {
+        "repeat": 1,
+        "refresh_cache": False,
+        "no_cache": False,
+        "cache_dir": None,
+    }
+    return argparse.Namespace(**{**values, **overrides})
+
+
+def test_repeated_runs_never_read_or_write_the_cache() -> None:
+    arguments = _arguments(repeat=5)
+
+    assert check_cache_arguments(arguments) is None
+    assert arguments.no_cache is True
+
+
+def test_single_run_uses_the_default_cache() -> None:
+    arguments = _arguments()
+
+    assert check_cache_arguments(arguments) is None
+    assert arguments.no_cache is False
+    assert arguments.cache_dir == DEFAULT_CACHE_DIR
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [{"refresh_cache": True}, {"cache_dir": Path("evals/output/baska")}],
+)
+def test_repeating_with_a_cache_option_is_refused(overrides: dict[str, object]) -> None:
+    problem = check_cache_arguments(_arguments(repeat=3, **overrides))
+
+    assert problem is not None and "önbelleksiz" in problem
+
+
+def test_repeat_must_be_positive() -> None:
+    assert check_cache_arguments(_arguments(repeat=0)) is not None
+
+
+def test_repeat_report_says_the_cache_was_not_used() -> None:
+    assert NO_CACHE_NOTE == "önbellek kullanılmadı"

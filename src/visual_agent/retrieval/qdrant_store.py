@@ -99,6 +99,9 @@ class QdrantChunkStore:
             await self._client.upsert(self._collection, points[start : start + _UPSERT_BATCH])
 
     async def delete_document(self, doc_id: str) -> None:
+        """Koleksiyon henüz kurulmadıysa silinecek vektör yoktur."""
+        if not await self._client.collection_exists(self._collection):
+            return
         await self._client.delete(
             self._collection,
             points_selector=models.FilterSelector(filter=_filter((doc_id,), None)),

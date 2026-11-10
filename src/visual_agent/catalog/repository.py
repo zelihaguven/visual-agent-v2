@@ -22,6 +22,7 @@ class DocumentStatus(StrEnum):
     PROCESSING = "processing"
     READY = "ready"
     FAILED = "failed"
+    DELETING = "deleting"
 
 
 class StoredDocument(FrozenModel):
@@ -64,6 +65,7 @@ CREATE INDEX IF NOT EXISTS chunks_doc_idx ON chunks (doc_id, position);
 _COLUMNS = (
     "doc_id, title, filename, status, stored_path, language, access, display_pdf, report, error"
 )
+_VISIBLE = "status != 'deleting'"
 
 
 def _to_document(row: sqlite3.Row) -> StoredDocument:
@@ -163,7 +165,8 @@ class DocumentRepository:
     async def list_documents(self) -> list[StoredDocument]:
         rows = await self._db.run(
             lambda connection: connection.execute(
-                f"SELECT {_COLUMNS} FROM documents ORDER BY created_at DESC, rowid DESC"  # noqa: S608
+                f"SELECT {_COLUMNS} FROM documents WHERE {_VISIBLE}"  # noqa: S608
+                " ORDER BY created_at DESC, rowid DESC"
             ).fetchall()
         )
         return [_to_document(row) for row in rows]
@@ -171,7 +174,7 @@ class DocumentRepository:
     async def get_document(self, doc_id: str) -> StoredDocument | None:
         row = await self._db.run(
             lambda connection: connection.execute(
-                f"SELECT {_COLUMNS} FROM documents WHERE doc_id = ?",  # noqa: S608
+                f"SELECT {_COLUMNS} FROM documents WHERE doc_id = ? AND {_VISIBLE}",  # noqa: S608
                 (doc_id,),
             ).fetchone()
         )
@@ -180,7 +183,9 @@ class DocumentRepository:
     async def get_chunk(self, chunk_id: str) -> Chunk | None:
         row = await self._db.run(
             lambda connection: connection.execute(
-                "SELECT payload FROM chunks WHERE chunk_id = ?", (chunk_id,)
+                "SELECT c.payload FROM chunks c JOIN documents d USING (doc_id)"
+                " WHERE c.chunk_id = ? AND d.status != 'deleting'",
+                (chunk_id,),
             ).fetchone()
         )
         return _to_chunk(row["payload"]) if row else None
@@ -188,8 +193,9 @@ class DocumentRepository:
     async def sheet_chunks(self, doc_id: str, sheet: str) -> list[Chunk]:
         rows = await self._db.run(
             lambda connection: connection.execute(
-                "SELECT payload FROM chunks WHERE doc_id = ?"
-                " AND json_extract(payload, '$.location.sheet') = ? ORDER BY position",
+                "SELECT c.payload FROM chunks c JOIN documents d USING (doc_id)"
+                " WHERE c.doc_id = ? AND d.status != 'deleting'"
+                " AND json_extract(c.payload, '$.location.sheet') = ? ORDER BY c.position",
                 (doc_id, sheet),
             ).fetchall()
         )
@@ -233,33 +239,82 @@ class DocumentRepository:
         chunks: Sequence[Chunk],
         report: Any,
         display_pdf: str | None,
-    ) -> None:
+    ) -> bool:
+        """Yalnız işlenmekte olan belge hazır olur; arada silinen belge için False döner."""
         rows = [
             (chunk.chunk_id, doc_id, position, chunk.model_dump_json())
             for position, chunk in enumerate(chunks)
         ]
         report_json = report.model_dump_json()
 
-        def write(connection: sqlite3.Connection) -> None:
+        def write(connection: sqlite3.Connection) -> bool:
+            updated = connection.execute(
+                "UPDATE documents SET status = 'ready', language = ?, report = ?,"  # noqa: S608
+                f" display_pdf = ?, error = NULL, updated_at = {_NOW}"
+                " WHERE doc_id = ? AND status = 'processing'",
+                (language, report_json, display_pdf, doc_id),
+            ).rowcount
+            if not updated:
+                return False
             connection.execute("DELETE FROM chunks WHERE doc_id = ?", (doc_id,))
             connection.executemany(
                 "INSERT INTO chunks (chunk_id, doc_id, position, payload) VALUES (?, ?, ?, ?)",
                 rows,
             )
-            connection.execute(
-                "UPDATE documents SET status = 'ready', language = ?, report = ?,"  # noqa: S608
-                f" display_pdf = ?, error = NULL, updated_at = {_NOW} WHERE doc_id = ?",
-                (language, report_json, display_pdf, doc_id),
+            return True
+
+        return await self._db.run(lambda connection: _transaction(connection, write))
+
+    async def mark_failed(self, doc_id: str, message: str) -> bool:
+        """Arada silinen belgenin durumu ezilmez; o durumda False döner."""
+        updated: int = await self._db.run(
+            lambda connection: (
+                connection.execute(
+                    f"UPDATE documents SET status = 'failed', error = ?, updated_at = {_NOW}"  # noqa: S608
+                    " WHERE doc_id = ? AND status = 'processing'",
+                    (message, doc_id),
+                ).rowcount
             )
+        )
+        return updated > 0
 
-        await self._db.run(lambda connection: _transaction(connection, write))
+    async def reprocess(self, doc_id: str) -> StoredDocument | None:
+        """Hazır ya da işlenemeyen belge kuyruğa döner; sıradaki ya da işlenene dokunulmaz."""
+        row = await self._db.run(
+            lambda connection: connection.execute(
+                f"UPDATE documents SET status = 'queued', error = NULL, updated_at = {_NOW}"  # noqa: S608
+                " WHERE doc_id = ? AND status IN ('ready', 'failed')"
+                f" RETURNING {_COLUMNS}",
+                (doc_id,),
+            ).fetchone()
+        )
+        return _to_document(row) if row else None
 
-    async def mark_failed(self, doc_id: str, message: str) -> None:
+    async def mark_deleting(self, doc_id: str) -> StoredDocument | None:
+        """Silme ilk adımda kayda yazılır: belge listeden, katalogdan ve aramadan hemen çıkar."""
+        row = await self._db.run(
+            lambda connection: connection.execute(
+                f"UPDATE documents SET status = 'deleting', updated_at = {_NOW}"  # noqa: S608
+                f" WHERE doc_id = ? RETURNING {_COLUMNS}",
+                (doc_id,),
+            ).fetchone()
+        )
+        return _to_document(row) if row else None
+
+    async def deleting_documents(self) -> list[StoredDocument]:
+        """Temizliği yarım kalan silmeler; açılışta yeniden denenir."""
+        rows = await self._db.run(
+            lambda connection: connection.execute(
+                f"SELECT {_COLUMNS} FROM documents WHERE status = 'deleting'"  # noqa: S608
+            ).fetchall()
+        )
+        return [_to_document(row) for row in rows]
+
+    async def purge(self, doc_id: str) -> None:
+        """Vektörler ve dosyalar silindikten sonra kayıt parçalarıyla birlikte kalkar."""
         await self._db.run(
             lambda connection: connection.execute(
-                f"UPDATE documents SET status = 'failed', error = ?, updated_at = {_NOW}"  # noqa: S608
-                " WHERE doc_id = ?",
-                (message, doc_id),
+                "DELETE FROM documents WHERE doc_id = ? AND status = 'deleting'", (doc_id,)
             )
         )
 

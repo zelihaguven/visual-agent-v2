@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useState, type ChangeEvent } from "react";
 
-import { listDocuments, uploadDocument, type DocumentInfo, type DocumentReport } from "../api";
+import {
+  deleteDocument,
+  listDocuments,
+  reprocessDocument,
+  uploadDocument,
+  type DocumentInfo,
+  type DocumentReport,
+} from "../api";
 
 const POLL_MILLISECONDS = 3000;
 const ACCEPTED_TYPES = ".pdf,.docx,.doc,.pptx,.ppt,.odt,.rtf,.xlsx,.xls,.jpg,.jpeg,.png,.tif,.tiff,.sql,.txt,.md";
@@ -13,6 +20,12 @@ const STATUS_LABELS: Record<DocumentInfo["status"], string> = {
 
 function isPending(document: DocumentInfo): boolean {
   return document.status === "queued" || document.status === "processing";
+}
+
+function confirmDeletion(title: string): boolean {
+  return window.confirm(
+    `"${title}" silinsin mi? Belge, parçaları ve dosyaları kalıcı olarak silinir.`,
+  );
 }
 
 function DocumentNotes({ title, report }: { title: string; report: DocumentReport }) {
@@ -38,6 +51,7 @@ export function DocumentsPanel() {
   const [documents, setDocuments] = useState<DocumentInfo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -82,6 +96,25 @@ export function DocumentsPanel() {
     }
   }
 
+  async function runAction(document: DocumentInfo, action: (docId: string) => Promise<void>) {
+    setError(null);
+    setBusyId(document.doc_id);
+    try {
+      await action(document.doc_id);
+    } catch (actionError: unknown) {
+      setError(actionError instanceof Error ? actionError.message : "İşlem tamamlanamadı.");
+    } finally {
+      setBusyId(null);
+      await refresh();
+    }
+  }
+
+  function handleDelete(document: DocumentInfo) {
+    if (confirmDeletion(document.title)) {
+      void runAction(document, deleteDocument);
+    }
+  }
+
   return (
     <section className="documents" aria-labelledby="documents-heading">
       <h2 id="documents-heading">Belgeler</h2>
@@ -109,6 +142,27 @@ export function DocumentsPanel() {
             {document.report !== null && (
               <DocumentNotes title={document.title} report={document.report} />
             )}
+            <div className="document-actions">
+              {!isPending(document) && (
+                <button
+                  type="button"
+                  aria-label={`${document.title} belgesini yeniden işle`}
+                  disabled={busyId !== null}
+                  onClick={() => void runAction(document, reprocessDocument)}
+                >
+                  Yeniden işle
+                </button>
+              )}
+              <button
+                type="button"
+                className="is-danger"
+                aria-label={`${document.title} belgesini sil`}
+                disabled={busyId !== null}
+                onClick={() => handleDelete(document)}
+              >
+                Sil
+              </button>
+            </div>
           </li>
         ))}
       </ul>

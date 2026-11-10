@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
 
@@ -10,7 +11,12 @@ from visual_agent.catalog.identifiers import build_identifier_index
 from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.domain.result import Answered, AskOutcome, Clarify, Failed, Hit, NotFound
-from visual_agent.generation.openrouter import ServiceUnavailable, StreamCallbacks, StreamResult
+from visual_agent.generation.openrouter import (
+    AttemptRecord,
+    ServiceUnavailable,
+    StreamCallbacks,
+    StreamResult,
+)
 
 ROW = "Ölçü noktası: İç paça | Beden M: 76,5 | Tolerans (cm): 0,5"
 
@@ -507,3 +513,66 @@ def test_quoting_a_whole_table_row_is_not_shown_as_a_command() -> None:
 
     assert isinstance(outcome.result, Answered)
     assert outcome.result.items[0].code is None
+
+
+def test_translation_time_is_reported_apart_from_the_search(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Saat sahtedir, yalnız çeviri sırasında ilerler; zamanlayıcı çözünürlüğüne bağlı değil."""
+    now = [100.0]
+    monkeypatch.setattr(time, "perf_counter", lambda: now[0])
+
+    async def translator(question: str, source: str, targets: Sequence[str]) -> str:
+        now[0] += 5.0
+        return "inseam value"
+
+    deps = make_deps(
+        FakeClient(answer_payload("76,5")),
+        FakeRetriever(),
+        translator,
+        {"a": "en", "b": "en", "c": "en"},
+    )
+
+    timings = ask(deps, "iç paça nedir").timings
+
+    assert timings["translate"] == 5.0
+    assert timings["retrieve"] == 0.0
+    assert {"context", "scope", "intent", "generate", "verify"} <= set(timings)
+
+
+def test_no_translation_time_without_a_translation() -> None:
+    timings = ask(make_deps(FakeClient(answer_payload("76,5"))), "iç paça nedir").timings
+
+    assert "translate" not in timings
+    assert "retrieve" in timings
+
+
+@dataclass
+class FallbackClient(FakeClient):
+    """İlk sağlayıcı düşmüş, ikincisi cevap vermiş gibi davranır."""
+
+    async def stream(
+        self, messages: Sequence[dict[str, str]], callbacks: StreamCallbacks | None = None
+    ) -> StreamResult:
+        result = await super().stream(messages, callbacks)
+        attempts = (
+            AttemptRecord("alpha", "zaman aşımı", runaway=False, seconds=2.5),
+            AttemptRecord("beta", "", runaway=False, seconds=1.25),
+        )
+        return replace(result, attempts=attempts)
+
+
+def test_provider_attempts_and_wait_reach_the_outcome() -> None:
+    outcome = ask(make_deps(FallbackClient(answer_payload("76,5"))), "iç paça nedir")
+
+    assert outcome.provider_attempts == 2
+    assert outcome.provider_seconds == 3.75
+
+
+def test_attempts_are_kept_when_every_provider_fails() -> None:
+    attempts = (AttemptRecord("alpha", "500", runaway=False, seconds=0.5),)
+    client = FakeClient(error=ServiceUnavailable("yok", attempts))
+
+    outcome = ask(make_deps(client), "soru nedir")
+
+    assert (outcome.provider_attempts, outcome.provider_seconds) == (1, 0.5)

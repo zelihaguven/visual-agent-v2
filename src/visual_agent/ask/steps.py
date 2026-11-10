@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import time
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 
@@ -28,7 +29,7 @@ from visual_agent.domain.result import (
     Hit,
     NotFound,
 )
-from visual_agent.generation.openrouter import ServiceUnavailable, StreamCallbacks
+from visual_agent.generation.openrouter import AttemptRecord, ServiceUnavailable, StreamCallbacks
 from visual_agent.generation.parse import ParseFailure, parse_answer
 from visual_agent.generation.sources import build_user_message, to_prompt_sources
 from visual_agent.verification.answer import code_source_number, verify_answer
@@ -59,6 +60,9 @@ class AskState:
     inherited_doc_ids: tuple[str, ...] = ()
     scope_inherited: bool = False
     context_resolved: bool = True
+    translate_seconds: float | None = None
+    provider_attempts: int = 0
+    provider_seconds: float = 0.0
 
     @property
     def question(self) -> str:
@@ -105,6 +109,28 @@ def _code_not_found(missing: Sequence[str], state: AskState, deps: AskDeps) -> N
     )
 
 
+CONTEXT_GONE_QUESTION = (
+    "Önceki belge silinmiş ya da şu an yeniden işleniyor. Hangi belgeden soruyorsunuz?"
+)
+
+
+def _context_documents_gone(
+    state: AskState, deps: AskDeps, allowed: Sequence[str], explicit: Sequence[str]
+) -> bool:
+    """Takip sorusunun belgelerinin hepsi gitti ve kullanıcı yeni belge ya da kod söylemedi.
+
+    Tamamlanan soru kodu bağlamdan taşıdığı için yalnız kullanıcının kendi mesajına bakılır.
+    """
+    if not state.inherited_doc_ids or explicit:
+        return False
+    if any(doc in allowed for doc in state.inherited_doc_ids):
+        return False
+    own = state.request.question
+    if deps.catalog.mentioned_in(own, allowed):
+        return False
+    return not (identifiers_in(own) or deps.identifiers.codes_in_speech(own))
+
+
 async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
     """Kapsamı belirler; kod hiçbir yerde yoksa arama ve model çalışmadan durur."""
     request = state.request
@@ -113,6 +139,13 @@ async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
     explicit = tuple(doc for doc in request.doc_ids or () if doc in allowed)
     inherited = tuple(doc for doc in state.inherited_doc_ids if doc in allowed)
     scope = explicit or mentioned or inherited or None
+    if _context_documents_gone(state, deps, allowed, explicit):
+        return replace(
+            state,
+            allowed=allowed,
+            scope=state.inherited_doc_ids,
+            result=Clarify(question=CONTEXT_GONE_QUESTION),
+        )
     current = replace(
         state,
         language=detect_language(state.question),
@@ -130,19 +163,21 @@ async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
     return replace(current, exact_chunks=_exact_chunks(identifiers, current, deps))
 
 
-async def _bm25_query(state: AskState, deps: AskDeps) -> str:
-    """Çeviri yalnız soru dili ile belge dilleri farklıysa yapılır."""
+async def _bm25_query(state: AskState, deps: AskDeps) -> tuple[str, float | None]:
+    """Çeviri yalnız soru dili ile belge dilleri farklıysa yapılır; süresi ayrıca döner."""
     question = state.question
     targets = deps.catalog.languages(_search_domain(state))
     if deps.translator is None or all(target == state.language for target in targets):
-        return question
+        return question, None
+    started = time.perf_counter()
     try:
-        return await asyncio.wait_for(
+        translated = await asyncio.wait_for(
             deps.translator(question, state.language, targets), deps.translation_limit_seconds
         )
     except Exception:
         logger.warning("Sorgu çevirisi kullanılamadı; özgün soruyla aranıyor", exc_info=True)
-        return question
+        translated = question
+    return translated, time.perf_counter() - started
 
 
 def _with_exact_chunks(state: AskState, found: Sequence[Hit], top_k: int) -> tuple[Hit, ...]:
@@ -156,9 +191,10 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     domain = _search_domain(state)
     if not domain:
         return replace(state, result=NotFound())
-    query = state.question
+    bm25_query, translate_seconds = await _bm25_query(state, deps)
+    state = replace(state, translate_seconds=translate_seconds)
     found = await deps.retriever.search(
-        query, await _bm25_query(state, deps), domain, deps.top_k, state.request.access
+        state.question, bm25_query, domain, deps.top_k, state.request.access
     )
     hits = _with_exact_chunks(state, found, deps.top_k)
     if not hits:
@@ -188,6 +224,15 @@ def _partial_result(assembler: StreamAssembler, hits: Sequence[Hit]) -> Answered
     )
 
 
+def _with_attempts(state: AskState, attempts: Sequence[AttemptRecord]) -> AskState:
+    """Sağlayıcı yedeğine düşüldü mü ve sağlayıcılar toplam ne kadar bekletti."""
+    return replace(
+        state,
+        provider_attempts=len(attempts),
+        provider_seconds=sum(attempt.seconds for attempt in attempts),
+    )
+
+
 async def generate(state: AskState, deps: AskDeps) -> AskState:
     citations = tuple(_citation(hit) for hit in state.hits)
     messages = [
@@ -200,11 +245,14 @@ async def generate(state: AskState, deps: AskDeps) -> AskState:
     assembler, callbacks = _stream_callbacks(state)
     try:
         stream = await deps.answer_client.stream(messages, callbacks)
-    except ServiceUnavailable:
+    except ServiceUnavailable as error:
         logger.exception("Cevap servisine ulaşılamadı")
-        return replace(state, result=Failed(reason=_SERVICE_DOWN, citations=citations))
+        return replace(
+            _with_attempts(state, error.attempts),
+            result=Failed(reason=_SERVICE_DOWN, citations=citations),
+        )
     current = replace(
-        state,
+        _with_attempts(state, stream.attempts),
         cost_usd=stream.cost_usd,
         provider=stream.provider,
         first_verified_seconds=assembler.first_verified_seconds if assembler else None,

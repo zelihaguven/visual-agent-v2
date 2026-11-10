@@ -45,6 +45,8 @@ class FakeRepository:
     ready_error: Exception | None = None
     failed_error: Exception | None = None
     requeues: list[str] = field(default_factory=list)
+    deleted: set[str] = field(default_factory=set)
+    purged: list[str] = field(default_factory=list)
 
     async def claim_next(self) -> StoredDocument | None:
         return self.queued.pop(0) if self.queued else None
@@ -59,15 +61,24 @@ class FakeRepository:
         chunks: Sequence[Chunk],
         report: IngestReport,
         display_pdf: str | None,
-    ) -> None:
+    ) -> bool:
         if self.ready_error is not None:
             raise self.ready_error
+        if doc_id in self.deleted:
+            return False
         self.ready.append((doc_id, chunks, display_pdf))
+        return True
 
-    async def mark_failed(self, doc_id: str, message: str) -> None:
+    async def purge(self, doc_id: str) -> None:
+        self.purged.append(doc_id)
+
+    async def mark_failed(self, doc_id: str, message: str) -> bool:
         if self.failed_error is not None:
             raise self.failed_error
+        if doc_id in self.deleted:
+            return False
         self.failed.append((doc_id, message))
+        return True
 
     async def version(self) -> str:
         return self.version_value
@@ -269,3 +280,42 @@ def test_missing_tool_is_reported_with_its_own_message(tmp_path: Path) -> None:
     asyncio.run(DocumentProcessor(repository, FakeIndexer(), ingest).process_next())
 
     assert repository.failed == [("d", SOFFICE_MISSING)]
+
+
+def test_document_deleted_while_processing_leaves_no_vectors_or_files(tmp_path: Path) -> None:
+    queued = document(tmp_path)
+    repository = FakeRepository(queued=[queued], deleted={"d"})
+    indexer = FakeIndexer()
+    display = tmp_path / "work.pdf"
+    display.write_bytes(b"%PDF-1.7")
+
+    asyncio.run(make_processor(repository, indexer, display).process_next())
+
+    assert repository.ready == []
+    assert indexer.removed == ["d"]
+    assert not Path(queued.stored_path).parent.exists()
+    assert repository.purged == ["d"]
+
+
+def test_deleted_document_record_stays_when_its_vectors_cannot_be_removed(
+    tmp_path: Path,
+) -> None:
+    repository = FakeRepository(queued=[document(tmp_path)], deleted={"d"})
+    indexer = FakeIndexer(remove_error=ConnectionError("qdrant kapalı"))
+
+    asyncio.run(make_processor(repository, indexer, None).process_next())
+
+    assert repository.purged == []
+
+
+def test_failed_processing_of_a_deleted_document_still_cleans_up(tmp_path: Path) -> None:
+    queued = document(tmp_path)
+    repository = FakeRepository(queued=[queued], deleted={"d"})
+    indexer = FakeIndexer()
+
+    asyncio.run(make_processor(repository, indexer, None, error=True).process_next())
+
+    assert repository.failed == []
+    assert indexer.removed == ["d"]
+    assert not Path(queued.stored_path).parent.exists()
+    assert repository.purged == ["d"]

@@ -305,6 +305,84 @@ describe("App", () => {
     expect(within(list).getByText("Belge işlenemedi.")).toBeInTheDocument();
   });
 
+  const READY_DOCUMENT = {
+    doc_id: "d1",
+    title: "Föy",
+    filename: "foy.pdf",
+    status: "ready",
+    error: null,
+    report: null,
+  };
+
+  function stubDocumentActions(deleteStatus = 204) {
+    let documents: unknown[] = [READY_DOCUMENT];
+    return stubApi({
+      "/api/documents": (url, init) => {
+        if (init?.method === "DELETE") {
+          if (deleteStatus === 204) {
+            documents = [];
+            return new Response(null, { status: 204 });
+          }
+          return jsonResponse({ detail: "Belge bulunamadı." }, deleteStatus);
+        }
+        if (url.endsWith("/reprocess")) {
+          documents = [{ ...READY_DOCUMENT, status: "queued" }];
+          return jsonResponse(documents[0]);
+        }
+        return jsonResponse(documents);
+      },
+    });
+  }
+
+  const methodCalls = (fetchMock: ReturnType<typeof stubApi>, method: string) =>
+    fetchMock.mock.calls.filter(([, init]) => init?.method === method).map(([url]) => String(url));
+
+  it("deletes a document only after the user confirms", async () => {
+    const fetchMock = stubDocumentActions();
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
+
+    await waitFor(() => expect(screen.queryByText("Föy")).not.toBeInTheDocument());
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining('"Föy" silinsin mi?'));
+    expect(methodCalls(fetchMock, "DELETE")).toEqual(["/api/documents/d1"]);
+  });
+
+  it("keeps the document when the user cancels the deletion", async () => {
+    const fetchMock = stubDocumentActions();
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
+
+    expect(screen.getByText("Föy")).toBeInTheDocument();
+    expect(methodCalls(fetchMock, "DELETE")).toEqual([]);
+  });
+
+  it("shows why a deletion failed", async () => {
+    stubDocumentActions(404);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Belge bulunamadı.");
+  });
+
+  it("queues a ready document for processing again", async () => {
+    const fetchMock = stubDocumentActions();
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini yeniden işle" }));
+
+    expect(await screen.findByText("Sırada")).toBeInTheDocument();
+    expect(methodCalls(fetchMock, "POST")).toEqual(["/api/documents/d1/reprocess"]);
+    expect(
+      screen.queryByRole("button", { name: "Föy belgesini yeniden işle" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows skipped images and uncertain OCR values of a document", async () => {
     const warning = "Sayfa 1: görsel okunmadı (kısa kenarı 17 pt, en az 50 pt gerekir).";
     stubApi({
@@ -858,6 +936,32 @@ describe("App", () => {
       await waitFor(() => expect(screen.getByLabelText("Sorunuz")).toHaveValue("NT1162 bel kaç"));
       expect(stopTrack).toHaveBeenCalled();
       expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/ask")).toBe(false);
+    });
+
+    it("marks a dictated question as spoken, and the next typed one as written", async () => {
+      stubBrowserRecording();
+      const fetchMock = stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/transcribe": () => jsonResponse({ text: "PNT-1162 bel kaç" }),
+        "/api/ask": () => sse([answered]),
+      });
+      const askBodies = (mock: typeof fetchMock) =>
+        mock.mock.calls
+          .filter(([url]) => String(url) === "/api/ask")
+          .map(([, init]) => JSON.parse(String(init?.body)));
+      render(<App />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Konuşarak sor" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Kaydı bitir" }));
+      await waitFor(() => expect(screen.getByLabelText("Sorunuz")).toHaveValue("PNT-1162 bel kaç"));
+      fireEvent.click(screen.getByRole("button", { name: "Sor" }));
+      await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(1));
+      fireEvent.change(screen.getByLabelText("Sorunuz"), { target: { value: "elle yazılan" } });
+      fireEvent.click(await screen.findByRole("button", { name: "Sor" }));
+
+      await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
+      expect(askBodies(fetchMock)[0]).toEqual({ question: "PNT-1162 bel kaç", input_mode: "voice" });
+      expect(askBodies(fetchMock)[1]).toEqual({ question: "elle yazılan" });
     });
 
     it("explains a failed transcription", async () => {

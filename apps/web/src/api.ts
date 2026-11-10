@@ -120,6 +120,7 @@ export async function askQuestion(
   speak: boolean,
   onEvent: (event: AskEvent) => void,
   signal?: AbortSignal,
+  dictated = false,
 ): Promise<void> {
   const response = await fetch("/api/ask", {
     method: "POST",
@@ -130,6 +131,7 @@ export async function askQuestion(
       ...(docIds ? { doc_ids: docIds } : {}),
       ...(context ? { context } : {}),
       ...(speak ? { speak } : {}),
+      ...(dictated ? { input_mode: "voice" } : {}),
     }),
   });
   if (!response.ok || response.body === null) {
@@ -175,6 +177,24 @@ export async function uploadDocument(file: File): Promise<void> {
   const form = new FormData();
   form.append("file", file);
   const response = await fetch("/api/documents", { method: "POST", body: form });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+}
+
+export async function deleteDocument(docId: string): Promise<void> {
+  const response = await fetch(`/api/documents/${encodeURIComponent(docId)}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+}
+
+export async function reprocessDocument(docId: string): Promise<void> {
+  const response = await fetch(`/api/documents/${encodeURIComponent(docId)}/reprocess`, {
+    method: "POST",
+  });
   if (!response.ok) {
     throw new Error(await readError(response));
   }

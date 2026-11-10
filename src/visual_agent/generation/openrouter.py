@@ -19,6 +19,10 @@ _FINISH_TRUNCATED = "length"
 class ServiceUnavailable(RuntimeError):
     """Cevap servisine ulaşılamadı; yerel modele otomatik düşüş yoktur."""
 
+    def __init__(self, message: str, attempts: Sequence["AttemptRecord"] = ()) -> None:
+        super().__init__(message)
+        self.attempts = tuple(attempts)
+
 
 @dataclass(frozen=True)
 class ZdrEntry:
@@ -282,4 +286,4 @@ class AnswerClient:
         if not attempt.error:
             return attempt.result(records, finish=_FINISH_TRUNCATED)
         details = "; ".join(f"{r.provider}: {r.error or 'kaçak'}" for r in records)
-        raise ServiceUnavailable(details)
+        raise ServiceUnavailable(details, records)

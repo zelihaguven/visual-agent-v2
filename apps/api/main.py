@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import shutil
+import time
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
 from contextlib import asynccontextmanager
@@ -17,7 +18,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from starlette.types import Scope
 
+from apps.api.documents import RemoveVectors, delete_document
 from apps.api.preview import render_highlighted_page
+from apps.api.question_log import InputMode, QuestionRecord, record_for
 from apps.api.voice import SpokenAnswer, voice_router
 from visual_agent.ask.deps import AskRequest
 from visual_agent.ask.language import detect_language
@@ -61,6 +64,22 @@ class Repository(Protocol):
 
     async def sheet_chunks(self, doc_id: str, sheet: str) -> Sequence[Chunk]: ...
 
+    async def reprocess(self, doc_id: str) -> StoredDocument | None: ...
+
+    async def mark_deleting(self, doc_id: str) -> StoredDocument | None: ...
+
+    async def deleting_documents(self) -> list[StoredDocument]: ...
+
+    async def purge(self, doc_id: str) -> None: ...
+
+
+async def _no_vectors(doc_id: str) -> None:
+    """Vektör deposu bağlanmamış (testler)."""
+
+
+class QuestionRecorder(Protocol):
+    async def record(self, record: QuestionRecord) -> None: ...
+
 
 @dataclass(frozen=True)
 class ApiServices:
@@ -69,6 +88,8 @@ class ApiServices:
     storage_directory: Path
     voice: Voice | None = None
     health_checks: Mapping[str, HealthCheck] = field(default_factory=dict)
+    remove_vectors: RemoveVectors = _no_vectors
+    question_log: QuestionRecorder | None = None
 
 
 class HealthResponse(BaseModel):
@@ -82,6 +103,7 @@ class AskBody(BaseModel):
     doc_ids: tuple[str, ...] | None = None
     context: ConversationContext | None = None
     speak: bool = False
+    input_mode: InputMode = "text"
 
     @field_validator("question")
     @classmethod
@@ -128,6 +150,52 @@ def _sse(event: Event) -> str:
     return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
 
+class _AskClock:
+    """Süre kullanıcının gözünden ölçülür: istek gelişinden ilk doğrulanmış cümleye."""
+
+    def __init__(self, sink: Callable[[Event], None]) -> None:
+        self._sink = sink
+        self._started = time.perf_counter()
+        self.first_verified: float | None = None
+
+    def __call__(self, event: Event) -> None:
+        if event.get("type") == "item_verified" and self.first_verified is None:
+            self.first_verified = self.elapsed()
+        self._sink(event)
+
+    def elapsed(self) -> float:
+        return time.perf_counter() - self._started
+
+
+_PENDING_RECORDS: set[asyncio.Task[None]] = set()
+
+
+def _record_finished(task: asyncio.Task[None]) -> None:
+    _PENDING_RECORDS.discard(task)
+    if not task.cancelled() and task.exception() is not None:
+        logger.warning("Soru kaydı yazılamadı: %s", type(task.exception()).__name__)
+
+
+def _record_question(
+    request: AskBody, services: ApiServices, outcome: AskOutcome | None, clock: _AskClock
+) -> None:
+    """Kayıt arka planda yazılır: yavaşlasa ya da başarısız olsa da cevap beklemez."""
+    if services.question_log is None:
+        return
+    record = record_for(
+        request.question,
+        "voice" if request.speak else request.input_mode,
+        str(_result_payload(outcome.result)["kind"]) if outcome is not None else "error",
+        outcome,
+        clock.elapsed(),
+        clock.first_verified,
+        follow_up=request.context is not None,
+    )
+    task = asyncio.create_task(services.question_log.record(record))
+    _PENDING_RECORDS.add(task)
+    task.add_done_callback(_record_finished)
+
+
 async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterator[str]:
     """Soru hattının olaylarını üretildikleri anda istemciye taşır."""
     queue: asyncio.Queue[Event] = asyncio.Queue()
@@ -136,18 +204,20 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
         if request.speak and services.voice is not None
         else None
     )
-    sink = spoken.on_event if spoken is not None else queue.put_nowait
+    clock = _AskClock(spoken.on_event if spoken is not None else queue.put_nowait)
 
     async def run() -> None:
+        outcome: AskOutcome | None = None
         try:
             outcome = await services.ask(
                 AskRequest(
                     question=request.question,
                     doc_ids=request.doc_ids,
                     context=request.context,
-                    on_event=sink,
+                    on_event=clock,
                 )
             )
+            _record_question(request, services, outcome, clock)
             queue.put_nowait(
                 {
                     "type": "done",
@@ -165,6 +235,8 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
                 await spoken.finish()
         except Exception:
             logger.exception("Soru cevaplanamadı")
+            if outcome is None:
+                _record_question(request, services, None, clock)
             queue.put_nowait({"type": "error", "message": _GENERIC_ERROR})
         finally:
             queue.put_nowait(_END_OF_STREAM)
@@ -287,6 +359,42 @@ async def _chunk_source(chunk: Chunk, services: ApiServices) -> dict[str, object
     return {"kind": "text", "text": chunk.text, "title": chunk.title}
 
 
+def _library_router(app: FastAPI) -> APIRouter:
+    """Belge listesi, yükleme, silme ve yeniden işleme."""
+    router = APIRouter(prefix="/api")
+    ServicesDep = Annotated[ApiServices, Depends(_require_services(app))]
+
+    @router.get("/documents", response_model=list[DocumentResponse])
+    async def documents(services: ServicesDep) -> list[DocumentResponse]:
+        return [_document_response(d) for d in await services.repository.list_documents()]
+
+    @router.post("/documents", response_model=DocumentResponse, status_code=201)
+    async def upload(
+        file: UploadFile, services: ServicesDep, title: Annotated[str, Form()] = ""
+    ) -> DocumentResponse:
+        return _document_response(await _store_upload(file, title, services))
+
+    @router.delete("/documents/{doc_id}", status_code=204)
+    async def delete(doc_id: str, services: ServicesDep) -> Response:
+        deleted = await delete_document(
+            doc_id, services.repository, services.remove_vectors, services.storage_directory
+        )
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Belge bulunamadı.")
+        return Response(status_code=204)
+
+    @router.post("/documents/{doc_id}/reprocess", response_model=DocumentResponse)
+    async def reprocess(doc_id: str, services: ServicesDep) -> DocumentResponse:
+        document = await services.repository.reprocess(doc_id)
+        if document is not None:
+            return _document_response(document)
+        if await services.repository.get_document(doc_id) is None:
+            raise HTTPException(status_code=404, detail="Belge bulunamadı.")
+        raise HTTPException(status_code=409, detail="Belge zaten sırada ya da işleniyor.")
+
+    return router
+
+
 def _document_router(app: FastAPI) -> APIRouter:
     router = APIRouter(prefix="/api")
     ServicesDep = Annotated[ApiServices, Depends(_require_services(app))]
@@ -298,16 +406,6 @@ def _document_router(app: FastAPI) -> APIRouter:
             media_type="text/event-stream",
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
-
-    @router.get("/documents", response_model=list[DocumentResponse])
-    async def documents(services: ServicesDep) -> list[DocumentResponse]:
-        return [_document_response(d) for d in await services.repository.list_documents()]
-
-    @router.post("/documents", response_model=DocumentResponse, status_code=201)
-    async def upload(
-        file: UploadFile, services: ServicesDep, title: Annotated[str, Form()] = ""
-    ) -> DocumentResponse:
-        return _document_response(await _store_upload(file, title, services))
 
     @router.get("/chunks/{chunk_id}/source")
     async def source(chunk_id: str, services: ServicesDep) -> dict[str, object]:
@@ -377,6 +475,7 @@ def create_app(settings: Settings | None = None, services: ApiServices | None = 
     app.state.services = services
     app.include_router(_health_router(app))
     app.include_router(_document_router(app))
+    app.include_router(_library_router(app))
     app.include_router(
         voice_router(lambda: app.state.services.voice if app.state.services else None)
     )

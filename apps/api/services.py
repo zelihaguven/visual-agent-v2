@@ -9,7 +9,9 @@ from pathlib import Path
 
 import httpx
 
+from apps.api.documents import retry_deletions
 from apps.api.main import ApiServices
+from apps.api.question_log import open_log
 from apps.api.voice import fixed_notice_texts, fixed_reply_texts
 from apps.worker.indexing import LazyIndexer, SharedEncoders
 from visual_agent.ask.deps import AskDeps, AskRequest
@@ -186,10 +188,25 @@ async def _process_documents(
     await process_until_stopped(processor.process_next, stop, settings.worker_poll_seconds)
 
 
+async def _retry_deletions(
+    repository: DocumentRepository, store: QdrantChunkStore, storage: Path
+) -> None:
+    """Önceki çalışmada yarım kalan silmeler açılışta tamamlanır."""
+    try:
+        finished = await retry_deletions(repository, store.delete_document, storage)
+    except Exception:
+        logger.warning("Yarım kalan silmeler tamamlanamadı", exc_info=True)
+        return
+    if finished:
+        logger.info("Yarım kalan %d silme tamamlandı", finished)
+
+
 @asynccontextmanager
 async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
     repository = open_repository(Path(settings.database_path))
     await repository.migrate()
+    question_log = open_log(Path(settings.database_path))
+    await question_log.migrate()
     qdrant = open_client(str(settings.qdrant_url), settings.qdrant_path)
     store = QdrantChunkStore(qdrant, COLLECTION)
     encoders = SharedEncoders()
@@ -198,7 +215,10 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
     stop = asyncio.Event()
     async with httpx.AsyncClient() as http:
         runtime = AskRuntime(settings, http, store, SnapshotProvider(repository), encoders)
-        background = [asyncio.create_task(runtime.warm_up())]
+        background = [
+            asyncio.create_task(runtime.warm_up()),
+            asyncio.create_task(_retry_deletions(repository, store, storage)),
+        ]
         if settings.worker_in_process:
             background.append(
                 asyncio.create_task(_process_documents(repository, store, encoders, stop, settings))
@@ -213,6 +233,8 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
                     "database": repository.ping,
                     "qdrant": qdrant.get_collections,
                 },
+                remove_vectors=store.delete_document,
+                question_log=question_log,
             )
         finally:
             stop.set()

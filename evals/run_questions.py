@@ -350,7 +350,7 @@ async def _repeated(
         await _full_run(questions, gold, deps, output, counts)
         for row in json.loads(output.read_text(encoding="utf-8")):
             passed[row["question"]] += int(row["score"]["passed"])
-    return {"repeat": arguments.repeat, "passed": passed}
+    return {"repeat": arguments.repeat, "cache": NO_CACHE_NOTE, "passed": passed}
 
 
 class _NoModel:
@@ -360,13 +360,39 @@ class _NoModel:
         raise RuntimeError("Yalnız arama ölçümünde model çağrılmaz")
 
 
+NO_CACHE_NOTE = "önbellek kullanılmadı"
+DEFAULT_CACHE_DIR = Path("evals/output/answer-cache")
+
+
+def check_cache_arguments(arguments: argparse.Namespace) -> str | None:
+    """Tekrarlar bağımsız model koşusu olmalı: önbellek ne okunur ne yazılır.
+
+    Tekrarla birlikte önbelleği açmaya çalışan seçenek hata mesajı döndürür; geçerliyse
+    önbellek kapatılır ve None döner.
+    """
+    if arguments.repeat < 1:
+        return "--repeat en az 1 olmalı"
+    if arguments.repeat == 1:
+        if arguments.cache_dir is None:
+            arguments.cache_dir = DEFAULT_CACHE_DIR
+        return None
+    if arguments.refresh_cache or arguments.cache_dir is not None:
+        return (
+            "--repeat önbelleksiz çalışır; --refresh-cache ve --cache-dir ile birlikte kullanılamaz"
+        )
+    arguments.no_cache = True
+    return None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Soru hattını üretilen setle ölçer.")
     parser.add_argument("--set", type=Path, default=Path("evals/output/set"))
     parser.add_argument("--work", type=Path, default=Path("evals/output/run"))
     parser.add_argument("--retrieval-only", action="store_true")
     parser.add_argument("--qdrant-url", help="gömülü klasör yerine Qdrant sunucusu")
-    parser.add_argument("--cache-dir", type=Path, default=Path("evals/output/answer-cache"))
+    parser.add_argument(
+        "--cache-dir", type=Path, help=f"cevap önbelleği (varsayılan {DEFAULT_CACHE_DIR})"
+    )
     parser.add_argument(
         "--refresh-cache", action="store_true", help="önbellekteki cevapları yeniden sor"
     )
@@ -378,8 +404,13 @@ def main() -> None:
         type=lambda text: [item.strip() for item in text.split(",") if item.strip()],
         help="yalnız bu sorular (virgülle); takip sorularının önceki turları da sorulur",
     )
-    parser.add_argument("--repeat", type=int, default=1, help="aynı soruları kaç kez sor")
+    parser.add_argument(
+        "--repeat", type=int, default=1, help="aynı soruları kaç kez sor (önbelleksiz)"
+    )
     arguments = parser.parse_args()
+    problem = check_cache_arguments(arguments)
+    if problem is not None:
+        parser.error(problem)
     arguments.work.mkdir(parents=True, exist_ok=True)
     json.dump(asyncio.run(run(arguments)), sys.stdout, ensure_ascii=False, indent=1)
 
