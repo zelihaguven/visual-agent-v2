@@ -209,3 +209,35 @@ def test_cut_quote_cannot_add_a_code_in_its_unchecked_tail() -> None:
 
 def test_cut_quote_with_a_plain_broken_tail_is_still_accepted() -> None:
     assert quote_matches(CUT_HEAD + " kayıt tutu", CUT_SOURCE)
+
+
+@pytest.mark.parametrize(
+    "source", ["Çalışma sıcaklığı -5 °C", "Çalışma sıcaklığı −5 °C", "En düşük (-5 °C)"]
+)
+def test_quote_cannot_drop_the_minus_sign_of_a_value(source: str) -> None:
+    assert not quote_matches("5 °C", source)
+
+
+@pytest.mark.parametrize(
+    ("quote", "source"),
+    [
+        ("-5 °C", "Çalışma sıcaklığı -5 °C"),
+        ("14 dikiş", "10-14 dikiş"),
+        ("10-14 dikiş", "10-14 dikiş"),
+    ],
+)
+def test_a_dash_that_is_not_a_sign_does_not_block_the_quote(quote: str, source: str) -> None:
+    assert quote_matches(quote, source)
+
+
+def test_digits_inside_a_code_are_not_a_quotable_value() -> None:
+    assert not quote_matches("5 adet", "Kod A-5 adet")
+
+
+def test_cut_quote_cannot_add_a_number_word_in_its_unchecked_tail() -> None:
+    assert not quote_matches(CUT_HEAD + " beş kez yapılır.", CUT_SOURCE)
+
+
+@pytest.mark.parametrize("tail", [" İki kez yapılır.", " ALTI kez yapılır.", " **İki** kez."])
+def test_cut_quote_cannot_add_a_capitalized_number_word_in_its_tail(tail: str) -> None:
+    assert not quote_matches(CUT_HEAD + tail, CUT_SOURCE)

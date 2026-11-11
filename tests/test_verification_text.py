@@ -73,3 +73,11 @@ def test_normalize_handles_width_and_superscript() -> None:
 )
 def test_identifiers_in(text: str, expected: set[str]) -> None:
     assert identifiers_in(text) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [("İki gün", {"2"}), ("ALTI adım", {"6"}), ("SIX steps", {"6"}), ("Üç kez", {"3"})],
+)
+def test_word_numbers_read_capitalised_turkish_and_english(text: str, expected: set[str]) -> None:
+    assert word_numbers(text) == expected

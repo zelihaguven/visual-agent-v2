@@ -6,8 +6,8 @@ import unicodedata
 from markdown_it import MarkdownIt
 
 _NUMBER = r"\d+(?:[.,]\d+)?"
-_MINUS_SIGNS = "-−–"
-_SIGNED_NUMBER_RE = re.compile(rf"(?:(?<![\w.,])[{_MINUS_SIGNS}](?=\d))?{_NUMBER}")
+MINUS_SIGNS = "-−–"
+_SIGNED_NUMBER_RE = re.compile(rf"(?:(?<![\w.,])[{MINUS_SIGNS}](?=\d))?{_NUMBER}")
 _AMBIGUOUS_GROUPING_RE = re.compile(r"[1-9]\d{0,2}[.,]\d{3}")
 TOLERANCE_RE = re.compile(rf"({_NUMBER})\s*\(\s*±\s*({_NUMBER})\s*\)")
 CITATION_RE = re.compile(r"\[(\d+)\]")
@@ -202,8 +202,8 @@ def canonical_number(raw: str) -> str:
     "40,0" ile "40" aynıdır. "1.000" ve "1.500" binlik de olabilir, bu yüzden "1" ya da "1,5"
     ile eşleşmez. Eksi işareti değerin parçasıdır.
     """
-    sign = "-" if raw[:1] in _MINUS_SIGNS else ""
-    digits = raw.lstrip(_MINUS_SIGNS)
+    sign = "-" if raw[:1] in MINUS_SIGNS else ""
+    digits = raw.lstrip(MINUS_SIGNS)
     if _AMBIGUOUS_GROUPING_RE.fullmatch(digits):
         return sign + digits
     value = digits.replace(",", ".")
@@ -220,7 +220,16 @@ def numbers_in(text: str) -> set[str]:
 
 def word_numbers(text: str) -> set[str]:
     """Alıntıda yazıyla geçen sayılar; yalnız kaynak tarafında kullanılır."""
-    return {str(_WORD_NUMBERS[word.lower()]) for word in _WORD_NUMBER_RE.findall(text)}
+    values = (_word_value(word) for word in _WORD_NUMBER_RE.findall(text))
+    return {str(value) for value in values if value is not None}
+
+
+def _word_value(word: str) -> int | None:
+    """Büyük harfli Türkçe yazımlar ("İki", "ALTI") da okunur; tanınmayan sözcük atlanır."""
+    for candidate in (word.replace("İ", "i").casefold(), word.replace("I", "ı").casefold()):
+        if candidate in _WORD_NUMBERS:
+            return _WORD_NUMBERS[candidate]
+    return None
 
 
 def measures_in(text: str) -> set[tuple[str, str]]:

@@ -11,9 +11,11 @@ from collections.abc import Callable
 
 from visual_agent.verification.text import (
     CUT_CITATION_RE,
+    MINUS_SIGNS,
     identifiers_in,
     markdown_plain_form,
     quote_form,
+    word_numbers,
 )
 
 QUOTE_LIMIT = 150
@@ -27,12 +29,26 @@ Form = Callable[[str], str]
 _FORMS: tuple[Form, ...] = (quote_form, markdown_plain_form)
 
 
+def _is_sign(text: str, position: int) -> bool:
+    """Rakamdan hemen önceki çizgi, önünde rakam yoksa sayının parçasıdır.
+
+    Biçim, çizginin çevresindeki boşluğu siler ("sıcaklık -5" -> "sıcaklık-5"); bu yüzden
+    önündeki harfe bakılmaz. Aralıktaki çizgi ("10-14") işaret sayılmaz.
+    """
+    return (
+        text[position] in MINUS_SIGNS
+        and position + 1 < len(text)
+        and text[position + 1].isdigit()
+        and (position == 0 or not text[position - 1].isdigit())
+    )
+
+
 def _in_number(text: str, position: int) -> bool:
     """Konumdaki karakter bir sayının parçası mı: rakam ya da iki rakam arasındaki ayırıcı."""
     if not 0 <= position < len(text):
         return False
     character = text[position]
-    if character.isdigit():
+    if character.isdigit() or _is_sign(text, position):
         return True
     return (
         character in ".,"
@@ -84,9 +100,29 @@ def field_quote_matches(quote: str, source: str) -> bool:
     return any(_field_matches(quote, source, form) for form in _FORMS)
 
 
-def _carries_values(tail: str) -> bool:
-    """Denetlenmeyen kuyrukta sayı ya da teknik ad olamaz; olursa kanıt sayılırdı."""
-    return any(character.isdigit() for character in tail) or bool(identifiers_in(tail))
+def _carries_values(tail: str, written_tail: str) -> bool:
+    """Denetlenmeyen kuyrukta sayı, yazıyla sayı ya da teknik ad olamaz; olursa kanıt sayılırdı.
+
+    Yazıyla sayı alıntının yazıldığı hâlinden okunur: küçük harfe indirmek "İki" ve "ALTI"
+    sözcüklerini tanınmaz kılar.
+    """
+    return (
+        any(character.isdigit() for character in tail)
+        or bool(identifiers_in(tail))
+        or bool(word_numbers(written_tail))
+    )
+
+
+def _written_tail(quote: str, normalized_words: list[str], head_count: int) -> str:
+    """Alıntının yazıldığı hâlinden kuyruğu kapsayan son sözcükler.
+
+    Biçim sözcük sayısını değiştirebilir (vurgu işareti, çizgi çevresi); fark kadar fazla
+    sözcük alınır, kuyruk dışarıda kalmaz.
+    """
+    written_words = quote.split()
+    tail_count = len(normalized_words) - head_count
+    extra = max(0, len(written_words) - len(normalized_words))
+    return " ".join(written_words[-(tail_count + extra) :])
 
 
 def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
@@ -99,7 +135,8 @@ def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
         head = " ".join(words[:count])
         if contains_whole(normalized_source, head):
             tail = normalized[len(head) :]
-            return len(tail) <= _CUT_MAX_TAIL and not _carries_values(tail)
+            written_tail = _written_tail(quote, words, count)
+            return len(tail) <= _CUT_MAX_TAIL and not _carries_values(tail, written_tail)
     return False
 
 
