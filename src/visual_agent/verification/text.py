@@ -15,9 +15,7 @@ _MULTI_CITATION_RE = re.compile(r"\[(\d+(?:\s*[,;–-]\s*\d+)+)\]")
 CUT_CITATION_RE = re.compile(r"\s*\[\d*$")
 FOREIGN_SCRIPT_RE = re.compile("[぀-ヺー-ヿ㐀-鿿가-힯＀-､ｦ-￯Ѐ-ӿ؀-ۿͰ-Ͽ]")
 _LETTER_PREFIXED_CODE_RE = re.compile(r"\b[A-Za-z]{1,5}-?\d+[A-Za-z]*\b")
-_LIST_MARK_RE = re.compile(
-    r"(?:^\s*|(?<=[.:;])\s+)\d{1,2}[.)]\s+(?=[A-ZÇĞİÖŞÜ*])|^\s*\d{1,2}[.)]\s+", re.MULTILINE
-)
+_LIST_MARK_RE = re.compile(r"(?:^\s*|(?<=[.:;])\s+)\d{1,2}[.)]\s+(?=[A-ZÇĞİÖŞÜ*])", re.MULTILINE)
 _LINE_BREAK_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
 _LEADING_DECIMAL_RE = re.compile(r"(?<![\d.,])[.,](\d)")
 _MAX_CITATION_RANGE = 20
@@ -154,6 +152,11 @@ def numbers_in(text: str) -> set[str]:
 def word_numbers(text: str) -> set[str]:
     """Alıntıda yazıyla geçen sayılar; yalnız kaynak tarafında kullanılır."""
     return {str(_WORD_NUMBERS[word.lower()]) for word in _WORD_NUMBER_RE.findall(text)}
+
+
+def prefixed_codes_in(text: str) -> set[str]:
+    """Harfle başlayan kodlar (büyük ya da küçük harf): içlerindeki rakam sayı sayılmaz."""
+    return {compact_identifier(m.group(0)) for m in _LETTER_PREFIXED_CODE_RE.finditer(text)}
 
 
 def fold_identifier(value: str) -> str:

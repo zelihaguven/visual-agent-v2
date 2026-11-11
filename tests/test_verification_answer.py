@@ -129,6 +129,35 @@ def test_same_value_written_the_same_way_still_passes() -> None:
     assert verify_item(item("Sıcaklık -5 °C, ceza 1.000 TL.", quote=quote), sources).ok
 
 
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("Ödeme 60. günde yapılır", "30. günde ödeme yapılır."),
+        ("İzin 3 gündür", "İzin beş gündür."),
+        ("Model PNT-1162 kumaş", "Model pnt-9999 kumaş."),
+        ("Boy 50 cm", "Değer boy-99 cm."),
+    ],
+)
+def test_numbers_hidden_in_words_or_codes_are_still_checked(source: str, text: str) -> None:
+    sources = {1: PromptSource(number=1, text=source)}
+
+    assert not verify_item(item(text, quote=source), sources).ok
+
+
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("İzin 1 gün sürer", "İzin bir gün sürer."),
+        ("Toplam 2 adım vardır", "Toplam iki adım vardır."),
+        ("Model PNT-1162 kumaş", "Bu bir pnt-1162 kumaşıdır."),
+    ],
+)
+def test_same_value_in_words_or_lower_case_still_passes(source: str, text: str) -> None:
+    sources = {1: PromptSource(number=1, text=source)}
+
+    assert verify_item(item(text, quote=source), sources).ok
+
+
 def test_cut_quote_at_the_limit_is_tolerated() -> None:
     long_text = "a" * 20 + " " + " ".join(f"kelime{i}" for i in range(40))
     sources = {1: PromptSource(number=1, text=long_text)}

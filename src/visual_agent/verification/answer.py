@@ -23,11 +23,14 @@ from visual_agent.verification.text import (
     identifiers_in,
     normalize,
     numbers_in,
+    prefixed_codes_in,
     word_numbers,
 )
 
 Sources = Mapping[int, PromptSource]
 _MIN_WORDS_FOR_REPEAT = 4
+# "bir" ve "one" çoğu zaman sayı değil, belirsiz tanımlıktır; cümlede sayı sayılmaz.
+_ARTICLE_NUMBERS = {"1"}
 
 
 def _quote_problems(item: ModelItem, sources: Sources) -> list[str]:
@@ -81,7 +84,8 @@ def _tolerance_problems(text: str, evidence: str) -> list[str]:
 
 def _token_problems(item: ModelItem, evidence: str, sources: Sources) -> list[str]:
     problems = []
-    stray_numbers = numbers_in(item.text) - numbers_in(evidence) - word_numbers(evidence)
+    stated = numbers_in(item.text) | (word_numbers(item.text) - _ARTICLE_NUMBERS)
+    stray_numbers = stated - numbers_in(evidence) - word_numbers(evidence)
     if stray_numbers:
         problems.append(f"cümlede kendi alıntısında olmayan sayı: {sorted(stray_numbers)}")
     cited = [sources[q.source_no].context for q in item.quotes if q.source_no in sources]
@@ -91,6 +95,9 @@ def _token_problems(item: ModelItem, evidence: str, sources: Sources) -> list[st
     }
     if stray_identifiers:
         problems.append(f"cümlede kaynakta olmayan teknik ad: {sorted(stray_identifiers)}")
+    stray_codes = prefixed_codes_in(item.text) - prefixed_codes_in(" ".join([evidence, *cited]))
+    if stray_codes:
+        problems.append(f"cümlede kaynakta olmayan kod: {sorted(stray_codes)}")
     return problems
 
 

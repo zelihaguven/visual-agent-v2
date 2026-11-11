@@ -29,6 +29,7 @@ from visual_agent.verification.text import (
         ("Sıcaklık -5 °C, en az −10 ve (-2)", {"-5", "-10", "-2"}),
         ("5-10 mm aralığı", {"5", "10"}),
         ("Bel 40,0 ya da 40", {"40"}),
+        ("30. günde ödeme yapılır", {"30"}),
     ],
 )
 def test_numbers_in(text: str, expected: set[str]) -> None:
