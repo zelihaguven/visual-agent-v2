@@ -158,3 +158,34 @@ def test_verbatim_way_changes_only_quote_marks_and_spacing() -> None:
 
 def test_escaped_asterisks_are_literal_not_emphasis() -> None:
     assert markdown_plain_form("\\*\\*not bold\\*\\*") == "**not bold**"
+
+
+@pytest.mark.parametrize(
+    ("quote", "source"),
+    [
+        ("4 cm", "Genişlik 74 cm"),
+        ("2,5", "Beden M: 72,5 | Beden L: 74,0"),
+        ("Genişlik 7", "Genişlik 7,5 cm"),
+        ("72", "Kod 1720 kayıtlı"),
+        ("5 adet", "Parti 1.5 adet"),
+    ],
+)
+def test_quote_cannot_start_or_end_inside_a_number(quote: str, source: str) -> None:
+    assert not quote_matches(quote, source)
+
+
+def test_labeled_quote_cannot_cut_a_number() -> None:
+    assert not field_quote_matches("Genişlik: 7", "Genişlik: 72 | Boy: 110")
+
+
+@pytest.mark.parametrize(
+    ("quote", "source"),
+    [
+        ("M: 76,5", "İç paça | M: 76,5 | Tolerans: 0,5"),
+        ("76,5", "İç paça | M: 76,5."),
+        ("Genişlik 74 cm", "Ölçü: Genişlik 74 cm, boy 110 cm"),
+        ("1,0", "Tolerans (cm): 1,0"),
+    ],
+)
+def test_whole_numbers_are_still_accepted(quote: str, source: str) -> None:
+    assert quote_matches(quote, source)
