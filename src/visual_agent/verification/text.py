@@ -6,16 +6,16 @@ import unicodedata
 from markdown_it import MarkdownIt
 
 _NUMBER = r"\d+(?:[.,]\d+)?"
-_NUMBER_RE = re.compile(_NUMBER)
+_MINUS_SIGNS = "-−–"
+_SIGNED_NUMBER_RE = re.compile(rf"(?:(?<![\w.,])[{_MINUS_SIGNS}](?=\d))?{_NUMBER}")
+_AMBIGUOUS_GROUPING_RE = re.compile(r"[1-9]\d{0,2}[.,]\d{3}")
 TOLERANCE_RE = re.compile(rf"({_NUMBER})\s*\(\s*±\s*({_NUMBER})\s*\)")
 CITATION_RE = re.compile(r"\[(\d+)\]")
 _MULTI_CITATION_RE = re.compile(r"\[(\d+(?:\s*[,;–-]\s*\d+)+)\]")
 CUT_CITATION_RE = re.compile(r"\s*\[\d*$")
 FOREIGN_SCRIPT_RE = re.compile("[぀-ヺー-ヿ㐀-鿿가-힯＀-､ｦ-￯Ѐ-ӿ؀-ۿͰ-Ͽ]")
 _LETTER_PREFIXED_CODE_RE = re.compile(r"\b[A-Za-z]{1,5}-?\d+[A-Za-z]*\b")
-_LIST_MARK_RE = re.compile(
-    r"(?:^\s*|(?<=[.:;])\s+)\d{1,2}[.)]\s+(?=[A-ZÇĞİÖŞÜ*])|^\s*\d{1,2}[.)]\s+", re.MULTILINE
-)
+_LIST_MARK_RE = re.compile(r"(?:^\s*|(?<=[.:;])\s+)\d{1,2}[.)]\s+(?=[A-ZÇĞİÖŞÜ*])", re.MULTILINE)
 _LINE_BREAK_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
 _LEADING_DECIMAL_RE = re.compile(r"(?<![\d.,])[.,](\d)")
 _MAX_CITATION_RANGE = 20
@@ -30,6 +30,75 @@ _IDENTIFIER_RE = re.compile(
     r")(?![\w-])"
 )
 _BACKTICK_RE = re.compile(r"`([^`\n]+)`")
+# Sayının hemen ardından gelen birimler; sesli akışta gizleme ve birim denetimi ortak kullanır.
+UNITS = [
+    "mm",
+    "cm",
+    "m",
+    "km",
+    "in",
+    "inch",
+    "inches",
+    "inç",
+    "″",
+    '"',
+    "ft",
+    "µm",
+    "g",
+    "kg",
+    "mg",
+    "lb",
+    "oz",
+    "n",
+    "nm",
+    "v",
+    "kv",
+    "a",
+    "ma",
+    "w",
+    "kw",
+    "hz",
+    "khz",
+    "rpm",
+    "dk",
+    "dakika",
+    "sn",
+    "saniye",
+    "s",
+    "sec",
+    "min",
+    "h",
+    "saat",
+    "gün",
+    "°c",
+    "°f",
+    "°",
+    "%",
+    "bar",
+    "psi",
+    "pa",
+    "kpa",
+    "mpa",
+    "l",
+    "ml",
+    "cc",
+    "tl",
+]
+UNIT_PATTERN = "|".join(sorted((re.escape(unit) for unit in UNITS), key=len, reverse=True))
+_MEASURE_RE = re.compile(rf"(?<![\w.,])({_NUMBER})\s?({UNIT_PATTERN})(?!\w)", re.IGNORECASE)
+_UNIT_ALIASES = {
+    "in": "inch",
+    "inches": "inch",
+    "inç": "inch",
+    "″": "inch",
+    '"': "inch",
+    "dk": "min",
+    "dakika": "min",
+    "sn": "s",
+    "saniye": "s",
+    "sec": "s",
+    "saat": "h",
+}
 _IDENTIFIER_SEPARATOR_RE = re.compile(r"[-_\s]+")
 
 _WORD_NUMBER_LISTS = (
@@ -128,8 +197,17 @@ def strip_citations(text: str) -> str:
 
 
 def canonical_number(raw: str) -> str:
-    value = raw.replace(",", ".")
-    return value.rstrip("0").rstrip(".") if "." in value else value
+    """Aynı sayının yazım farkı yok sayılır; binlik mi ondalık mı belirsizse yazıldığı gibi kalır.
+
+    "40,0" ile "40" aynıdır. "1.000" ve "1.500" binlik de olabilir, bu yüzden "1" ya da "1,5"
+    ile eşleşmez. Eksi işareti değerin parçasıdır.
+    """
+    sign = "-" if raw[:1] in _MINUS_SIGNS else ""
+    digits = raw.lstrip(_MINUS_SIGNS)
+    if _AMBIGUOUS_GROUPING_RE.fullmatch(digits):
+        return sign + digits
+    value = digits.replace(",", ".")
+    return sign + (value.rstrip("0").rstrip(".") if "." in value else value)
 
 
 def numbers_in(text: str) -> set[str]:
@@ -137,7 +215,7 @@ def numbers_in(text: str) -> set[str]:
     cleaned = strip_citations(_LINE_BREAK_RE.sub("\n", canon_chars(text)))
     cleaned = _LEADING_DECIMAL_RE.sub(r"0.\1", cleaned)
     cleaned = _LETTER_PREFIXED_CODE_RE.sub(" ", _LIST_MARK_RE.sub("", cleaned))
-    return {canonical_number(match.group(0)) for match in _NUMBER_RE.finditer(cleaned)}
+    return {canonical_number(match.group(0)) for match in _SIGNED_NUMBER_RE.finditer(cleaned)}
 
 
 def word_numbers(text: str) -> set[str]:
@@ -145,8 +223,27 @@ def word_numbers(text: str) -> set[str]:
     return {str(_WORD_NUMBERS[word.lower()]) for word in _WORD_NUMBER_RE.findall(text)}
 
 
+def measures_in(text: str) -> set[tuple[str, str]]:
+    """Birimiyle yazılmış değerler: ("5", "mm"); eş anlamlı birimler tek biçime iner."""
+    found = set()
+    for number, unit in _MEASURE_RE.findall(canon_chars(text)):
+        name = unit.casefold()
+        found.add((canonical_number(number), _UNIT_ALIASES.get(name, name)))
+    return found
+
+
+def prefixed_codes_in(text: str) -> set[str]:
+    """Harfle başlayan kodlar (büyük ya da küçük harf): içlerindeki rakam sayı sayılmaz."""
+    return {compact_identifier(m.group(0)) for m in _LETTER_PREFIXED_CODE_RE.finditer(text)}
+
+
 def fold_identifier(value: str) -> str:
     return value.replace("İ", "i").casefold()
+
+
+def contains_token(text: str, token: str) -> bool:
+    """Değer yalnız tam değer olarak geçiyorsa eşleşir ("4", "74,5" içinde sayılmaz)."""
+    return re.search(rf"(?<![\w.,-]){re.escape(token)}(?![\w,-]|\.\d)", text) is not None
 
 
 def compact_identifier(value: str) -> str:

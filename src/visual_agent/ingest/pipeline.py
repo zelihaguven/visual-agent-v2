@@ -13,7 +13,7 @@ from visual_agent.ingest.formats import InputFormat, detect_format
 from visual_agent.ingest.plain_text import parse_plain_text
 from visual_agent.ingest.spreadsheet import parse_workbook
 from visual_agent.ingest.text_layer import PageKind
-from visual_agent.ingest.two_reading import contains_token
+from visual_agent.verification.text import contains_token
 
 _MIN_CAPTURED_TEXT_RATIO = 0.5
 _SQL_STATEMENT = (

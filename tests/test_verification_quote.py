@@ -158,3 +158,54 @@ def test_verbatim_way_changes_only_quote_marks_and_spacing() -> None:
 
 def test_escaped_asterisks_are_literal_not_emphasis() -> None:
     assert markdown_plain_form("\\*\\*not bold\\*\\*") == "**not bold**"
+
+
+@pytest.mark.parametrize(
+    ("quote", "source"),
+    [
+        ("4 cm", "Genişlik 74 cm"),
+        ("2,5", "Beden M: 72,5 | Beden L: 74,0"),
+        ("Genişlik 7", "Genişlik 7,5 cm"),
+        ("72", "Kod 1720 kayıtlı"),
+        ("5 adet", "Parti 1.5 adet"),
+    ],
+)
+def test_quote_cannot_start_or_end_inside_a_number(quote: str, source: str) -> None:
+    assert not quote_matches(quote, source)
+
+
+def test_labeled_quote_cannot_cut_a_number() -> None:
+    assert not field_quote_matches("Genişlik: 7", "Genişlik: 72 | Boy: 110")
+
+
+@pytest.mark.parametrize(
+    ("quote", "source"),
+    [
+        ("M: 76,5", "İç paça | M: 76,5 | Tolerans: 0,5"),
+        ("76,5", "İç paça | M: 76,5."),
+        ("Genişlik 74 cm", "Ölçü: Genişlik 74 cm, boy 110 cm"),
+        ("1,0", "Tolerans (cm): 1,0"),
+    ],
+)
+def test_whole_numbers_are_still_accepted(quote: str, source: str) -> None:
+    assert quote_matches(quote, source)
+
+
+CUT_SOURCE = (
+    "Dikiş makinesi ayarlarında kullanılacak iğne numarası ve iplik kalınlığı üretim talimatında"
+    " belirtilen değerlere göre seçilmeli ve her vardiya başında kontrol edilmelidir ve kayıt"
+    " tutulur."
+)
+CUT_HEAD = CUT_SOURCE.removesuffix(" kayıt tutulur.")
+
+
+def test_cut_quote_cannot_add_a_number_in_its_unchecked_tail() -> None:
+    assert not quote_matches(CUT_HEAD + " değer 99 cm.", CUT_SOURCE)
+
+
+def test_cut_quote_cannot_add_a_code_in_its_unchecked_tail() -> None:
+    assert not quote_matches(CUT_HEAD + " kod PNT-77.", CUT_SOURCE)
+
+
+def test_cut_quote_with_a_plain_broken_tail_is_still_accepted() -> None:
+    assert quote_matches(CUT_HEAD + " kayıt tutu", CUT_SOURCE)

@@ -9,7 +9,12 @@
 
 from collections.abc import Callable
 
-from visual_agent.verification.text import CUT_CITATION_RE, markdown_plain_form, quote_form
+from visual_agent.verification.text import (
+    CUT_CITATION_RE,
+    identifiers_in,
+    markdown_plain_form,
+    quote_form,
+)
 
 QUOTE_LIMIT = 150
 _CUT_MARGIN = 15
@@ -20,6 +25,36 @@ _MAX_LABEL_LENGTH = 80
 
 Form = Callable[[str], str]
 _FORMS: tuple[Form, ...] = (quote_form, markdown_plain_form)
+
+
+def _in_number(text: str, position: int) -> bool:
+    """Konumdaki karakter bir sayının parçası mı: rakam ya da iki rakam arasındaki ayırıcı."""
+    if not 0 <= position < len(text):
+        return False
+    character = text[position]
+    if character.isdigit():
+        return True
+    return (
+        character in ".,"
+        and 0 < position < len(text) - 1
+        and text[position - 1].isdigit()
+        and text[position + 1].isdigit()
+    )
+
+
+def _cuts_number(text: str, boundary: int) -> bool:
+    return _in_number(text, boundary - 1) and _in_number(text, boundary)
+
+
+def contains_whole(haystack: str, needle: str) -> bool:
+    """Metinde geçer, ama bir sayının ortasından başlamaz ya da bitmez ("4", "74" içinde yok)."""
+    start = haystack.find(needle)
+    while start >= 0:
+        end = start + len(needle)
+        if not _cuts_number(haystack, start) and not _cuts_number(haystack, end):
+            return True
+        start = haystack.find(needle, start + 1)
+    return False
 
 
 def _labeled_cells(line: str) -> list[tuple[str, str]]:
@@ -38,7 +73,7 @@ def _field_matches(quote: str, source: str, form: Form) -> bool:
         return False
     wanted_label, wanted_value = form(label), form(value)
     return any(
-        form(cell_label) == wanted_label and wanted_value in form(cell_value)
+        form(cell_label) == wanted_label and contains_whole(form(cell_value), wanted_value)
         for line in source.splitlines()
         for cell_label, cell_value in _labeled_cells(line)
     )
@@ -49,6 +84,11 @@ def field_quote_matches(quote: str, source: str) -> bool:
     return any(_field_matches(quote, source, form) for form in _FORMS)
 
 
+def _carries_values(tail: str) -> bool:
+    """Denetlenmeyen kuyrukta sayı ya da teknik ad olamaz; olursa kanıt sayılırdı."""
+    return any(character.isdigit() for character in tail) or bool(identifiers_in(tail))
+
+
 def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
     """Uzunluk sınırına dayanıp sonu bozulan alıntının başı kaynakla örtüşüyorsa kabul eder."""
     if len(quote) < QUOTE_LIMIT - _CUT_MARGIN:
@@ -57,8 +97,9 @@ def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
     words = normalized.split(" ")
     for count in range(len(words) - 1, 0, -1):
         head = " ".join(words[:count])
-        if head in normalized_source:
-            return len(normalized) - len(head) <= _CUT_MAX_TAIL
+        if contains_whole(normalized_source, head):
+            tail = normalized[len(head) :]
+            return len(tail) <= _CUT_MAX_TAIL and not _carries_values(tail)
     return False
 
 
@@ -69,7 +110,7 @@ def _matches(quote: str, source: str, form: Form) -> bool:
         return False
     normalized_source = form(source)
     return (
-        normalized_quote in normalized_source
+        contains_whole(normalized_source, normalized_quote)
         or _field_matches(without_citation, source, form)
         or _cut_prefix_matches(quote, normalized_source, form)
     )

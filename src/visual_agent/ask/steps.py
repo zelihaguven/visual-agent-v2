@@ -32,7 +32,11 @@ from visual_agent.domain.result import (
 from visual_agent.generation.openrouter import AttemptRecord, ServiceUnavailable, StreamCallbacks
 from visual_agent.generation.parse import ParseFailure, parse_answer
 from visual_agent.generation.sources import build_user_message, to_prompt_sources
-from visual_agent.verification.answer import code_source_number, verify_answer
+from visual_agent.verification.answer import (
+    code_source_number,
+    safe_clarify_question,
+    verify_answer,
+)
 from visual_agent.verification.text import identifiers_in
 
 logger = logging.getLogger(__name__)
@@ -293,7 +297,9 @@ def _clarification(
     )
     show_choices = len(documents) >= _MIN_CLARIFY_DOCUMENTS and not state.request.doc_ids
     return Clarify(
-        question=answer.clarify.question if answer.clarify else "",
+        question=safe_clarify_question(
+            answer.clarify.question if answer.clarify else "", state.question, state.language
+        ),
         options=tuple(
             ClarifyChoice(doc_id=doc_id, label=deps.catalog.title(doc_id)) for doc_id in documents
         )

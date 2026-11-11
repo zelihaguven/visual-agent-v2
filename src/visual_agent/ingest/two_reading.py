@@ -60,11 +60,6 @@ def page_ranges(pages: Iterable[int]) -> str:
     return ",".join(ranges)
 
 
-def contains_token(text: str, token: str) -> bool:
-    """Belirsiz değer yalnız tam değer olarak geçiyorsa eşleşir ("4", "74,5" içinde sayılmaz)."""
-    return re.search(rf"(?<![\w.,-]){re.escape(token)}(?![\w,-]|\.\d)", text) is not None
-
-
 def _token_key(token: str) -> str:
     return token.strip(_STRIP_CHARACTERS).replace(",", ".").translate(_CONFUSABLE)
 

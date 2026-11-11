@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from visual_agent.domain.answer import ItemCheck, ModelItem, PromptSource
 from visual_agent.verification.answer import code_source_number, verify_item
-from visual_agent.verification.text import identifier_spans
+from visual_agent.verification.text import UNIT_PATTERN, identifier_spans
 
 Event = dict[str, object]
 EventSink = Callable[[Event], None]
@@ -24,63 +24,9 @@ _NUMBER_WORDS = {
     "tr": "bir iki üç dört beş altı yedi sekiz dokuz on onbir oniki",
     "en": "one two three four five six seven eight nine ten eleven twelve",
 }
-_UNITS = [
-    "mm",
-    "cm",
-    "m",
-    "km",
-    "in",
-    "inch",
-    "inches",
-    "inç",
-    "″",
-    '"',
-    "ft",
-    "µm",
-    "g",
-    "kg",
-    "mg",
-    "lb",
-    "oz",
-    "n",
-    "nm",
-    "v",
-    "kv",
-    "a",
-    "ma",
-    "w",
-    "kw",
-    "hz",
-    "khz",
-    "rpm",
-    "dk",
-    "dakika",
-    "sn",
-    "saniye",
-    "s",
-    "sec",
-    "min",
-    "h",
-    "saat",
-    "gün",
-    "°c",
-    "°f",
-    "°",
-    "%",
-    "bar",
-    "psi",
-    "pa",
-    "kpa",
-    "mpa",
-    "l",
-    "ml",
-    "cc",
-    "tl",
-]
-_UNIT_PATTERN = "|".join(sorted((re.escape(unit) for unit in _UNITS), key=len, reverse=True))
 _DIGIT_LIKE = r"\d±①-⓿❶-➓¼-¾⅐-⅟²³¹"
 _NUMBER_TOKEN_RE = re.compile(
-    rf"[^\s]*[{_DIGIT_LIKE}][^\s]*(?:\s+(?:{_UNIT_PATTERN})(?!\w))?", re.IGNORECASE
+    rf"[^\s]*[{_DIGIT_LIKE}][^\s]*(?:\s+(?:{UNIT_PATTERN})(?!\w))?", re.IGNORECASE
 )
 _VISIBLE_WORD_RE = re.compile(r"[^\W\d_]{2,}")
 

@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 
 from visual_agent.domain.document import Box, SourceLocation
 from visual_agent.ingest.elements import Element, ElementKind
-from visual_agent.ingest.two_reading import contains_token
+from visual_agent.verification.text import contains_token
 
 _LINE_OVERLAP_RATIO = 0.5
 _MIN_TABLE_LINES = 2

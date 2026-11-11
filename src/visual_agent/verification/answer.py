@@ -19,14 +19,19 @@ from visual_agent.verification.text import (
     TOLERANCE_RE,
     canonical_number,
     compact_identifier,
+    contains_token,
     identifiers_in,
+    measures_in,
     normalize,
     numbers_in,
+    prefixed_codes_in,
     word_numbers,
 )
 
 Sources = Mapping[int, PromptSource]
 _MIN_WORDS_FOR_REPEAT = 4
+# "bir" ve "one" çoğu zaman sayı değil, belirsiz tanımlıktır; cümlede sayı sayılmaz.
+_ARTICLE_NUMBERS = {"1"}
 
 
 def _quote_problems(item: ModelItem, sources: Sources) -> list[str]:
@@ -64,7 +69,7 @@ def _ocr_problems(item: ModelItem, sources: Sources) -> list[str]:
         source = sources.get(quote.source_no)
         tokens = source.ocr_uncertain if source is not None else ()
         normalized = normalize(quote.text)
-        uncertain += [token for token in tokens if normalize(token) in normalized]
+        uncertain += [token for token in tokens if contains_token(normalized, normalize(token))]
     return [f"OCR değeri belirsiz: {uncertain}"] if uncertain else []
 
 
@@ -78,9 +83,22 @@ def _tolerance_problems(text: str, evidence: str) -> list[str]:
     return problems
 
 
+def _unit_problems(text: str, evidence: str) -> list[str]:
+    """Kaynakta birimiyle geçen değer cümlede başka birimle yazılamaz."""
+    known = measures_in(evidence)
+    known_numbers = {number for number, _ in known}
+    clashes = sorted(
+        f"{number} {unit}"
+        for number, unit in measures_in(text)
+        if number in known_numbers and (number, unit) not in known
+    )
+    return [f"cümlede kaynaktakinden farklı birim: {clashes}"] if clashes else []
+
+
 def _token_problems(item: ModelItem, evidence: str, sources: Sources) -> list[str]:
     problems = []
-    stray_numbers = numbers_in(item.text) - numbers_in(evidence) - word_numbers(evidence)
+    stated = numbers_in(item.text) | (word_numbers(item.text) - _ARTICLE_NUMBERS)
+    stray_numbers = stated - numbers_in(evidence) - word_numbers(evidence)
     if stray_numbers:
         problems.append(f"cümlede kendi alıntısında olmayan sayı: {sorted(stray_numbers)}")
     cited = [sources[q.source_no].context for q in item.quotes if q.source_no in sources]
@@ -90,6 +108,9 @@ def _token_problems(item: ModelItem, evidence: str, sources: Sources) -> list[st
     }
     if stray_identifiers:
         problems.append(f"cümlede kaynakta olmayan teknik ad: {sorted(stray_identifiers)}")
+    stray_codes = prefixed_codes_in(item.text) - prefixed_codes_in(" ".join([evidence, *cited]))
+    if stray_codes:
+        problems.append(f"cümlede kaynakta olmayan kod: {sorted(stray_codes)}")
     return problems
 
 
@@ -123,6 +144,7 @@ def verify_item(item: ModelItem, sources: Sources) -> ItemCheck:
     problems += _ocr_problems(item, sources)
     problems += _token_problems(item, evidence, sources)
     problems += _tolerance_problems(item.text, evidence)
+    problems += _unit_problems(item.text, evidence)
     if FOREIGN_SCRIPT_RE.search(item.text):
         problems.append("cümlede başka alfabeden karakter")
     numbers = tuple(quote.source_no for quote in item.quotes)
@@ -142,6 +164,23 @@ def _has_repeated_sentence(answer: ModelAnswer) -> bool:
         if len(text.split()) >= _MIN_WORDS_FOR_REPEAT
     ]
     return len(long_texts) != len(set(long_texts))
+
+
+_SAFE_CLARIFY_QUESTION = {"tr": "Hangisi için soruyorsunuz?", "en": "Which one do you mean?"}
+
+
+def _values_in(text: str) -> set[str]:
+    codes = {compact_identifier(value) for value in identifiers_in(text)} | prefixed_codes_in(text)
+    numbers = numbers_in(text) | (word_numbers(text) - _ARTICLE_NUMBERS)
+    return codes | numbers
+
+
+def safe_clarify_question(question: str, user_question: str, language: str) -> str:
+    """Netleştirme sorusu kaynağa karşı denetlenmez; kullanıcının söylemediği sayı ya da kod
+    taşıyorsa ya da boşsa yerine sabit soru gelir."""
+    if question.strip() and _values_in(question) <= _values_in(user_question):
+        return question
+    return _SAFE_CLARIFY_QUESTION.get(language, _SAFE_CLARIFY_QUESTION["tr"])
 
 
 def _verify_clarification(answer: ModelAnswer, sources: Sources) -> AnswerVerification:

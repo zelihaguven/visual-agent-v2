@@ -5,7 +5,7 @@ from collections.abc import Iterable, Sequence
 
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.elements import Element, ElementKind
-from visual_agent.ingest.two_reading import contains_token
+from visual_agent.verification.text import contains_token
 
 CHUNK_MAX_CHARS = 900
 _SECTION_SEPARATOR = " · "

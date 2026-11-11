@@ -91,6 +91,102 @@ def test_uncertain_ocr_value_blocks_the_item() -> None:
     assert "OCR" in check.problems[0]
 
 
+OCR_ROW = "Dış paça | S: 100,5 | M: 102,5 | Tolerans (cm): 10"
+OCR_SOURCES = {1: PromptSource(number=1, text=OCR_ROW, ocr_uncertain=("10",), from_ocr=True)}
+
+
+def test_uncertain_value_does_not_hide_a_longer_value_that_contains_it() -> None:
+    check = verify_item(item("M beden dış paça 102,5.", quote="M: 102,5"), OCR_SOURCES)
+
+    assert check.ok, check.problems
+
+
+def test_uncertain_value_itself_is_still_hidden() -> None:
+    check = verify_item(item("Tolerans 10 cm.", quote="Tolerans (cm): 10"), OCR_SOURCES)
+
+    assert not check.ok
+    assert "OCR" in check.problems[0]
+
+
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("Ceza tutarı 1.000 TL", "Ceza tutarı 1 TL."),
+        ("Parti 1.500 adet", "Parti 1,5 adet."),
+        ("Çalışma sıcaklığı -5 °C", "Çalışma sıcaklığı 5 °C."),
+    ],
+)
+def test_thousands_and_sign_cannot_change_a_value(source: str, text: str) -> None:
+    sources = {1: PromptSource(number=1, text=source)}
+
+    assert not verify_item(item(text, quote=source), sources).ok
+
+
+def test_same_value_written_the_same_way_still_passes() -> None:
+    sources = {1: PromptSource(number=1, text="Çalışma sıcaklığı -5 °C, ceza 1.000 TL")}
+    quote = "Çalışma sıcaklığı -5 °C, ceza 1.000 TL"
+
+    assert verify_item(item("Sıcaklık -5 °C, ceza 1.000 TL.", quote=quote), sources).ok
+
+
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("Ödeme 60. günde yapılır", "30. günde ödeme yapılır."),
+        ("İzin 3 gündür", "İzin beş gündür."),
+        ("Model PNT-1162 kumaş", "Model pnt-9999 kumaş."),
+        ("Boy 50 cm", "Değer boy-99 cm."),
+    ],
+)
+def test_numbers_hidden_in_words_or_codes_are_still_checked(source: str, text: str) -> None:
+    sources = {1: PromptSource(number=1, text=source)}
+
+    assert not verify_item(item(text, quote=source), sources).ok
+
+
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("İzin 1 gün sürer", "İzin bir gün sürer."),
+        ("Toplam 2 adım vardır", "Toplam iki adım vardır."),
+        ("Model PNT-1162 kumaş", "Bu bir pnt-1162 kumaşıdır."),
+    ],
+)
+def test_same_value_in_words_or_lower_case_still_passes(source: str, text: str) -> None:
+    sources = {1: PromptSource(number=1, text=source)}
+
+    assert verify_item(item(text, quote=source), sources).ok
+
+
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("Dikiş payı 5 mm", "Dikiş payı 5 cm."),
+        ("Çalışma sıcaklığı 40 °C", "Çalışma sıcaklığı 40 °F."),
+        ("Bekleme 30 sn", "Bekleme 30 dakika."),
+    ],
+)
+def test_a_value_cannot_change_its_unit(source: str, text: str) -> None:
+    sources = {1: PromptSource(number=1, text=source)}
+
+    assert not verify_item(item(text, quote=source), sources).ok
+
+
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("Dikiş payı 5 mm", "Dikiş payı 5 mm'dir."),
+        ("Bekleme 30 dk", "Bekleme 30 dakika."),
+        ("Bel | M: 40,5 | L: 42,5", "M beden bel 40,5 cm."),
+        ("Pay 5 mm, kenar 5 cm", "Kenar 5 cm."),
+    ],
+)
+def test_same_or_unstated_unit_still_passes(source: str, text: str) -> None:
+    sources = {1: PromptSource(number=1, text=source)}
+
+    assert verify_item(item(text, quote=source), sources).ok
+
+
 def test_cut_quote_at_the_limit_is_tolerated() -> None:
     long_text = "a" * 20 + " " + " ".join(f"kelime{i}" for i in range(40))
     sources = {1: PromptSource(number=1, text=long_text)}
