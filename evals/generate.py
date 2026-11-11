@@ -5,16 +5,18 @@ import tempfile
 from pathlib import Path
 from random import Random
 
-from evals.content import ScenarioDocument
+from evals.content import Scenario, ScenarioDocument
 from evals.gold import Carrier, GoldSet
 from evals.render.imaging import write_photo, write_scan
 from evals.render.office import render_docx, render_sql_text, render_xlsx
 from evals.render.pdf import render_pdf
+from evals.scenarios.boundary import build_boundary
 from evals.scenarios.hr_policy import build_hr_policy
 from evals.scenarios.sewing import build_sewing
 from evals.scenarios.sql_tool import build_sql_tool
 
 GOLD_FILENAME = "gold.json"
+KINDS = ("standart", "sinir")
 
 
 def _render_via_pdf(document: ScenarioDocument, target: Path, rng: Random) -> None:
@@ -45,13 +47,20 @@ def _render(document: ScenarioDocument, output: Path, rng: Random) -> None:
             _render_via_pdf(document, target, rng)
 
 
-def generate_set(seed: int, output: Path) -> GoldSet:
-    output.mkdir(parents=True, exist_ok=True)
-    scenarios = (
+def _scenarios(seed: int, kind: str) -> tuple[Scenario, ...]:
+    """ "standart" ana settir; "sinir" doğrulamanın sayı kurallarını sınayan ayrı settir."""
+    if kind == "sinir":
+        return (build_boundary(),)
+    return (
         build_sewing(Random(f"{seed}:dikim")),
         build_sql_tool(Random(f"{seed}:sql")),
         build_hr_policy(Random(f"{seed}:ik")),
     )
+
+
+def generate_set(seed: int, output: Path, kind: str = "standart") -> GoldSet:
+    output.mkdir(parents=True, exist_ok=True)
+    scenarios = _scenarios(seed, kind)
     documents = [document for scenario in scenarios for document in scenario.documents]
     render_rng = Random(f"{seed}:render")
     for document in documents:
@@ -72,8 +81,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Test belgelerini ve doğru cevapları üretir.")
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--output", type=Path, default=Path("evals/output/set"))
+    parser.add_argument("--kind", choices=KINDS, default="standart")
     arguments = parser.parse_args()
-    gold = generate_set(arguments.seed, arguments.output)
+    gold = generate_set(arguments.seed, arguments.output, arguments.kind)
     print(f"{len(gold.documents)} belge, {len(gold.questions)} soru: {arguments.output}")
 
 
