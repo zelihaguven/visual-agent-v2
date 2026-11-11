@@ -108,6 +108,27 @@ def test_uncertain_value_itself_is_still_hidden() -> None:
     assert "OCR" in check.problems[0]
 
 
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("Ceza tutarı 1.000 TL", "Ceza tutarı 1 TL."),
+        ("Parti 1.500 adet", "Parti 1,5 adet."),
+        ("Çalışma sıcaklığı -5 °C", "Çalışma sıcaklığı 5 °C."),
+    ],
+)
+def test_thousands_and_sign_cannot_change_a_value(source: str, text: str) -> None:
+    sources = {1: PromptSource(number=1, text=source)}
+
+    assert not verify_item(item(text, quote=source), sources).ok
+
+
+def test_same_value_written_the_same_way_still_passes() -> None:
+    sources = {1: PromptSource(number=1, text="Çalışma sıcaklığı -5 °C, ceza 1.000 TL")}
+    quote = "Çalışma sıcaklığı -5 °C, ceza 1.000 TL"
+
+    assert verify_item(item("Sıcaklık -5 °C, ceza 1.000 TL.", quote=quote), sources).ok
+
+
 def test_cut_quote_at_the_limit_is_tolerated() -> None:
     long_text = "a" * 20 + " " + " ".join(f"kelime{i}" for i in range(40))
     sources = {1: PromptSource(number=1, text=long_text)}

@@ -6,7 +6,9 @@ import unicodedata
 from markdown_it import MarkdownIt
 
 _NUMBER = r"\d+(?:[.,]\d+)?"
-_NUMBER_RE = re.compile(_NUMBER)
+_MINUS_SIGNS = "-−–"
+_SIGNED_NUMBER_RE = re.compile(rf"(?:(?<![\w.,])[{_MINUS_SIGNS}](?=\d))?{_NUMBER}")
+_AMBIGUOUS_GROUPING_RE = re.compile(r"[1-9]\d{0,2}[.,]\d{3}")
 TOLERANCE_RE = re.compile(rf"({_NUMBER})\s*\(\s*±\s*({_NUMBER})\s*\)")
 CITATION_RE = re.compile(r"\[(\d+)\]")
 _MULTI_CITATION_RE = re.compile(r"\[(\d+(?:\s*[,;–-]\s*\d+)+)\]")
@@ -128,8 +130,17 @@ def strip_citations(text: str) -> str:
 
 
 def canonical_number(raw: str) -> str:
-    value = raw.replace(",", ".")
-    return value.rstrip("0").rstrip(".") if "." in value else value
+    """Aynı sayının yazım farkı yok sayılır; binlik mi ondalık mı belirsizse yazıldığı gibi kalır.
+
+    "40,0" ile "40" aynıdır. "1.000" ve "1.500" binlik de olabilir, bu yüzden "1" ya da "1,5"
+    ile eşleşmez. Eksi işareti değerin parçasıdır.
+    """
+    sign = "-" if raw[:1] in _MINUS_SIGNS else ""
+    digits = raw.lstrip(_MINUS_SIGNS)
+    if _AMBIGUOUS_GROUPING_RE.fullmatch(digits):
+        return sign + digits
+    value = digits.replace(",", ".")
+    return sign + (value.rstrip("0").rstrip(".") if "." in value else value)
 
 
 def numbers_in(text: str) -> set[str]:
@@ -137,7 +148,7 @@ def numbers_in(text: str) -> set[str]:
     cleaned = strip_citations(_LINE_BREAK_RE.sub("\n", canon_chars(text)))
     cleaned = _LEADING_DECIMAL_RE.sub(r"0.\1", cleaned)
     cleaned = _LETTER_PREFIXED_CODE_RE.sub(" ", _LIST_MARK_RE.sub("", cleaned))
-    return {canonical_number(match.group(0)) for match in _NUMBER_RE.finditer(cleaned)}
+    return {canonical_number(match.group(0)) for match in _SIGNED_NUMBER_RE.finditer(cleaned)}
 
 
 def word_numbers(text: str) -> set[str]:

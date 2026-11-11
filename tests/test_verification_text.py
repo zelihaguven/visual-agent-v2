@@ -23,6 +23,12 @@ from visual_agent.verification.text import (
         ("Paneldeki düğmeler [1]:<br>1. Saat ekranı<br>2. Seçici düğme", set()),
         ("varsayılan 2.00, ayar 0,50 ve .5 mm", {"2", "0.5"}),
         ("Keep pressing the button ❶", {"1"}),
+        ("Ceza tutarı 1.000 TL", {"1.000"}),
+        ("Parti 1.500 adet, ayrıca 1,5 kg", {"1.500", "1.5"}),
+        ("Kalınlık 0,500 mm", {"0.5"}),
+        ("Sıcaklık -5 °C, en az −10 ve (-2)", {"-5", "-10", "-2"}),
+        ("5-10 mm aralığı", {"5", "10"}),
+        ("Bel 40,0 ya da 40", {"40"}),
     ],
 )
 def test_numbers_in(text: str, expected: set[str]) -> None:
