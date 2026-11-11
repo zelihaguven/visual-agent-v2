@@ -91,6 +91,23 @@ def test_uncertain_ocr_value_blocks_the_item() -> None:
     assert "OCR" in check.problems[0]
 
 
+OCR_ROW = "Dış paça | S: 100,5 | M: 102,5 | Tolerans (cm): 10"
+OCR_SOURCES = {1: PromptSource(number=1, text=OCR_ROW, ocr_uncertain=("10",), from_ocr=True)}
+
+
+def test_uncertain_value_does_not_hide_a_longer_value_that_contains_it() -> None:
+    check = verify_item(item("M beden dış paça 102,5.", quote="M: 102,5"), OCR_SOURCES)
+
+    assert check.ok, check.problems
+
+
+def test_uncertain_value_itself_is_still_hidden() -> None:
+    check = verify_item(item("Tolerans 10 cm.", quote="Tolerans (cm): 10"), OCR_SOURCES)
+
+    assert not check.ok
+    assert "OCR" in check.problems[0]
+
+
 def test_cut_quote_at_the_limit_is_tolerated() -> None:
     long_text = "a" * 20 + " " + " ".join(f"kelime{i}" for i in range(40))
     sources = {1: PromptSource(number=1, text=long_text)}

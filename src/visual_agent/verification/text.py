@@ -149,6 +149,11 @@ def fold_identifier(value: str) -> str:
     return value.replace("İ", "i").casefold()
 
 
+def contains_token(text: str, token: str) -> bool:
+    """Değer yalnız tam değer olarak geçiyorsa eşleşir ("4", "74,5" içinde sayılmaz)."""
+    return re.search(rf"(?<![\w.,-]){re.escape(token)}(?![\w,-]|\.\d)", text) is not None
+
+
 def compact_identifier(value: str) -> str:
     """Tire, alt çizgi ve boşluk farkını yok sayan biçim; söylenen kodlar böyle eşleşir."""
     return _IDENTIFIER_SEPARATOR_RE.sub("", fold_identifier(value))

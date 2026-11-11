@@ -19,6 +19,7 @@ from visual_agent.verification.text import (
     TOLERANCE_RE,
     canonical_number,
     compact_identifier,
+    contains_token,
     identifiers_in,
     normalize,
     numbers_in,
@@ -64,7 +65,7 @@ def _ocr_problems(item: ModelItem, sources: Sources) -> list[str]:
         source = sources.get(quote.source_no)
         tokens = source.ocr_uncertain if source is not None else ()
         normalized = normalize(quote.text)
-        uncertain += [token for token in tokens if normalize(token) in normalized]
+        uncertain += [token for token in tokens if contains_token(normalized, normalize(token))]
     return [f"OCR değeri belirsiz: {uncertain}"] if uncertain else []
 
 
