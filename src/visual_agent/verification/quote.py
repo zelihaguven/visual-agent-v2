@@ -11,6 +11,7 @@ from collections.abc import Callable
 
 from visual_agent.verification.text import (
     CUT_CITATION_RE,
+    MINUS_SIGNS,
     identifiers_in,
     markdown_plain_form,
     quote_form,
@@ -27,12 +28,26 @@ Form = Callable[[str], str]
 _FORMS: tuple[Form, ...] = (quote_form, markdown_plain_form)
 
 
+def _is_sign(text: str, position: int) -> bool:
+    """Rakamdan hemen önceki çizgi, önünde rakam yoksa sayının parçasıdır.
+
+    Biçim, çizginin çevresindeki boşluğu siler ("sıcaklık -5" -> "sıcaklık-5"); bu yüzden
+    önündeki harfe bakılmaz. Aralıktaki çizgi ("10-14") işaret sayılmaz.
+    """
+    return (
+        text[position] in MINUS_SIGNS
+        and position + 1 < len(text)
+        and text[position + 1].isdigit()
+        and (position == 0 or not text[position - 1].isdigit())
+    )
+
+
 def _in_number(text: str, position: int) -> bool:
     """Konumdaki karakter bir sayının parçası mı: rakam ya da iki rakam arasındaki ayırıcı."""
     if not 0 <= position < len(text):
         return False
     character = text[position]
-    if character.isdigit():
+    if character.isdigit() or _is_sign(text, position):
         return True
     return (
         character in ".,"
