@@ -187,6 +187,14 @@ def test_same_or_unstated_unit_still_passes(source: str, text: str) -> None:
     assert verify_item(item(text, quote=source), sources).ok
 
 
+def test_capitalised_number_word_is_checked_without_crashing() -> None:
+    sources = {1: PromptSource(number=1, text="İzin 3 gündür")}
+
+    check = verify_item(item("İki gün izin var.", quote="İzin 3 gündür"), sources)
+
+    assert not check.ok
+
+
 def test_cut_quote_at_the_limit_is_tolerated() -> None:
     long_text = "a" * 20 + " " + " ".join(f"kelime{i}" for i in range(40))
     sources = {1: PromptSource(number=1, text=long_text)}

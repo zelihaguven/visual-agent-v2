@@ -220,7 +220,16 @@ def numbers_in(text: str) -> set[str]:
 
 def word_numbers(text: str) -> set[str]:
     """Alıntıda yazıyla geçen sayılar; yalnız kaynak tarafında kullanılır."""
-    return {str(_WORD_NUMBERS[word.lower()]) for word in _WORD_NUMBER_RE.findall(text)}
+    values = (_word_value(word) for word in _WORD_NUMBER_RE.findall(text))
+    return {str(value) for value in values if value is not None}
+
+
+def _word_value(word: str) -> int | None:
+    """Büyük harfli Türkçe yazımlar ("İki", "ALTI") da okunur; tanınmayan sözcük atlanır."""
+    for candidate in (word.replace("İ", "i").casefold(), word.replace("I", "ı").casefold()):
+        if candidate in _WORD_NUMBERS:
+            return _WORD_NUMBERS[candidate]
+    return None
 
 
 def measures_in(text: str) -> set[tuple[str, str]]:
