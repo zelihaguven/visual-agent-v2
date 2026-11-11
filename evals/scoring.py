@@ -80,6 +80,20 @@ def extract_tokens(text: str) -> frozenset[str]:
     return frozenset(identifiers | numbers)
 
 
+def _fold(text: str) -> str:
+    """Türkçe büyük-küçük harf farkını yok sayar ("İki" -> "iki", "ALTI" -> "altı")."""
+    return text.replace("İ", "i").replace("I", "ı").casefold()
+
+
+def _value_stated(value: str, answer_text: str, answer_tokens: frozenset[str]) -> bool:
+    """Değer cevapta geçer. Sayı ya da teknik ad taşımayan değer ("iki") sözcük olarak aranır."""
+    tokens = extract_tokens(value)
+    if tokens:
+        return tokens <= answer_tokens
+    pattern = rf"(?<!\w){re.escape(_fold(value))}(?!\w)"
+    return re.search(pattern, _fold(answer_text)) is not None
+
+
 def _source_matches(cited: GoldSource, gold: GoldSource) -> bool:
     if cited.doc_id != gold.doc_id:
         return False
@@ -138,11 +152,13 @@ def skipped_clarification(
 def score_question(
     question: GoldQuestion, record: AnswerRecord, documents: Mapping[str, str] | None = None
 ) -> QuestionScore:
-    answer_tokens = extract_tokens(" ".join(item.text for item in record.items))
-    expected = frozenset().union(*(extract_tokens(value) for value in question.expected_values))
+    answer_text = " ".join(item.text for item in record.items)
+    answer_tokens = extract_tokens(answer_text)
     foreign = tuple(sorted(answer_tokens - extract_tokens(question.evidence)))
     outcome_ok = record.outcome is question.outcome
-    values_ok = expected <= answer_tokens
+    values_ok = all(
+        _value_stated(value, answer_text, answer_tokens) for value in question.expected_values
+    )
     source_ok = _sources_ok(question, record)
     passed = outcome_ok and values_ok and source_ok and not foreign
     badged = record.badge in _BADGED

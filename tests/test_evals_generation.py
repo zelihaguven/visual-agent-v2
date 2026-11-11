@@ -213,3 +213,31 @@ def test_different_seed_produces_different_values(tmp_path: Path) -> None:
     second = generate_set(seed=12, output=tmp_path / "b")
 
     assert first.questions != second.questions
+
+
+@pytest.fixture(scope="module")
+def boundary(tmp_path_factory: pytest.TempPathFactory) -> tuple[GoldSet, Path]:
+    output = tmp_path_factory.mktemp("sinir")
+    return generate_set(seed=7, output=output, kind="sinir"), output
+
+
+def test_boundary_set_is_separate_from_the_main_set(boundary: tuple[GoldSet, Path]) -> None:
+    gold, output = boundary
+
+    assert {document.domain for document in gold.documents} == {"sinir"}
+    assert all((output / document.filename).exists() for document in gold.documents)
+    assert len(gold.questions) == 15
+
+
+def test_boundary_values_appear_in_their_documents(boundary: tuple[GoldSet, Path]) -> None:
+    gold, _ = boundary
+
+    for question in gold.questions:
+        text = gold.document_texts[question.sources[0].doc_id]
+        assert all(value in text for value in question.expected_values), question.question_id
+
+
+def test_boundary_set_does_not_change_the_main_set(tmp_path: Path) -> None:
+    main = generate_set(seed=7, output=tmp_path / "ana")
+
+    assert "sinir" not in {document.domain for document in main.documents}

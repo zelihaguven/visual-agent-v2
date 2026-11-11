@@ -288,3 +288,28 @@ def test_rescoring_refuses_a_run_with_missing_answers() -> None:
 
     with pytest.raises(ValueError, match="q1"):
         rescore(gold, [])
+
+
+WORD_VALUE = LOOKUP.model_copy(
+    update={"expected_values": ("iki",), "evidence": "Deneme süresi iki aydır."}
+)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        pytest.param("Deneme süresi üç aydır.", id="baska-sozcuk"),
+        pytest.param("Deneme süresi belgede yazıyor.", id="degersiz-cevap"),
+        pytest.param("Deneme süresi ikinci ayda biter.", id="sozcugun-parcasi"),
+    ],
+)
+def test_a_value_written_in_words_must_appear_in_the_answer(text: str) -> None:
+    score = score_question(WORD_VALUE, answered(text))
+
+    assert not score.values_ok
+    assert score.verified_wrong
+
+
+@pytest.mark.parametrize("text", ["Deneme süresi iki aydır.", "İki ay deneme süresi var."])
+def test_a_value_written_in_words_passes_when_stated(text: str) -> None:
+    assert score_question(WORD_VALUE, answered(text)).passed
