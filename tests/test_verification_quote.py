@@ -236,3 +236,8 @@ def test_digits_inside_a_code_are_not_a_quotable_value() -> None:
 
 def test_cut_quote_cannot_add_a_number_word_in_its_unchecked_tail() -> None:
     assert not quote_matches(CUT_HEAD + " beş kez yapılır.", CUT_SOURCE)
+
+
+@pytest.mark.parametrize("tail", [" İki kez yapılır.", " ALTI kez yapılır.", " **İki** kez."])
+def test_cut_quote_cannot_add_a_capitalized_number_word_in_its_tail(tail: str) -> None:
+    assert not quote_matches(CUT_HEAD + tail, CUT_SOURCE)

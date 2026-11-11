@@ -100,13 +100,29 @@ def field_quote_matches(quote: str, source: str) -> bool:
     return any(_field_matches(quote, source, form) for form in _FORMS)
 
 
-def _carries_values(tail: str) -> bool:
-    """Denetlenmeyen kuyrukta sayı, yazıyla sayı ya da teknik ad olamaz; olursa kanıt sayılırdı."""
+def _carries_values(tail: str, written_tail: str) -> bool:
+    """Denetlenmeyen kuyrukta sayı, yazıyla sayı ya da teknik ad olamaz; olursa kanıt sayılırdı.
+
+    Yazıyla sayı alıntının yazıldığı hâlinden okunur: küçük harfe indirmek "İki" ve "ALTI"
+    sözcüklerini tanınmaz kılar.
+    """
     return (
         any(character.isdigit() for character in tail)
         or bool(identifiers_in(tail))
-        or bool(word_numbers(tail))
+        or bool(word_numbers(written_tail))
     )
+
+
+def _written_tail(quote: str, normalized_words: list[str], head_count: int) -> str:
+    """Alıntının yazıldığı hâlinden kuyruğu kapsayan son sözcükler.
+
+    Biçim sözcük sayısını değiştirebilir (vurgu işareti, çizgi çevresi); fark kadar fazla
+    sözcük alınır, kuyruk dışarıda kalmaz.
+    """
+    written_words = quote.split()
+    tail_count = len(normalized_words) - head_count
+    extra = max(0, len(written_words) - len(normalized_words))
+    return " ".join(written_words[-(tail_count + extra) :])
 
 
 def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
@@ -119,7 +135,8 @@ def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
         head = " ".join(words[:count])
         if contains_whole(normalized_source, head):
             tail = normalized[len(head) :]
-            return len(tail) <= _CUT_MAX_TAIL and not _carries_values(tail)
+            written_tail = _written_tail(quote, words, count)
+            return len(tail) <= _CUT_MAX_TAIL and not _carries_values(tail, written_tail)
     return False
 
 
