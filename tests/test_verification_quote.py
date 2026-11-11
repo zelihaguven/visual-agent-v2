@@ -232,3 +232,7 @@ def test_a_dash_that_is_not_a_sign_does_not_block_the_quote(quote: str, source: 
 
 def test_digits_inside_a_code_are_not_a_quotable_value() -> None:
     assert not quote_matches("5 adet", "Kod A-5 adet")
+
+
+def test_cut_quote_cannot_add_a_number_word_in_its_unchecked_tail() -> None:
+    assert not quote_matches(CUT_HEAD + " beş kez yapılır.", CUT_SOURCE)

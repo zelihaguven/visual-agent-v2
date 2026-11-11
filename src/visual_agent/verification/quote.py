@@ -15,6 +15,7 @@ from visual_agent.verification.text import (
     identifiers_in,
     markdown_plain_form,
     quote_form,
+    word_numbers,
 )
 
 QUOTE_LIMIT = 150
@@ -100,8 +101,12 @@ def field_quote_matches(quote: str, source: str) -> bool:
 
 
 def _carries_values(tail: str) -> bool:
-    """Denetlenmeyen kuyrukta sayı ya da teknik ad olamaz; olursa kanıt sayılırdı."""
-    return any(character.isdigit() for character in tail) or bool(identifiers_in(tail))
+    """Denetlenmeyen kuyrukta sayı, yazıyla sayı ya da teknik ad olamaz; olursa kanıt sayılırdı."""
+    return (
+        any(character.isdigit() for character in tail)
+        or bool(identifiers_in(tail))
+        or bool(word_numbers(tail))
+    )
 
 
 def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
