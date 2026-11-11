@@ -30,6 +30,75 @@ _IDENTIFIER_RE = re.compile(
     r")(?![\w-])"
 )
 _BACKTICK_RE = re.compile(r"`([^`\n]+)`")
+# Sayının hemen ardından gelen birimler; sesli akışta gizleme ve birim denetimi ortak kullanır.
+UNITS = [
+    "mm",
+    "cm",
+    "m",
+    "km",
+    "in",
+    "inch",
+    "inches",
+    "inç",
+    "″",
+    '"',
+    "ft",
+    "µm",
+    "g",
+    "kg",
+    "mg",
+    "lb",
+    "oz",
+    "n",
+    "nm",
+    "v",
+    "kv",
+    "a",
+    "ma",
+    "w",
+    "kw",
+    "hz",
+    "khz",
+    "rpm",
+    "dk",
+    "dakika",
+    "sn",
+    "saniye",
+    "s",
+    "sec",
+    "min",
+    "h",
+    "saat",
+    "gün",
+    "°c",
+    "°f",
+    "°",
+    "%",
+    "bar",
+    "psi",
+    "pa",
+    "kpa",
+    "mpa",
+    "l",
+    "ml",
+    "cc",
+    "tl",
+]
+UNIT_PATTERN = "|".join(sorted((re.escape(unit) for unit in UNITS), key=len, reverse=True))
+_MEASURE_RE = re.compile(rf"(?<![\w.,])({_NUMBER})\s?({UNIT_PATTERN})(?!\w)", re.IGNORECASE)
+_UNIT_ALIASES = {
+    "in": "inch",
+    "inches": "inch",
+    "inç": "inch",
+    "″": "inch",
+    '"': "inch",
+    "dk": "min",
+    "dakika": "min",
+    "sn": "s",
+    "saniye": "s",
+    "sec": "s",
+    "saat": "h",
+}
 _IDENTIFIER_SEPARATOR_RE = re.compile(r"[-_\s]+")
 
 _WORD_NUMBER_LISTS = (
@@ -152,6 +221,15 @@ def numbers_in(text: str) -> set[str]:
 def word_numbers(text: str) -> set[str]:
     """Alıntıda yazıyla geçen sayılar; yalnız kaynak tarafında kullanılır."""
     return {str(_WORD_NUMBERS[word.lower()]) for word in _WORD_NUMBER_RE.findall(text)}
+
+
+def measures_in(text: str) -> set[tuple[str, str]]:
+    """Birimiyle yazılmış değerler: ("5", "mm"); eş anlamlı birimler tek biçime iner."""
+    found = set()
+    for number, unit in _MEASURE_RE.findall(canon_chars(text)):
+        name = unit.casefold()
+        found.add((canonical_number(number), _UNIT_ALIASES.get(name, name)))
+    return found
 
 
 def prefixed_codes_in(text: str) -> set[str]:

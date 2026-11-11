@@ -21,6 +21,7 @@ from visual_agent.verification.text import (
     compact_identifier,
     contains_token,
     identifiers_in,
+    measures_in,
     normalize,
     numbers_in,
     prefixed_codes_in,
@@ -82,6 +83,18 @@ def _tolerance_problems(text: str, evidence: str) -> list[str]:
     return problems
 
 
+def _unit_problems(text: str, evidence: str) -> list[str]:
+    """Kaynakta birimiyle geçen değer cümlede başka birimle yazılamaz."""
+    known = measures_in(evidence)
+    known_numbers = {number for number, _ in known}
+    clashes = sorted(
+        f"{number} {unit}"
+        for number, unit in measures_in(text)
+        if number in known_numbers and (number, unit) not in known
+    )
+    return [f"cümlede kaynaktakinden farklı birim: {clashes}"] if clashes else []
+
+
 def _token_problems(item: ModelItem, evidence: str, sources: Sources) -> list[str]:
     problems = []
     stated = numbers_in(item.text) | (word_numbers(item.text) - _ARTICLE_NUMBERS)
@@ -131,6 +144,7 @@ def verify_item(item: ModelItem, sources: Sources) -> ItemCheck:
     problems += _ocr_problems(item, sources)
     problems += _token_problems(item, evidence, sources)
     problems += _tolerance_problems(item.text, evidence)
+    problems += _unit_problems(item.text, evidence)
     if FOREIGN_SCRIPT_RE.search(item.text):
         problems.append("cümlede başka alfabeden karakter")
     numbers = tuple(quote.source_no for quote in item.quotes)

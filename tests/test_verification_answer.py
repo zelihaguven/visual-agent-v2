@@ -158,6 +158,35 @@ def test_same_value_in_words_or_lower_case_still_passes(source: str, text: str) 
     assert verify_item(item(text, quote=source), sources).ok
 
 
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("Dikiş payı 5 mm", "Dikiş payı 5 cm."),
+        ("Çalışma sıcaklığı 40 °C", "Çalışma sıcaklığı 40 °F."),
+        ("Bekleme 30 sn", "Bekleme 30 dakika."),
+    ],
+)
+def test_a_value_cannot_change_its_unit(source: str, text: str) -> None:
+    sources = {1: PromptSource(number=1, text=source)}
+
+    assert not verify_item(item(text, quote=source), sources).ok
+
+
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("Dikiş payı 5 mm", "Dikiş payı 5 mm'dir."),
+        ("Bekleme 30 dk", "Bekleme 30 dakika."),
+        ("Bel | M: 40,5 | L: 42,5", "M beden bel 40,5 cm."),
+        ("Pay 5 mm, kenar 5 cm", "Kenar 5 cm."),
+    ],
+)
+def test_same_or_unstated_unit_still_passes(source: str, text: str) -> None:
+    sources = {1: PromptSource(number=1, text=source)}
+
+    assert verify_item(item(text, quote=source), sources).ok
+
+
 def test_cut_quote_at_the_limit_is_tolerated() -> None:
     long_text = "a" * 20 + " " + " ".join(f"kelime{i}" for i in range(40))
     sources = {1: PromptSource(number=1, text=long_text)}
