@@ -9,7 +9,12 @@
 
 from collections.abc import Callable
 
-from visual_agent.verification.text import CUT_CITATION_RE, markdown_plain_form, quote_form
+from visual_agent.verification.text import (
+    CUT_CITATION_RE,
+    identifiers_in,
+    markdown_plain_form,
+    quote_form,
+)
 
 QUOTE_LIMIT = 150
 _CUT_MARGIN = 15
@@ -79,6 +84,11 @@ def field_quote_matches(quote: str, source: str) -> bool:
     return any(_field_matches(quote, source, form) for form in _FORMS)
 
 
+def _carries_values(tail: str) -> bool:
+    """Denetlenmeyen kuyrukta sayı ya da teknik ad olamaz; olursa kanıt sayılırdı."""
+    return any(character.isdigit() for character in tail) or bool(identifiers_in(tail))
+
+
 def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
     """Uzunluk sınırına dayanıp sonu bozulan alıntının başı kaynakla örtüşüyorsa kabul eder."""
     if len(quote) < QUOTE_LIMIT - _CUT_MARGIN:
@@ -88,7 +98,8 @@ def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
     for count in range(len(words) - 1, 0, -1):
         head = " ".join(words[:count])
         if contains_whole(normalized_source, head):
-            return len(normalized) - len(head) <= _CUT_MAX_TAIL
+            tail = normalized[len(head) :]
+            return len(tail) <= _CUT_MAX_TAIL and not _carries_values(tail)
     return False
 
 

@@ -189,3 +189,23 @@ def test_labeled_quote_cannot_cut_a_number() -> None:
 )
 def test_whole_numbers_are_still_accepted(quote: str, source: str) -> None:
     assert quote_matches(quote, source)
+
+
+CUT_SOURCE = (
+    "Dikiş makinesi ayarlarında kullanılacak iğne numarası ve iplik kalınlığı üretim talimatında"
+    " belirtilen değerlere göre seçilmeli ve her vardiya başında kontrol edilmelidir ve kayıt"
+    " tutulur."
+)
+CUT_HEAD = CUT_SOURCE.removesuffix(" kayıt tutulur.")
+
+
+def test_cut_quote_cannot_add_a_number_in_its_unchecked_tail() -> None:
+    assert not quote_matches(CUT_HEAD + " değer 99 cm.", CUT_SOURCE)
+
+
+def test_cut_quote_cannot_add_a_code_in_its_unchecked_tail() -> None:
+    assert not quote_matches(CUT_HEAD + " kod PNT-77.", CUT_SOURCE)
+
+
+def test_cut_quote_with_a_plain_broken_tail_is_still_accepted() -> None:
+    assert quote_matches(CUT_HEAD + " kayıt tutu", CUT_SOURCE)
