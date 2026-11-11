@@ -166,6 +166,23 @@ def _has_repeated_sentence(answer: ModelAnswer) -> bool:
     return len(long_texts) != len(set(long_texts))
 
 
+_SAFE_CLARIFY_QUESTION = {"tr": "Hangisi için soruyorsunuz?", "en": "Which one do you mean?"}
+
+
+def _values_in(text: str) -> set[str]:
+    codes = {compact_identifier(value) for value in identifiers_in(text)} | prefixed_codes_in(text)
+    numbers = numbers_in(text) | (word_numbers(text) - _ARTICLE_NUMBERS)
+    return codes | numbers
+
+
+def safe_clarify_question(question: str, user_question: str, language: str) -> str:
+    """Netleştirme sorusu kaynağa karşı denetlenmez; kullanıcının söylemediği sayı ya da kod
+    taşıyorsa ya da boşsa yerine sabit soru gelir."""
+    if question.strip() and _values_in(question) <= _values_in(user_question):
+        return question
+    return _SAFE_CLARIFY_QUESTION.get(language, _SAFE_CLARIFY_QUESTION["tr"])
+
+
 def _verify_clarification(answer: ModelAnswer, sources: Sources) -> AnswerVerification:
     options = answer.clarify.options if answer.clarify else ()
     valid = tuple(dict.fromkeys(o.source_no for o in options if o.source_no in sources))

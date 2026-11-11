@@ -358,6 +358,43 @@ def test_clarification_within_one_document_offers_no_document_buttons() -> None:
     assert result.options == ()
 
 
+def _clarify_client(question: str) -> FakeClient:
+    return FakeClient(
+        {
+            "tur": "netlestirme",
+            "netlestirme": {"soru": question, "secenekler": [{"kaynak_no": 1}]},
+            "cevap": [],
+        }
+    )
+
+
+@pytest.mark.parametrize(
+    "model_question",
+    ["Genişlik 999 cm mi, 1000 cm mi?", "M beden için 76,5 mi?", "PNT-9999 için mi soruyorsunuz?"],
+)
+def test_clarification_cannot_carry_a_value_the_user_did_not_say(model_question: str) -> None:
+    result = ask(make_deps(_clarify_client(model_question)), "iç paça kaç?").result
+
+    assert isinstance(result, Clarify)
+    assert result.question == "Hangisi için soruyorsunuz?"
+
+
+def test_clarification_may_repeat_what_the_user_said() -> None:
+    question = "PNT-4417 için hangi beden?"
+
+    result = ask(make_deps(_clarify_client(question)), "PNT-4417 iç paça kaç?").result
+
+    assert isinstance(result, Clarify)
+    assert result.question == question
+
+
+def test_clarification_fallback_follows_the_question_language() -> None:
+    result = ask(make_deps(_clarify_client("Is it 76.5?")), "What is the inseam?").result
+
+    assert isinstance(result, Clarify)
+    assert result.question == "Which one do you mean?"
+
+
 def test_broken_model_output_fails_without_crashing() -> None:
     result = ask(make_deps(FakeClient({"tur": "cevap", "cevap": ["düz"]})), "soru nedir").result
 
