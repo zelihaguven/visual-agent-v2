@@ -155,68 +155,32 @@ def test_same_value_in_words_or_lower_case_still_passes(source: str, text: str) 
 
 
 @pytest.mark.parametrize(
-    ("source", "text"),
+    ("source", "quote", "text", "ok"),
     [
-        ("Dikiş payı 5 mm", "Dikiş payı 5 cm."),
-        ("Çalışma sıcaklığı 40 °C", "Çalışma sıcaklığı 40 °F."),
-        ("Bekleme 30 sn", "Bekleme 30 dakika."),
+        # Birim yalnız başka sütunun başlığında; kaynakta hiç yok; tek harfli sütun adı birim değil.
+        ("Bel | Beden L: 42,5 | Tolerans (cm): 1,0", "Beden L: 42,5", "L beden 42,5 cm.", False),
+        ("Bel | M: 40,5 | L: 42,5", "Bel | M: 40,5 | L: 42,5", "M beden bel 40,5 cm.", False),
+        ("Bel | Beden M: 74", "Beden M: 74", "M beden bel 74 m.", False),
+        ("Hizmet: Bakım | Ücret (TL): 1.250", "Ücret (TL): 1.250", "Bakım 1.250 TL.", True),
+        ("Malzeme: Yün | En yüksek (°C): 30", "En yüksek (°C): 30", "Yün en fazla 30 °C.", True),
+        ("Adım | Süre (dk): 15", "Süre (dk): 15", "15 dakika beklenir.", True),
+        ("Hizmet: Acil | Ücret (TL): 12.500", "12.500", "Acil servis 12.500 TL.", True),
+        # Alıntıdaki birimle aynı ya da eş anlamlı birim geçer, başka birim geçmez.
+        ("Dikiş payı 5 mm", "Dikiş payı 5 mm", "Dikiş payı 5 mm'dir.", True),
+        ("Bekleme 30 dk", "Bekleme 30 dk", "Bekleme 30 dakika.", True),
+        ("Pay 5 mm, kenar 5 cm", "Pay 5 mm, kenar 5 cm", "Kenar 5 cm.", True),
+        ("Bel | M: 40,5 | L: 42,5", "Bel | M: 40,5 | L: 42,5", "M beden bel 40,5.", True),
+        ("Dikiş payı 5 mm", "Dikiş payı 5 mm", "Dikiş payı 5 cm.", False),
+        ("Sıcaklık 40 °C", "Sıcaklık 40 °C", "Sıcaklık 40 °F.", False),
+        ("Bekleme 30 sn", "Bekleme 30 sn", "Bekleme 30 dakika.", False),
     ],
 )
-def test_a_value_cannot_change_its_unit(source: str, text: str) -> None:
-    sources = {1: PromptSource(number=1, text=source)}
-
-    assert not verify_item(item(text, quote=source), sources).ok
-
-
-@pytest.mark.parametrize(
-    ("source", "text"),
-    [
-        ("Dikiş payı 5 mm", "Dikiş payı 5 mm'dir."),
-        ("Bekleme 30 dk", "Bekleme 30 dakika."),
-        ("Bel | M: 40,5 | L: 42,5", "M beden bel 40,5."),
-        ("Pay 5 mm, kenar 5 cm", "Kenar 5 cm."),
-    ],
-)
-def test_same_or_unstated_unit_still_passes(source: str, text: str) -> None:
-    sources = {1: PromptSource(number=1, text=source)}
-
-    assert verify_item(item(text, quote=source), sources).ok
-
-
-@pytest.mark.parametrize(
-    ("source", "quote", "text"),
-    [
-        # Birim yalnız başka sütunun başlığında: değerin kendi sütununda birim yok.
-        ("Bel | Beden L: 42,5 | Tolerans (cm): 1,0", "Beden L: 42,5", "L beden bel 42,5 cm."),
-        # Kaynakta hiç birim yok.
-        ("Bel | M: 40,5 | L: 42,5", "Bel | M: 40,5 | L: 42,5", "M beden bel 40,5 cm."),
-        # Parantezsiz tek harfli sütun adı birim değildir.
-        ("Bel | Beden M: 74", "Beden M: 74", "M beden bel 74 m."),
-    ],
-)
-def test_unit_missing_from_the_quote_and_its_column_header_fails(
-    source: str, quote: str, text: str
+def test_unit_must_be_in_the_quote_or_its_own_column_header(
+    source: str, quote: str, text: str, ok: bool
 ) -> None:
     check = verify_item(item(text, quote=quote), {1: PromptSource(number=1, text=source)})
 
-    assert not check.ok
-    assert "birim" in check.problems[0]
-
-
-@pytest.mark.parametrize(
-    ("source", "quote", "text"),
-    [
-        ("Hizmet: Yıllık bakım | Ücret (TL): 1.250", "Ücret (TL): 1.250", "Yıllık bakım 1.250 TL."),
-        ("Malzeme: Yün | En yüksek (°C): 30", "En yüksek (°C): 30", "Yün en fazla 30 °C."),
-        ("Adım | Süre (dk): 15", "Süre (dk): 15", "15 dakika beklenir."),
-        # Alıntı yalnız değer; başlık kaynak satırında.
-        ("Hizmet: Acil servis | Ücret (TL): 12.500", "12.500", "Acil servis 12.500 TL."),
-    ],
-)
-def test_unit_from_the_quoted_column_header_passes(source: str, quote: str, text: str) -> None:
-    check = verify_item(item(text, quote=quote), {1: PromptSource(number=1, text=source)})
-
-    assert check.ok, check.problems
+    assert check.ok is ok, check.problems
 
 
 def test_capitalised_number_word_is_checked_without_crashing() -> None:

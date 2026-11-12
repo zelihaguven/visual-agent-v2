@@ -84,29 +84,26 @@ def _tolerance_problems(text: str, evidence: str) -> list[str]:
     return problems
 
 
-def _quoted_lines(quote_text: str, source: PromptSource | None) -> list[str]:
-    """Alıntının kendisi ve kaynakta alıntıyı içeren satırlar."""
-    if source is None:
-        return [quote_text]
-    wanted = normalize(quote_text)
-    return [quote_text, *(line for line in source.text.splitlines() if wanted in normalize(line))]
-
-
 def _header_measures(item: ModelItem, sources: Sources) -> set[tuple[str, str]]:
-    """Alıntılanan değer ve kendi sütununun başlığındaki birim; başka sütunun başlığı sayılmaz."""
+    """Alıntılanan değer ve kendi sütun başlığındaki birim (alıntıda ya da alıntıyı içeren
+    kaynak satırında); başka sütunun başlığı sayılmaz."""
     found: set[tuple[str, str]] = set()
     for quote in item.quotes:
-        for line in _quoted_lines(quote.text, sources.get(quote.source_no)):
-            for label, value in labeled_cells(line):
-                units = header_units(label)
-                found |= {(number, unit) for number in numbers_in(value) for unit in units}
+        source, wanted = sources.get(quote.source_no), normalize(quote.text)
+        lines = [
+            line
+            for line in (source.text if source else "").splitlines()
+            if wanted in normalize(line)
+        ]
+        for label, value in (cell for line in [quote.text, *lines] for cell in labeled_cells(line)):
+            found |= {
+                (number, unit) for number in numbers_in(value) for unit in header_units(label)
+            }
     return found
 
 
 def _unit_problems(item: ModelItem, evidence: str, sources: Sources) -> list[str]:
-    """Cümlede sayının yanındaki birim, alıntıda o sayıyla ya da sayının sütun başlığında yazılı
-    olmalı. Kaynakta yazmayan birim, ekleme de değiştirme de olsa, değeri doğrulanmış gösterir.
-    """
+    """Cümlede sayının birimi alıntıda o sayıyla ya da sayının sütun başlığında yazılı olmalı."""
     allowed = measures_in(evidence) | _header_measures(item, sources)
     missing = sorted(
         f"{number} {unit}"

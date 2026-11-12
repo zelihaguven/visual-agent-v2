@@ -86,8 +86,6 @@ UNITS = [
 ]
 UNIT_PATTERN = "|".join(sorted((re.escape(unit) for unit in UNITS), key=len, reverse=True))
 _MEASURE_RE = re.compile(rf"(?<![\w.,])({_NUMBER})\s?({UNIT_PATTERN})(?!\w)", re.IGNORECASE)
-# Sütun başlığındaki birim parantez ya da köşeli parantez içindedir: "Ücret (TL)", "Boy [mm]".
-# Parantezsiz tek harf ("Beden M", "Beden S") birim sayılmaz.
 _HEADER_UNIT_RE = re.compile(rf"[(\[]\s*({UNIT_PATTERN})\s*[)\]]", re.IGNORECASE)
 _UNIT_ALIASES = {
     "in": "inch",
@@ -239,19 +237,16 @@ def measures_in(text: str) -> set[tuple[str, str]]:
     """Birimiyle yazılmış değerler: ("5", "mm"); eş anlamlı birimler tek biçime iner."""
     found = set()
     for number, unit in _MEASURE_RE.findall(canon_chars(text)):
-        found.add((canonical_number(number), _unit_name(unit)))
+        name = unit.casefold()
+        found.add((canonical_number(number), _UNIT_ALIASES.get(name, name)))
     return found
 
 
 def header_units(label: str) -> set[str]:
-    """Sütun başlığında parantez ya da köşeli parantez içinde yazan birimler."""
-    return {_unit_name(unit) for unit in _HEADER_UNIT_RE.findall(canon_chars(label))}
-
-
-def _unit_name(unit: str) -> str:
-    """Eş anlamlı birimler tek biçime iner ("dakika" ve "dk" -> "min")."""
-    name = unit.casefold()
-    return _UNIT_ALIASES.get(name, name)
+    """Sütun başlığında parantez içinde yazan birimler ("Ücret (TL)", "Boy [mm]"); parantezsiz
+    tek harf ("Beden M") birim sayılmaz."""
+    names = (unit.casefold() for unit in _HEADER_UNIT_RE.findall(canon_chars(label)))
+    return {_UNIT_ALIASES.get(name, name) for name in names}
 
 
 def prefixed_codes_in(text: str) -> set[str]:
