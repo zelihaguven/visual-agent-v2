@@ -467,7 +467,7 @@ def test_slow_translation_does_not_delay_the_search() -> None:
     deps = make_deps(
         FakeClient(answer_payload("76,5")), retriever, translator, {"a": "en", "b": "en", "c": "en"}
     )
-    deps = deps.with_translation_limit(0.01)
+    deps = replace(deps, translation_limit_seconds=0.01)
 
     ask(deps, "iç paça nedir")
 

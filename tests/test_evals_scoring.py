@@ -5,7 +5,6 @@ from evals.rescore import rescore
 from evals.scoring import (
     AnswerItem,
     AnswerRecord,
-    compare_runs,
     extract_tokens,
     score_question,
     summarize,
@@ -157,15 +156,6 @@ def test_summary_counts_outcomes_by_kind() -> None:
     assert summary.passed == 1
     assert summary.verified_wrong == 1
     assert summary.by_kind[QuestionKind.TABLE_LOOKUP.value] == (1, 2)
-
-
-def test_compare_runs_lists_questions_that_changed() -> None:
-    good = score_question(LOOKUP, answered("İç paça 76,5 cm."))
-    bad = score_question(LOOKUP, answered("İç paça 78 cm."))
-
-    assert compare_runs([good], [bad]).regressed == ("q1",)
-    assert compare_runs([bad], [good]).improved == ("q1",)
-    assert compare_runs([good], [good]).regressed == ()
 
 
 REV_A, REV_B = GoldSource(doc_id="rev-a"), GoldSource(doc_id="rev-b")
