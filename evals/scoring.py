@@ -57,11 +57,6 @@ class RunSummary(ScoringModel):
     skipped_clarifications: int = 0
 
 
-class RunComparison(ScoringModel):
-    regressed: tuple[str, ...]
-    improved: tuple[str, ...]
-
-
 def _canonical_number(raw: str) -> str:
     parts = re.split(r"[.,]", raw)
     has_thousands = len(parts) > 2 or (
@@ -188,18 +183,4 @@ def summarize(questions: Sequence[GoldQuestion], scores: Sequence[QuestionScore]
         false_rejects=sum(score.false_reject for score in scores),
         by_kind=by_kind,
         skipped_clarifications=sum(score.skipped_clarification for score in scores),
-    )
-
-
-def compare_runs(
-    baseline: Sequence[QuestionScore], candidate: Sequence[QuestionScore]
-) -> RunComparison:
-    """İki koşuyu soru soru karşılaştırır."""
-    pairs = [
-        (before.question_id, before.passed, after.passed)
-        for before, after in zip(baseline, candidate, strict=True)
-    ]
-    return RunComparison(
-        regressed=tuple(qid for qid, before, after in pairs if before and not after),
-        improved=tuple(qid for qid, before, after in pairs if after and not before),
     )

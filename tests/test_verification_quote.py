@@ -2,7 +2,7 @@
 
 import pytest
 
-from visual_agent.verification.quote import field_quote_matches, quote_matches
+from visual_agent.verification.quote import quote_matches
 from visual_agent.verification.text import markdown_plain_form, quote_form
 
 # Gerçek örnekler: parça metni ve modelin alıntısı (FastReact tur 1, sorular 2, 12, 15, 7, 17).
@@ -128,7 +128,7 @@ def test_quotes_with_a_different_value_code_or_wording_are_still_rejected(
 
 def test_labeled_quote_matches_through_emphasis() -> None:
     assert quote_matches("Week numbers: Enabled", "**Week numbers:** Enabled | Year 1: x")
-    assert field_quote_matches("Week numbers: Enabled", "Week numbers: Enabled | Year 1: x")
+    assert quote_matches("Week numbers: Enabled", "Week numbers: Enabled | Year 1: x")
 
 
 @pytest.mark.parametrize(
@@ -175,7 +175,7 @@ def test_quote_cannot_start_or_end_inside_a_number(quote: str, source: str) -> N
 
 
 def test_labeled_quote_cannot_cut_a_number() -> None:
-    assert not field_quote_matches("Genişlik: 7", "Genişlik: 72 | Boy: 110")
+    assert not quote_matches("Genişlik: 7", "Genişlik: 72 | Boy: 110")
 
 
 @pytest.mark.parametrize(

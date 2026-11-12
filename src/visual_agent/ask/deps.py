@@ -1,8 +1,8 @@
 """Soru hattının girdisi ve dış bağımlılıkları."""
 
 from collections.abc import Sequence
-from dataclasses import dataclass, replace
-from typing import Protocol, Self
+from dataclasses import dataclass
+from typing import Protocol
 
 from visual_agent.ask.streaming import EventSink
 from visual_agent.catalog.identifiers import IdentifierIndex
@@ -60,6 +60,3 @@ class AskDeps:
     rewrite_limit_seconds: float = DEFAULT_REWRITE_LIMIT_SECONDS
     intent_classifier: IntentClassifier | None = None
     intent_limit_seconds: float = DEFAULT_INTENT_LIMIT_SECONDS
-
-    def with_translation_limit(self, seconds: float) -> Self:
-        return replace(self, translation_limit_seconds=seconds)

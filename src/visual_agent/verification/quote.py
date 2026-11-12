@@ -95,11 +95,6 @@ def _field_matches(quote: str, source: str, form: Form) -> bool:
     )
 
 
-def field_quote_matches(quote: str, source: str) -> bool:
-    """Etiketli hücre alıntısı, aynı etiketin hücresinde bitişik geçmelidir."""
-    return any(_field_matches(quote, source, form) for form in _FORMS)
-
-
 def _carries_values(tail: str, written_tail: str) -> bool:
     """Denetlenmeyen kuyrukta sayı, yazıyla sayı ya da teknik ad olamaz; olursa kanıt sayılırdı.
 
