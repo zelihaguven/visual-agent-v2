@@ -619,3 +619,12 @@ def test_attempts_are_kept_when_every_provider_fails() -> None:
     outcome = ask(make_deps(client), "soru nedir")
 
     assert (outcome.provider_attempts, outcome.provider_seconds) == (1, 0.5)
+
+
+def test_sentence_hidden_only_for_its_unit_keeps_its_source_quote() -> None:
+    outcome = ask(make_deps(FakeClient(answer_payload("İç paça 76,5 cm.", quote=ROW))), "İç paça?")
+
+    assert isinstance(outcome.result, Answered)
+    item = outcome.result.items[0]
+    assert not item.verified
+    assert item.source_quote == ROW

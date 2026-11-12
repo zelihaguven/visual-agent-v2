@@ -162,6 +162,7 @@ def verify_item(item: ModelItem, sources: Sources) -> ItemCheck:
     problems += _ocr_problems(item, sources)
     problems += _token_problems(item, evidence, sources)
     problems += _tolerance_problems(item.text, evidence)
+    others = len(problems)
     problems += _unit_problems(item, evidence, sources)
     if FOREIGN_SCRIPT_RE.search(item.text):
         problems.append("cümlede başka alfabeden karakter")
@@ -172,7 +173,17 @@ def verify_item(item: ModelItem, sources: Sources) -> ItemCheck:
         problems=tuple(problems),
         source_numbers=numbers
         + ((item.code_source_no,) if item.code_source_no is not None else ()),
+        quote=_unit_only_quote(item, problems, others),
     )
+
+
+def _unit_only_quote(item: ModelItem, problems: list[str], others: int) -> str | None:
+    """Tek sorun kaynakta yazmayan birimse cümle yerine gösterilecek doğrulanmış alıntı.
+
+    Başka sorunu olan ya da alıntısı olmayan cümle için None: cümle eskisi gibi gizlenir.
+    """
+    unit_only = others == 0 and len(problems) == 1 and bool(item.quotes)
+    return " … ".join(quote.text for quote in item.quotes) if unit_only else None
 
 
 def _has_repeated_sentence(answer: ModelAnswer) -> bool:

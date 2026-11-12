@@ -19,6 +19,7 @@ export type AnsweredItem = {
   from_figure: boolean;
   code: string | null;
   problems: string[];
+  source_quote?: string | null;
 };
 
 export type AskResult =
@@ -62,7 +63,13 @@ export type AskEvent =
     }
   | { type: "item_audio"; index: number; audio: string; mime: string }
   | { type: "audio_unavailable" }
-  | { type: "item_unverified"; index: number; message: string; source_numbers: number[] }
+  | {
+      type: "item_unverified";
+      index: number;
+      message: string;
+      source_numbers: number[];
+      quote?: string | null;
+    }
   | { type: "reset" }
   | { type: "incomplete"; message: string }
   | {

@@ -24,6 +24,8 @@ class AnsweredItem(FrozenModel):
     from_figure: bool = False
     code: str | None = None
     problems: tuple[str, ...] = ()
+    source_quote: str | None = None
+    """Cümle yalnız birim yüzünden gizlendiyse yerine gösterilen kaynak alıntısı."""
 
 
 class Answered(FrozenModel):

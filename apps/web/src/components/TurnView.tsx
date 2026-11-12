@@ -38,6 +38,15 @@ export function unverifiedText(hasSources: boolean): string {
   return hasSources ? `${UNVERIFIED_TEXT} Kaynağa bakın.` : UNVERIFIED_TEXT;
 }
 
+/** Cümle yalnız kaynakta yazmayan birim yüzünden gizlendiyse kaynağın kendi yazdığı gösterilir. */
+export function sourceQuoteText(quote: string): string {
+  return `Kaynakta yazan: "${quote}"`;
+}
+
+function hiddenText(quote: string | null | undefined, hasSources: boolean): string {
+  return quote ? sourceQuoteText(quote) : unverifiedText(hasSources);
+}
+
 const SECTION_SEPARATOR = " · ";
 
 /** Bölüm yolu belgenin adıyla başlıyorsa ad bir kez yazılır. */
@@ -116,7 +125,7 @@ function StreamedItems({
           <li key={index} className={`answer-item is-${item.state}`}>
             {item.state === "streaming" && <MaskedText text={item.text} />}
             {item.state === "verified" && item.text}
-            {item.state === "unverified" && unverifiedText(citations.length > 0)}
+            {item.state === "unverified" && hiddenText(item.quote, citations.length > 0)}
             {item.state !== "streaming" && (
               <CitationButtons citations={citations} onOpenSource={onOpenSource} />
             )}
@@ -166,9 +175,12 @@ function FinalAnswer({
   onSpeak?: Props["onSpeak"];
 }) {
   const badge = BADGES[result.status];
-  const spoken = result.items
-    .filter((item) => item.verified)
-    .map((item) => ({ text: item.text, has_code: item.code !== null }));
+  const spoken = result.items.flatMap((item) => {
+    if (item.verified) {
+      return [{ text: item.text, has_code: item.code !== null }];
+    }
+    return item.source_quote ? [{ text: item.source_quote, has_code: false }] : [];
+  });
   return (
     <>
       <div className="answer-head">
@@ -181,7 +193,7 @@ function FinalAnswer({
       <ol className="answer-items">
         {result.items.map((item, index) => (
           <li key={index} className={`answer-item ${item.verified ? "is-verified" : "is-unverified"}`}>
-            {!item.verified && unverifiedText(item.citations.length > 0)}
+            {!item.verified && hiddenText(item.source_quote, item.citations.length > 0)}
             {item.verified && item.text.trim() !== item.code?.trim() && item.text}
             {item.code !== null && (
               <pre className="code-block">

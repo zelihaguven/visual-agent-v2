@@ -246,6 +246,7 @@ class StreamAssembler:
                         "index": index,
                         "message": UNVERIFIED_MESSAGE,
                         "source_numbers": numbers,
+                        "quote": check.quote if check is not None else None,
                     }
                 )
             self._cursor += 1
