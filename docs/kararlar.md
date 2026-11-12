@@ -38,22 +38,36 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   | + bge-reranker-v2-m3 int8 | 0,72 | 0,86 | 5,56 sn |
   | + qwen3-reranker-8b (bulut) | 0,72 | 0,94 | 611 ms |
 
-  - 2026-11-03 ölçümü (160 soru, onaysız set): en güçlü aday listede reranker hit@1'i
-    0,86'dan 0,83'e düşürdü.
+  - 2026-11-03 ölçümü (158–160 soru, onaysız set, `b4/ozet_dondurulan_aday_2026-11-03.md`
+    §2; qwen3-reranker-8b) iki yönlü:
+    - Qwen3-8B + BM25 yolunda hit@1 0,74'ten 0,80'e çıktı.
+    - Üçlü füzyonda 0,81'den 0,83'e çıktı.
+    - Yalnız en güçlü aday listede (üçlü füzyon + çevrilmiş BM25) hit@1 0,86'dan 0,83'e
+      düştü, hit@5 0,98'den 0,99'a çıktı.
+    - `b4/README.md`: "reranker üç yolda da kazandırıyor".
+  - Bu üç yol da Qwen3-8B kolunu içeriyor. **Bu reponun yapılandırmasında (bge-m3 +
+    çevrilmiş BM25) reranker hiç ölçülmedi.** Kapalı kalmasının dayanağı 36 soruluk ölçüm
+    ve gecikme.
   - Reranker skoru "bulunamadı" eşiği olarak da kullanılamadı: 18 soruda cevapsız ve
     cevaplı soruların skorları örtüştü (`docs/PILOT-RAPORU.md` §5.4).
 - **Yeniden düşünülür:**
   - "Bulunamadı" kararı için bir skor eşiği gerekirse. Eski pilot bunu açık bıraktı,
-    hiç ölçülmedi.
-  - Gerçek belgelerde doğru parça ilk 8'e giremiyorsa (hit@8 düşükse).
+    hiç ölçülmedi (kaynakta yazılı koşul).
+  - Gerçek belgelerde doğru parça ilk 8'e giremiyorsa (hit@8 düşükse). Bu koşul kaynakta
+    yok, kaydı yazanın önerisi.
 - **Onay:** Yeni bileşen ve yeni model olduğu için ekip onayı gerekir.
 
 ### Yoğun vektör: yerel bge-m3, CPU
 - **Ne zaman:** Eski pilotta ilk günden. Bu repoda 0001, `#a32170c`.
 - **Neden:**
-  - 9 embedding karşılaştırıldı (eski pilot, `b4/asama4_embedding`). Qwen3-8B (bulut)
-    hit@1 0,78 verdi, ama p95 gecikmesi 23,9 sn'ydi (20 soru). Bu yüzden reddedildi
-    (`3d69fc2`).
+  - 9 embedding karşılaştırıldı (eski pilot, `b4/asama4_embedding`, 36 soru, 2026-10-27).
+    Qwen3-8B (bulut) hit@1 0,78 verdi; bge-m3 + BM25 0,72 / 227 ms.
+  - Qwen3-8B "reddedildi" diye yazılı bir karar yok:
+    - `3d69fc2` (2026-11-03) Qwen3-8B'li üçlü füzyonu "dondurulan aday" yaptı, ama "hatta
+      bağlanmadı". Aynı gün 20 çağrılık gecikme ölçümünde Qwen embed p95 23,9 sn çıktı
+      (sağlayıcı kuyruğu).
+    - `25df029`: "onaysız set, karar değil".
+  - Yerel bge-m3 ile kalınmasının yazılı gerekçesi bu gecikme ve yukarıdaki maddeler.
   - bge-m3 çok dilli: Türkçe soru İngilizce belgede aranabiliyor.
   - Tek süreçte arama ve indeksleme aynı modeli bir kez yükler (0003).
   - Mac'te MPS hep 1,0 benzerlik verdi; o yüzden CPU'ya sabitlendi (eski pilot
@@ -65,7 +79,7 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 ### Seyrek kol: BM25 (bge-m3'ün sözcük ağırlıkları yerine)
 - **Ne zaman:** Eski pilot `f130ac4` (2026-10-27). Bu repoda `#a32170c`.
 - **Neden:** Rerank'sız hit@1 0,44'ten 0,72'ye çıktı (36 soru).
-- **Yeniden düşünülür:** Neden bilinmiyor; yeniden düşünme koşulu da yazılmamış.
+- **Yeniden düşünülür:** Koşul yazılmamış.
 
 ### Birleştirme: istemci tarafında, belirli sırayla RRF
 - **Ne zaman:** Eski pilot `5f35276`. Bu repoda `#a32170c` (`retrieval/fusion.py`).
@@ -80,8 +94,11 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Ne zaman:** Eski pilotta eklendi (2026-11-03) ve hatta bağlandı (2026-11-06). Bu repoda
   `generation/translate.py`, sınır 1,2 sn.
 - **Neden:**
-  - Eski pilot, 245 soru uçtan uca: yanlış ret 25'ten 11'e düştü (`docs/MIMARI.md` A4.13,
-    `adim2/hat_rapor_2026-11-06.md`).
+  - Eski pilot (`adim2/hat_rapor_2026-11-06.md`, Ek): yanlış ret 25'ten 11'e düştü.
+    - Ölçüm onaylı 199 sorunun cevaplı 160'ında yapıldı (kural çıkışları hariç), 245
+      sorunun tamamında değil.
+    - Karşılaştırılan iki hat ("varsayılan yol" ve "ikili yol") yalnız çeviriyle
+      ayrılmıyor. Farkın tamamı çeviriye bağlanamaz (`docs/MIMARI.md` A4.13).
   - Çeviri modeli Gemma 4, NextBit üzerinde. p95 1,04 sn, %2'si sınırı aşıyor.
     Gemma 3 ile DeepInfra'da %96'sı aşıyordu
     (`b4/asama4_ceviri_karsilastirma_2026-11-05`).
@@ -92,9 +109,9 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 
 ### Modele 8 kaynak gider (5'ten artırıldı)
 - **Ne zaman:** Eski pilot, Adım 2 (2026-11-06). Bu repoda `DEFAULT_TOP_K = 8` (0001).
-- **Neden:** 245 soruda 5 kaynakla 1 doğrulanmış yanlış değer çıktı (B012, "bulunamadı"
-  beklenen soru); 8 kaynakla 0. Maliyet 0,0525 $'dan 0,0614 $'a çıktı
-  (`adim2/hat_rapor_2026-11-06.md`).
+- **Neden:** Ölçüm `adim2/hat_rapor_2026-11-06.md`, Ek (onaylı 199 sorunun cevaplı 160'ı).
+  5 kaynakla 1 doğrulanmış yanlış değer çıktı (B012, "bulunamadı" beklenen soru), 8 kaynakla
+  0. Maliyet 0,0525 $'dan 0,0614 $'a çıktı.
 - **Yeniden düşünülür:** Yalnız yeni ölçümle. Kaynak sayısını düşürmek bilinen bir
   doğrulanmış yanlışı geri getirmişti.
 
@@ -103,7 +120,8 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Neden:** Eski pilotta hit@5 0,86'dan 0,89'a çıktı, hit@1 0,75'ten 0,72'ye indi. Bu
   fark "±1 soru, gürültü" olarak yazılmış. Etkisi kanıtlanmış değil.
 - **Not:** Yalnız noktalı satır biçimini tanıyor. FastReact'taki `00_Keyword_Index.md`
-  elenmiyor; bir soruda 1. sıraya çıktı (`evals/output/fastreact/gozlemler.md`).
+  elenmiyor; bir soruda 1. sıraya çıktı (`evals/output/fastreact/gozlemler.md`; bu dosya
+  yerel ölçüm çıktısı, repoda yok).
 
 ### Soruda geçen kod, kodu içeren parçayı doğrudan kaynağa ekler
 - **Ne zaman:** `#a32170c` (kod başına en fazla 2 parça). Sesli yazımlar `#2ad898d`, takip soruları `#c41089d`.
@@ -126,15 +144,46 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Ne zaman:** `#1475acb` (`Chunk.embed_text`).
 - **Neden:**
   - Eski pilot öneke kayıttan marka ve ürün adını da koyuyordu. Bunun nedeni, reranker'ın
-    ceket ve pantolon belgelerini ayıramamasıydı (`docs/SIMPLIFY.md` H-R3, H-R4: tek
+    ceket ve pantolon belgelerini ayıramamasıydı (`docs/SIMPLIFY.md` D19 ve H-R4: tek
     belge ailesine göre ayarlı).
   - Bu repoda yalnız başlık ve bölüm adı var. Değişikliğin ölçümü yok.
 
-### Markdown düz metin olarak okunur
-- **Ne zaman:** `#1475acb` (`.md` → `InputFormat.TEXT`).
-- **Neden:** Neden bilinmiyor.
-- **Sonuç:** Başlıklar bölüm adı olmuyor; sayfasız belgede kaynak yalnız dosya adıyla
-  gösteriliyor (açık notlar, "Markdown belgeler").
+### Markdown başlıklarıyla okunur (değiştirildi: önce düz metindi)
+- **Ne zaman:**
+  - İlk hâl: `#1475acb`, `.md` düz metin olarak okunuyordu. Neden bilinmiyor.
+  - Değişiklik: `#c44c599` (PR #16, 2026-11-12), `ingest/markdown.py`.
+- **Ne değişti:**
+  - CommonMark ve tablolarla okunuyor (markdown-it-py, zaten bağımlılıktı).
+  - Başlıklar düzeyleriyle bölüm yolu oluyor ("Ayarlar · Genel · Hafta numaraları").
+  - Vurgu, satır içi kod işareti ve kaçış ters bölüsü metinden çıkıyor. Bağlantının metinde
+    yazmayan adresi parantez içinde kalıyor. HTML aynen kalıyor; yalnız `<br>` satır sonu
+    oluyor.
+  - Tablo satırları başlıklarıyla ayrı parça. Sıralı listede madde numarası kalıyor.
+  - Sayfası ve sayfa adı olmayan parçanın konumu bölüm yolu (`SourceLocation.section`).
+    Kaynak etiketi ve kaynak paneli bunu gösteriyor.
+  - Kural biçim düzeyinde. Başlık düzeyi bildirmeyen biçimlerde (PDF, Excel) bölüm kuralı
+    değişmedi.
+- **Neden:**
+  - Ürün hedefi "cevabın kaynak bölümü görünür" ve FastReact belgeleri markdown.
+  - Önce başlıklar bölüm adı olmuyordu ve kaynak yalnız dosya adıyla görünüyordu.
+  - Kaynak panelinde ham `**` ve `\*` işaretleri görünüyordu.
+- **Onay:** Bölme mantığı değişikliği ve markdown belgelerinin bir kez yeniden işlenmesi
+  ekip tarafından onaylandı (2026-11-12).
+- **Ölçüm** (FastReact 18 soru, her soru bir kez):
+  - Parça sayısı 1847'den 3648'e çıktı; 967'si tablo satırı.
+  - Doğrulanmış cümle 30'da kaldı, gizlenen cümle 0'dan 2'ye çıktı. İkisi de modelin
+    alıntı seçimi; kalıcı olup olmadığı bilinmiyor (açık notlar).
+  - Beklenen dosya 1. sırada: 9/17'den 14/17'ye. Aynı belgenin bölümleri (`_partN`) tek
+    belge sayılınca 11/17'den 14/17'ye. Beklenen dosyalar
+    `ornek-belgeler/03_Test_Sorulari.md` tablosundan.
+  - Seed 7 ve seed 11 soru bazında aynı: 37/40, doğrulanmış yanlış 0. Soruların 38 ve
+    39'u önbellekten geldi, yani modele giden bağlam değişmedi. Bu sonuç modelin yeniden
+    davranışını değil, örnek belgelerin parçalarının etkilenmediğini gösteriyor.
+  - Vektörleme süresi: ölçüm indeksi 1655 sn'den 3468 sn'ye çıktı. Ama bu sırada uygulama
+    da aynı anda vektörlüyordu; temiz süre ölçülmedi. Parça sayısı iki katına çıktığı için
+    sürenin de yaklaşık iki katına çıkması bekleniyor (çıkarım, ölçüm değil).
+- **Yeniden düşünülür:** Gerçek markdown belgelerinde parça sayısı ve süre kabul edilemez
+  olursa, ya da gizlenen cümleler kalıcı çıkarsa.
 
 ### PyMuPDF kullanılmaz; Docling ve pypdfium2
 - **Ne zaman:** 0001. Eski pilot PyMuPDF kullanıyordu.
@@ -151,7 +200,54 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Neden:** Gerçek belgeler karışık türde geliyor (CLAUDE.md kural 3).
 - **Not:** Ağır araçlar yalnız işçide çalışır; belgeler internetsiz işlenir (0001).
 
-### OCR: OCRmyPDF, sayfa başına tek dil, iki okuma
+### Excel sayıları gösterildiği biçimde yazılır; Türkçe bölge ayarı varsayılır
+- **Ne zaman:** `#c44c599` (PR #16, 2026-11-12), `ingest/spreadsheet.py`. Önce kayıtlı ham
+  değer yazılıyordu: yüzde biçimli hücre `0.12`, tutar `1234.5`.
+- **Ne yapılıyor:**
+  - Biçim kodunun ilk bölümü uygulanıyor: yüzde, binlik ayraç, ondalık hane, tırnaklı sabit
+    metin, sıfır doldurma.
+  - Tarih, kesir ve bilimsel gösterim desteklenmiyor. Tarih ISO biçiminde, diğerleri genel
+    biçimde yazılıyor.
+  - **Bilinen sınır, para birimi simgesi:** Excel'in kendi para birimi biçimindeki köşeli
+    parantezli simge (`[$₺-41F]`, `[$TL-41F]`) yazıdan düşüyor: `1.234,50`. Tırnaksız `TL`
+    içeren biçim genel biçime düşüyor: `1234,5`. Yalnız tırnaklı `"TL"` korunuyor:
+    `1.234,50 TL`. Önceki hâlde de simge yoktu, gerileme değil. Ama içerik kaybı (kural 3);
+    açık notlarda.
+  - Eksi değer her zaman eksi işaretiyle yazılıyor. Biçimin eksi bölümü (parantez, yalnız
+    renk) kullanılmıyor; işaret kaybolup değer değişmesin diye.
+  - Kayıtlı değeri olmayan formül hücresi okunamıyor. Belge raporunda hücresiyle birlikte
+    uyarı olarak çıkıyor; önceden sessizce kayboluyordu.
+- **Bölge ayarı kararı:** Excel sayıyı açan bilgisayarın bölge ayarıyla gösterir ve dosyada
+  bölge yazmaz. Türkçe bölge ayarı (ondalık virgül, binlik nokta) varsayıldı; ekip onayladı
+  (2026-11-12).
+- **Yüzde işaretinin yeri:** Biçim kodundaki gibi kalıyor (`12%`). Türkçe Excel'in `%12`
+  gösterip göstermediği denenmedi; ekip kararıyla dokunulmadı.
+- **Neden:** Kaynaktaki yazılışla eşleşme bozuluyordu ve değer sessizce eksilebiliyordu
+  (kural 3: içerik kaybı olmamalı).
+- **Ölçüm:** Örnek Excel dosyalarında bütün hücreler metindi; taban sonuçları değişmedi.
+  Biçimli sayı içeren gerçek dosyayla ölçülmedi.
+- **Yeniden düşünülür:** Belgeler başka bölge ayarlı bilgisayarlardan gelirse, ya da gerçek
+  dosyalarda yüzde ve tarih yazılışı kaynakla eşleşmezse.
+
+### Parçalama kuralının sürümü belgeye kaydedilir
+- **Ne zaman:** `#c44c599` (PR #16, 2026-11-12), `ingest/formats.py` (`RULES_VERSIONS`).
+- **Ne yapılıyor:**
+  - Her biçimin kural sürümü belge raporuna yazılıyor.
+  - Eski sürümle işlenmiş belge listede "eski okuma kuralıyla işlendi" diye görünüyor.
+  - Bir biçimin parçalarını ya da konumlarını değiştiren her değişiklikte o biçimin sürümü
+    artırılıyor. Markdown, metin, SQL ve Excel 2'de; PDF, Office ve görsel 1'de.
+- **Neden:** Parçalama kuralı değişince eski belgeler sessizce eski parçalarıyla kalıyordu.
+  Hangi belgelerin yeniden işlenmesi gerektiği bilinmiyordu.
+- **Neden kodla engellenmedi:**
+  - Uygulama hiçbir zaman toplu yeniden indeksleme yapmıyor.
+  - Ölçümde indeks zaten parmak iziyle korunuyor.
+  - Yeniden işleme elle (ekip kararıyla) yapılıyor.
+- **İlk kullanım:** 366 belge (362 md, 3 xlsx, 1 sql) tek seferde yeniden işlendi. Sonuç:
+  377/377 hazır, eski kuralla kalan 0.
+- **Onay:** Bu yeniden işleme ekip tarafından bir kez onaylandı (2026-11-12). Sonraki
+  sürüm artışları yeniden onay ister.
+
+### OCR: OCRmyPDF, belge başına tek dil, iki okuma
 - **Ne zaman:**
   - Eski pilotta plan Docling ve Tesseract'tı (`docs/PLAN-OCR.md` §7). Yerine OCRmyPDF
     geldi (Ghostscript'siz, §9).
@@ -159,8 +255,14 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Neden:**
   - OCRmyPDF ile bilinen bütün kesir hataları düzeldi. Cevaplanabilir OCR sorusu 9'dan
     16'ya çıktı. Süre sayfa başına 1,1 sn; önceki yolda 5–7 sn'ydi.
-  - `tur+eng` birlikte kullanılınca 70 Türkçe harften 40'ı bozuldu. Bu yüzden her sayfa
-    tek dille okunuyor.
+  - `tur+eng` birlikte kullanılınca 70 Türkçe harften 40'ı bozuldu. Bu yüzden OCR tek
+    dille yapılıyor.
+    - Bu repoda dil belge başına seçiliyor: `run_ocr(..., meta.language, ...)` ve
+      Tesseract'a tek `-l` veriliyor.
+    - Pilotta da kayıttaki dil esastı; sayfa aralığı yalnız `lang_ranges` verilirse
+      kullanılıyordu (`PLAN-OCR.md` §9).
+    - Yüklemede belgenin dili ayarlanmıyor (varsayılan `tr`). İlk işlemede OCR her belgede
+      Türkçe yapılıyor; yeniden işlemede tespit edilen dil kullanılıyor (açık notlar).
   - İki okuma 303 dizede 0 yanlış değer kabul etti. RapidOCR yalnız ikinci okuma: Türkçe
     harflerde 70'te 48 doğru.
   - Uyuşmayan değer gizlenir; uyuşan değer "Kısmen doğrulandı" olur.
@@ -179,9 +281,11 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Neden:**
   - Yerel 7B modeli 18 sorunun 9'unu doğru cevapladı (`PILOT-RAPORU` §1).
   - Bu repoda 35 soruda (0002) Gemma 4 26B 33 geçti, 0 yanlış değer verdi; ortanca süre
-    1,57 sn, maliyet 0,0068 $. Sıradaki aday Qwen 3.6 35B: 31 geçti, 0 yanlış değer,
-    3,14 sn.
-  - Gemma 4 31B 25 geçti. Eski pilotta da 32 JSON hatası vermişti.
+    1,57 sn, maliyet 35 soru için toplam 0,0068 $. Sıradaki aday Qwen 3.6 35B: 31 geçti,
+    0 yanlış değer, 3,14 sn.
+  - Gemma 4 31B 25 geçti. Eski pilotta Crusoe sağlayıcısında 32 kesik cevap vermişti
+    (`adim2/okuma_nihai_ara_2026-11-05.md`). Aynı tabloda 26B de Parasail'de 34 kesik
+    veriyor; kesiklerin kaynağı modelden çok sağlayıcı.
   - Sıralama ölçütü: önce yanlış değer, sonra doğruluk, sonra süre ve maliyet.
   - İstem Gemma üzerinde ayarlandı; karşılaştırmada ona biraz avantaj var.
 - **Yeniden düşünülür:**
@@ -197,8 +301,20 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
     `adim2/plan_cevap_modeli_2026-11-05.md`).
   - Yedeğe geçme koşulları: 2,5 sn içinde ilk token gelmezse ya da üst üste 40 boşluk
     karakteri gelirse.
-- **Not:** 2,5 sn sınırı akışın her okumasına uygulanıyor; bu bir hata (açık notlar,
-  "Sağlayıcı").
+
+### İlk token sınırı yalnız ilk tokene kadar; sonra akışın durma sınırı 10 sn (düzeltildi)
+- **Ne zaman:** `#bf3248a` (PR #18 ile birleşti, 2026-11-12),
+  `generation/openrouter.py`.
+- **Ne değişti:**
+  - 2,5 sn'lik ilk token sınırı httpx okuma zaman aşımı olarak veriliyordu ve akıştaki her
+    okumaya uygulanıyordu. İlk tokendan sonra sağlayıcı 2,5 sn'den uzun durursa cevap
+    `ReadTimeout` ile düşüyor, yedek sağlayıcıya ya da yarım cevaba geçiliyordu.
+  - Artık ilk token sınırı deneme başında kurulan `asyncio.timeout`; ilk içerik gelince
+    kalkıyor. Akışın okuma sınırı ayrı bir durma sınırı (`_STALL_SECONDS = 10`).
+- **Neden:** Hata düzeltme. Model, istem ve ayar değişmedi.
+- **Bilinmeyen:** 10 sn değeri ölçülmedi. Sağlayıcının normal cevaplarında ilk tokendan
+  sonraki en uzun duraklama bilinmiyor.
+- **Yeniden düşünülür:** Soru kaydında cevaplar 10 sn'lik durma yüzünden düşüyorsa.
 
 ### Yalnız ZDR uçları; yerel modele otomatik geri dönüş yok
 - **Ne zaman:** 0001. Eski pilotta `5f35276` (ZDR zorunlu), `323efdb` (uç düzeyinde
@@ -220,8 +336,10 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   - **Niteleyici kuralı (JSN):** B012 10 tekrarın 10'unda doğrulanmış yanlıştı, 0'a indi.
     Yanlış ret 6'dan 10'a çıktı; bu bedel kabul edildi.
   - **Gevşek niteleyici eşleşmesi (JSNE):** reddedildi. Yanlış ret 10'da kaldı, ✓ 5 düştü.
-  - **max_tokens 700'den 1200'e çıktı:** neden bilinmiyor. Eski not yalnız bunun retleri
-    düzeltmediğini söylüyor.
+  - **max_tokens 700'den 1200'e çıktı:** 700 sınırında uzun cevaplar kesiliyordu. 1200
+    sınırı kesiklerin 6'sından 4'ünü kapattı. İlk doğrulanmış cümle süresi değişmedi
+    (1,5–2,4 sn) (`adim2/okuma_nihai_ara_2026-11-06.md` §3). 2026-11-05 notu ise 1200'ün
+    bazı retleri düzeltmediğini yazıyor.
 - **Not:** Eski pilotun istemi tekstile özgüydü (`SIMPLIFY.md` D1–D3). Bu repodaki istem
   alandan bağımsız (0001).
 
@@ -229,8 +347,16 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 | Commit | Değişiklik | Ölçüm |
 | --- | --- | --- |
 | `#a2eaf46` | Farklı değerler tek satırdaysa da netleştirme sorulur | Yazılmamış |
-| `#2ad898d` | Konuşma dili dolguları; gürültülü OCR sütun etiketi | Yazılmamış |
+| `#2ad898d` | Kural 7: beden, model ya da sürüm anlaşılmıyorsa tahmin etmeden netleştirme. Kural 9: yalnız sorulan değer (diğer bedenler ve ayrı sütundaki tolerans eklenmez); cevap sesle de okunduğu için tek kısa cümle, parantezsiz. Kural 11 (yeni): sesten gelen dolgu sözleri, tiresiz ya da küçük harfli kod, taranmış tablolarda gürültülü sütun etiketi | Yazılmamış |
 | `#0e60352` (PR #14) | Kural 9: ayarın adı, yeri ve yanındaki not ayrı öğe | seed 7 37/40, seed 11 37/40, yanlış 0, önce ve sonra aynı |
+
+- **Ekibin bakması gereken:** `#2ad898d`'nin gürültülü etiket kuralı ("Etiketin son harfi
+  sorudaki bedenle aynıysa o sütun aranan sütundur") bedene özgü. CLAUDE.md kural 2'deki
+  alandan bağımsızlıkla çelişebilir. İstemi değiştirmek ekip onayı istediği için yalnız kayda
+  geçti.
+- **Ekibin bakması gereken:** İstemin 10. kuralı "Otomatik şekil açıklaması"ndan söz ediyor,
+  ama bu açıklamayı üreten kod yok (aşağıda "Şekil açıklaması modeli taşınmadı"). Ölü istem
+  metni; kaldırmak istem değişikliği olduğu için ekip onayı ister.
 
 Bundan sonra istem değişikliği ekip onayı ister (CLAUDE.md). İstem değişince cevap önbelleği
 geçersiz olur.
@@ -287,6 +413,24 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Yeniden düşünülür:** Cevap istemi değişirse (ekip onayı gerekir; önbellek geçersiz
   olur).
 
+### Yanlış sütun ve olumsuzlama için kural yazılmadı (önce ölçüldü)
+- **Ne zaman:** `#f5b4ec5` (PR #19, 2026-11-12).
+- **Karar:** Ekip yön olarak biçim ve dil düzeyinde kuralı seçti; yerel model (NLI) ya da
+  LLM ile denetim yok. Ama kural yalnız hata gerçekten görülürse ve yalnız görülen kısım
+  için yazılacak.
+- **Ölçüm:**
+  - Sınır setine 7 yanlış sütun sorusu eklendi: komşu sütunda yakın değer; Excel, PDF ve
+    Word tablosu; biri yanlış değeri onaylatan soru.
+  - 5 olumsuzlama sorusu eklendi: Türkçe ve İngilizce kaynak; biri olumlu denetim.
+  - Her soru bir kez soruldu. 12 cevabın hepsi doğru, doğrulanmış yanlış 0. Olumsuzlama
+    cevapları cevap metni okunarak sınıflandırıldı.
+- **Neden kural yazılmadı:** Model bu hatayı yapmadı. Kural her cevaba haksız ret riski
+  ekler.
+- **Yeniden düşünülür:** Gerçek belgelerde ya da tablolarda yanlış sütun ya da tersine
+  çevrilmiş olumsuzluk görülürse; yalnız görülen kısım için.
+- **Reddedilenler:** Yerel çıkarım (NLI) modeli ve yardımcı LLM ile anlam denetimi. Neden:
+  yeni model gerektirir ya da "LLM hakem yok" kararıyla çelişir.
+
 ### Tablo varyant denetimi (K9) eklenmedi
 - **Ne zaman:** 0002. Eski pilotta vardı (`73852bc`), ama ölçülen hatta (c modu)
   kullanılmıyordu.
@@ -328,10 +472,45 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - Envanter 4'ten çok belge listelemez. Önceden soruya bakmadan "377 belge… Hangisini
     soruyorsunuz?" diyordu.
 
-### Niyet sınıflandırıcı (yardımcı model)
-- **Ne zaman:** Eski pilotta önerildi ama yapılmadı (`PILOT-RAPORU` §8). Bu repoda var
-  (`generation/intent.py`, `#607714a`; sınır 1,5 sn).
-- **Neden:** Ekleme gerekçesi ve ölçümü bilinmiyor.
+### Niyet sınıflandırıcı: selam, envanter ya da belge sorusu (yardımcı model)
+- **Ne zaman:** `#607714a`, `#2ad898d` (`generation/intent.py`; sınır 1,5 sn).
+- **Ne yapıyor:** Mesajın selam, hal hatır, teşekkür, veda, "soracağım" gibi bir giriş,
+  envanter sorusu ya da belge sorusu olduğunu ayırıyor.
+- **Neden:**
+  - Commit mesajlarında yazan gerekçe: sabit cevaplar aramaya ve modele gitmeden, gecikmesiz
+    verilsin; ses önceden hazır olsun.
+  - Ölçümü yok.
+- **Not:** Eski pilotun önerdiği "soru niyeti" sınıflandırması (makine ayarı / ürün
+  gereksinimi / arıza / hata kodu; `PILOT-RAPORU` §8) bu değil. O hiç yapılmadı.
+
+### Sohbet bağlamı ve takip soruları
+- **Ne zaman:** `#fcab57c`, `#c41089d`, `#350c4c2`.
+- **Ne yapılıyor:**
+  - Takip sorusu önceki soruyla tamamlanıyor (yardımcı model, `generation/rewrite.py`).
+  - Önceki cevap kaynak sayılmıyor.
+  - Kullanıcının söylemediği kod, sayı ya da beden tamamlanmış soruya girerse soru geri
+    soruluyor.
+  - Takip sorusu son doğrulanmış cevabın belgesinde aranıyor. Yeni söylenen kod bu kapsamı
+    kaldırıyor.
+  - Bağlamın belgeleri silindiyse hangi belge olduğu soruluyor.
+- **Neden:** Commit mesajlarında davranış yazılı; ölçülmüş bir gerekçe yok.
+- **Bilinen kalan:** Model değişince önceki beden düşüyor (`dikim-sohbet-1-t4`, 10 tekrarın
+  hiçbirinde geçmedi; açık notlar).
+
+### Gerekçesiz "bulunamadı"da en yakın başlıklar gösterilir
+- **Ne zaman:** `#0e60352` (PR #14), `ask/related.py`.
+- **Ne yapılıyor:** Aramada en yakın çıkan en fazla 4 başlık (bölüm ya da belge adı)
+  gösteriliyor; parça içeriği aktarılmıyor.
+- **Neden:** Commit mesajında davranış yazılı. Ayrı ölçümü yok; aynı commit'in ölçümü (seed 7
+  ve 11 37/40, yanlış 0) istem değişikliğiyle birlikte alındı.
+
+### Şekil açıklaması modeli taşınmadı
+- **Ne zaman:** Eski pilotta görselden şekil açıklaması bir VLM ile üretiliyordu
+  (qwen2.5vl:3b, `figures.py`). Bu repoya taşınmadı.
+- **Neden:** Neden bilinmiyor.
+- **Durum:** Parçadaki `generated` alanı, istemin 10. kuralı ve doğrulamadaki ilgili dal hâlâ
+  duruyor, ama alanı dolduran kod yok. Ekibin bakması gerekiyor (yukarıda, istem
+  değişiklikleri).
 
 ## Altyapı
 
