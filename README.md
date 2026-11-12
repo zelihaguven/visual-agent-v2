@@ -31,6 +31,8 @@ Tesseract ya da LibreOffice yoksa uygulama yine açılır: açılışta hangi be
 
 İlk açılış internetten modelleri indirir ve uzun sürer: arama modeli (bge-m3, ~2,3 GB) açılışta, belge işleme modelleri (Docling, RapidOCR) ilk belgede. Modeller kullanıcının önbellek klasöründe kalır, sonraki açılışlar hızlıdır. Soru sormak için önce soldan belge yükleyin; işlenip "Hazır" olunca sorulabilir.
 
+Örnek belgeler (`ornek-belgeler/`: FastReact kılavuzu ve üretilmiş test belgeleri) yalnız deneme ve ölçüm içindir, üretimde kullanılmaz. Yeni bilgisayarda uygulama açıkken `uv run python -m apps.sample_documents` ile yüklenir; yüklü olanlar atlanır, kökteki test soruları yüklenmez.
+
 Gömülü Qdrant klasörü tek sürece kilitlenir: uygulama aynı anda bir kez açılabilir. Ölçüm komutları kendi klasörlerini kullanır, uygulama açıkken de çalışır.
 
 ### Araçlar
