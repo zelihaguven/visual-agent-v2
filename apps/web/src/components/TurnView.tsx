@@ -38,6 +38,9 @@ export function unverifiedText(hasSources: boolean): string {
   return hasSources ? `${UNVERIFIED_TEXT} Kaynağa bakın.` : UNVERIFIED_TEXT;
 }
 
+/** Alıntı birden çok bedenin değerini taşıyabilir; sesle okunmaz, ekranda olduğu söylenir. */
+export const SOURCE_LINE_SPOKEN = "Kaynaktaki satır ekranda gösteriliyor.";
+
 /** Cümle yalnız kaynakta yazmayan birim yüzünden gizlendiyse kaynağın kendi yazdığı gösterilir. */
 export function sourceQuoteText(quote: string): string {
   return `Kaynakta yazan: "${quote}"`;
@@ -179,7 +182,7 @@ function FinalAnswer({
     if (item.verified) {
       return [{ text: item.text, has_code: item.code !== null }];
     }
-    return item.source_quote ? [{ text: item.source_quote, has_code: false }] : [];
+    return item.source_quote ? [{ text: SOURCE_LINE_SPOKEN, has_code: false }] : [];
   });
   return (
     <>
