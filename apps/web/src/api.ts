@@ -2,6 +2,7 @@ export type Location = {
   page: number | null;
   sheet: string | null;
   row: number | null;
+  section?: string | null;
 };
 
 export type Citation = {
@@ -88,6 +89,7 @@ export type DocumentInfo = {
   status: DocumentStatus;
   error: string | null;
   report: DocumentReport | null;
+  outdated?: boolean;
 };
 
 export type SourceView =
@@ -99,7 +101,7 @@ export type SourceView =
       highlight_row: number;
       rows: { row: number; text: string }[];
     }
-  | { kind: "text"; text: string; title: string };
+  | { kind: "text"; text: string; title: string; section?: string | null };
 
 export type PhraseAudio = { audio: string; mime: string };
 export type VoicePhrases = { greeting: PhraseAudio; waiting: PhraseAudio[] };

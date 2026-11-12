@@ -142,6 +142,11 @@ export function DocumentsPanel() {
             {document.report !== null && (
               <DocumentNotes title={document.title} report={document.report} />
             )}
+            {document.outdated === true && (
+              <span className="document-error">
+                Eski okuma kuralıyla işlendi; güncel kuralla okunması için yeniden işleyin.
+              </span>
+            )}
             <div className="document-actions">
               {!isPending(document) && (
                 <button

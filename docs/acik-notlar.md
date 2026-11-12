@@ -9,9 +9,7 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 
 ## Markdown belgeler
 
-- `.md` dosyaları düz metin olarak okunuyor: `#` başlıkları bölüm adı olmuyor, parça metninde işaretiyle kalıyor, parçanın bölüm alanı boş. Sayfasız belgede kaynağın konum alanı da boş; kaynak yalnız dosya adıyla gösteriliyor, bölüm yolu yok. Başlıkları bölüm adı, bölüm yolunu konum alanı yapmak format düzeyinde bir kural; parçalar ve vektörler değişeceği için yeniden indeksleme ister.
 - Hazır gelen markdown'da OCR kökenli metin işaretlenmiyor: FastReact sürüm notları OCR'dan çıkarılmış ("Text extracted by OCR" notuyla), ama `.md` metni OCR'dan gelmemiş sayılıyor; OCR değerlerine uygulanan "Kısmen doğrulandı" kuralı bu metinde çalışmıyor.
-- Kaynak panelinde parçanın ham markdown metni görünüyor (`**`, `#`, `\*`).
 
 ## Ses
 
@@ -31,16 +29,17 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Doğrulama anlam düzeyinde denetim yapmıyor: olumsuzlama ("zorunludur" → "zorunlu değildir") ve aynı satırda başka sütunun değerini yazmak ("Beden S: 72 | Beden M: 74" satırından "M beden 72") alıntı ve sayılar doğru olduğu için doğrulanıyor. İkisi de biçim düzeyinde bir kuralla çözülemiyor, ayrı tasarım ister.
 - Kaynakta birimi olmayan değere cevapta birim ekleniyor ("M: 40,5" → "40,5 cm"); doğrulama bunu reddetmiyor, yalnız kaynaktaki birimle çelişen birimi reddediyor. Mac'teki önbellek ölçümünde iki setin 51 cevap öğesinden 19'unda oldu. Reddetmek büyük haksız ret demek; çözümü cevap istemini değiştirmek (önbellek geçersizleşir), ayrıca ölçülecek.
 - Alıntı denetiminde birimler büyük-küçük harf farkı yok sayılarak karşılaştırılıyor; anlamı harfe bağlı birimler ("MB"/"Mb", "mA"/"MA") ayrılmıyor.
+- Markdown okuma değişikliğinden sonraki FastReact ölçümünde (her soru bir kez) iki soruda doğru bilgi gizlendi: soru 5'te model alıntıyı kaynaktan farklı kopyaladı ("name, and,", "theproduct"), soru 17'de sürüm numarasını (4.44) taşıyan satırı alıntıya almadı. İkisi de modelin alıntı seçimi; kaynak metin parçada var. Önceki koşuda aynı sorular doğrulanmıştı; tekrar ölçülmedi, kararlılığı bilinmiyor.
 - Cümle başında büyük harfle başlayan sayı ("30. Gün") hâlâ madde işareti sayılıp denetimden çıkıyor; küçük harfle başlayan artık denetleniyor.
 - Netleştirme adayları aynı adımı farklı menü yoluyla anlatıyorsa netleştirme sürüyor: FastReact'ta "Planlama tahtasından siparişin teslim tarihini nasıl değiştiririm?" iki belgede aynı gövde metnini taşıyor, ama menü yolları farklı ("Main Menu > Planning > …" ve "Main Menu > Low Level Planning > …"); ikinci cevap menü yolunu alıntıladığı için "aynı cevap" sayılmadı. İki yolu kaynaklarıyla birlikte vermek ayrı bir karar.
 - Belgelerin kendisi hakkındaki takip soruları ("bunların hepsi gerçekten release notes mu") çıkmaz sokakta: envanter cevabı sohbet bağlamı bırakmıyor, belge adları ve türleri hakkındaki soru katalogdan değil aramadan cevaplanıyor. Öneri: envanterin gösterdiği belgeleri bağlama koymak ve başlık ya da sayı soran takip sorusunu katalogdan cevaplamak; ayrı tasarım ister. Aynı türdeki "release notes dosyalarında ne var" sorusunu niyet sınıflandırıcı bir koşuda envanter, bir koşuda belge sorusu saydı.
 - Grafiklerde değer ile etiketi arasındaki bağ kopuyor: çubuk grafikteki `331`, `268`, `214` ve ay adları ayrı parçalara düşüyor, "Mart ayında fire adedi kaç?" bulunamadı oluyor. Grafik okuma ayrı tasarım ister.
-- Excel değerleri gösterilen biçimden farklı okunuyor: `%12` → `0.12`, `1.234,50 TL` → `1234.5`. Kayıtlı değeri olmayan formül hücresi (`=C2*2`) uyarısız kayboluyor (`ingest/spreadsheet.py`). Kaynaktaki yazılışla eşleşme bozulur, değer sessizce eksilir.
+- Excel sayıları gösterilen biçimle yazılıyor, ama dosyada bölge ayarı yok: Türkçe bölge ayarı varsayılıyor (ondalık virgül, binlik nokta; `ingest/spreadsheet.py`). Yüzde işaretinin yeri biçim kodundaki gibi (`12%`); Türkçe Excel'in `%12` gösterip göstermediği denenmedi. Tarih, kesir ve bilimsel gösterim biçimleri desteklenmiyor: tarih ISO biçiminde, diğerleri genel biçimde yazılıyor. Eksi bölümü parantez ya da yalnız renk olan biçimlerde değer eksi işaretiyle yazılıyor. Gerçek Excel dosyalarıyla denenecek.
 
 ## Belge yönetimi
 
 - Aynı belgenin eski ve yeni sürümü birlikte yüklenebiliyor; ikisi de aramaya giriyor, aralarındaki sürüm ilişkisi bilinmiyor. Farklı değer verdiklerinde ne olduğu "Cevap kalitesi"ndeki maddede. Yüklemede aynı başlık uyarısı ya da sürüm yönetimi ayrı tasarım ister.
-- Yerel vektörleme yavaş: bu bilgisayarda parça başına ~0,9 sn (FastReact, 1847 parça, 1655 sn ≈ 27,6 dk). Daha büyük belge setlerinde ilk yükleme saatler sürebilir; ölçek için ayrıca ölçülmedi.
+- Yerel vektörleme yavaş: bu bilgisayarda parça başına ~0,9 sn (FastReact, 1847 parça, 1655 sn ≈ 27,6 dk). Markdown başlıkları bölüm sınırı olunca FastReact 3648 parçaya çıktı (tablo satırları 967 ayrı parça); ölçüm indeksi 3468 sn sürdü, ama bunun bir kısmında uygulama da aynı anda vektörlüyordu, temiz süre ölçülmedi. Daha büyük belge setlerinde ilk yükleme saatler sürebilir; ölçek için ayrıca ölçülmedi.
 - Hazır bir belge yeniden işlenirken, işlem bitene kadar aramada görünmüyor; eski hali de kullanılamıyor. Pilot için kabul edildi. Eski sürümü işlem bitene kadar aramada tutmak ayrı bir tasarım ister (iki sürümün parçaları ve vektörleri bir süre birlikte durur).
 
 ## Yayına almadan önce
@@ -53,6 +52,10 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 ## Sağlayıcı
 
 - İlk token için konan zaman aşımı (`answer_first_token_seconds`, varsayılan 2,5 sn) akışın her okumasına uygulanıyor (`generation/openrouter.py`). İlk tokendan sonra sağlayıcı 2,5 sn'den uzun duraklarsa cevap `ReadTimeout` ile düşüyor.
+
+## Ölçüm
+
+- `evals/output/fastreact/beklenenler.json` geçerli JSON değil (85. satırda tırnaksız alan adı); FastReact sonuçları bu yüzden `ornek-belgeler/03_Test_Sorulari.md` tablosundaki beklenen kaynaklarla karşılaştırıldı. Dosya değerlendirme verisi olduğu için düzeltilmedi; ekibin bakması gerekiyor.
 
 ## Kurulum
 
