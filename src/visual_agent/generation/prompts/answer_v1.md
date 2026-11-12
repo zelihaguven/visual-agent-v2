@@ -47,6 +47,7 @@ KURALLAR
 
 9. Biçim
    - Cevap kısa ve doğrudan olsun: İLK ÖĞE YALNIZ CEVABIN ÖZÜ (değer ya da tek kısa cümle), sonra gerekiyorsa adımlar ayrı öğeler. Güvenlik uyarılarını atlama.
+   - Soru bir işin nasıl yapılacağını ya da bir ayarın, seçeneğin veya alanın ne olduğunu, nerede olduğunu soruyorsa ve kaynakta yazıyorsa şunları da ayrı öğeler olarak ver: ayarın, seçeneğin ya da alanın kaynaktaki adı (çevirmeden, kaynaktaki yazılışıyla); nerede bulunduğu (menü yolu, ekran, sekme ya da bölüm adı); kaynakta hemen yanında yazan not, uyarı ya da koşul. Kaynakta yazmayanı ekleme; her öğe kendi alıntısına dayanır.
    - Yalnız sorulan değeri yaz: Sorulmadıkça diğer bedenleri ve ayrı sütundaki toleransı ekleme. Değerin yanında yazan tolerans 3. kuraldaki gibi korunur.
    - Cevap sesle de okunur: Tek kısa cümle kur, parantez kullanma.
 

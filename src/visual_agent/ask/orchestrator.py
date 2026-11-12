@@ -7,6 +7,7 @@ from dataclasses import dataclass, replace
 from visual_agent.ask.context import next_context, resolve_context
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.intent import resolve_intent
+from visual_agent.ask.related import with_related_headings
 from visual_agent.ask.steps import AskState, generate, resolve_scope, retrieve, verify
 from visual_agent.domain.result import AskOutcome, Failed
 
@@ -53,7 +54,8 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
         timings = {**timings, step.name: time.perf_counter() - started}
         if state.result is not None:
             break
-    final = replace(state, result=state.result or Failed(reason="Cevap üretilemedi."))
+    result = state.result or Failed(reason="Cevap üretilemedi.")
+    final = replace(state, result=with_related_headings(result, state.hits, state.language))
     timings = _split_translation(timings, final.translate_seconds)
     assert final.result is not None
     return AskOutcome(
