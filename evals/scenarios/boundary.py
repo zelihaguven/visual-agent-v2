@@ -1,7 +1,9 @@
-"""Sınır durumları: doğrulamanın sayı biçimi kurallarını gerçek model cevabında sınar.
+"""Sınır durumları: doğrulamanın kurallarını gerçek model cevabında sınar.
 
 Binlik ayraç, ondalıklı tutar, eksi değer, birim, yazıyla sayı, numaralı adım ve küçük harfli
-kod. Ana setlerden (seed 7 ve 11) ayrı üretilir; taban karşılaştırmalarını değiştirmez.
+kod. Ayrıca aynı satırda komşu sütunun değerini yazma (yanlış sütun) ve olumsuzlamayı tersine
+çevirme. Olumsuzlama soruları sayı taşımaz; puanlayıcı bunları ayırt edemez, cevap metni ayrıca
+okunur. Ana setlerden (seed 7 ve 11) ayrı üretilir; taban karşılaştırmalarını değiştirmez.
 """
 
 from functools import partial
@@ -58,6 +60,21 @@ STEPS = (
     "4. kb-204 kodlu kayışı takın."
 )
 METERS = (("M-01", "1.840"), ("M-02", "920"), ("M-03", "10.305"))
+SIZES = (
+    ("Bel", "72", "74", "76"),
+    ("Basen", "98", "100", "102"),
+    ("İç paça", "76", "77", "78"),
+)
+WASHING = (("Pamuk", "30", "60"), ("Polyester", "20", "40"), ("Yün", "20", "30"))
+MOTORS = (("Tork (Nm)", "12", "15"), ("Devir (dev/dk)", "1.400", "2.800"))
+RULES = (
+    "Kesim masasında eldiven kullanımı zorunlu değildir. Koruyucu gözlük zorunludur. Makine"
+    " çalışırken koruma kapağı açılmaz. Bakım sırasında koruma kapağı açılabilir."
+)
+SAFETY = (
+    "Hearing protection is not required in the packing area. Safety shoes are required in the"
+    " warehouse. Do not lubricate the chain while the motor is running."
+)
 
 
 def _documents() -> tuple[ScenarioDocument, ...]:
@@ -100,8 +117,177 @@ def _documents() -> tuple[ScenarioDocument, ...]:
     )
 
 
+def _column_and_negation_documents() -> tuple[ScenarioDocument, ...]:
+    return (
+        _document(
+            "sinir-beden",
+            "xlsx",
+            Carrier.XLSX,
+            "Beden Ölçüleri",
+            (
+                TableBlock(
+                    title="Ölçüler",
+                    headers=("Ölçü noktası", "Beden S", "Beden M", "Beden L"),
+                    rows=SIZES,
+                ),
+            ),
+        ),
+        _document(
+            "sinir-yikama",
+            "pdf",
+            Carrier.PDF,
+            "Yıkama Sıcaklıkları",
+            (
+                TableBlock(
+                    title="Sıcaklıklar",
+                    headers=("Malzeme", "En düşük (°C)", "En yüksek (°C)"),
+                    rows=WASHING,
+                ),
+            ),
+        ),
+        _document(
+            "sinir-motor",
+            "docx",
+            Carrier.DOCX,
+            "Motor Değerleri",
+            (TableBlock(title="Modeller", headers=("Değer", "A-100", "A-200"), rows=MOTORS),),
+        ),
+        _document(
+            "sinir-kurallar",
+            "pdf",
+            Carrier.PDF,
+            "Atölye Kuralları",
+            (TextBlock("Kurallar", RULES),),
+        ),
+        _document(
+            "sinir-safety", "docx", Carrier.DOCX, "Safety Notes", (TextBlock("Rules", SAFETY),)
+        ),
+    )
+
+
+def _column_questions(
+    sizes: ScenarioDocument, washing: ScenarioDocument, motors: ScenarioDocument
+) -> tuple[GoldQuestion, ...]:
+    """Doğru değerin komşu sütununda yakın bir değer durur; kanıt yalnız doğru hücredir."""
+
+    def ask(
+        question_id: str,
+        text: str,
+        value: str,
+        evidence: str,
+        source: GoldSource,
+        kind: QuestionKind = QuestionKind.TABLE_LOOKUP,
+    ) -> GoldQuestion:
+        return make_question(
+            question_id=question_id,
+            text=text,
+            kind=kind,
+            expected_values=(value,),
+            evidence=evidence,
+            sources=(source,),
+        )
+
+    return (
+        ask(
+            "sinir-sutun-basen-m",
+            "M beden basen kaç?",
+            "100",
+            "Beden M: 100",
+            source_for(sizes, 0, 1),
+        ),
+        ask(
+            "sinir-sutun-bel-l-teyit",
+            "L beden bel 74 mü?",
+            "76",
+            "Beden L: 76",
+            source_for(sizes, 0, 0),
+            QuestionKind.CONFIRM_WRONG,
+        ),
+        ask(
+            "sinir-sutun-icpaca-s",
+            "S bedenin iç paçası ne kadar?",
+            "76",
+            "Beden S: 76",
+            source_for(sizes, 0, 2),
+        ),
+        ask(
+            "sinir-sutun-polyester-en-yuksek",
+            "Polyester en fazla kaç derecede yıkanır?",
+            "40",
+            "En yüksek (°C): 40",
+            source_for(washing, 0),
+        ),
+        ask(
+            "sinir-sutun-yun-en-dusuk",
+            "Yün en düşük kaç derecede yıkanır?",
+            "20",
+            "En düşük (°C): 20",
+            source_for(washing, 0),
+        ),
+        ask(
+            "sinir-sutun-a200-tork",
+            "A-200 modelinin tork değeri nedir?",
+            "15",
+            "A-200: 15",
+            source_for(motors, 0),
+        ),
+        ask(
+            "sinir-sutun-a100-devir",
+            "A-100 kaç devirde çalışır?",
+            "1.400",
+            "A-100: 1.400",
+            source_for(motors, 0),
+        ),
+    )
+
+
+def _negation_questions(
+    rules: ScenarioDocument, safety: ScenarioDocument
+) -> tuple[GoldQuestion, ...]:
+    """Doğru cevap olumsuz (biri olumlu denetim); kanıt cümlenin kendisidir."""
+
+    def ask(question_id: str, text: str, evidence: str, source: GoldSource) -> GoldQuestion:
+        return make_question(
+            question_id=question_id, text=text, evidence=evidence, sources=(source,)
+        )
+
+    return (
+        ask(
+            "sinir-olumsuz-eldiven",
+            "Kesim masasında eldiven takmak zorunlu mu?",
+            "eldiven kullanımı zorunlu değildir",
+            source_for(rules, 0),
+        ),
+        ask(
+            "sinir-olumsuz-kapak",
+            "Makine çalışırken koruma kapağı açılabilir mi?",
+            "Makine çalışırken koruma kapağı açılmaz",
+            source_for(rules, 0),
+        ),
+        ask(
+            "sinir-olumlu-gozluk",
+            "Koruyucu gözlük takmak zorunlu mu?",
+            "Koruyucu gözlük zorunludur",
+            source_for(rules, 0),
+        ),
+        ask(
+            "sinir-olumsuz-kulaklik",
+            "Paketleme alanında kulak koruyucu takmak zorunlu mu?",
+            "Hearing protection is not required in the packing area",
+            source_for(safety, 0),
+        ),
+        ask(
+            "sinir-olumsuz-zincir",
+            "Motor çalışırken zincir yağlanabilir mi?",
+            "Do not lubricate the chain while the motor is running",
+            source_for(safety, 0),
+        ),
+    )
+
+
 def build_boundary() -> Scenario:
     fees, storage, seams, steps, meters = _documents()
+    sizes, washing, motors, rules, safety = _column_and_negation_documents()
 
     def ask(
         question_id: str, text: str, values: tuple[str, ...], evidence: str, source: GoldSource
@@ -221,4 +407,11 @@ def build_boundary() -> Scenario:
             source_for(meters, 0, 1),
         ),
     )
-    return Scenario(documents=(fees, storage, seams, steps, meters), questions=questions)
+    return Scenario(
+        documents=(fees, storage, seams, steps, meters, sizes, washing, motors, rules, safety),
+        questions=(
+            *questions,
+            *_column_questions(sizes, washing, motors),
+            *_negation_questions(rules, safety),
+        ),
+    )
