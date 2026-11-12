@@ -1,1 +1,2 @@
 *.bat text eol=crlf
+ornek-belgeler/** -text

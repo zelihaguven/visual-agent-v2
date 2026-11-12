@@ -27,6 +27,8 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Cümle başında büyük harfle başlayan sayı ("30. Gün") hâlâ madde işareti sayılıp denetimden çıkıyor; küçük harfle başlayan artık denetleniyor.
 - Netleştirme adayları aynı adımı farklı menü yoluyla anlatıyorsa netleştirme sürüyor: FastReact'ta "Planlama tahtasından siparişin teslim tarihini nasıl değiştiririm?" iki belgede aynı gövde metnini taşıyor, ama menü yolları farklı ("Main Menu > Planning > …" ve "Main Menu > Low Level Planning > …"); ikinci cevap menü yolunu alıntıladığı için "aynı cevap" sayılmadı. İki yolu kaynaklarıyla birlikte vermek ayrı bir karar.
 - Belgelerin kendisi hakkındaki takip soruları ("bunların hepsi gerçekten release notes mu") çıkmaz sokakta: envanter cevabı sohbet bağlamı bırakmıyor, belge adları ve türleri hakkındaki soru katalogdan değil aramadan cevaplanıyor. Öneri: envanterin gösterdiği belgeleri bağlama koymak ve başlık ya da sayı soran takip sorusunu katalogdan cevaplamak; ayrı tasarım ister. Aynı türdeki "release notes dosyalarında ne var" sorusunu niyet sınıflandırıcı bir koşuda envanter, bir koşuda belge sorusu saydı.
+- Grafiklerde değer ile etiketi arasındaki bağ kopuyor: çubuk grafikteki `331`, `268`, `214` ve ay adları ayrı parçalara düşüyor, "Mart ayında fire adedi kaç?" bulunamadı oluyor. Grafik okuma ayrı tasarım ister.
+- Excel değerleri gösterilen biçimden farklı okunuyor: `%12` → `0.12`, `1.234,50 TL` → `1234.5`. Kayıtlı değeri olmayan formül hücresi (`=C2*2`) uyarısız kayboluyor (`ingest/spreadsheet.py`). Kaynaktaki yazılışla eşleşme bozulur, değer sessizce eksilir.
 
 ## Belge yönetimi
 
@@ -38,6 +40,10 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Giriş kapalı: arayüz ağa açılırsa ağdaki herkes belge görebilir ve yükleyebilir. Şu an yalnız `127.0.0.1` adresine açık; tabletler için açmadan önce giriş ya da ağ kısıtı gerekir.
 - Yüklenen Office dosyaları işçide LibreOffice ile açılıyor; işçinin internet erişimi kapatılabilir.
 - Yerel kurulumda arayüzü nginx değil API sunuyor: nginx'teki güvenlik başlıkları (CSP, X-Frame-Options, nosniff, Referrer-Policy) ve `/api/ask`, `/api/speak`, `/api/transcribe` için hız sınırı yerelde yok. Ağa açmadan önce bunlar API'ye ya da önündeki bir vekil sunucuya eklenmeli.
+
+## Sağlayıcı
+
+- İlk token için konan zaman aşımı (`answer_first_token_seconds`, varsayılan 2,5 sn) akışın her okumasına uygulanıyor (`generation/openrouter.py`). İlk tokendan sonra sağlayıcı 2,5 sn'den uzun duraklarsa cevap `ReadTimeout` ile düşüyor.
 
 ## Kurulum
 

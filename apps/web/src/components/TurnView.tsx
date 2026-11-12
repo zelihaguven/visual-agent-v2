@@ -32,6 +32,12 @@ type Props = {
   onAskAgain: (question: string, docIds: string[] | null) => void;
 };
 
+const UNVERIFIED_TEXT = "Bu cümle kaynakla doğrulanamadığı için gösterilmiyor.";
+
+export function unverifiedText(hasSources: boolean): string {
+  return hasSources ? `${UNVERIFIED_TEXT} Kaynağa bakın.` : UNVERIFIED_TEXT;
+}
+
 export function citationLabel(citation: Citation): string {
   const { title, location } = citation;
   if (location.sheet !== null) {
@@ -93,11 +99,14 @@ function StreamedItems({
     <ol className="answer-items">
       {indexes.map((index) => {
         const item = turn.items[index];
+        const citations = citationsOf(item);
         return (
           <li key={index} className={`answer-item is-${item.state}`}>
-            {item.state === "streaming" ? <MaskedText text={item.text} /> : item.text}
+            {item.state === "streaming" && <MaskedText text={item.text} />}
+            {item.state === "verified" && item.text}
+            {item.state === "unverified" && unverifiedText(citations.length > 0)}
             {item.state !== "streaming" && (
-              <CitationButtons citations={citationsOf(item)} onOpenSource={onOpenSource} />
+              <CitationButtons citations={citations} onOpenSource={onOpenSource} />
             )}
           </li>
         );
@@ -160,7 +169,7 @@ function FinalAnswer({
       <ol className="answer-items">
         {result.items.map((item, index) => (
           <li key={index} className={`answer-item ${item.verified ? "is-verified" : "is-unverified"}`}>
-            {!item.verified && "Değer doğrulanamadı, kaynağa bakın."}
+            {!item.verified && unverifiedText(item.citations.length > 0)}
             {item.verified && item.text.trim() !== item.code?.trim() && item.text}
             {item.code !== null && (
               <pre className="code-block">
@@ -246,7 +255,7 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: P
           {result.reason ? (
             <p className="muted">{result.reason}</p>
           ) : (
-            <p className="muted">Bir model ya da konu söylerseniz yardımcı olabilirim.</p>
+            <p className="muted">Soruyu başka sözcüklerle sorarsanız yeniden bakarım.</p>
           )}
           {turn.scopeInherited && (
             <div className="choices">

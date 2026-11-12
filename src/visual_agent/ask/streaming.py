@@ -14,7 +14,7 @@ from visual_agent.verification.text import UNIT_PATTERN, identifier_spans
 Event = dict[str, object]
 EventSink = Callable[[Event], None]
 
-UNVERIFIED_MESSAGE = "Değer doğrulanamadı, kaynağa bakın."
+UNVERIFIED_MESSAGE = "Bu cümle kaynakla doğrulanamadığı için gösterilmiyor."
 INCOMPLETE_MESSAGE = "Cevap tamamlanamadı, kaynağa bakın."
 _HIDDEN = "▒▒▒"
 _ANSWER_KEY = '"cevap"'

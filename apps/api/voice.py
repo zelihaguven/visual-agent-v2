@@ -46,7 +46,7 @@ _NOTICES = {
     "tr": {
         "clarify": "Netleştirmem gereken bir nokta var, ekrana bakın.",
         "not_found": (
-            "Bu bilgi belgelerde bulunamadı. Bir model ya da konu söylerseniz yardımcı olabilirim."
+            "Bu bilgi belgelerde bulunamadı. Soruyu başka sözcüklerle sorarsanız yeniden bakarım."
         ),
         "failed": "Cevap doğrulanamadı, ekrana bakın.",
         "partial": "Bazı değerler doğrulanamadı, ekrana bakın.",
@@ -55,7 +55,7 @@ _NOTICES = {
     },
     "en": {
         "clarify": "I need to clarify something, please check the screen.",
-        "not_found": "Not found in the documents. Tell me a model or topic and I can help.",
+        "not_found": "Not found in the documents. Ask in other words and I will look again.",
         "failed": "The answer could not be verified, please check the screen.",
         "partial": "Some values could not be verified, please check the screen.",
         "from_ocr": (
