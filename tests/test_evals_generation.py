@@ -226,7 +226,7 @@ def test_boundary_set_is_separate_from_the_main_set(boundary: tuple[GoldSet, Pat
 
     assert {document.domain for document in gold.documents} == {"sinir"}
     assert all((output / document.filename).exists() for document in gold.documents)
-    assert len(gold.questions) == 15
+    assert len(gold.questions) == 27
 
 
 def test_boundary_values_appear_in_their_documents(boundary: tuple[GoldSet, Path]) -> None:
