@@ -143,19 +143,27 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   - Tablo satırları başlıklarıyla ayrı parça. Sıralı listede madde numarası kalıyor.
   - Sayfası ve sayfa adı olmayan parçanın konumu bölüm yolu (`SourceLocation.section`).
     Kaynak etiketi ve kaynak paneli bunu gösteriyor.
+  - Kural biçim düzeyinde. Başlık düzeyi bildirmeyen biçimlerde (PDF, Excel) bölüm kuralı
+    değişmedi.
 - **Neden:**
   - Ürün hedefi "cevabın kaynak bölümü görünür" ve FastReact belgeleri markdown.
   - Önce başlıklar bölüm adı olmuyordu ve kaynak yalnız dosya adıyla görünüyordu.
   - Kaynak panelinde ham `**` ve `\*` işaretleri görünüyordu.
-  - Kural biçim düzeyinde; başlık düzeyi bildirmeyen biçimlerde (PDF, Excel) bölüm kuralı
-    değişmedi.
+- **Onay:** Bölme mantığı değişikliği ve markdown belgelerinin bir kez yeniden işlenmesi
+  ekip tarafından onaylandı (2026-11-12).
 - **Ölçüm** (FastReact 18 soru, her soru bir kez):
   - Parça sayısı 1847'den 3648'e çıktı; 967'si tablo satırı.
   - Doğrulanmış cümle 30'da kaldı, gizlenen cümle 0'dan 2'ye çıktı. İkisi de modelin
     alıntı seçimi; kalıcı olup olmadığı bilinmiyor (açık notlar).
-  - Beklenen belge 1. sırada: 11/17'den 14/17'ye.
-  - Seed 7 ve seed 11 soru bazında aynı: 37/40, doğrulanmış yanlış 0.
-  - Vektörleme süresi parça sayısıyla birlikte yaklaşık iki katına çıktı.
+  - Beklenen dosya 1. sırada: 9/17'den 14/17'ye. Aynı belgenin bölümleri (`_partN`) tek
+    belge sayılınca 11/17'den 14/17'ye. Beklenen dosyalar
+    `ornek-belgeler/03_Test_Sorulari.md` tablosundan.
+  - Seed 7 ve seed 11 soru bazında aynı: 37/40, doğrulanmış yanlış 0. Soruların 38 ve
+    39'u önbellekten geldi, yani modele giden bağlam değişmedi. Bu sonuç modelin yeniden
+    davranışını değil, örnek belgelerin parçalarının etkilenmediğini gösteriyor.
+  - Vektörleme süresi: ölçüm indeksi 1655 sn'den 3468 sn'ye çıktı. Ama bu sırada uygulama
+    da aynı anda vektörlüyordu; temiz süre ölçülmedi. Parça sayısı iki katına çıktığı için
+    sürenin de yaklaşık iki katına çıkması bekleniyor (çıkarım, ölçüm değil).
 - **Yeniden düşünülür:** Gerçek markdown belgelerinde parça sayısı ve süre kabul edilemez
   olursa, ya da gizlenen cümleler kalıcı çıkarsa.
 
@@ -176,12 +184,17 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 
 ### Excel sayıları gösterildiği biçimde yazılır; Türkçe bölge ayarı varsayılır
 - **Ne zaman:** `#c44c599` (PR #16, 2026-11-12), `ingest/spreadsheet.py`. Önce kayıtlı ham
-  değer yazılıyordu (`%12` → `0.12`, `1.234,50 TL` → `1234.5`).
+  değer yazılıyordu: yüzde biçimli hücre `0.12`, tutar `1234.5`.
 - **Ne yapılıyor:**
   - Biçim kodunun ilk bölümü uygulanıyor: yüzde, binlik ayraç, ondalık hane, tırnaklı sabit
     metin, sıfır doldurma.
   - Tarih, kesir ve bilimsel gösterim desteklenmiyor. Tarih ISO biçiminde, diğerleri genel
     biçimde yazılıyor.
+  - **Bilinen sınır, para birimi simgesi:** Excel'in kendi para birimi biçimindeki köşeli
+    parantezli simge (`[$₺-41F]`, `[$TL-41F]`) yazıdan düşüyor: `1.234,50`. Tırnaksız `TL`
+    içeren biçim genel biçime düşüyor: `1234,5`. Yalnız tırnaklı `"TL"` korunuyor:
+    `1.234,50 TL`. Önceki hâlde de simge yoktu, gerileme değil. Ama içerik kaybı (kural 3);
+    açık notlarda.
   - Eksi değer her zaman eksi işaretiyle yazılıyor. Biçimin eksi bölümü (parantez, yalnız
     renk) kullanılmıyor; işaret kaybolup değer değişmesin diye.
   - Kayıtlı değeri olmayan formül hücresi okunamıyor. Belge raporunda hücresiyle birlikte
@@ -213,6 +226,8 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   - Yeniden işleme elle (ekip kararıyla) yapılıyor.
 - **İlk kullanım:** 366 belge (362 md, 3 xlsx, 1 sql) tek seferde yeniden işlendi. Sonuç:
   377/377 hazır, eski kuralla kalan 0.
+- **Onay:** Bu yeniden işleme ekip tarafından bir kez onaylandı (2026-11-12). Sonraki
+  sürüm artışları yeniden onay ister.
 
 ### OCR: OCRmyPDF, sayfa başına tek dil, iki okuma
 - **Ne zaman:**
@@ -377,8 +392,8 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   ekler.
 - **Yeniden düşünülür:** Gerçek belgelerde ya da tablolarda yanlış sütun ya da tersine
   çevrilmiş olumsuzluk görülürse; yalnız görülen kısım için.
-- **Reddedilenler:** Yerel çıkarım (NLI) modeli ve yardımcı LLM ile anlam denetimi. Yeni
-  model ya da "LLM hakem yok" kararıyla çelişme.
+- **Reddedilenler:** Yerel çıkarım (NLI) modeli ve yardımcı LLM ile anlam denetimi. Neden:
+  yeni model gerektirir ya da "LLM hakem yok" kararıyla çelişir.
 
 ### Tablo varyant denetimi (K9) eklenmedi
 - **Ne zaman:** 0002. Eski pilotta vardı (`73852bc`), ama ölçülen hatta (c modu)
