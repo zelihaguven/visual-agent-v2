@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from starlette.types import Scope
 
+from apps.api.display_names import DocumentNames
 from apps.api.documents import RemoveVectors, delete_document
 from apps.api.preview import render_highlighted_page
 from apps.api.question_log import InputMode, QuestionRecord, record_for
@@ -90,6 +91,7 @@ class ApiServices:
     health_checks: Mapping[str, HealthCheck] = field(default_factory=dict)
     remove_vectors: RemoveVectors = _no_vectors
     question_log: QuestionRecorder | None = None
+    document_names: DocumentNames = field(default_factory=DocumentNames)
 
 
 class HealthResponse(BaseModel):
@@ -244,7 +246,9 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
     task = asyncio.create_task(run())
     try:
         while (event := await queue.get()) is not _END_OF_STREAM:
-            yield _sse(event)
+            yield _sse(
+                await services.document_names.rename(event, services.repository.get_document)
+            )
     finally:
         task.cancel()
         if spoken is not None:
@@ -340,12 +344,15 @@ def _require_services(app: FastAPI) -> Callable[[], ApiServices]:
 
 async def _chunk_source(chunk: Chunk, services: ApiServices) -> dict[str, object]:
     location = chunk.location
+    title = await services.document_names.name(
+        chunk.doc_id, chunk.title, services.repository.get_document
+    )
     if location.sheet is not None:
         rows = await services.repository.sheet_chunks(chunk.doc_id, location.sheet)
         return {
             "kind": "sheet",
             "sheet": location.sheet,
-            "title": chunk.title,
+            "title": title,
             "highlight_row": location.row,
             "rows": [{"row": item.location.row, "text": item.text} for item in rows],
         }
@@ -353,10 +360,10 @@ async def _chunk_source(chunk: Chunk, services: ApiServices) -> dict[str, object
         return {
             "kind": "page",
             "page": location.page,
-            "title": chunk.title,
+            "title": title,
             "image_url": f"/api/chunks/{chunk.chunk_id}/preview.png",
         }
-    return {"kind": "text", "text": chunk.text, "title": chunk.title}
+    return {"kind": "text", "text": chunk.text, "title": title}
 
 
 def _library_router(app: FastAPI) -> APIRouter:

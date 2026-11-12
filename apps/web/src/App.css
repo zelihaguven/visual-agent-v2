@@ -276,6 +276,14 @@ h1 {
   gap: 24px;
   overflow-y: auto;
   padding: 12px clamp(16px, 4vw, 40px) 24px;
+  scroll-padding-top: 12px;
+  container-type: size;
+}
+
+/* Son soru alanı en az görünür yükseklik kadar: yeni soru en üste kaydırılabilsin. */
+.turns > .turn:last-child {
+  min-height: 100cqh;
+  align-content: start;
 }
 
 .turn {

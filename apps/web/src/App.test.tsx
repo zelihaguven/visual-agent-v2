@@ -258,6 +258,59 @@ describe("App", () => {
     });
   });
 
+  it("scrolls each new question to the top of the conversation", async () => {
+    const scrolled: Element[] = [];
+    const scrollIntoView = vi.fn(function (this: Element) {
+      scrolled.push(this);
+    });
+    Element.prototype.scrollIntoView = scrollIntoView;
+    stubApi({ "/api/documents": () => jsonResponse([]), "/api/ask": () => sse([answered]) });
+    render(<App />);
+
+    await ask("ilk soru");
+    await screen.findByText("Doğrulandı");
+    await ask("ikinci soru");
+    await waitFor(() => expect(screen.getAllByText("Doğrulandı")).toHaveLength(2));
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+    expect(scrollIntoView).toHaveBeenLastCalledWith({ block: "start", behavior: "smooth" });
+    expect(scrolled.map((turn) => turn.querySelector(".question")?.textContent)).toEqual([
+      "ilk soru",
+      "ikinci soru",
+    ]);
+  });
+
+  it("says a sentence was hidden, without claiming there was a value", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          { type: "item_unverified", index: 0, message: "x", source_numbers: [] },
+          {
+            ...answered,
+            result: {
+              ...answered.result,
+              status: "failed",
+              items: [
+                { ...answered.result.items[0], verified: false, citations: [] },
+                { ...answered.result.items[0], verified: false },
+              ],
+            },
+          },
+        ]),
+    });
+    render(<App />);
+    await ask("soru");
+
+    expect(
+      await screen.findByText("Bu cümle kaynakla doğrulanamadığı için gösterilmiyor."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Bu cümle kaynakla doğrulanamadığı için gösterilmiyor. Kaynağa bakın."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Değer doğrulanamadı/)).not.toBeInTheDocument();
+  });
+
   it("states clearly when the answer is not in the documents", async () => {
     stubApi({
       "/api/documents": () => jsonResponse([]),
@@ -277,6 +330,7 @@ describe("App", () => {
     await ask("soru");
 
     expect(await screen.findByText("Bu bilgi belgelerde bulunamadı.")).toBeInTheDocument();
+    expect(screen.queryByText(/model/i)).not.toBeInTheDocument();
   });
 
   it("shows an error when the answer stream fails", async () => {
