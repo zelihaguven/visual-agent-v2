@@ -130,11 +130,34 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
     belge ailesine göre ayarlı).
   - Bu repoda yalnız başlık ve bölüm adı var. Değişikliğin ölçümü yok.
 
-### Markdown düz metin olarak okunur
-- **Ne zaman:** `#1475acb` (`.md` → `InputFormat.TEXT`).
-- **Neden:** Neden bilinmiyor.
-- **Sonuç:** Başlıklar bölüm adı olmuyor; sayfasız belgede kaynak yalnız dosya adıyla
-  gösteriliyor (açık notlar, "Markdown belgeler").
+### Markdown başlıklarıyla okunur (değiştirildi: önce düz metindi)
+- **Ne zaman:**
+  - İlk hâl: `#1475acb`, `.md` düz metin olarak okunuyordu. Neden bilinmiyor.
+  - Değişiklik: `#c44c599` (PR #16, 2026-11-12), `ingest/markdown.py`.
+- **Ne değişti:**
+  - CommonMark ve tablolarla okunuyor (markdown-it-py, zaten bağımlılıktı).
+  - Başlıklar düzeyleriyle bölüm yolu oluyor ("Ayarlar · Genel · Hafta numaraları").
+  - Vurgu, satır içi kod işareti ve kaçış ters bölüsü metinden çıkıyor. Bağlantının metinde
+    yazmayan adresi parantez içinde kalıyor. HTML aynen kalıyor; yalnız `<br>` satır sonu
+    oluyor.
+  - Tablo satırları başlıklarıyla ayrı parça. Sıralı listede madde numarası kalıyor.
+  - Sayfası ve sayfa adı olmayan parçanın konumu bölüm yolu (`SourceLocation.section`).
+    Kaynak etiketi ve kaynak paneli bunu gösteriyor.
+- **Neden:**
+  - Ürün hedefi "cevabın kaynak bölümü görünür" ve FastReact belgeleri markdown.
+  - Önce başlıklar bölüm adı olmuyordu ve kaynak yalnız dosya adıyla görünüyordu.
+  - Kaynak panelinde ham `**` ve `\*` işaretleri görünüyordu.
+  - Kural biçim düzeyinde; başlık düzeyi bildirmeyen biçimlerde (PDF, Excel) bölüm kuralı
+    değişmedi.
+- **Ölçüm** (FastReact 18 soru, her soru bir kez):
+  - Parça sayısı 1847'den 3648'e çıktı; 967'si tablo satırı.
+  - Doğrulanmış cümle 30'da kaldı, gizlenen cümle 0'dan 2'ye çıktı. İkisi de modelin
+    alıntı seçimi; kalıcı olup olmadığı bilinmiyor (açık notlar).
+  - Beklenen belge 1. sırada: 11/17'den 14/17'ye.
+  - Seed 7 ve seed 11 soru bazında aynı: 37/40, doğrulanmış yanlış 0.
+  - Vektörleme süresi parça sayısıyla birlikte yaklaşık iki katına çıktı.
+- **Yeniden düşünülür:** Gerçek markdown belgelerinde parça sayısı ve süre kabul edilemez
+  olursa, ya da gizlenen cümleler kalıcı çıkarsa.
 
 ### PyMuPDF kullanılmaz; Docling ve pypdfium2
 - **Ne zaman:** 0001. Eski pilot PyMuPDF kullanıyordu.
@@ -150,6 +173,46 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Ne zaman:** `#1475acb`. Eski pilot yalnız PDF okuyordu.
 - **Neden:** Gerçek belgeler karışık türde geliyor (CLAUDE.md kural 3).
 - **Not:** Ağır araçlar yalnız işçide çalışır; belgeler internetsiz işlenir (0001).
+
+### Excel sayıları gösterildiği biçimde yazılır; Türkçe bölge ayarı varsayılır
+- **Ne zaman:** `#c44c599` (PR #16, 2026-11-12), `ingest/spreadsheet.py`. Önce kayıtlı ham
+  değer yazılıyordu (`%12` → `0.12`, `1.234,50 TL` → `1234.5`).
+- **Ne yapılıyor:**
+  - Biçim kodunun ilk bölümü uygulanıyor: yüzde, binlik ayraç, ondalık hane, tırnaklı sabit
+    metin, sıfır doldurma.
+  - Tarih, kesir ve bilimsel gösterim desteklenmiyor. Tarih ISO biçiminde, diğerleri genel
+    biçimde yazılıyor.
+  - Eksi değer her zaman eksi işaretiyle yazılıyor. Biçimin eksi bölümü (parantez, yalnız
+    renk) kullanılmıyor; işaret kaybolup değer değişmesin diye.
+  - Kayıtlı değeri olmayan formül hücresi okunamıyor. Belge raporunda hücresiyle birlikte
+    uyarı olarak çıkıyor; önceden sessizce kayboluyordu.
+- **Bölge ayarı kararı:** Excel sayıyı açan bilgisayarın bölge ayarıyla gösterir ve dosyada
+  bölge yazmaz. Türkçe bölge ayarı (ondalık virgül, binlik nokta) varsayıldı; ekip onayladı
+  (2026-11-12).
+- **Yüzde işaretinin yeri:** Biçim kodundaki gibi kalıyor (`12%`). Türkçe Excel'in `%12`
+  gösterip göstermediği denenmedi; ekip kararıyla dokunulmadı.
+- **Neden:** Kaynaktaki yazılışla eşleşme bozuluyordu ve değer sessizce eksilebiliyordu
+  (kural 3: içerik kaybı olmamalı).
+- **Ölçüm:** Örnek Excel dosyalarında bütün hücreler metindi; taban sonuçları değişmedi.
+  Biçimli sayı içeren gerçek dosyayla ölçülmedi.
+- **Yeniden düşünülür:** Belgeler başka bölge ayarlı bilgisayarlardan gelirse, ya da gerçek
+  dosyalarda yüzde ve tarih yazılışı kaynakla eşleşmezse.
+
+### Parçalama kuralının sürümü belgeye kaydedilir
+- **Ne zaman:** `#c44c599` (PR #16, 2026-11-12), `ingest/formats.py` (`RULES_VERSIONS`).
+- **Ne yapılıyor:**
+  - Her biçimin kural sürümü belge raporuna yazılıyor.
+  - Eski sürümle işlenmiş belge listede "eski okuma kuralıyla işlendi" diye görünüyor.
+  - Bir biçimin parçalarını ya da konumlarını değiştiren her değişiklikte o biçimin sürümü
+    artırılıyor. Markdown, metin, SQL ve Excel 2'de; PDF, Office ve görsel 1'de.
+- **Neden:** Parçalama kuralı değişince eski belgeler sessizce eski parçalarıyla kalıyordu.
+  Hangi belgelerin yeniden işlenmesi gerektiği bilinmiyordu.
+- **Neden kodla engellenmedi:**
+  - Uygulama hiçbir zaman toplu yeniden indeksleme yapmıyor.
+  - Ölçümde indeks zaten parmak iziyle korunuyor.
+  - Yeniden işleme elle (ekip kararıyla) yapılıyor.
+- **İlk kullanım:** 366 belge (362 md, 3 xlsx, 1 sql) tek seferde yeniden işlendi. Sonuç:
+  377/377 hazır, eski kuralla kalan 0.
 
 ### OCR: OCRmyPDF, sayfa başına tek dil, iki okuma
 - **Ne zaman:**
@@ -197,8 +260,20 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
     `adim2/plan_cevap_modeli_2026-11-05.md`).
   - Yedeğe geçme koşulları: 2,5 sn içinde ilk token gelmezse ya da üst üste 40 boşluk
     karakteri gelirse.
-- **Not:** 2,5 sn sınırı akışın her okumasına uygulanıyor; bu bir hata (açık notlar,
-  "Sağlayıcı").
+
+### İlk token sınırı yalnız ilk tokene kadar; sonra akışın durma sınırı 10 sn (düzeltildi)
+- **Ne zaman:** `#bf3248a` (PR #18 ile birleşti, 2026-11-12),
+  `generation/openrouter.py`.
+- **Ne değişti:**
+  - 2,5 sn'lik ilk token sınırı httpx okuma zaman aşımı olarak veriliyordu ve akıştaki her
+    okumaya uygulanıyordu. İlk tokendan sonra sağlayıcı 2,5 sn'den uzun durursa cevap
+    `ReadTimeout` ile düşüyor, yedek sağlayıcıya ya da yarım cevaba geçiliyordu.
+  - Artık ilk token sınırı deneme başında kurulan `asyncio.timeout`; ilk içerik gelince
+    kalkıyor. Akışın okuma sınırı ayrı bir durma sınırı (`_STALL_SECONDS = 10`).
+- **Neden:** Hata düzeltme. Model, istem ve ayar değişmedi.
+- **Bilinmeyen:** 10 sn değeri ölçülmedi. Sağlayıcının normal cevaplarında ilk tokendan
+  sonraki en uzun duraklama bilinmiyor.
+- **Yeniden düşünülür:** Soru kaydında cevaplar 10 sn'lik durma yüzünden düşüyorsa.
 
 ### Yalnız ZDR uçları; yerel modele otomatik geri dönüş yok
 - **Ne zaman:** 0001. Eski pilotta `5f35276` (ZDR zorunlu), `323efdb` (uç düzeyinde
@@ -286,6 +361,24 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   cevap öğesinin 19'unda görüldü. Bunu reddetmek büyük haksız ret demek.
 - **Yeniden düşünülür:** Cevap istemi değişirse (ekip onayı gerekir; önbellek geçersiz
   olur).
+
+### Yanlış sütun ve olumsuzlama için kural yazılmadı (önce ölçüldü)
+- **Ne zaman:** `#f5b4ec5` (PR #19, 2026-11-12).
+- **Karar:** Ekip yön olarak biçim ve dil düzeyinde kuralı seçti; yerel model (NLI) ya da
+  LLM ile denetim yok. Ama kural yalnız hata gerçekten görülürse ve yalnız görülen kısım
+  için yazılacak.
+- **Ölçüm:**
+  - Sınır setine 7 yanlış sütun sorusu eklendi: komşu sütunda yakın değer; Excel, PDF ve
+    Word tablosu; biri yanlış değeri onaylatan soru.
+  - 5 olumsuzlama sorusu eklendi: Türkçe ve İngilizce kaynak; biri olumlu denetim.
+  - Her soru bir kez soruldu. 12 cevabın hepsi doğru, doğrulanmış yanlış 0. Olumsuzlama
+    cevapları cevap metni okunarak sınıflandırıldı.
+- **Neden kural yazılmadı:** Model bu hatayı yapmadı. Kural her cevaba haksız ret riski
+  ekler.
+- **Yeniden düşünülür:** Gerçek belgelerde ya da tablolarda yanlış sütun ya da tersine
+  çevrilmiş olumsuzluk görülürse; yalnız görülen kısım için.
+- **Reddedilenler:** Yerel çıkarım (NLI) modeli ve yardımcı LLM ile anlam denetimi. Yeni
+  model ya da "LLM hakem yok" kararıyla çelişme.
 
 ### Tablo varyant denetimi (K9) eklenmedi
 - **Ne zaman:** 0002. Eski pilotta vardı (`73852bc`), ama ölçülen hatta (c modu)
