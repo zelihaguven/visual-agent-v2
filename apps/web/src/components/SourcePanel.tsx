@@ -37,7 +37,12 @@ function SourceContent({ source }: { source: SourceView }) {
         </div>
       );
     case "text":
-      return <p className="source-text">{source.text}</p>;
+      return (
+        <>
+          {source.section && <p className="muted source-section">{source.section}</p>}
+          <p className="source-text">{source.text}</p>
+        </>
+      );
   }
 }
 

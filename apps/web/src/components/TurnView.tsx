@@ -38,12 +38,24 @@ export function unverifiedText(hasSources: boolean): string {
   return hasSources ? `${UNVERIFIED_TEXT} Kaynağa bakın.` : UNVERIFIED_TEXT;
 }
 
+const SECTION_SEPARATOR = " · ";
+
+/** Bölüm yolu belgenin adıyla başlıyorsa ad bir kez yazılır. */
+function sectionLabel(title: string, section: string): string {
+  const parts = section.split(SECTION_SEPARATOR);
+  const rest = parts[0] === title ? parts.slice(1) : parts;
+  return [title, ...rest].join(SECTION_SEPARATOR);
+}
+
 export function citationLabel(citation: Citation): string {
   const { title, location } = citation;
   if (location.sheet !== null) {
     return `${title} · ${location.sheet} · satır ${location.row ?? "?"}`;
   }
-  return location.page !== null ? `${title} · s.${location.page}` : title;
+  if (location.page !== null) {
+    return `${title} · s.${location.page}`;
+  }
+  return location.section ? sectionLabel(title, location.section) : title;
 }
 
 function MaskedText({ text }: { text: string }) {

@@ -29,12 +29,13 @@ class Box(FrozenModel):
 
 
 class SourceLocation(FrozenModel):
-    """PDF'te sayfa ve kutular, Excel'de sayfa adı ve satır; düz metinde boş kalır."""
+    """PDF'te sayfa ve kutular, Excel'de sayfa adı ve satır; sayfasız metinde bölüm yolu."""
 
     page: int | None = None
     boxes: tuple[Box, ...] = ()
     sheet: str | None = None
     row: int | None = None
+    section: str | None = None
 
 
 class DocumentMeta(FrozenModel):

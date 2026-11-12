@@ -9,7 +9,12 @@ from pathlib import Path
 from visual_agent.domain.document import Box, Chunk, DocumentMeta, FrozenModel
 from visual_agent.ingest.chunking import build_chunks
 from visual_agent.ingest.elements import Element, ElementKind
-from visual_agent.ingest.formats import InputFormat, detect_format
+from visual_agent.ingest.formats import (
+    RULES_VERSIONS,
+    UNRECORDED_RULES,
+    InputFormat,
+    detect_format,
+)
 from visual_agent.ingest.plain_text import parse_plain_text
 from visual_agent.ingest.spreadsheet import parse_workbook
 from visual_agent.ingest.text_layer import PageKind
@@ -59,6 +64,8 @@ class IngestReport(FrozenModel):
     uncertain_values: int
     chunks_by_kind: dict[str, int]
     warnings: tuple[str, ...]
+    input_format: InputFormat | None = None
+    rules_version: int = UNRECORDED_RULES
 
 
 @dataclass(frozen=True)
@@ -133,15 +140,23 @@ def _elements_from_pdf(
     return sorted(combined, key=lambda element: element.location.page or 0), pages, outcome
 
 
+@dataclass(frozen=True)
+class _Parsed:
+    elements: list[Element]
+    warnings: Sequence[str] = ()
+    pages: Sequence[PageInfo] = ()
+    outcome: OcrOutcome | None = None
+
+
 def _build_report(
     meta: DocumentMeta,
+    input_format: InputFormat,
     chunks: Sequence[Chunk],
-    pages: Sequence[PageInfo],
-    outcome: OcrOutcome | None,
-    image_warnings: Sequence[str],
+    parsed: _Parsed,
 ) -> IngestReport:
     empty = () if chunks else ("Belgeden okunabilir içerik çıkarılamadı.",)
-    warnings = (*empty, *image_warnings)
+    warnings = (*empty, *parsed.warnings)
+    pages, outcome = parsed.pages, parsed.outcome
     return IngestReport(
         doc_id=meta.doc_id,
         page_count=len(pages),
@@ -150,6 +165,8 @@ def _build_report(
         uncertain_values=sum(len(chunk.ocr_uncertain) for chunk in chunks),
         chunks_by_kind=dict(Counter(chunk.kind.value for chunk in chunks)),
         warnings=warnings,
+        input_format=input_format,
+        rules_version=RULES_VERSIONS[input_format],
     )
 
 
@@ -161,23 +178,24 @@ def _pdf_source(path: Path, input_format: InputFormat, tools: IngestTools, work:
     return path
 
 
+def _parse(
+    path: Path, input_format: InputFormat, meta: DocumentMeta, tools: IngestTools, work: Path
+) -> _Parsed:
+    if input_format in (InputFormat.SQL, InputFormat.TEXT, InputFormat.MARKDOWN):
+        return _Parsed(parse_plain_text(path, input_format))
+    if input_format is InputFormat.SPREADSHEET:
+        return _Parsed(*parse_workbook(path))
+    if input_format is InputFormat.LEGACY_SPREADSHEET:
+        return _Parsed(*parse_workbook(tools.legacy_spreadsheet_to_xlsx(path, work)))
+    pdf_path = _pdf_source(path, input_format, tools, work)
+    elements, pages, outcome = _elements_from_pdf(pdf_path, meta, tools, work)
+    return _Parsed(elements, tools.skipped_image_warnings(pages), pages, outcome)
+
+
 def ingest_document(path: Path, meta: DocumentMeta, tools: IngestTools, work: Path) -> IngestResult:
     input_format = detect_format(path)
-    pages: list[PageInfo] = []
-    outcome: OcrOutcome | None = None
-    display_pdf: Path | None = None
-    image_warnings: list[str] = []
-    if input_format in (InputFormat.SQL, InputFormat.TEXT):
-        elements = parse_plain_text(path, input_format)
-    elif input_format is InputFormat.SPREADSHEET:
-        elements = parse_workbook(path)
-    elif input_format is InputFormat.LEGACY_SPREADSHEET:
-        elements = parse_workbook(tools.legacy_spreadsheet_to_xlsx(path, work))
-    else:
-        pdf_path = _pdf_source(path, input_format, tools, work)
-        elements, pages, outcome = _elements_from_pdf(pdf_path, meta, tools, work)
-        display_pdf = outcome.pdf_path
-        image_warnings = tools.skipped_image_warnings(pages)
-    chunks = tuple(build_chunks(elements, meta))
-    report = _build_report(meta, chunks, pages, outcome, image_warnings)
+    parsed = _parse(path, input_format, meta, tools, work)
+    chunks = tuple(build_chunks(parsed.elements, meta))
+    report = _build_report(meta, input_format, chunks, parsed)
+    display_pdf = parsed.outcome.pdf_path if parsed.outcome else None
     return IngestResult(chunks, report, display_pdf)
