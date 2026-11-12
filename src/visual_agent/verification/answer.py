@@ -105,10 +105,11 @@ def _header_measures(item: ModelItem, sources: Sources) -> set[tuple[str, str]]:
 def _unit_problems(item: ModelItem, evidence: str, sources: Sources) -> list[str]:
     """Cümlede sayının birimi alıntıda o sayıyla ya da sayının sütun başlığında yazılı olmalı."""
     allowed = measures_in(evidence) | _header_measures(item, sources)
+    values = numbers_in(item.text)  # kodun içindeki rakam ("PNT-1126 S") değer değildir
     missing = sorted(
         f"{number} {unit}"
         for number, unit in measures_in(item.text)
-        if (number, unit) not in allowed
+        if number in values and (number, unit) not in allowed
     )
     return [f"cümlede kaynakta yazmayan birim: {missing}"] if missing else []
 

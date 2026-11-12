@@ -161,6 +161,12 @@ def test_same_value_in_words_or_lower_case_still_passes(source: str, text: str) 
         ("Bel | Beden L: 42,5 | Tolerans (cm): 1,0", "Beden L: 42,5", "L beden 42,5 cm.", False),
         ("Bel | M: 40,5 | L: 42,5", "Bel | M: 40,5 | L: 42,5", "M beden bel 40,5 cm.", False),
         ("Bel | Beden M: 74", "Beden M: 74", "M beden bel 74 m.", False),
+        (
+            "PNT-1126 | Beden S: ETK-6154",
+            "PNT-1126 | Beden S: ETK-6154",
+            "PNT-1126 S beden ETK-6154.",
+            True,
+        ),
         ("Hizmet: Bakım | Ücret (TL): 1.250", "Ücret (TL): 1.250", "Bakım 1.250 TL.", True),
         ("Malzeme: Yün | En yüksek (°C): 30", "En yüksek (°C): 30", "Yün en fazla 30 °C.", True),
         ("Adım | Süre (dk): 15", "Süre (dk): 15", "15 dakika beklenir.", True),
