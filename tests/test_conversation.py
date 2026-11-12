@@ -270,6 +270,41 @@ def test_follow_up_after_a_hidden_answer_is_completed_from_the_hidden_turn() -> 
     assert rewriter.calls == [("PNT-4417 L beden bel kaç?", "Etiketi ne?")]
 
 
+def test_hidden_turn_with_a_new_code_does_not_keep_the_old_documents() -> None:
+    """Önceki konu "a"; yeni kodlu soru bütün belgelerde arandı, cevabı gizlendi."""
+    hidden = answer_payload("Dış paça 99.", "Dış paça 99")
+    outcome = ask_with(deps_with(follows("E050 hatası nedir?"), FakeClient(hidden)), "E050 nedir?")
+
+    assert isinstance(outcome.result, Answered)
+    assert outcome.result.status is VerificationStatus.FAILED
+    assert outcome.context == ConversationContext(question="E050 hatası nedir?")
+
+
+def test_follow_up_after_a_hidden_turn_with_a_new_code_searches_where_it_was_asked() -> None:
+    """PNT-1126 (a) -> PNT-1162 (yeni kod, cevap gizlendi) -> "peki l beden?"."""
+    hidden = answer_payload("Dış paça 99.", "Dış paça 99")
+    second = ask_with(deps_with(follows("E050 hatası nedir?"), FakeClient(hidden)), "E050 nedir?")
+    rewriter = follows("E050 hatası ne zaman görülür?")
+
+    third = ask_with(deps_with(rewriter, FakeClient(VERIFIED)), "peki ne zaman?", second.context)
+
+    assert rewriter.calls == [("E050 hatası nedir?", "peki ne zaman?")]
+    assert not third.scope_inherited
+    assert not (isinstance(third.result, NotFound) and "geçmiyor" in third.result.reason)
+
+
+def test_code_outside_the_inherited_document_only_says_this_document() -> None:
+    context = ConversationContext(question="E050 hatası nedir?", doc_ids=("a",), titles=("Föy",))
+    rewriter = follows("E050 hatası ne zaman görülür?")
+
+    outcome = ask_with(deps_with(rewriter, FakeClient(VERIFIED)), "peki ne zaman?", context)
+
+    assert isinstance(outcome.result, NotFound)
+    assert outcome.scope_inherited
+    assert outcome.result.reason == ""
+    assert outcome.result.suggested_doc_ids == ("b",)
+
+
 def test_not_found_keeps_the_previous_context() -> None:
     client = FakeClient({"tur": "bulunamadi", "cevap": [], "celiski_var": False})
     rewriter = follows("Mavi pantolon M beden kordon boyu kaç?")

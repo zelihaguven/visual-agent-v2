@@ -107,11 +107,12 @@ def _code_not_found(missing: Sequence[str], state: AskState, deps: AskDeps) -> N
             if doc_id in state.allowed
         )
     )
-    place = "seçilen belgelerde" if state.request.doc_ids else "belgelerde"
-    return NotFound(
-        reason=f"{', '.join(item.upper() for item in missing)} {place} geçmiyor.",
-        suggested_doc_ids=suggested,
-    )
+    codes = ", ".join(item.upper() for item in missing)
+    if suggested and state.scope_inherited:
+        # Kod başka belgede var; arayüz "bu belgede yok" der ve "Tüm belgelerde ara" önerir.
+        return NotFound(reason="", suggested_doc_ids=suggested)
+    place = "seçilen belgelerde" if suggested and state.request.doc_ids else "belgelerde"
+    return NotFound(reason=f"{codes} {place} geçmiyor.", suggested_doc_ids=suggested)
 
 
 CONTEXT_GONE_QUESTION = (

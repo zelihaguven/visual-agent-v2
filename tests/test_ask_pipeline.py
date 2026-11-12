@@ -238,11 +238,19 @@ def test_unknown_code_is_not_blamed_on_a_selection_the_user_never_made() -> None
     assert outcome.result.reason == "XYZ9999 belgelerde geçmiyor."
 
 
-def test_unknown_code_in_a_chosen_document_says_so() -> None:
+def test_code_missing_everywhere_says_so_even_in_a_chosen_document() -> None:
     outcome = ask(make_deps(FakeClient(answer_payload("76,5"))), "XYZ9999 bel kaç?", ("b",))
 
     assert isinstance(outcome.result, NotFound)
-    assert outcome.result.reason == "XYZ9999 seçilen belgelerde geçmiyor."
+    assert outcome.result.reason == "XYZ9999 belgelerde geçmiyor."
+
+
+def test_code_found_only_outside_the_chosen_document_says_so() -> None:
+    outcome = ask(make_deps(FakeClient(answer_payload("76,5"))), "E050 nedir?", ("a",))
+
+    assert isinstance(outcome.result, NotFound)
+    assert outcome.result.reason == "E050 seçilen belgelerde geçmiyor."
+    assert outcome.result.suggested_doc_ids == ("b",)
 
 
 def test_no_ready_document_means_not_found_without_searching() -> None:
