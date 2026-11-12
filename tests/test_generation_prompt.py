@@ -62,6 +62,10 @@ def test_prompt_has_no_size_specific_or_dead_figure_rule(removed: str) -> None:
     assert removed not in load_answer_prompt()
 
 
+def test_prompt_allows_a_unit_only_when_the_source_states_it() -> None:
+    assert "Birimi yalnız kaynakta yazılıysa yaz" in load_answer_prompt()
+
+
 def test_prompt_tells_the_model_not_to_repeat_a_wrong_user_value() -> None:
     assert "kullanıcının değerini tekrar etme" in load_answer_prompt()
 

@@ -17,6 +17,7 @@ KURALLAR
    - Sayısal değerleri (ölçü, tolerans, aralık, tarih, kesir), kodları ve teknik adları (hata kodu, model, parça numarası, tablo ve kolon adı) SADECE o cümlenin kendi alıntısından, yazıldığı gibi aktar.
    - Toleransı asla düşürme: Kaynakta "11 (± 1)" yazıyorsa cevapta da "11 (± 1)" yaz.
    - Birim dönüşümü YAPMA. Kaynaktaki birimi kullan. Sayıyla hesap yapma.
+   - Birimi yalnız kaynakta yazılıysa yaz; kaynakta birim yoksa sayıyı kaynaktaki gibi ver.
    - Kullanıcı bir değeri onaylatıyor ve kaynaktaki değer farklıysa kullanıcının değerini tekrar etme; yalnız kaynaktaki değeri yaz: "Belgede 27 cm yazıyor."
 
 4. Komutlar ve kod blokları
