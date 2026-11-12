@@ -1,6 +1,6 @@
 import asyncio
 import json
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
 from typing import Any
 
 import httpx
@@ -39,14 +39,18 @@ def sse(*pieces: str, finish: str = "stop", cost: float = 0.002) -> bytes:
 Handler = Callable[[httpx.Request], httpx.Response]
 
 
-def make_client(handler: Handler, providers: tuple[str, ...] = ("alpha", "beta")) -> AnswerClient:
+def make_client(
+    handler: Handler,
+    providers: tuple[str, ...] = ("alpha", "beta"),
+    first_token_seconds: float = 2.5,
+) -> AnswerClient:
     options = AnswerClientOptions(
         model=MODEL,
         providers=providers,
         ignored_providers=("risky",),
         schema={"type": "object"},
         max_tokens=100,
-        first_token_seconds=2.5,
+        first_token_seconds=first_token_seconds,
         runaway_whitespace_limit=5,
     )
     http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
@@ -274,3 +278,43 @@ def test_failed_attempts_travel_with_service_unavailable() -> None:
 
     assert [attempt.provider for attempt in raised.value.attempts] == ["alpha", "beta"]
     assert all(attempt.seconds >= 0 for attempt in raised.value.attempts)
+
+
+async def _slow_events(*steps: tuple[float, str]) -> AsyncIterator[bytes]:
+    """Her parçadan önce verilen süre beklenir; parça boşsa yalnız bitiş olayı gelir."""
+    for wait, piece in steps:
+        await asyncio.sleep(wait)
+        event: dict[str, Any]
+        if piece:
+            event = {"choices": [{"delta": {"content": piece}}]}
+        else:
+            event = {"choices": [{"delta": {}, "finish_reason": "stop"}], "usage": {"cost": 0}}
+        yield f"data: {json.dumps(event)}\n\n".encode()
+    yield b"data: [DONE]\n\n"
+
+
+def test_pause_after_first_token_does_not_drop_the_answer() -> None:
+    read_timeouts: list[float] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        read_timeouts.append(request.extensions["timeout"]["read"])
+        return httpx.Response(200, content=_slow_events((0, "ilk "), (0.2, "son"), (0, "")))
+
+    result = stream_with(make_client(handler, providers=("alpha",), first_token_seconds=0.05))
+
+    assert result.content == "ilk son"
+    assert [attempt.error for attempt in result.attempts] == [""]
+    # Gerçek bağlantıda okuma sınırı her okumaya uygulanır; ilk token sınırı olamaz.
+    assert read_timeouts[0] > 0.2
+
+
+def test_missing_first_token_moves_to_the_next_provider() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if json.loads(request.content)["provider"]["order"][0] == "alpha":
+            return httpx.Response(200, content=_slow_events((0.2, "geç"), (0, "")))
+        return httpx.Response(200, content=sse("tamam"))
+
+    result = stream_with(make_client(handler, first_token_seconds=0.05))
+
+    assert result.provider == "beta"
+    assert result.attempts[0].error == "ilk token süresinde gelmedi"

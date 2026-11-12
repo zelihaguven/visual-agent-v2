@@ -1,5 +1,6 @@
 """OpenRouter istemcisi: yalnız veri saklamayan sağlayıcılar, akış ve sağlayıcı yedeği."""
 
+import asyncio
 import json
 import logging
 import time
@@ -12,6 +13,8 @@ import httpx
 logger = logging.getLogger(__name__)
 
 _CONNECT_SECONDS = 10.0
+_STALL_SECONDS = 10.0
+"""İlk tokendan sonra akışın sessiz kalabileceği en uzun süre; ilk token sınırı ayrıdır."""
 _ERROR_PREVIEW = 200
 _FINISH_TRUNCATED = "length"
 
@@ -220,9 +223,6 @@ class AnswerClient:
         choice = (event.get("choices") or [{}])[0]
         piece = (choice.get("delta") or {}).get("content") or ""
         seconds = time.perf_counter() - attempt.started
-        if not attempt.content and not piece and seconds > self._options.first_token_seconds:
-            attempt.error = "ilk token süresinde gelmedi"
-            return True
         if piece:
             self._append_piece(attempt, piece, seconds, callbacks)
         if choice.get("finish_reason"):
@@ -230,12 +230,20 @@ class AnswerClient:
         return attempt.runaway
 
     async def _consume(
-        self, response: httpx.Response, attempt: _Attempt, callbacks: StreamCallbacks | None
+        self,
+        response: httpx.Response,
+        attempt: _Attempt,
+        callbacks: StreamCallbacks | None,
+        first_token: asyncio.Timeout,
     ) -> None:
+        """İlk token gelince ilk token sınırı kalkar; sonrasında yalnız durma sınırı geçerli."""
         async for line in response.aiter_lines():
             if not line.startswith("data: ") or line == "data: [DONE]":
                 continue
-            if self._apply_event(json.loads(line[len("data: ") :]), attempt, callbacks):
+            stop = self._apply_event(json.loads(line[len("data: ") :]), attempt, callbacks)
+            if attempt.content:
+                first_token.reschedule(None)
+            if stop:
                 return
 
     async def _try_provider(
@@ -247,23 +255,28 @@ class AnswerClient:
         attempt = _Attempt(provider=provider, started=time.perf_counter())
         timeout = httpx.Timeout(
             connect=_CONNECT_SECONDS,
-            read=self._options.first_token_seconds,
+            read=_STALL_SECONDS,
             write=_CONNECT_SECONDS,
             pool=_CONNECT_SECONDS,
         )
         try:
-            async with self._http.stream(
-                "POST",
-                self._url,
-                json=self._body(messages, provider),
-                headers=self._headers,
-                timeout=timeout,
-            ) as response:
+            async with (
+                asyncio.timeout(self._options.first_token_seconds) as first_token,
+                self._http.stream(
+                    "POST",
+                    self._url,
+                    json=self._body(messages, provider),
+                    headers=self._headers,
+                    timeout=timeout,
+                ) as response,
+            ):
                 if response.status_code != httpx.codes.OK:
                     body = (await response.aread()).decode(errors="replace")
                     attempt.error = f"{response.status_code}: {body[:_ERROR_PREVIEW]}"
                     return attempt
-                await self._consume(response, attempt, callbacks)
+                await self._consume(response, attempt, callbacks, first_token)
+        except TimeoutError:
+            attempt.error = "ilk token süresinde gelmedi"
         except (httpx.HTTPError, json.JSONDecodeError) as error:
             attempt.error = repr(error)[:_ERROR_PREVIEW]
         return attempt
