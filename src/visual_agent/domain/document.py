@@ -54,6 +54,7 @@ class Chunk(FrozenModel):
     section: str = ""
     location: SourceLocation
     generated: str = ""
+    """Kullanılmıyor, hep boş; kayıtlı parçalar ve indeks değişmesin diye duruyor."""
     ocr_uncertain: tuple[str, ...] = ()
     from_ocr: bool = False
 

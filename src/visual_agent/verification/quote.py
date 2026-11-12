@@ -73,7 +73,8 @@ def contains_whole(haystack: str, needle: str) -> bool:
     return False
 
 
-def _labeled_cells(line: str) -> list[tuple[str, str]]:
+def labeled_cells(line: str) -> list[tuple[str, str]]:
+    """Tablo satırının "Başlık: değer" hücreleri."""
     cells = []
     for part in (piece.strip() for piece in line.split(_CELL_SEPARATOR)):
         label, separator, value = part.partition(_LABEL_SEPARATOR)
@@ -91,7 +92,7 @@ def _field_matches(quote: str, source: str, form: Form) -> bool:
     return any(
         form(cell_label) == wanted_label and contains_whole(form(cell_value), wanted_value)
         for line in source.splitlines()
-        for cell_label, cell_value in _labeled_cells(line)
+        for cell_label, cell_value in labeled_cells(line)
     )
 
 

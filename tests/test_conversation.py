@@ -81,7 +81,7 @@ def ask_with(
     )
 
 
-VERIFIED = answer_payload("Dış paça 76,5 cm.")
+VERIFIED = answer_payload("Dış paça 76,5.")
 
 
 def test_first_question_does_not_call_the_rewriter() -> None:
@@ -245,7 +245,7 @@ def test_partially_verified_answer_becomes_the_next_context() -> None:
 
 
 def test_unverified_answer_does_not_replace_the_context() -> None:
-    payload = answer_payload("Dış paça 99 cm.", "Dış paça 99")
+    payload = answer_payload("Dış paça 99.", "Dış paça 99")
 
     outcome = ask_with(deps_with(follows(), FakeClient(payload)), "Peki dış paça kaç?")
 

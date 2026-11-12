@@ -73,7 +73,6 @@ class PromptSource(_Frozen):
     number: int
     text: str
     context: str = ""
-    generated: str = ""
     ocr_uncertain: tuple[str, ...] = ()
     is_code: bool = False
     from_ocr: bool = False

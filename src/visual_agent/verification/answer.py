@@ -13,13 +13,14 @@ from visual_agent.domain.answer import (
     PromptSource,
     VerificationStatus,
 )
-from visual_agent.verification.quote import quote_matches
+from visual_agent.verification.quote import labeled_cells, quote_matches
 from visual_agent.verification.text import (
     FOREIGN_SCRIPT_RE,
     TOLERANCE_RE,
     canonical_number,
     compact_identifier,
     contains_token,
+    header_units,
     identifiers_in,
     measures_in,
     normalize,
@@ -83,16 +84,36 @@ def _tolerance_problems(text: str, evidence: str) -> list[str]:
     return problems
 
 
-def _unit_problems(text: str, evidence: str) -> list[str]:
-    """Kaynakta birimiyle geçen değer cümlede başka birimle yazılamaz."""
-    known = measures_in(evidence)
-    known_numbers = {number for number, _ in known}
-    clashes = sorted(
+def _quoted_lines(quote_text: str, source: PromptSource | None) -> list[str]:
+    """Alıntının kendisi ve kaynakta alıntıyı içeren satırlar."""
+    if source is None:
+        return [quote_text]
+    wanted = normalize(quote_text)
+    return [quote_text, *(line for line in source.text.splitlines() if wanted in normalize(line))]
+
+
+def _header_measures(item: ModelItem, sources: Sources) -> set[tuple[str, str]]:
+    """Alıntılanan değer ve kendi sütununun başlığındaki birim; başka sütunun başlığı sayılmaz."""
+    found: set[tuple[str, str]] = set()
+    for quote in item.quotes:
+        for line in _quoted_lines(quote.text, sources.get(quote.source_no)):
+            for label, value in labeled_cells(line):
+                units = header_units(label)
+                found |= {(number, unit) for number in numbers_in(value) for unit in units}
+    return found
+
+
+def _unit_problems(item: ModelItem, evidence: str, sources: Sources) -> list[str]:
+    """Cümlede sayının yanındaki birim, alıntıda o sayıyla ya da sayının sütun başlığında yazılı
+    olmalı. Kaynakta yazmayan birim, ekleme de değiştirme de olsa, değeri doğrulanmış gösterir.
+    """
+    allowed = measures_in(evidence) | _header_measures(item, sources)
+    missing = sorted(
         f"{number} {unit}"
-        for number, unit in measures_in(text)
-        if number in known_numbers and (number, unit) not in known
+        for number, unit in measures_in(item.text)
+        if (number, unit) not in allowed
     )
-    return [f"cümlede kaynaktakinden farklı birim: {clashes}"] if clashes else []
+    return [f"cümlede kaynakta yazmayan birim: {missing}"] if missing else []
 
 
 def _token_problems(item: ModelItem, evidence: str, sources: Sources) -> list[str]:
@@ -115,21 +136,11 @@ def _token_problems(item: ModelItem, evidence: str, sources: Sources) -> list[st
 
 
 def _rests_on_ocr(item: ModelItem, sources: Sources) -> bool:
+    """OCR ile okunan kaynaklar birebir teyit edilemez; cevap kısmi doğrulanmış sayılır."""
     numbers = [quote.source_no for quote in item.quotes]
     if item.code_source_no is not None:
         numbers.append(item.code_source_no)
     return any(number in sources and sources[number].from_ocr for number in numbers)
-
-
-def _is_from_figure(item: ModelItem, sources: Sources) -> bool:
-    """OCR ile okunan kaynaklar birebir teyit edilemez; cevap kısmi doğrulanmış sayılır."""
-    if _rests_on_ocr(item, sources):
-        return True
-    for quote in item.quotes:
-        source = sources.get(quote.source_no)
-        if source and source.generated and normalize(quote.text) in normalize(source.generated):
-            return True
-    return False
 
 
 def verify_item(item: ModelItem, sources: Sources) -> ItemCheck:
@@ -144,13 +155,13 @@ def verify_item(item: ModelItem, sources: Sources) -> ItemCheck:
     problems += _ocr_problems(item, sources)
     problems += _token_problems(item, evidence, sources)
     problems += _tolerance_problems(item.text, evidence)
-    problems += _unit_problems(item.text, evidence)
+    problems += _unit_problems(item, evidence, sources)
     if FOREIGN_SCRIPT_RE.search(item.text):
         problems.append("cümlede başka alfabeden karakter")
     numbers = tuple(quote.source_no for quote in item.quotes)
     return ItemCheck(
         ok=not problems and bool(item.text.strip()),
-        from_figure=_is_from_figure(item, sources),
+        from_figure=_rests_on_ocr(item, sources),
         problems=tuple(problems),
         source_numbers=numbers
         + ((item.code_source_no,) if item.code_source_no is not None else ()),
