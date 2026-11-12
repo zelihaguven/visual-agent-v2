@@ -38,6 +38,10 @@ class SourceLocation(FrozenModel):
     section: str | None = None
 
 
+UNDETECTED_LANGUAGE = ""
+"""Yüklemede belgenin dili bilinmez; belge işlenince parçalarından okunur."""
+
+
 class DocumentMeta(FrozenModel):
     doc_id: str
     title: str

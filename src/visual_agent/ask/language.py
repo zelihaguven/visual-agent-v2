@@ -50,12 +50,16 @@ _ENGLISH_HINTS = {
 
 
 _LANGUAGE_SAMPLE_CHUNKS = 40
+_DEFAULT_LANGUAGE = "tr"
 
 
-def document_language(chunks: Sequence[Chunk], fallback: str = "tr") -> str:
-    """Belgenin dili ilk parçalarından okunur; uygulama ve ölçüm katalogu aynı kuralla kurar."""
+def document_language(chunks: Sequence[Chunk], fallback: str = _DEFAULT_LANGUAGE) -> str:
+    """Belgenin dili ilk parçalarından okunur; uygulama ve ölçüm katalogu aynı kuralla kurar.
+
+    Parça yoksa verilen dil kalır; yüklemede dil bilinmiyorsa Türkçe sayılır.
+    """
     sample = " ".join(chunk.text for chunk in chunks[:_LANGUAGE_SAMPLE_CHUNKS])
-    return detect_language(sample) if sample else fallback
+    return detect_language(sample) if sample else (fallback or _DEFAULT_LANGUAGE)
 
 
 def detect_language(text: str) -> str:

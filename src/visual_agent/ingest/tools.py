@@ -19,7 +19,7 @@ from PIL import Image, ImageOps
 from visual_agent.domain.document import Box, SourceLocation
 from visual_agent.ingest.docling_parser import parse_with_docling
 from visual_agent.ingest.elements import Element, ElementKind
-from visual_agent.ingest.external import ExternalTools, locate_tools
+from visual_agent.ingest.external import ExternalTools, locate_tools, tesseract_language
 from visual_agent.ingest.images import (
     OcrSegment,
     group_lines,
@@ -45,7 +45,6 @@ logger = logging.getLogger(__name__)
 
 _CONVERT_TIMEOUT_SECONDS = 180
 _OCR_TIMEOUT_SECONDS = 600
-_TESSERACT_LANGUAGES = {"tr": "tur", "en": "eng", "fr": "fra", "es": "spa", "de": "deu"}
 _OCR_FLAGS = {
     PageKind.NONE: "--skip-text",
     PageKind.SCANNED: "--redo-ocr",
@@ -230,8 +229,8 @@ def run_ocr(
             groups.setdefault(_OCR_FLAGS[info.kind], []).append(info)
     if not groups:
         return OcrOutcome(pdf_path=path, ocr_pages={})
-    tesseract_language = _TESSERACT_LANGUAGES.get(language, "eng")
-    external.require_tesseract(tesseract_language)
+    ocr_language = tesseract_language(language)
+    external.require_tesseract(ocr_language)
     environment = external.subprocess_environment()
     engine = _rapid_engine()
     result_path = work / f"{path.stem}.ocr.pdf"
@@ -239,9 +238,7 @@ def run_ocr(
     uncertain: dict[int, tuple[str, ...]] = {}
     for index, (flag, infos) in enumerate(groups.items()):
         target = work / f"{path.stem}.group{index}.pdf"
-        _run_ocrmypdf(
-            path, target, flag, tesseract_language, [info.page for info in infos], environment
-        )
+        _run_ocrmypdf(path, target, flag, ocr_language, [info.page for info in infos], environment)
         for info in infos:
             choice, tokens = _decide_page(engine, path, target, info)
             if choice is LayerChoice.NEW:
@@ -358,15 +355,15 @@ def read_embedded_images(
     ]
     if not targets:
         return []
-    tesseract_language = _TESSERACT_LANGUAGES.get(language, "eng")
-    tesseract = external.require_tesseract(tesseract_language)
+    ocr_language = tesseract_language(language)
+    tesseract = external.require_tesseract(ocr_language)
     engine = _rapid_engine()
     document = pypdfium2.PdfDocument(path)
     try:
         elements: list[Element] = []
         for page_number, box in targets:
             image = _render_page(document, page_number)
-            elements += _read_image(engine, image, box, tesseract_language, tesseract)
+            elements += _read_image(engine, image, box, ocr_language, tesseract)
         return elements
     finally:
         document.close()

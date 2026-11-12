@@ -28,7 +28,7 @@ from visual_agent.ask.language import detect_language
 from visual_agent.ask.streaming import Event
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
 from visual_agent.domain.conversation import MAX_QUESTION_CHARS, ConversationContext
-from visual_agent.domain.document import Chunk
+from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk
 from visual_agent.domain.result import (
     Answered,
     AskOutcome,
@@ -294,6 +294,7 @@ async def _store_upload(file: UploadFile, title: str, services: ApiServices) -> 
         filename=filename,
         status=DocumentStatus.QUEUED,
         stored_path=str(target),
+        language=UNDETECTED_LANGUAGE,
     )
     await services.repository.create_document(document)
     return document
