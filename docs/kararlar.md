@@ -554,9 +554,22 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - Takip sorusu kullanıcının önceki sorularından tamamlanır.
   - Gizlenen ya da doğrulanmamış cevap bağlama girmez. Cevabın kendisi zaten hiç girmiyor;
     belgeler yalnız doğrulanmış cümlelerin kaynaklarından gelir.
-  - Cevap gizlense de kullanıcının o turdaki (tamamlanmış) sorusu bağlama girer. Belgeler
-    önceki bağlamdan kalır.
+  - Cevap gizlense de kullanıcının o turdaki (tamamlanmış) sorusu bağlama girer. Belgeler o
+    turda gerçekten aranan belgelerdir: tur yeni bir kodla bütün belgelerde arandıysa kapsam
+    boştur.
   - Önce, tümü gizlenen cevapta bağlam bir önceki turda kalıyordu.
+  - **Düzeltme (`kapsam-mesaji` dalı, 2026-11-12):** İlk sürümde gizlenen turda belgeler
+    önceki bağlamdan kalıyordu. Ürün sahibinin denemesinde şu oldu:
+    - "PNT-1126 M beden iç paça kaç?" ve ardından "PNT-1162 S beden bel kaç?" (cevap
+      gizlendi, ama tüm belgelerde arandı).
+    - "peki l beden?" sorusu PNT-1126'nın belgesine (dikim-excel) sınırlandı.
+    - Sonuç "PNT-1162 belgelerde geçmiyor" oldu; kod aslında dikim-pdf'te var.
+  - **Mesaj kuralı:**
+    - "X belgelerde geçmiyor" yalnız kod hiçbir görünür belgede yoksa çıkar.
+    - Kapsam önceki sohbetten miras alındıysa ve kod başka belgede varsa sebep metni boş
+      kalır. Arayüz "Bu bilgi bu belgede yok" der ve "Tüm belgelerde ara" düğmesini gösterir.
+    - Kullanıcı belge seçtiyse ve kod başka belgede varsa "seçilen belgelerde geçmiyor"
+      çıkar.
 - **Neden:** Sadakat turu ölçümünde (`main`, PR #24) `dikim-sohbet-2` sohbetinde şu oldu:
   - "S beden bel?" sorusunun ardından "L beden?" sorusunun cevabı birim kuralıyla gizlendi.
   - Bağlam S bedende kaldı. "Etiketi ne?" sorusu "S beden etiketi" diye tamamlandı.
