@@ -131,7 +131,7 @@ def ask(deps: AskDeps, question: str, doc_ids: tuple[str, ...] | None = None):  
 
 
 def test_verified_answer_carries_citation_and_cost() -> None:
-    outcome = ask(make_deps(FakeClient(answer_payload("İç paça 76,5 cm."))), "İç paça kaç?")
+    outcome = ask(make_deps(FakeClient(answer_payload("İç paça 76,5."))), "İç paça kaç?")
 
     assert isinstance(outcome.result, Answered)
     assert outcome.result.status.value == "verified"
@@ -144,7 +144,7 @@ def test_verified_answer_carries_citation_and_cost() -> None:
 
 
 def test_wrong_number_is_not_verified() -> None:
-    outcome = ask(make_deps(FakeClient(answer_payload("İç paça 99 cm."))), "İç paça kaç?")
+    outcome = ask(make_deps(FakeClient(answer_payload("İç paça 99."))), "İç paça kaç?")
 
     assert isinstance(outcome.result, Answered)
     assert outcome.result.status.value == "failed"
@@ -152,7 +152,7 @@ def test_wrong_number_is_not_verified() -> None:
 
 
 def test_prompt_contains_sources_language_and_question() -> None:
-    client = FakeClient(answer_payload("76,5 cm."))
+    client = FakeClient(answer_payload("76,5."))
 
     ask(make_deps(client), "İç paça kaç?")
 
@@ -164,7 +164,7 @@ def test_prompt_contains_sources_language_and_question() -> None:
 
 
 def test_english_question_requests_english_answer() -> None:
-    client = FakeClient(answer_payload("76,5 cm."))
+    client = FakeClient(answer_payload("76,5."))
 
     ask(make_deps(client), "What is the value for the machine?")
 
@@ -483,9 +483,7 @@ def _with_events(deps: AskDeps, question: str) -> tuple[object, list[dict[str, o
 
 
 def test_events_arrive_in_order_before_the_answer_is_revealed() -> None:
-    _, events = _with_events(
-        make_deps(FakeClient(answer_payload("İç paça 76,5 cm."))), "soru nedir"
-    )
+    _, events = _with_events(make_deps(FakeClient(answer_payload("İç paça 76,5."))), "soru nedir")
 
     kinds = [str(event["type"]) for event in events]
     assert kinds.index("status") < kinds.index("sources") < kinds.index("item_verified")
@@ -500,7 +498,7 @@ def test_sources_are_sent_before_the_model_runs() -> None:
 
 
 def test_interrupted_stream_keeps_only_verified_items() -> None:
-    client = FakeClient(answer_payload("İç paça 76,5 cm."), incomplete=True)
+    client = FakeClient(answer_payload("İç paça 76,5."), incomplete=True)
 
     outcome, events = _with_events(make_deps(client), "soru nedir")
 
@@ -544,7 +542,7 @@ def test_quoting_part_of_a_command_is_not_shown_as_the_command() -> None:
 
 
 def test_quoting_a_whole_table_row_is_not_shown_as_a_command() -> None:
-    payload = answer_payload("İç paça 76,5 cm.", quote=ROW)
+    payload = answer_payload("İç paça 76,5.", quote=ROW)
 
     outcome = ask(make_deps(FakeClient(payload)), "İç paça kaç?")
 

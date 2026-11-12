@@ -139,7 +139,6 @@ def build_chunks(elements: Iterable[Element], meta: DocumentMeta) -> list[Chunk]
             title=meta.title,
             section=section,
             location=_location(element, section),
-            generated=element.generated,
             ocr_uncertain=element.ocr_uncertain,
             from_ocr=element.from_ocr,
         )

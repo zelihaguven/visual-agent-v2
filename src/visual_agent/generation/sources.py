@@ -17,7 +17,6 @@ def to_prompt_sources(hits: Sequence[Hit]) -> dict[int, PromptSource]:
             number=number,
             text=hit.chunk.text,
             context=f"{hit.chunk.title} {hit.chunk.section}".strip(),
-            generated=hit.chunk.generated,
             ocr_uncertain=hit.chunk.ocr_uncertain,
             is_code=hit.chunk.kind is ChunkKind.CODE,
             from_ocr=hit.chunk.from_ocr,

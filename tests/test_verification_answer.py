@@ -23,11 +23,7 @@ SOURCES = {
         text="ALTER TABLE SIPARIS RENAME COLUMN SIP_TARIH TO SIPARIS_TARIHI;",
         is_code=True,
     ),
-    4: PromptSource(
-        number=4,
-        text="Şekil: düğme solda. Otomatik açıklama: kırmızı düğme.",
-        generated="Otomatik açıklama: kırmızı düğme.",
-    ),
+    4: PromptSource(number=4, text="Şekil: düğme solda. Otomatik açıklama: kırmızı düğme."),
     5: PromptSource(number=5, text="Debi 299.999% olarak okundu.", ocr_uncertain=("299.999%",)),
 }
 
@@ -41,36 +37,36 @@ def answer(*items: ModelItem) -> ModelAnswer:
 
 
 def test_correct_item_passes() -> None:
-    assert verify_item(item("İç paça 76,5 cm."), SOURCES).ok
+    assert verify_item(item("İç paça 76,5."), SOURCES).ok
 
 
 def test_quote_must_exist_in_the_source() -> None:
-    check = verify_item(item("İç paça 76,5 cm.", quote="M: 76,5 cm tam"), SOURCES)
+    check = verify_item(item("İç paça 76,5.", quote="M: 76,5 cm tam"), SOURCES)
 
     assert not check.ok
     assert "birebir" in check.problems[0]
 
 
 def test_unknown_source_number_fails() -> None:
-    assert not verify_item(item("İç paça 76,5 cm.", source_no=9), SOURCES).ok
+    assert not verify_item(item("İç paça 76,5.", source_no=9), SOURCES).ok
 
 
 def test_number_must_come_from_its_own_quote() -> None:
-    check = verify_item(item("İç paça 78 cm.", quote="M: 76,5"), SOURCES)
+    check = verify_item(item("İç paça 78.", quote="M: 76,5"), SOURCES)
 
     assert not check.ok
     assert "78" in check.problems[0]
 
 
 def test_identifier_not_in_quote_or_source_context_fails() -> None:
-    check = verify_item(item("PNT-4471 için iç paça 76,5 cm."), SOURCES)
+    check = verify_item(item("PNT-4471 için iç paça 76,5."), SOURCES)
 
     assert not check.ok
     assert "pnt-4471" in check.problems[0]
 
 
 def test_identifier_from_cited_source_title_is_allowed() -> None:
-    assert verify_item(item("PNT-4417 için iç paça 76,5 cm."), SOURCES).ok
+    assert verify_item(item("PNT-4417 için iç paça 76,5."), SOURCES).ok
 
 
 def test_tolerance_cannot_be_dropped() -> None:
@@ -159,32 +155,38 @@ def test_same_value_in_words_or_lower_case_still_passes(source: str, text: str) 
 
 
 @pytest.mark.parametrize(
-    ("source", "text"),
+    ("source", "quote", "text", "ok"),
     [
-        ("Dikiş payı 5 mm", "Dikiş payı 5 cm."),
-        ("Çalışma sıcaklığı 40 °C", "Çalışma sıcaklığı 40 °F."),
-        ("Bekleme 30 sn", "Bekleme 30 dakika."),
+        # Birim yalnız başka sütunun başlığında; kaynakta hiç yok; tek harfli sütun adı birim değil.
+        ("Bel | Beden L: 42,5 | Tolerans (cm): 1,0", "Beden L: 42,5", "L beden 42,5 cm.", False),
+        ("Bel | M: 40,5 | L: 42,5", "Bel | M: 40,5 | L: 42,5", "M beden bel 40,5 cm.", False),
+        ("Bel | Beden M: 74", "Beden M: 74", "M beden bel 74 m.", False),
+        (
+            "PNT-1126 | Beden S: ETK-6154",
+            "PNT-1126 | Beden S: ETK-6154",
+            "PNT-1126 S beden ETK-6154.",
+            True,
+        ),
+        ("Hizmet: Bakım | Ücret (TL): 1.250", "Ücret (TL): 1.250", "Bakım 1.250 TL.", True),
+        ("Malzeme: Yün | En yüksek (°C): 30", "En yüksek (°C): 30", "Yün en fazla 30 °C.", True),
+        ("Adım | Süre (dk): 15", "Süre (dk): 15", "15 dakika beklenir.", True),
+        ("Hizmet: Acil | Ücret (TL): 12.500", "12.500", "Acil servis 12.500 TL.", True),
+        # Alıntıdaki birimle aynı ya da eş anlamlı birim geçer, başka birim geçmez.
+        ("Dikiş payı 5 mm", "Dikiş payı 5 mm", "Dikiş payı 5 mm'dir.", True),
+        ("Bekleme 30 dk", "Bekleme 30 dk", "Bekleme 30 dakika.", True),
+        ("Pay 5 mm, kenar 5 cm", "Pay 5 mm, kenar 5 cm", "Kenar 5 cm.", True),
+        ("Bel | M: 40,5 | L: 42,5", "Bel | M: 40,5 | L: 42,5", "M beden bel 40,5.", True),
+        ("Dikiş payı 5 mm", "Dikiş payı 5 mm", "Dikiş payı 5 cm.", False),
+        ("Sıcaklık 40 °C", "Sıcaklık 40 °C", "Sıcaklık 40 °F.", False),
+        ("Bekleme 30 sn", "Bekleme 30 sn", "Bekleme 30 dakika.", False),
     ],
 )
-def test_a_value_cannot_change_its_unit(source: str, text: str) -> None:
-    sources = {1: PromptSource(number=1, text=source)}
+def test_unit_must_be_in_the_quote_or_its_own_column_header(
+    source: str, quote: str, text: str, ok: bool
+) -> None:
+    check = verify_item(item(text, quote=quote), {1: PromptSource(number=1, text=source)})
 
-    assert not verify_item(item(text, quote=source), sources).ok
-
-
-@pytest.mark.parametrize(
-    ("source", "text"),
-    [
-        ("Dikiş payı 5 mm", "Dikiş payı 5 mm'dir."),
-        ("Bekleme 30 dk", "Bekleme 30 dakika."),
-        ("Bel | M: 40,5 | L: 42,5", "M beden bel 40,5 cm."),
-        ("Pay 5 mm, kenar 5 cm", "Kenar 5 cm."),
-    ],
-)
-def test_same_or_unstated_unit_still_passes(source: str, text: str) -> None:
-    sources = {1: PromptSource(number=1, text=source)}
-
-    assert verify_item(item(text, quote=source), sources).ok
+    assert check.ok is ok, check.problems
 
 
 def test_capitalised_number_word_is_checked_without_crashing() -> None:
@@ -233,14 +235,6 @@ def test_wrong_identifier_next_to_code_reference_fails() -> None:
     assert not verify_item(reference, SOURCES).ok
 
 
-def test_item_from_generated_figure_text_makes_answer_partial() -> None:
-    result = verify_answer(
-        answer(item("Şekle göre düğme kırmızı.", quote="kırmızı düğme", source_no=4)), SOURCES
-    )
-
-    assert result.status is VerificationStatus.PARTIAL
-
-
 def test_item_from_ocr_text_is_marked_and_makes_answer_partial() -> None:
     sources = {1: PromptSource(number=1, text="Bağlantı limiti: 386", from_ocr=True)}
     candidate = item("Bağlantı limiti 386.", quote="Bağlantı limiti: 386")
@@ -278,11 +272,11 @@ def test_code_written_without_its_hyphen_matches_the_source() -> None:
 
 
 def test_all_items_valid_is_verified() -> None:
-    assert verify_answer(answer(item("76,5 cm.")), SOURCES).status is VerificationStatus.VERIFIED
+    assert verify_answer(answer(item("76,5.")), SOURCES).status is VerificationStatus.VERIFIED
 
 
 def test_one_bad_item_fails_the_answer_but_keeps_item_results() -> None:
-    result = verify_answer(answer(item("76,5 cm."), item("78 cm.")), SOURCES)
+    result = verify_answer(answer(item("76,5."), item("78.")), SOURCES)
 
     assert result.status is VerificationStatus.FAILED
     assert [check.ok for check in result.items] == [True, False]
@@ -322,7 +316,7 @@ def test_clarification_needs_real_sources() -> None:
 
 
 def test_concurrent_verification_gives_identical_results() -> None:
-    target = answer(item("76,5 cm."), item("78 cm."))
+    target = answer(item("76,5."), item("78."))
     expected = verify_answer(target, SOURCES)
 
     with ThreadPoolExecutor(max_workers=8) as pool:

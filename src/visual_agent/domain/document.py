@@ -57,7 +57,6 @@ class Chunk(FrozenModel):
     title: str
     section: str = ""
     location: SourceLocation
-    generated: str = ""
     ocr_uncertain: tuple[str, ...] = ()
     from_ocr: bool = False
 

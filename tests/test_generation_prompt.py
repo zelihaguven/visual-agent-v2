@@ -50,13 +50,16 @@ def test_prompt_tells_the_model_not_to_rewrite_commands() -> None:
     [
         "dolgu sözlerini yok say",
         "tiresiz",
-        "etiketi kopyalama",
         "Yalnız sorulan değeri yaz",
-        "o sütun aranan sütundur",
     ],
 )
 def test_prompt_handles_spoken_questions(rule: str) -> None:
     assert rule in load_answer_prompt()
+
+
+@pytest.mark.parametrize("removed", ["o sütun aranan sütundur", "Otomatik şekil açıklaması"])
+def test_prompt_has_no_size_specific_or_dead_figure_rule(removed: str) -> None:
+    assert removed not in load_answer_prompt()
 
 
 def test_prompt_tells_the_model_not_to_repeat_a_wrong_user_value() -> None:

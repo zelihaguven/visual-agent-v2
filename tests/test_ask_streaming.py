@@ -72,18 +72,18 @@ def test_no_streamed_event_ever_contains_an_unverified_value() -> None:
 def test_verified_item_is_revealed_with_its_sources() -> None:
     assembler, events = assemble()
 
-    feed_all(assembler, content(item("İç paça 76,5 cm.")))
+    feed_all(assembler, content(item("İç paça 76,5.")))
 
     verified = of_type(events, "item_verified")
     assert verified[0]["index"] == 0
-    assert verified[0]["text"] == "İç paça 76,5 cm."
+    assert verified[0]["text"] == "İç paça 76,5."
     assert verified[0]["source_numbers"] == [1]
 
 
 def test_failed_item_shows_message_and_does_not_block_the_next() -> None:
     assembler, events = assemble()
 
-    feed_all(assembler, content(item("Değer 99 cm."), item("Değer 76,5 cm.")))
+    feed_all(assembler, content(item("Değer 99."), item("Değer 76,5.")))
 
     assert of_type(events, "item_unverified")[0]["message"] == UNVERIFIED_MESSAGE
     assert of_type(events, "item_verified")[0]["index"] == 1
@@ -118,7 +118,7 @@ def test_retry_is_allowed_only_before_a_verified_item() -> None:
     assembler, _ = assemble()
     assert assembler.may_retry()
 
-    assembler.feed(content(item("İç paça 76,5 cm.")), 0.1)
+    assembler.feed(content(item("İç paça 76,5.")), 0.1)
 
     assert not assembler.may_retry()
 
@@ -136,7 +136,7 @@ def test_reset_clears_streamed_text() -> None:
 
 def test_verified_items_are_available_after_an_interruption() -> None:
     assembler, events = assemble()
-    raw = content(item("İç paça 76,5 cm."))
+    raw = content(item("İç paça 76,5."))
 
     assembler.feed(raw[: raw.rindex("]")], 0.1)
     assembler.interrupted()
@@ -148,6 +148,6 @@ def test_verified_items_are_available_after_an_interruption() -> None:
 def test_first_verified_time_is_recorded() -> None:
     assembler, _ = assemble()
 
-    assembler.feed(content(item("İç paça 76,5 cm.")), 1.25)
+    assembler.feed(content(item("İç paça 76,5.")), 1.25)
 
     assert assembler.first_verified_seconds == 1.25

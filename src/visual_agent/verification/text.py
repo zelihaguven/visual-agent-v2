@@ -86,6 +86,7 @@ UNITS = [
 ]
 UNIT_PATTERN = "|".join(sorted((re.escape(unit) for unit in UNITS), key=len, reverse=True))
 _MEASURE_RE = re.compile(rf"(?<![\w.,])({_NUMBER})\s?({UNIT_PATTERN})(?!\w)", re.IGNORECASE)
+_HEADER_UNIT_RE = re.compile(rf"[(\[]\s*({UNIT_PATTERN})\s*[)\]]", re.IGNORECASE)
 _UNIT_ALIASES = {
     "in": "inch",
     "inches": "inch",
@@ -239,6 +240,13 @@ def measures_in(text: str) -> set[tuple[str, str]]:
         name = unit.casefold()
         found.add((canonical_number(number), _UNIT_ALIASES.get(name, name)))
     return found
+
+
+def header_units(label: str) -> set[str]:
+    """Sütun başlığında parantez içinde yazan birimler ("Ücret (TL)", "Boy [mm]"); parantezsiz
+    tek harf ("Beden M") birim sayılmaz."""
+    names = (unit.casefold() for unit in _HEADER_UNIT_RE.findall(canon_chars(label)))
+    return {_UNIT_ALIASES.get(name, name) for name in names}
 
 
 def prefixed_codes_in(text: str) -> set[str]:
