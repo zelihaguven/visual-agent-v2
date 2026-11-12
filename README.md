@@ -8,7 +8,7 @@ Mikrofon tarayıcıda yalnız `localhost` ya da HTTPS üzerinden açılır. Ağd
 
 ## Yerel kurulum (Docker'sız)
 
-Tek bilgisayarda, Docker ve yönetici yetkisi olmadan çalışır. Her şey tek süreçtedir: API, belge işçisi ve arayüz aynı adresten açılır; veriler `data/` klasöründe kalır (SQLite dosyası, gömülü Qdrant, yüklenen belgeler). GPU gerekmez. Neden böyle kurulduğu: [0003](docs/decisions/0003-yerel-tek-surec.md).
+Tek bilgisayarda, Docker ve yönetici yetkisi olmadan çalışır. Her şey tek süreçtedir: API, belge işçisi ve arayüz aynı adresten açılır; veriler `data/` klasöründe kalır (SQLite dosyası, gömülü Qdrant, yüklenen belgeler). GPU gerekmez. Neden böyle kurulduğu: [0003](docs/kararlar.md#karar-0003).
 
 Gereken: Windows (ya da macOS/Linux), veri saklamayan uçlara erişimi olan bir OpenRouter anahtarı ve aşağıdaki araçlar. Hepsi kullanıcı klasörüne kurulur.
 
@@ -127,7 +127,7 @@ uv run python -m evals.ingest_check --set evals/output/set7
 | `apps/web` | Web arayüzü |
 | `src/visual_agent` | Çekirdek paket; katman sınırları testle korunur |
 | `evals` | Test belgesi üretimi ve ölçüm |
-| `docs/decisions` | Alınan kararlar |
+| `docs/kararlar.md` | Alınan kararlar |
 | `docs/acik-notlar.md` | Sonraya bırakılan konular |
 
 Ayarlar `VA_` önekli ortam değişkenlerinden ya da `.env` dosyasından okunur: [`settings.py`](src/visual_agent/settings.py).

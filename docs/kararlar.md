@@ -1,7 +1,8 @@
 # Karar kaydı
 
 Bugüne kadar alınmış önemli kararlar: ne, ne zaman, neden, hangi durumda yeniden düşünülür.
-Ayrıntılı karar belgeleri `docs/decisions/` altında. Bu dosya onların ve eski pilotun özetidir.
+Kararların tek kaydı bu dosya. "0001"–"0004" diye anılan karar belgelerinin tam metni en sonda:
+[Karar belgeleri 0001–0004](#karar-belgeleri-00010004).
 
 **Kural:** Burada "çıkarıldı", "eklenmedi" ya da "reddedildi" yazan bir şeyi yeniden önermek
 için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen gereksinim.
@@ -406,3 +407,155 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - set7 belgeleri aynı komutla birebir üretilemiyor (docx, xlsx ve tarama her seferinde
     farklı bayt).
   - Gömülü Qdrant klasörü (22 MB) 20 MB sınırını aşıyor.
+
+## Karar belgeleri 0001–0004
+
+Eskiden `docs/decisions/` altındaki dört belgenin tam metni. Yukarıdaki maddelerde "0001"–"0004" diye anılan belgeler bunlar.
+
+<a id="karar-0001"></a>
+
+### 0001: Yeni sürümün temel kararları
+
+Tarih: 2026-11-08
+
+Bu repo, eski `visual_agent` pilotunun yerine temiz yapıyla yazılan sürümdür. Eski repo olduğu gibi durur; kod ve ölçüm sonuçları oradan okunabilir.
+
+| Konu | Karar |
+| --- | --- |
+| Kapsam | Herkesin önceden yüklenmiş belgelere soru sorduğu genel araç |
+| İlk kullanım | Önce SQL aracı kullanan uzmanlar ve iş analistleri, sonra dikim departmanı |
+| Arayüz | Tablet ve bilgisayara uyumlu web |
+| Giriş | İlk sürümde kapalı; Microsoft girişi ve departmanlar sonra eklenir |
+| Cevap modeli | OpenRouter üzerinden, ZDR zorunlu, 8 kaynak. Başlangıç Gemma 4 26B; seçim yeni test setinde verimlilik ve maliyete göre yapılır |
+| Arama | Yerel bge-m3, BM25, RRF; reranker yok |
+| Kurallar | Yalnız her belgede geçerli ana kurallar; belgeye özel elle yazılmış kural yok |
+| Doğrulama | Sayı, kod ve teknik ad, cümlenin kendi alıntısında birebir geçer |
+| Komutlar | Belgedeki komut aynen gösterilir; sistem yerleştirmez, değiştirmez, çalıştırmaz |
+| Ses | Anlık işlenir, saklanmaz; sağlayıcıda veri saklamama aranır |
+| Test belgeleri | Gerçekleri baştan bilinen, kontrollü üretilmiş belgeler |
+| PDF işleme | Docling ve pypdfium2; AGPL lisanslı PyMuPDF kullanılmaz |
+| Ağır araçlar | LibreOffice, Tesseract ve Docling yalnız işçi imajında; belgeler internetsiz işlenir |
+| OCR güvenliği | İki okumada uyuşmayan değer belirsiz işaretlenir ve doğrulanmış gösterilmez |
+
+<a id="karar-0002"></a>
+
+### 0002: Ölçümle verilen kararlar
+
+Tarih: 2026-11-09. Ölçümler üretilmiş test setiyle yapıldı. Gerçek belgelerle yeniden denenecek konular [açık notlarda](acik-notlar.md).
+
+#### Cevap modeli: `google/gemma-4-26b-a4b-it`
+
+Yalnız veri saklamayan uçlar denendi. Geliştirme setinin 35 sorusu; süre cevabın tamamıdır.
+
+| Model | Geçen | Yanlış değer | Ortanca süre | Maliyet (35 soru) |
+| --- | --- | --- | --- | --- |
+| Gemma 4 26B | 33 | 0 | 1,57 sn | 0,0068 $ |
+| Qwen 3.6 35B | 31 | 0 | 3,14 sn | 0,0026 $ |
+| DeepSeek V4.1 Flash | 31 | 1 | 1,05 sn | 0,0200 $ |
+| Claude Haiku 5.5 | 31 | 1 | 1,20 sn | 0,0184 $ |
+| Mistral Small 3.2 | 30 | 2 | 1,11 sn | 0,0050 $ |
+| Qwen 3.8 27B | 27 | 1 | 0,68 sn | 0,0311 $ |
+| Gemma 4 31B | 25 | 1 | 0,91 sn | 0,0144 $ |
+
+Önce yanlış değer, sonra doğruluk, süre ve maliyet ölçüt alındı. İstem Gemma üzerinde ayarlandığı için karşılaştırma ona biraz avantaj sağlar. GPT-OSS 120B ve GLM 5.3 Flash isteklere cevap vermediği için ölçülemedi; Gemini 3.1 Flash Lite istemcinin ZDR denetiminden geçmedi.
+
+#### Son sınav
+
+Hiç işlenmemiş yeni tohumlu set (`--seed 11`), sonucuna göre ayar yapılmadı: 40 sorudan 37'si geçti, doğrulanmış yanlış değer 0, gereksiz ret 1. Geçmeyenler: taranmış belgede etiket sorusu "bulunamadı" oldu, fotoğraftaki değer doğrulanamadı, model değişince beden yeniden soruldu.
+
+İlk İK sorularını içeren eski set bütün ayar koşularında çalıştığı için görülmemiş sayılmadı.
+
+#### Tablo varyant denetimi (K9): eklenmedi
+
+Son sınav dahil doğrulanmış yanlış değer çıkmadı. Eklenecek denetim gereksiz soru riski taşıyor. Gerçek tablolarda yanlış satır ya da sütun görülürse yeniden ele alınacak.
+
+#### Konuşma
+
+- Yazıya çevirme: `elevenlabs/scribe-v2`. Beş sentetik cümlede `M beden`i doğru duyan tek aday.
+- Seslendirme: `google/gemini-3.8-flash-lite-tts`. Kullanıcı dinleyerek seçti; ElevenLabs daha hızlı ama anlaşılırlığı daha düşük bulundu.
+- Selamlaşma, envanter ve bekleme cümleleri sabit metindir; ses yalnız bunlar ve doğrulanan cümlelerden üretilir.
+
+<a id="karar-0003"></a>
+
+### 0003: Docker'sız yerel kurulum, SQLite ve tek süreç
+
+Tarih: 2026-11-10
+
+Pilot, Docker kurulamayan ve yönetici yetkisi olmayan bir Windows bilgisayarda çalışacak. Bu yüzden ana yol yerel kurulum oldu; Docker paketi sunucu için kalıyor.
+
+| Konu | Karar |
+| --- | --- |
+| Ana kurulum | Yerel, Docker'sız, yönetici yetkisi olmadan, tek komut (`baslat.bat`) |
+| Veritabanı | Postgres yerine SQLite; yerelde ve sunucuda aynı kod |
+| Süreç | Yerelde API, belge işçisi ve arayüz tek süreçte |
+| Arama dizini | Qdrant yerelde gömülü klasör, sunucuda ayrı servis |
+| Dış araçlar | Tesseract ve LibreOffice kullanıcı klasöründe; PATH'ten ya da ayarla bulunur, eksikse yalnız ilgili belge türü durur |
+| Sunucu | Docker paketi kalır; bu bilgisayarda denenemez, CI açılışı sınar |
+
+#### Neden SQLite
+
+- Postgres yönetici yetkisi olmadan bir hizmet olarak kurulamıyor; taşınabilir sürümü de ayrı bir süreç ve bakım demek. SQLite Python'un içinde geliyor, yeni bağımlılık gerekmedi.
+- Yük küçük: birkaç yüz belge, onlarca kullanıcı. Yazmalar seyrek (yükleme, işleme sonucu); okumalar kısa.
+- İki kod yolu olmasın diye sunucuda da SQLite kullanılıyor. Depo protokolleri (`Repository`, `JobRepository`, `SnapshotSource`) değişmedi; ileride Postgres'e dönmek gerekirse yalnız `catalog/repository.py` değişir.
+- API ve işçi ayrı süreç olabildiği için dosya WAL kipinde açılıyor ve kilitte 30 sn bekleniyor. Kuyruktan iş alma tek `UPDATE ... RETURNING` cümlesi olduğu için iki işçi aynı belgeyi alamıyor; bu, aynı dosyayı açan iki bağlantıyla test ediliyor.
+
+#### Neden tek süreç
+
+- Gömülü Qdrant klasörü tek sürece kilitleniyor. Ayrı bir işçi süreci için Qdrant sunucusu gerekirdi; Windows ikilisi yönetici istemeden çalışır, ama ikinci bir süreci açık tutmak ve izlemek gerekirdi.
+- Arama ve indeksleme aynı embedding modelini (bge-m3, ~2,3 GB bellek) kullanıyor. Tek süreçte model bir kez yükleniyor.
+- Bedeli: belge işlenirken (Docling, OCR) aynı işlemci cevaplarla paylaşılıyor, o sırada cevaplar yavaşlayabilir. Pilotun kullanımında belge yükleme seyrek olduğu için kabul edildi. Kapatırken süren belge işi bir sonraki açılışta baştan alınıyor.
+
+#### Sunucuda ne değişir
+
+- `compose.yaml` içinde postgres servisi yok. API ve işçi ayrı konteyner, aynı SQLite birimini (`/data/db`) paylaşıyor; işçi API'nin içinde çalışmıyor (`VA_WORKER_IN_PROCESS=false`).
+- Qdrant ayrı servis olarak kalıyor (`VA_QDRANT_URL`); ayrı işçi gömülü klasörle açılmayı reddediyor.
+- Arayüzü nginx sunuyor; güvenlik başlıkları ve hız sınırı yalnız orada. Yerelde bunlar yok ([açık notlar](acik-notlar.md), "Yayına almadan önce").
+- Docling modelleri sunucuda `docling-tools` komutuyla birime iniyor; yerelde ilk belgede kendiliğinden iniyor.
+- Paket bu bilgisayarda denenemedi. Yalnız CI'daki `services` işi derleyip açılışı sınıyor.
+
+#### Ölçüm
+
+`evals.run_questions` yerelde kendi gömülü Qdrant klasörüyle çalışıyor. Model cevapları yalnız ölçüm için önbelleğe alınıyor; önbellekten gelen soruların süresi ve maliyeti rapora girmiyor.
+
+Bundan sonraki karşılaştırmalar bu bilgisayarda alınan tabana göre yapılıyor. [0002](#karar-0002)'deki 33/35 ve 37/40 Docker imajındaki araç sürümleriyle ölçüldü, yalnız referans. Taban sonuçları ve sonraki ölçümler [0004](#karar-0004)'te.
+
+<a id="karar-0004"></a>
+
+### 0004: Yerel kurulumda ölçüm sonuçları
+
+Tarih: 2026-11-10. Ölçümler üretilmiş test setiyle, Docker'sız yerel kurulumda ([0003](#karar-0003)) yapıldı. Soru bazındaki sonuçlar ve ölçüm bilgileri: [`evals/baselines/taban/`](../evals/baselines/taban).
+
+#### Geçerli taban
+
+[0002](#karar-0002)'deki sayılar (geliştirme 33/35, son sınav 37/40) Docker imajındaki araç sürümleriyle ölçüldü ve yalnız referanstır. 35 soruluk geliştirme ölçümü yeniden üretilemiyor: test üreticisi o tarihten beri değişmediği halde `--seed 7` bugün 40 soru veriyor, eski koşuların soru bazındaki sonuçları da saklanmamış. Bundan sonraki her karşılaştırma bu bilgisayardaki tabana göre yapılır.
+
+Araçlar: Tesseract 5.4.0, LibreOffice 26.8.2, Docling 2.149.0, OCRmyPDF 17.13.0, RapidOCR 3.10.0. Cevap modeli `google/gemma-4-26b-a4b-it`. Ölçülen kod `441a394`, puanlama `95e1870`.
+
+| Set | Geçen | Doğrulanmış yanlış değer | Atlanan netleştirme | Gereksiz ret | Maliyet (canlı sorular) |
+| --- | --- | --- | --- | --- | --- |
+| Geliştirme (`--seed 7`) | 37/40 | 0 | 0 | 1 | 0,0084 $ |
+| Son sınav (`--seed 11`) | 37/40 | 0 | 1 | 0 | 0,0065 $ (30 soru) |
+
+Son sınavda 10 sorunun bazı yardımcı model istekleri geliştirme koşusuyla birebir aynı olduğu için önbellekten geldi; bu soruların süre ve maliyeti özete girmedi.
+
+Geçmeyenler:
+
+| Soru | Belge türü | Set | Sonuç |
+| --- | --- | --- | --- |
+| `dikim-tarama-etiket` | tarama | geliştirme | "Bulunamadı" (gereksiz ret); 0002'de son sınavda da görülmüştü |
+| `dikim-foto-olcu` | fotoğraf | ikisi de | Değer doğrulanamadı |
+| `dikim-sohbet-1-t4` | metinli PDF | ikisi de | Model değişince beden düştü, beden yeniden soruldu |
+| `dikim-revizyon-netlestir` | metinli PDF (iki sürüm) | son sınav | Netleştirme yerine iki sürümün değeri kaynağıyla listelendi (atlanan netleştirme) |
+
+#### Puanlama: atlanan netleştirme ayrı sayılır
+
+Netleştirme beklenen soruda rozetli cevap, altın verideki farklı değerlerin hepsini kaynağıyla ve başka değer olmadan veriyorsa "atlanan netleştirme" sayılır ve ayrı raporlanır; durma koşulu değildir. Değerlerin yalnız bir kısmı verildiyse (tahmin), kaynak gösterilmediyse ya da cevapta başka değer varsa "doğrulanmış yanlış değer" sayılır; bu her ölçümde 0 olmalıdır. Ayrım yalnız altın veriden yapılır. Eski sayımla son sınavdaki tek "doğrulanmış yanlış" bu soruydu; kayıtlı cevaplar modele gitmeden yeniden puanlandı.
+
+#### Kararsız sorular
+
+İki soru önbelleksiz 5'er kez soruldu. Adım 5 karşılaştırmasında bu sorular gerileme sayılmadan önce ayrıca incelenir.
+
+| Soru | Geliştirme | Son sınav | Not |
+| --- | --- | --- | --- |
+| `dikim-revizyon-netlestir` | 5/5 | 1/5 | Geçmeyen 4 tekrarın hepsi atlanan netleştirme; doğrulanmış yanlış değer yok |
+| `dikim-sohbet-1-t4` | 0/5 | 0/5 | Takip sorusu tamamlanırken beden her seferinde düşüyor |
