@@ -181,6 +181,9 @@ function InventoryView({ result }: { result: Extract<AskResult, { kind: "invento
       <p className="inventory-total">
         {result.document_count} belge, {result.code_count} kod
       </p>
+      {result.documents.length === 0 && result.document_count > 0 && (
+        <p className="muted">Bir konu ya da belge adı yazarsanız ona göre ararım.</p>
+      )}
       <ul>
         {result.documents.map((document) => (
           <li key={document.doc_id}>
@@ -195,7 +198,7 @@ function InventoryView({ result }: { result: Extract<AskResult, { kind: "invento
           </li>
         ))}
       </ul>
-      <p className="muted">Hangisini soruyorsunuz?</p>
+      {result.documents.length > 0 && <p className="muted">Hangisini soruyorsunuz?</p>}
     </div>
   );
 }
