@@ -515,6 +515,28 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Bilinen kalan:** Model değişince önceki beden düşüyor (`dikim-sohbet-1-t4`, 10 tekrarın
   hiçbirinde geçmedi; açık notlar).
 
+### Gizlenen cevabın turunda da kullanıcının sorusu bağlama girer (değiştirildi)
+- **Ne zaman:** 2026-11-12, `sohbet-baglami` dalı, `ask/context.py` (`next_context`).
+- **Kural:**
+  - Takip sorusu kullanıcının önceki sorularından tamamlanır.
+  - Gizlenen ya da doğrulanmamış cevap bağlama girmez. Cevabın kendisi zaten hiç girmiyor;
+    belgeler yalnız doğrulanmış cümlelerin kaynaklarından gelir.
+  - Cevap gizlense de kullanıcının o turdaki (tamamlanmış) sorusu bağlama girer. Belgeler
+    önceki bağlamdan kalır.
+  - Önce, tümü gizlenen cevapta bağlam bir önceki turda kalıyordu.
+- **Neden:** Sadakat turu ölçümünde (`main`, PR #24) `dikim-sohbet-2` sohbetinde şu oldu:
+  - "S beden bel?" sorusunun ardından "L beden?" sorusunun cevabı birim kuralıyla gizlendi.
+  - Bağlam S bedende kaldı. "Etiketi ne?" sorusu "S beden etiketi" diye tamamlandı.
+  - Kullanıcı L bedeni sorarken S bedenin etiketi doğrulanmış gösterildi (seed 7,
+    doğrulanmış yanlış 1).
+- **Ölçüm** (bugünkü `main` üzerine; doğrulama ve istem değişmediği için ilk turlar
+  önbellekten):
+  - `dikim-sohbet-2-t3` iki sette de L bedenle tamamlandı ve doğru.
+  - Doğrulanmış yanlış 0.
+  - `main`e göre kötüleşen soru yok; iyileşen takip sorusu seed 7'de 1, seed 11'de 3.
+- **Yeniden düşünülür:** Gizlenen turun sorusu yanlış tamamlanmışsa, sonraki tur bu yanlışı
+  taşır. Böyle bir durum görülürse yeniden ele alınır.
+
 ### Gerekçesiz "bulunamadı"da en yakın başlıklar gösterilir
 - **Ne zaman:** `#0e60352` (PR #14), `ask/related.py`.
 - **Ne yapılıyor:** Aramada en yakın çıkan en fazla 4 başlık (bölüm ya da belge adı)

@@ -70,12 +70,22 @@ def _from_verified(state: AskState, result: Answered) -> ConversationContext | N
 
 
 def next_context(state: AskState) -> ConversationContext | None:
-    """Tam ya da kısmen doğrulanmış cevap bağlamı değiştirir; netleştirme soruyu bekletir."""
+    """Cevaplanan turda kullanıcının sorusu bağlama girer; netleştirme soruyu bekletir.
+
+    Belgeler yalnız doğrulanmış cümlelerin kaynaklarından gelir. Cevap gizlendiyse soru yine
+    bağlama girer, belgeler önceki bağlamdan kalır: sonraki takip sorusu kullanıcının son
+    sorusuyla tamamlanır, daha eskisiyle değil.
+    """
     result = state.result
     previous = state.request.context
     if isinstance(result, Answered):
         usable = result.status in _CONTEXT_STATUSES
-        return (_from_verified(state, result) if usable else None) or previous
+        verified = _from_verified(state, result) if usable else None
+        return verified or ConversationContext(
+            question=state.question,
+            doc_ids=previous.doc_ids if previous else (),
+            titles=previous.titles if previous else (),
+        )
     if isinstance(result, Clarify) and state.context_resolved:
         return ConversationContext(question=state.question, doc_ids=state.scope or ())
     return previous
