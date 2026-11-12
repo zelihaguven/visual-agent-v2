@@ -483,9 +483,7 @@ def _with_events(deps: AskDeps, question: str) -> tuple[object, list[dict[str, o
 
 
 def test_events_arrive_in_order_before_the_answer_is_revealed() -> None:
-    _, events = _with_events(
-        make_deps(FakeClient(answer_payload("İç paça 76,5."))), "soru nedir"
-    )
+    _, events = _with_events(make_deps(FakeClient(answer_payload("İç paça 76,5."))), "soru nedir")
 
     kinds = [str(event["type"]) for event in events]
     assert kinds.index("status") < kinds.index("sources") < kinds.index("item_verified")
