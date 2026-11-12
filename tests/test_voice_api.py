@@ -107,13 +107,31 @@ def test_only_verified_sentences_are_spoken(tmp_path: Path) -> None:
     assert audio_of(result) == ["Bel kırk iki virgül beş santimetre."]
 
 
-def test_unit_hidden_sentence_reads_only_its_source_quote(tmp_path: Path) -> None:
+QUOTED_ITEM = AnsweredItem(
+    text="L beden bel 42,5 cm.", citations=(), verified=False, source_quote="S: 38,5 | L: 42,5"
+)
+
+
+def test_unit_hidden_sentence_says_the_line_is_on_screen_without_reading_it(
+    tmp_path: Path,
+) -> None:
     voice = FakeVoice()
-    events = [{**UNVERIFIED, "index": 0, "quote": "Beden L: 42,5"}, UNVERIFIED]
+    events = [{**UNVERIFIED, "index": 0, "quote": "S: 38,5 | L: 42,5"}]
+    result = Answered(status=VerificationStatus.FAILED, items=(QUOTED_ITEM,))
 
-    ask_events(make_client(tmp_path, voice, events, ANSWERED))
+    ask_events(make_client(tmp_path, voice, events, result))
 
-    assert voice.spoken == ["Beden le: kırk iki virgül beş"]
+    assert voice.spoken == ["Kaynaktaki satır ekranda gösteriliyor."]
+
+
+def test_other_hidden_sentence_still_gets_the_not_verified_notice(tmp_path: Path) -> None:
+    voice = FakeVoice()
+    hidden = AnsweredItem(text="Bel 99.", citations=(), verified=False)
+    result = Answered(status=VerificationStatus.FAILED, items=(QUOTED_ITEM, hidden))
+
+    ask_events(make_client(tmp_path, voice, [], result))
+
+    assert voice.spoken == ["Bazı değerler doğrulanamadı, ekrana bakın."]
 
 
 def test_no_audio_unless_requested(tmp_path: Path) -> None:

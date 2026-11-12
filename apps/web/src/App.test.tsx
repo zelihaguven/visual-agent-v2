@@ -312,7 +312,7 @@ describe("App", () => {
     expect(screen.queryByText(/Değer doğrulanamadı/)).not.toBeInTheDocument();
   });
 
-  it("shows and reads the source quote of a sentence hidden only for its unit", async () => {
+  it("shows the source quote of a unit-hidden sentence but does not read it aloud", async () => {
     URL.createObjectURL = vi.fn(() => "blob:ses");
     URL.revokeObjectURL = vi.fn();
     const quoted = {
@@ -338,7 +338,9 @@ describe("App", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Cevabı seslendir" }));
     await screen.findByRole("button", { name: "Seslendirmeyi durdur" });
     const body = fetchMock.mock.calls.find(([url]) => String(url) === "/api/speak")?.[1]?.body;
-    expect(JSON.parse(String(body))).toEqual({ items: [{ text: "L: 42,5", has_code: false }] });
+    expect(JSON.parse(String(body))).toEqual({
+      items: [{ text: "Kaynaktaki satır ekranda gösteriliyor.", has_code: false }],
+    });
   });
 
   it("states clearly when the answer is not in the documents", async () => {

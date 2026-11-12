@@ -473,8 +473,15 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - Modelin cümlesi gösterilmez, değiştirilmez; birim silinmez.
   - Başka bir nedenle de geçemeyen cümle eskisi gibi gizlenir. Alıntı birebir doğru değilse,
     sayı alıntıda yoksa ya da OCR değeri belirsizse cümle gizlenir.
-  - Ses bu cümle için yalnız alıntıyı okur. Cevabın genel bildirimi ("Cevap doğrulanamadı,
-    ekrana bakın") değişmedi.
+  - **Ses (ürün sahibi kararı, 2026-11-12, `alinti-ses` dalı):**
+    - Alıntı sesle okunmaz. Ses yalnız "Kaynaktaki satır ekranda gösteriliyor." der.
+      Konuşma modunda da "Cevabı seslendir" düğmesinde de aynı.
+    - Gizlenen her cümlenin yerine alıntı gösterildiyse "doğrulanamadı" bildirimi ("Bazı
+      değerler doğrulanamadı, ekrana bakın") çalmaz.
+    - Alıntısız gizlenen bir cümle de varsa bildirim eskisi gibi çalar.
+    - Gerekçe: Alıntı birden çok bedenin değerini taşıyabilir ("S: 38,5 | M: 40,5 | L:
+      42,5"). Sesle okunursa işçi yanlış bedenin değerini duyabilir.
+    - İlk sürümde (`birim-alinti`) ses alıntıyı okuyordu; bu kararla değişti.
   - Kod: `ItemCheck.quote`, `AnsweredItem.source_quote`, akıştaki `item_unverified`
     olayının `quote` alanı.
 - **Neden:** Gösterilen ve seslendirilen her şey doğrulanmış olmalı. Alıntı kaynakta birebir

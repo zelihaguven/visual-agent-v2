@@ -52,6 +52,7 @@ _NOTICES = {
         "partial": "Bazı değerler doğrulanamadı, ekrana bakın.",
         "from_ocr": "Bu cevap görsel ya da taramadan okundu, kaynağı ekrandan kontrol edin.",
         "incomplete": "Cevap tamamlanamadı, ekrana bakın.",
+        "source_line": "Kaynaktaki satır ekranda gösteriliyor.",
     },
     "en": {
         "clarify": "I need to clarify something, please check the screen.",
@@ -62,6 +63,7 @@ _NOTICES = {
             "This answer was read from an image or scan, please check the source on screen."
         ),
         "incomplete": "The answer could not be completed, please check the screen.",
+        "source_line": "The source line is shown on the screen.",
     },
 }
 
@@ -160,6 +162,9 @@ def _answered_notice_key(result: Answered) -> str | None:
             return "incomplete"
         if any(item.from_figure for item in result.items):
             return "from_ocr"
+    hidden = [item for item in result.items if not item.verified]
+    if hidden and all(item.source_quote for item in hidden):
+        return None  # gizlenen her cümlenin yerine kaynak satırı gösterildi ve söylendi
     return "partial"
 
 
@@ -188,8 +193,9 @@ class SpokenAnswer:
             text = spoken_text(str(event["text"]), self._language, has_code=bool(event["has_code"]))
             self._speak(int(str(event["index"])), text)
         elif event["type"] == "item_unverified" and event.get("quote"):
-            # Birim yüzünden gizlenen cümlenin yerine yalnız kaynak alıntısı okunur.
-            self._speak(int(str(event["index"])), spoken_text(str(event["quote"]), self._language))
+            # Alıntı birden çok bedenin değerini taşıyabilir; okunmaz, ekranda olduğu söylenir.
+            notices = _NOTICES.get(self._language, _NOTICES["tr"])
+            self._speak(int(str(event["index"])), notices["source_line"])
 
     def announce(self, result: AskResult) -> None:
         """Değer içermeyen netleştirme sorusu okunur; diğer durumlarda sabit bildirim."""
