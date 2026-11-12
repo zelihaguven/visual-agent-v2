@@ -247,7 +247,7 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Onay:** Bu yeniden işleme ekip tarafından bir kez onaylandı (2026-11-12). Sonraki
   sürüm artışları yeniden onay ister.
 
-### OCR: OCRmyPDF, belge başına tek dil, iki okuma
+### OCR: OCRmyPDF, belge başına dil (ilk okuma tur+eng), iki okuma
 - **Ne zaman:**
   - Eski pilotta plan Docling ve Tesseract'tı (`docs/PLAN-OCR.md` §7). Yerine OCRmyPDF
     geldi (Ghostscript'siz, §9).
@@ -255,14 +255,32 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Neden:**
   - OCRmyPDF ile bilinen bütün kesir hataları düzeldi. Cevaplanabilir OCR sorusu 9'dan
     16'ya çıktı. Süre sayfa başına 1,1 sn; önceki yolda 5–7 sn'ydi.
-  - `tur+eng` birlikte kullanılınca 70 Türkçe harften 40'ı bozuldu. Bu yüzden OCR tek
-    dille yapılıyor.
+  - Pilotta `tur+eng` birlikte kullanılınca 70 Türkçe harften 40'ı bozuldu. Bu yüzden OCR
+    tek dille yapılıyordu. Bu repoda ilk OCR artık `tur+eng` (aşağıda, yeni kanıt).
     - Bu repoda dil belge başına seçiliyor: `run_ocr(..., meta.language, ...)` ve
       Tesseract'a tek `-l` veriliyor.
     - Pilotta da kayıttaki dil esastı; sayfa aralığı yalnız `lang_ranges` verilirse
       kullanılıyordu (`PLAN-OCR.md` §9).
-    - Yüklemede belgenin dili ayarlanmıyor (varsayılan `tr`). İlk işlemede OCR her belgede
-      Türkçe yapılıyor; yeniden işlemede tespit edilen dil kullanılıyor (açık notlar).
+  - **İlk OCR `tur+eng` (değiştirildi, 2026-11-12, `ocr-tur-eng` dalı):**
+    - Yüklemede belgenin dili "bilinmiyor" kaydediliyor (`UNDETECTED_LANGUAGE`). İlk OCR
+      Türkçe ve İngilizce birlikte yapılıyor (`ingest/external.py`, `tesseract_language`).
+    - Belge işlenince dil parçalardan okunuyor. Yeniden işlemede tespit edilen dil (`tur` ya
+      da `eng`) kullanılıyor.
+    - Önce yüklemedeki dil hep `tr` idi, ilk OCR her belgede yalnız Türkçeydi.
+    - Mevcut indeks yeniden işlenmedi; değişiklik yeni yüklemelerde geçerli.
+  - **Yeni kanıt (8 okumalık ölçüm, yerel, Tesseract 5.4.0):**
+    - Belgeler: 2 İngilizce (bir FastReact metni, sayı, kod ve birim içeren bir teknik föy)
+      ve 2 Türkçe. Her biri iki açıyla taranıp `tur`, `eng` ve `tur+eng` ile okundu.
+    - `tur`: İngilizce föyde tablo hücresi 12.5 "25" okundu. Türkçe sayfada "%3'ü" iki
+      okumada "963'ü" oldu.
+    - `eng`: Değer hatası yok, ama Türkçe harflerin hepsi bozuldu (0/41).
+    - `tur+eng`: İngilizcede hata yok; Türkçede bir okumada "963'ü". Türkçe harfler
+      korundu.
+    - Pilottaki "`tur+eng` 70 Türkçe harften 40'ını bozdu" bulgusu bu kurulumda tekrar
+      etmedi.
+    - Bugünkü akışta hatalı okunan iki değeri de ikinci okuma belirsiz işaretleyip gizledi.
+  - **Sınırı:** Temiz yazı tipiyle üretilmiş taramalar, 4 belge, belge başına 1–2 sayfa.
+    Gerçek taramalarla tekrarlanmalı.
   - İki okuma 303 dizede 0 yanlış değer kabul etti. RapidOCR yalnız ikinci okuma: Türkçe
     harflerde 70'te 48 doğru.
   - Uyuşmayan değer gizlenir; uyuşan değer "Kısmen doğrulandı" olur.
@@ -503,6 +521,17 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   gösteriliyor; parça içeriği aktarılmıyor.
 - **Neden:** Commit mesajında davranış yazılı. Ayrı ölçümü yok; aynı commit'in ölçümü (seed 7
   ve 11 37/40, yanlış 0) istem değişikliğiyle birlikte alındı.
+
+### Kapsam: ilk sürüm yalnız yazılı cevap verir; görsel gösterme ve şekil yorumlama yok
+- **Ne zaman:** Ekip kararı, 2026-11-12.
+- **Karar:**
+  - Görsel göstermek ve şekil yorumlamak ilk sürümün kapsamı dışında. Ürün hedefinde
+    ("gerektiğinde görsel gösterme") var, ama v2'de yok.
+  - Pilottaki şekil açıklaması modeli taşınmadı; nedeni bilinmiyor (aşağıda).
+  - Tasarım, pilot biriminin belgeleri görülünce sıfırdan yapılacak.
+- **Beklenen davranış:** Şekildeki bilgi sorulursa cevap "bulunamadı" olur ya da yalnız
+  metinde yazan söylenir. Değer uydurulmaz.
+- **Yeniden düşünülür:** Pilot biriminin belgeleri görülünce.
 
 ### Şekil açıklaması modeli taşınmadı
 - **Ne zaman:** Eski pilotta görselden şekil açıklaması bir VLM ile üretiliyordu

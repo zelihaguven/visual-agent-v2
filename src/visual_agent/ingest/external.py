@@ -11,8 +11,30 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+from visual_agent.domain.document import UNDETECTED_LANGUAGE
+
 _LIST_LANGUAGES_TIMEOUT_SECONDS = 30
 _EXPECTED_LANGUAGES = {"tur": "Türkçe", "eng": "İngilizce"}
+_TESSERACT_LANGUAGES = {
+    UNDETECTED_LANGUAGE: "tur+eng",
+    "tr": "tur",
+    "en": "eng",
+    "fr": "fra",
+    "es": "spa",
+    "de": "deu",
+}
+_FALLBACK_TESSERACT_LANGUAGE = "eng"
+
+
+def tesseract_language(language: str) -> str:
+    """Belge dilinin Tesseract karşılığı.
+
+    Dil henüz bilinmiyorsa (ilk yükleme) Türkçe ve İngilizce birlikte okunur: 8 okumalık
+    ölçümde tek başına Türkçe, İngilizce sayfada bir değeri değiştirdi, birlikte okuma
+    değiştirmedi (docs/kararlar.md, OCR).
+    """
+    return _TESSERACT_LANGUAGES.get(language, _FALLBACK_TESSERACT_LANGUAGE)
+
 
 Which = Callable[[str], str | None]
 ListLanguages = Callable[[str], frozenset[str]]
@@ -65,8 +87,9 @@ class ExternalTools:
     def require_tesseract(self, language: str) -> str:
         if self.tesseract is None:
             raise MissingTool(TESSERACT_MISSING)
-        if language not in self.tesseract_languages:
-            raise MissingTool(f"Tesseract'ta '{language}' dil verisi yok; bu belge okunamıyor.")
+        missing = [part for part in language.split("+") if part not in self.tesseract_languages]
+        if missing:
+            raise MissingTool(f"Tesseract'ta '{missing[0]}' dil verisi yok; bu belge okunamıyor.")
         return self.tesseract
 
     def subprocess_environment(self, base: Mapping[str, str] | None = None) -> dict[str, str]:

@@ -100,6 +100,7 @@ def test_language_and_fingerprint() -> None:
 
     assert document_language(english) == "en"
     assert document_language([]) == "tr"
+    assert document_language([], fallback="") == "tr"
     assert chunks_fingerprint(english) == chunks_fingerprint(list(english))
     assert chunks_fingerprint(english) != chunks_fingerprint([_chunk("a.md", 0, "farklı")])
 

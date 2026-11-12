@@ -11,7 +11,7 @@ from apps.api.main import ApiServices, create_app
 from apps.api.preview import render_highlighted_page
 from visual_agent.ask.deps import AskRequest
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
-from visual_agent.domain.document import Box, Chunk, ChunkKind, SourceLocation
+from visual_agent.domain.document import UNDETECTED_LANGUAGE, Box, Chunk, ChunkKind, SourceLocation
 from visual_agent.domain.result import AskOutcome, NotFound
 from visual_agent.settings import Settings
 
@@ -161,6 +161,7 @@ def test_upload_stores_file_and_queues_it(tmp_path: Path) -> None:
     created = repository.created[0]
     assert created.title == "Kılavuz"
     assert created.status is DocumentStatus.QUEUED
+    assert created.language == UNDETECTED_LANGUAGE
     assert Path(created.stored_path).read_bytes() == b"%PDF-1.7 icerik"
     assert Path(created.stored_path).is_relative_to(tmp_path)
 
