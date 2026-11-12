@@ -171,6 +171,9 @@ def test_same_value_in_words_or_lower_case_still_passes(source: str, text: str) 
         ("Malzeme: Yün | En yüksek (°C): 30", "En yüksek (°C): 30", "Yün en fazla 30 °C.", True),
         ("Adım | Süre (dk): 15", "Süre (dk): 15", "15 dakika beklenir.", True),
         ("Hizmet: Acil | Ücret (TL): 12.500", "12.500", "Acil servis 12.500 TL.", True),
+        # Devrik tablo: birim satırın ilk hücresinde, o satırın değerlerine sayılır.
+        ("Değer: Tork (Nm) | A-100: 12 | A-200: 15", "A-200: 15", "A-200 tork 15 Nm.", True),
+        ("Değer: Tork (Nm) | A-100: 12 | A-200: 15", "A-200: 15", "A-200 tork 15 kg.", False),
         # Alıntıdaki birimle aynı ya da eş anlamlı birim geçer, başka birim geçmez.
         ("Dikiş payı 5 mm", "Dikiş payı 5 mm", "Dikiş payı 5 mm'dir.", True),
         ("Bekleme 30 dk", "Bekleme 30 dk", "Bekleme 30 dakika.", True),

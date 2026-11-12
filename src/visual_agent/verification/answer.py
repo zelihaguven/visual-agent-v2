@@ -84,9 +84,20 @@ def _tolerance_problems(text: str, evidence: str) -> list[str]:
     return problems
 
 
+def _row_measures(line: str) -> set[tuple[str, str]]:
+    """Hücrenin sütun başlığındaki birim o hücreye, satırın ilk hücresindeki birim ("Tork (Nm)",
+    devrik tablo) o satırın bütün değerlerine sayılır; başka sütunun başlığı sayılmaz."""
+    row_units = header_units(line.split("|", 1)[0]) if "|" in line else set()
+    return {
+        (number, unit)
+        for label, value in labeled_cells(line)
+        for number in numbers_in(value)
+        for unit in header_units(label) | row_units
+    }
+
+
 def _header_measures(item: ModelItem, sources: Sources) -> set[tuple[str, str]]:
-    """Alıntılanan değer ve kendi sütun başlığındaki birim (alıntıda ya da alıntıyı içeren
-    kaynak satırında); başka sütunun başlığı sayılmaz."""
+    """Alıntıda ya da alıntıyı içeren kaynak satırında başlığından birim alan değerler."""
     found: set[tuple[str, str]] = set()
     for quote in item.quotes:
         source, wanted = sources.get(quote.source_no), normalize(quote.text)
@@ -95,10 +106,8 @@ def _header_measures(item: ModelItem, sources: Sources) -> set[tuple[str, str]]:
             for line in (source.text if source else "").splitlines()
             if wanted in normalize(line)
         ]
-        for label, value in (cell for line in [quote.text, *lines] for cell in labeled_cells(line)):
-            found |= {
-                (number, unit) for number in numbers_in(value) for unit in header_units(label)
-            }
+        for line in [quote.text, *lines]:
+            found |= _row_measures(line)
     return found
 
 
