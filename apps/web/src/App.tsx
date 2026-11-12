@@ -50,6 +50,8 @@ export function App() {
   const waitingTurn = useRef(0);
   const latestContext = useRef<ConversationContext | null>(null);
   const speechToken = useRef(0);
+  const turnList = useRef<HTMLDivElement>(null);
+  const shownTurns = useRef(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -60,6 +62,15 @@ export function App() {
       .catch(() => undefined);
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    // Yeni soru görünür alanın en üstüne gelir; önceki sorular yukarıda kalır.
+    if (turns.length > shownTurns.current) {
+      const newest = turnList.current?.lastElementChild;
+      newest?.scrollIntoView?.({ block: "start", behavior: "smooth" });
+    }
+    shownTurns.current = turns.length;
+  }, [turns.length]);
 
   function audioQueue(): AudioQueue {
     audio.current ??= new AudioQueue();
@@ -202,7 +213,7 @@ export function App() {
           <h1>Visual Agent</h1>
           <p>Belgelerinize sorun, cevabı kaynağıyla görün.</p>
         </header>
-        <div className="turns">
+        <div className="turns" ref={turnList}>
           {turns.map((turn) => (
             <TurnView
               key={turn.id}
