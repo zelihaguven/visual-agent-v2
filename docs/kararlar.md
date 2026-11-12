@@ -367,14 +367,17 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 | `#a2eaf46` | Farklı değerler tek satırdaysa da netleştirme sorulur | Yazılmamış |
 | `#2ad898d` | Kural 7: beden, model ya da sürüm anlaşılmıyorsa tahmin etmeden netleştirme. Kural 9: yalnız sorulan değer (diğer bedenler ve ayrı sütundaki tolerans eklenmez); cevap sesle de okunduğu için tek kısa cümle, parantezsiz. Kural 11 (yeni): sesten gelen dolgu sözleri, tiresiz ya da küçük harfli kod, taranmış tablolarda gürültülü sütun etiketi | Yazılmamış |
 | `#0e60352` (PR #14) | Kural 9: ayarın adı, yeri ve yanındaki not ayrı öğe | seed 7 37/40, seed 11 37/40, yanlış 0, önce ve sonra aynı |
+| `#676e9e0` (PR #24) | Kural 10 (şekil kaynakları) ve kural 11'deki bedene özgü gürültülü etiket maddesi silindi | Aşağıda, "Birim kuralı" |
+| `#87860fa` (`sadakat-turu-2`) | Kural 3: "Birimi yalnız kaynakta yazılıysa yaz; kaynakta birim yoksa sayıyı kaynaktaki gibi ver." | Aşağıda, "Birim kuralı" |
 
-- **Ekibin bakması gereken:** `#2ad898d`'nin gürültülü etiket kuralı ("Etiketin son harfi
-  sorudaki bedenle aynıysa o sütun aranan sütundur") bedene özgü. CLAUDE.md kural 2'deki
-  alandan bağımsızlıkla çelişebilir. İstemi değiştirmek ekip onayı istediği için yalnız kayda
-  geçti.
-- **Ekibin bakması gereken:** İstemin 10. kuralı "Otomatik şekil açıklaması"ndan söz ediyor,
-  ama bu açıklamayı üreten kod yok (aşağıda "Şekil açıklaması modeli taşınmadı"). Ölü istem
-  metni; kaldırmak istem değişikliği olduğu için ekip onayı ister.
+- **Bedene özgü kural silindi (ekip kararı):** `#2ad898d`'nin gürültülü etiket kuralı
+  ("Etiketin son harfi sorudaki bedenle aynıysa o sütun aranan sütundur") bedene özgüydü ve
+  CLAUDE.md kural 2'ye aykırıydı.
+  - Yerine genel bir kural yazılmadı.
+  - Sadakat turu ölçümünde kötüleşen 18 sorunun hiçbiri bu silmeden değil (önbellekten neden
+    ayrımı, 2026-11-12).
+- **Ölü şekil açıklaması kaldırıldı:** İstemin 10. kuralı, `generated` alanını okuyan kod ve
+  doğrulamadaki ilgili dal kaldırıldı (aşağıda, "Şekil açıklaması modeli taşınmadı").
 
 Bundan sonra istem değişikliği ekip onayı ister (CLAUDE.md). İstem değişince cevap önbelleği
 geçersiz olur.
@@ -424,12 +427,42 @@ Bu kurallar haksız kabulü kapatır:
 
 Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f603b5f`.
 
-### Birim: çelişen birim reddedilir, kaynakta olmayan birim reddedilmez
-- **Ne zaman:** `#3059a93`.
-- **Neden:** Kaynakta birimi olmayan değere birim eklenmesi Mac'teki önbellek ölçümünde 51
-  cevap öğesinin 19'unda görüldü. Bunu reddetmek büyük haksız ret demek.
-- **Yeniden düşünülür:** Cevap istemi değişirse (ekip onayı gerekir; önbellek geçersiz
-  olur).
+### Birim kuralı: birim alıntıda ya da değerin kendi başlığında yazılı olmalı (değiştirildi)
+- **Önceki hâl:** `#3059a93` ile yalnız kaynaktaki birimle çelişen birim reddediliyordu.
+  - Kaynakta birimi olmayan değere eklenen birim reddedilmiyordu.
+  - Gerekçe: Mac'teki önbellek ölçümünde 51 cevap öğesinin 19'unda görülmüştü; reddetmek
+    büyük haksız ret sayılmıştı.
+- **Ne zaman:** `#676e9e0`, `#f509be4` (PR #24); `#87860fa` (`sadakat-turu-2`).
+- **Kural** (`verification/answer.py`, `_unit_problems`):
+  - Cümlede sayının yanındaki birim, alıntıda o sayıyla birlikte yazılı olmalı. Ya da sayıyı
+    taşıyan hücrenin kendi sütun başlığında yazılı olmalı.
+  - Başlıkta yalnız parantez ya da köşeli parantez içindeki birim sayılır ("Ücret (TL)",
+    "Boy [mm]"). Parantezsiz tek harfli sütun adı ("Beden M") birim sayılmaz.
+  - Başka sütunun başlığı sayılmaz. "(cm)" yalnız Tolerans sütunundaysa beden değeri "cm"
+    alamaz.
+  - Devrik tabloda satırın ilk hücresindeki parantezli birim ("Tork (Nm)") o satırın
+    değerlerine sayılır.
+  - Kodun içindeki rakam ("PNT-1126 S") değer sayılmaz.
+  - Geçemeyen cümle gizlenir; yeniden yazılmaz.
+- **İstem:** Cevap isteminin 3. kuralına eklendi: "Birimi yalnız kaynakta yazılıysa yaz;
+  kaynakta birim yoksa sayıyı kaynaktaki gibi ver."
+- **Ürün sahibi kararı (2026-11-12):** Desteklenmeyen birim silinmez, uyarıyla da gösterilmez;
+  cümle gizlenir. Gerekçe: gösterilen ve seslendirilen her şey doğrulanmış olmalı.
+- **Neden:** Kaynakta yazmayan birim değeri doğrulanmış gösteriyordu. Sadakat turundan önce
+  iki taban setinde gösterilen 51 öğenin 13'ünde vardı (örnek: "PNT-1162 L beden bel 42,5
+  cm"; kaynakta "(cm)" yalnız Tolerans sütununda).
+- **Ölçüm** (seed 7, seed 11, FastReact, sınır seti; iki kez canlı, `sadakat-turu-2`):
+  - Gösterilen birim eklenmiş öğe 0.
+  - Doğrulanmış yanlış her sette 0.
+  - Sınır setinde yanlış sütun 7/7, olumsuzlama 5/5.
+  - Geçen soru seed 7'de 34 ve 33, seed 11'de iki koşuda da 35 (önce 37 / 37).
+  - Gösterilen doğru cümle sadakat öncesine göre %12,2 az: 49'dan 43'e.
+  - Kalan düşüşlerin hepsi, model birimsiz değere "cm" eklediği için gizlenen cümle (açık
+    notlar).
+- **Bedeli:** Doğru değerli bir kısım cümle gösterilmiyor. Ürün sahibi bu bedeli doğrulanmamış
+  birime tercih etti.
+- **Yeniden düşünülür:** Ürün sahibinin denemesi ve gerçek belgelerle. Gizlenen doğru cümle
+  kabul edilemez çıkarsa.
 
 ### Yanlış sütun ve olumsuzlama için kural yazılmadı (önce ölçüldü)
 - **Ne zaman:** `#f5b4ec5` (PR #19, 2026-11-12).
@@ -559,9 +592,11 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Ne zaman:** Eski pilotta görselden şekil açıklaması bir VLM ile üretiliyordu
   (qwen2.5vl:3b, `figures.py`). Bu repoya taşınmadı.
 - **Neden:** Neden bilinmiyor.
-- **Durum:** Parçadaki `generated` alanı, istemin 10. kuralı ve doğrulamadaki ilgili dal hâlâ
-  duruyor, ama alanı dolduran kod yok. Ekibin bakması gerekiyor (yukarıda, istem
-  değişiklikleri).
+- **Durum:** Alanı dolduran kod yoktu. İstemin 10. kuralı, `PromptSource` ve `Element`
+  içindeki `generated` alanı, doğrulamadaki ilgili dal ve `Chunk.generated` tanımı kaldırıldı
+  (`#676e9e0`, `#301b76a`, PR #24).
+  - Kayıtlı parçalar ve indeks bu alanı taşısa da model onu yok sayıyor.
+  - Veri değişmedi; indeks yeniden işlenmedi.
 
 ## Altyapı
 
