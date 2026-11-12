@@ -151,3 +151,13 @@ def test_first_verified_time_is_recorded() -> None:
     assembler.feed(content(item("İç paça 76,5.")), 1.25)
 
     assert assembler.first_verified_seconds == 1.25
+
+
+def test_sentence_hidden_only_for_its_unit_streams_its_quote() -> None:
+    assembler, events = assemble()
+
+    feed_all(assembler, content(item("M beden 76,5 cm.")))
+
+    hidden = of_type(events, "item_unverified")
+    assert [event["quote"] for event in hidden] == ["Beden M: 76,5"]
+    assert of_type(events, "item_verified") == []

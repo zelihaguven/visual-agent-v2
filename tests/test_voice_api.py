@@ -107,6 +107,15 @@ def test_only_verified_sentences_are_spoken(tmp_path: Path) -> None:
     assert audio_of(result) == ["Bel kırk iki virgül beş santimetre."]
 
 
+def test_unit_hidden_sentence_reads_only_its_source_quote(tmp_path: Path) -> None:
+    voice = FakeVoice()
+    events = [{**UNVERIFIED, "index": 0, "quote": "Beden L: 42,5"}, UNVERIFIED]
+
+    ask_events(make_client(tmp_path, voice, events, ANSWERED))
+
+    assert voice.spoken == ["Beden le: kırk iki virgül beş"]
+
+
 def test_no_audio_unless_requested(tmp_path: Path) -> None:
     voice = FakeVoice()
 

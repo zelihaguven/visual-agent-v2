@@ -464,6 +464,34 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Yeniden düşünülür:** Ürün sahibinin denemesi ve gerçek belgelerle. Gizlenen doğru cümle
   kabul edilemez çıkarsa.
 
+### Birim yüzünden gizlenen cümlenin yerine kaynak alıntısı gösterilir
+- **Ne zaman:** Ürün sahibi kararı, 2026-11-12. `birim-alinti` dalı.
+- **Kural:**
+  - Cümle yalnız "kaynakta yazmayan birim" yüzünden geçemiyorsa "gösterilmiyor" yazısı
+    yerine o cümlenin doğrulanmış alıntısı olduğu gibi gösterilir: `Kaynakta yazan: "…"`.
+    Yanında belge ve sayfa düğmesi durur.
+  - Modelin cümlesi gösterilmez, değiştirilmez; birim silinmez.
+  - Başka bir nedenle de geçemeyen cümle eskisi gibi gizlenir. Alıntı birebir doğru değilse,
+    sayı alıntıda yoksa ya da OCR değeri belirsizse cümle gizlenir.
+  - Ses bu cümle için yalnız alıntıyı okur. Cevabın genel bildirimi ("Cevap doğrulanamadı,
+    ekrana bakın") değişmedi.
+  - Kod: `ItemCheck.quote`, `AnsweredItem.source_quote`, akıştaki `item_unverified`
+    olayının `quote` alanı.
+- **Neden:** Gösterilen ve seslendirilen her şey doğrulanmış olmalı. Alıntı kaynakta birebir
+  geçtiği için doğrulanmış; modelin eklediği birim gösterilmiyor. Kullanıcı değeri yine de
+  kaynağın kendi yazımıyla görüyor.
+- **Ölçüm** (seed 7, seed 11, sınır seti; önbellekten, canlı maliyet 0,0002 $):
+  - Doğrulanmış yanlış 0.
+  - Gösterilen, kaynakta olmayan birim 0. Gösterilen birimli öğelerin hepsinde birim kendi
+    sütun ya da satır başlığında: "Aylık tutar (TL)", "Ücret (TL)", "(°C)", "Tork (Nm)".
+  - Geçen soru değişmedi (34/40, 35/40, 27/27).
+  - Alıntıyla gösterilen cümle 6, hepsi birimsiz beden değerine "cm" eklenen cümle (seed 7'de
+    3, seed 11'de 3).
+- **Bilinen:**
+  - Alıntı tablo satırının tamamı olabilir ("Ölçü noktası: Bel | S: 38,5 | M: 40,5 | L:
+    42,5 | Tolerans (cm): 1,0").
+  - Taranmış belgeden gelen alıntı OCR gürültüsünü olduğu gibi taşır ("Ölçü noktau", "ıi").
+
 ### Yanlış sütun ve olumsuzlama için kural yazılmadı (önce ölçüldü)
 - **Ne zaman:** `#f5b4ec5` (PR #19, 2026-11-12).
 - **Karar:** Ekip yön olarak biçim ve dil düzeyinde kuralı seçti; yerel model (NLI) ya da

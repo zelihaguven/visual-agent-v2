@@ -312,6 +312,35 @@ describe("App", () => {
     expect(screen.queryByText(/Değer doğrulanamadı/)).not.toBeInTheDocument();
   });
 
+  it("shows and reads the source quote of a sentence hidden only for its unit", async () => {
+    URL.createObjectURL = vi.fn(() => "blob:ses");
+    URL.revokeObjectURL = vi.fn();
+    const quoted = {
+      ...answered.result.items[0],
+      text: "L beden bel 42,5 cm.",
+      verified: false,
+      source_quote: "L: 42,5",
+    };
+    const fetchMock = stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          { type: "item_unverified", index: 0, message: "x", source_numbers: [1], quote: "L: 42,5" },
+          { ...answered, result: { ...answered.result, status: "failed", items: [quoted] } },
+        ]),
+      "/api/speak": () => jsonResponse({ audios: [{ audio: btoa("ses"), mime: "audio/wav" }] }),
+    });
+    render(<App />);
+    await ask("soru");
+
+    expect(await screen.findByText('Kaynakta yazan: "L: 42,5"')).toBeInTheDocument();
+    expect(screen.queryByText(/42,5 cm/)).not.toBeInTheDocument();
+    fireEvent.click(await screen.findByRole("button", { name: "Cevabı seslendir" }));
+    await screen.findByRole("button", { name: "Seslendirmeyi durdur" });
+    const body = fetchMock.mock.calls.find(([url]) => String(url) === "/api/speak")?.[1]?.body;
+    expect(JSON.parse(String(body))).toEqual({ items: [{ text: "L: 42,5", has_code: false }] });
+  });
+
   it("states clearly when the answer is not in the documents", async () => {
     stubApi({
       "/api/documents": () => jsonResponse([]),

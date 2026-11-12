@@ -354,3 +354,25 @@ def test_one_source_can_hold_all_options_of_a_clarification() -> None:
 
     assert result.status is VerificationStatus.CLARIFY
     assert result.clarify_options == (1,)
+
+
+def test_sentence_failing_only_on_its_unit_carries_its_quote() -> None:
+    sources = {1: PromptSource(number=1, text="Bel | M: 40,5 | L: 42,5")}
+
+    check = verify_item(item("L beden bel 42,5 cm.", quote="L: 42,5"), sources)
+
+    assert not check.ok
+    assert check.quote == "L: 42,5"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "L beden bel 42,5 cm, M beden 99.",  # birim dışında bir sorun daha var
+        "L beden bel 42,5.",  # geçen cümle alıntı gerektirmez
+    ],
+)
+def test_quote_is_only_for_a_unit_only_failure(text: str) -> None:
+    sources = {1: PromptSource(number=1, text="Bel | M: 40,5 | L: 42,5")}
+
+    assert verify_item(item(text, quote="L: 42,5"), sources).quote is None

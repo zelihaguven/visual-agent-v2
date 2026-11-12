@@ -287,6 +287,7 @@ def _answered_item(item: ModelItem, check: ItemCheck, hits: Sequence[Hit]) -> An
         from_figure=check.from_figure,
         code=code_hit.chunk.text if check.ok and code_hit is not None else None,
         problems=check.problems,
+        source_quote=check.quote,
     )
 
 

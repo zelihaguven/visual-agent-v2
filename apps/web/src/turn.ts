@@ -7,6 +7,7 @@ export type TurnItem = {
   text: string;
   sourceNumbers: number[];
   fromFigure: boolean;
+  quote?: string | null;
 };
 
 export type Turn = {
@@ -74,6 +75,7 @@ export function applyEvent(turn: Turn, event: AskEvent): Turn {
         text: event.message,
         sourceNumbers: event.source_numbers,
         fromFigure: false,
+        quote: event.quote ?? null,
       });
     case "searching":
     case "item_audio":

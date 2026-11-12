@@ -83,6 +83,8 @@ class ItemCheck(_Frozen):
     from_figure: bool
     problems: tuple[str, ...]
     source_numbers: tuple[int, ...]
+    quote: str | None = None
+    """Cümle yalnız kaynakta yazmayan birim yüzünden geçemediyse doğrulanmış alıntısı."""
 
 
 class AnswerVerification(_Frozen):

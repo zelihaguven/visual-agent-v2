@@ -187,6 +187,9 @@ class SpokenAnswer:
         if event["type"] == "item_verified":
             text = spoken_text(str(event["text"]), self._language, has_code=bool(event["has_code"]))
             self._speak(int(str(event["index"])), text)
+        elif event["type"] == "item_unverified" and event.get("quote"):
+            # Birim yüzünden gizlenen cümlenin yerine yalnız kaynak alıntısı okunur.
+            self._speak(int(str(event["index"])), spoken_text(str(event["quote"]), self._language))
 
     def announce(self, result: AskResult) -> None:
         """Değer içermeyen netleştirme sorusu okunur; diğer durumlarda sabit bildirim."""
