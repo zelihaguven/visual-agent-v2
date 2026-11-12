@@ -67,6 +67,7 @@ Repo sade kalmalı. Daha önce "overengineered" bulundu; bunu tekrarlama.
   - `ruff`, format, `mypy`, `pytest`
   - Web dosyası değiştiyse `npm test` ve `npm run build`
 - Örnek belgeleri yükleme: `uv run python -m apps.sample_documents`
+- Başlattığın uygulama ya da arka plan sürecini işin bitince kapat ve raporda söyle.
 
 ## Rapor biçimi
 
