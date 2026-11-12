@@ -9,9 +9,7 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 
 ## Markdown belgeler
 
-- `.md` dosyaları düz metin olarak okunuyor: `#` başlıkları bölüm adı olmuyor, parça metninde işaretiyle kalıyor, parçanın bölüm alanı boş. Sayfasız belgede kaynağın konum alanı da boş; kaynak yalnız dosya adıyla gösteriliyor, bölüm yolu yok. Başlıkları bölüm adı, bölüm yolunu konum alanı yapmak format düzeyinde bir kural; parçalar ve vektörler değişeceği için yeniden indeksleme ister.
 - Hazır gelen markdown'da OCR kökenli metin işaretlenmiyor: FastReact sürüm notları OCR'dan çıkarılmış ("Text extracted by OCR" notuyla), ama `.md` metni OCR'dan gelmemiş sayılıyor; OCR değerlerine uygulanan "Kısmen doğrulandı" kuralı bu metinde çalışmıyor.
-- Kaynak panelinde parçanın ham markdown metni görünüyor (`**`, `#`, `\*`).
 
 ## Ses
 
@@ -35,7 +33,7 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Netleştirme adayları aynı adımı farklı menü yoluyla anlatıyorsa netleştirme sürüyor: FastReact'ta "Planlama tahtasından siparişin teslim tarihini nasıl değiştiririm?" iki belgede aynı gövde metnini taşıyor, ama menü yolları farklı ("Main Menu > Planning > …" ve "Main Menu > Low Level Planning > …"); ikinci cevap menü yolunu alıntıladığı için "aynı cevap" sayılmadı. İki yolu kaynaklarıyla birlikte vermek ayrı bir karar.
 - Belgelerin kendisi hakkındaki takip soruları ("bunların hepsi gerçekten release notes mu") çıkmaz sokakta: envanter cevabı sohbet bağlamı bırakmıyor, belge adları ve türleri hakkındaki soru katalogdan değil aramadan cevaplanıyor. Öneri: envanterin gösterdiği belgeleri bağlama koymak ve başlık ya da sayı soran takip sorusunu katalogdan cevaplamak; ayrı tasarım ister. Aynı türdeki "release notes dosyalarında ne var" sorusunu niyet sınıflandırıcı bir koşuda envanter, bir koşuda belge sorusu saydı.
 - Grafiklerde değer ile etiketi arasındaki bağ kopuyor: çubuk grafikteki `331`, `268`, `214` ve ay adları ayrı parçalara düşüyor, "Mart ayında fire adedi kaç?" bulunamadı oluyor. Grafik okuma ayrı tasarım ister.
-- Excel değerleri gösterilen biçimden farklı okunuyor: `%12` → `0.12`, `1.234,50 TL` → `1234.5`. Kayıtlı değeri olmayan formül hücresi (`=C2*2`) uyarısız kayboluyor (`ingest/spreadsheet.py`). Kaynaktaki yazılışla eşleşme bozulur, değer sessizce eksilir.
+- Excel sayıları gösterilen biçimle yazılıyor, ama dosyada bölge ayarı yok: Türkçe bölge ayarı varsayılıyor (ondalık virgül, binlik nokta; `ingest/spreadsheet.py`). Yüzde işaretinin yeri biçim kodundaki gibi (`12%`); Türkçe Excel'in `%12` gösterip göstermediği denenmedi. Tarih, kesir ve bilimsel gösterim biçimleri desteklenmiyor: tarih ISO biçiminde, diğerleri genel biçimde yazılıyor. Eksi bölümü parantez ya da yalnız renk olan biçimlerde değer eksi işaretiyle yazılıyor. Gerçek Excel dosyalarıyla denenecek.
 
 ## Belge yönetimi
 

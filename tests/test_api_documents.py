@@ -214,6 +214,19 @@ def test_documents_are_listed(tmp_path: Path) -> None:
     assert body[0]["doc_id"] == "d1"
     assert body[0]["status"] == "ready"
     assert "stored_path" not in body[0]
+    assert body[0]["outdated"] is False
+
+
+def test_document_processed_with_older_rules_is_marked_outdated(tmp_path: Path) -> None:
+    old_report = {"warnings": [], "uncertain_values": 0}
+    documents = [
+        stored().model_copy(update={"filename": "kilavuz.md", "report": old_report}),
+        stored("d2").model_copy(update={"report": old_report}),
+    ]
+
+    body = make_client(tmp_path, FakeRepository(documents=documents)).get("/api/documents").json()
+
+    assert [item["outdated"] for item in body] == [True, False]
 
 
 def test_sheet_source_returns_rows_with_highlight(tmp_path: Path) -> None:
@@ -231,7 +244,17 @@ def test_text_source_without_a_location_returns_the_text(tmp_path: Path) -> None
 
     body = make_client(tmp_path, repository).get("/api/chunks/d1:1/source").json()
 
-    assert body == {"kind": "text", "text": "Beden: M", "title": "Belge"}
+    assert body == {"kind": "text", "text": "Beden: M", "title": "Belge", "section": None}
+
+
+def test_text_source_shows_its_section_path(tmp_path: Path) -> None:
+    location = SourceLocation(section="Ayarlar · Genel")
+    plain = CHUNK.model_copy(update={"chunk_id": "d1:1", "location": location})
+    repository = FakeRepository(chunks={plain.chunk_id: plain})
+
+    body = make_client(tmp_path, repository).get("/api/chunks/d1:1/source").json()
+
+    assert body["section"] == "Ayarlar · Genel"
 
 
 def test_unknown_chunk_returns_not_found(tmp_path: Path) -> None:

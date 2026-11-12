@@ -72,11 +72,31 @@ def _merge_group(group: Sequence[Element]) -> Element:
     )
 
 
+HeadingPath = tuple[tuple[int, str], ...]
+_ROOT_LEVEL = 0
+_UNKNOWN_LEVEL = 99
+
+
+def _next_path(path: HeadingPath, heading: Element) -> HeadingPath:
+    """Düzeyi bilinen başlık kendi düzeyindeki ve altındaki başlıkların yerini alır.
+
+    Düzeyi bilinmeyen başlık belgenin ilk başlığının altına girer; ilk başlığın aynısıysa
+    bölüm yalnız ilk başlıktır.
+    """
+    if heading.level is not None:
+        kept = tuple(item for item in path if item[0] < heading.level)
+        return (*kept, (heading.level, heading.text))
+    if not path:
+        return ((_ROOT_LEVEL, heading.text),)
+    root = path[0]
+    return (root,) if heading.text == root[1] else (root, (_UNKNOWN_LEVEL, heading.text))
+
+
 def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str]]:
-    """Başlıkları bölüm adına çevirir, ardışık paragrafları birleştirir."""
+    """Başlıkları bölüm yoluna çevirir, ardışık paragrafları birleştirir."""
     output: list[tuple[Element, str]] = []
     group: list[Element] = []
-    document_heading = ""
+    path: HeadingPath = ()
     section = ""
 
     def flush() -> None:
@@ -87,12 +107,8 @@ def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str]]:
     for element in elements:
         if element.kind is ElementKind.HEADING:
             flush()
-            document_heading = document_heading or element.text
-            section = (
-                document_heading
-                if element.text == document_heading
-                else f"{document_heading}{_SECTION_SEPARATOR}{element.text}"
-            )
+            path = _next_path(path, element)
+            section = _SECTION_SEPARATOR.join(text for _, text in path)
         elif element.kind is ElementKind.TEXT:
             for piece in _split_element(element):
                 if not _can_merge(group, piece):
@@ -105,6 +121,14 @@ def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str]]:
     return output
 
 
+def _location(element: Element, section: str) -> SourceLocation:
+    """Sayfası ve sayfa adı olmayan kaynağın konumu bölüm yoludur."""
+    location = element.location
+    if location.page is None and location.sheet is None and section:
+        return location.model_copy(update={"section": section})
+    return location
+
+
 def build_chunks(elements: Iterable[Element], meta: DocumentMeta) -> list[Chunk]:
     return [
         Chunk(
@@ -114,7 +138,7 @@ def build_chunks(elements: Iterable[Element], meta: DocumentMeta) -> list[Chunk]
             text=element.text,
             title=meta.title,
             section=section,
-            location=element.location,
+            location=_location(element, section),
             generated=element.generated,
             ocr_uncertain=element.ocr_uncertain,
             from_ocr=element.from_ocr,

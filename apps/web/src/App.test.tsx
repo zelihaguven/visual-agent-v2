@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 import { WAITING_DELAY_MS } from "./components/ConversationMode";
+import { citationLabel } from "./components/TurnView";
 import { applyEvent, newTurn } from "./turn";
 
 const listening = vi.hoisted(() => ({
@@ -457,6 +458,26 @@ describe("App", () => {
     const notes = await screen.findByRole("list", { name: "Föy uyarıları" });
     expect(within(notes).getByText(warning)).toBeInTheDocument();
     expect(within(notes).getByText(/6 değer net okunamadı/)).toBeInTheDocument();
+  });
+
+  it("tells which documents were read with older rules", async () => {
+    stubApi({
+      "/api/documents": () =>
+        jsonResponse([
+          {
+            doc_id: "a",
+            title: "Kılavuz",
+            filename: "a.md",
+            status: "ready",
+            error: null,
+            report: { warnings: [], uncertain_values: 0 },
+            outdated: true,
+          },
+        ]),
+    });
+    render(<App />);
+
+    expect(await screen.findByText(/Eski okuma kuralıyla işlendi/)).toBeInTheDocument();
   });
 
   it("shows no warning list for a cleanly read document", async () => {
@@ -1064,5 +1085,29 @@ describe("App", () => {
       expect(screen.queryByRole("button", { name: "Konuşarak sor" })).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Konuşma modu" })).not.toBeInTheDocument();
     });
+  });
+});
+
+describe("citationLabel", () => {
+  const pageless = { page: null, boxes: [], sheet: null, row: null };
+
+  it("shows the section path of a pageless source without repeating the title", () => {
+    const citation = {
+      ...CITATION,
+      title: "Ayarlar",
+      location: { ...pageless, section: "Ayarlar · Genel · Hafta numaraları" },
+    };
+
+    expect(citationLabel(citation)).toBe("Ayarlar · Genel · Hafta numaraları");
+  });
+
+  it("keeps the section path when it starts with another name", () => {
+    const citation = { ...CITATION, title: "Kılavuz", location: { ...pageless, section: "Genel" } };
+
+    expect(citationLabel(citation)).toBe("Kılavuz · Genel");
+  });
+
+  it("shows only the title when there is no location", () => {
+    expect(citationLabel({ ...CITATION, title: "Notlar", location: pageless })).toBe("Notlar");
   });
 });

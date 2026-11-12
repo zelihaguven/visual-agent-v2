@@ -43,18 +43,18 @@ def _rows(elements: list[Element]) -> list[Element]:
 
 
 def test_excel_rows_keep_their_real_address_and_headers(tmp_path: Path) -> None:
-    rows = _rows(parse_workbook(_workbook(tmp_path)))
+    rows = _rows(parse_workbook(_workbook(tmp_path))[0])
 
     assert rows[0].location == SourceLocation(sheet="Ölçüler", row=4)
     assert rows[0].text == "Ölçü noktası: İç paça | Beden S: 74,5 | Beden M: 76,5 | Tolerans: 1,0"
 
 
-def test_excel_numeric_cells_are_kept_as_values(tmp_path: Path) -> None:
-    assert "Beden S: 100.5" in _rows(parse_workbook(_workbook(tmp_path)))[1].text
+def test_excel_general_numbers_are_written_as_shown(tmp_path: Path) -> None:
+    assert "Beden S: 100,5" in _rows(parse_workbook(_workbook(tmp_path))[0])[1].text
 
 
 def test_excel_merged_data_cell_applies_to_every_column(tmp_path: Path) -> None:
-    text = _rows(parse_workbook(_workbook(tmp_path)))[2].text
+    text = _rows(parse_workbook(_workbook(tmp_path))[0])[2].text
 
     assert "Beden S: ortak değer" in text and "Beden M: ortak değer" in text
 
@@ -62,7 +62,7 @@ def test_excel_merged_data_cell_applies_to_every_column(tmp_path: Path) -> None:
 def test_excel_title_above_header_is_available_as_section(tmp_path: Path) -> None:
     headings = [
         element
-        for element in parse_workbook(_workbook(tmp_path))
+        for element in parse_workbook(_workbook(tmp_path))[0]
         if element.kind is ElementKind.HEADING
     ]
 
@@ -71,7 +71,7 @@ def test_excel_title_above_header_is_available_as_section(tmp_path: Path) -> Non
 
 
 def test_excel_every_sheet_is_read(tmp_path: Path) -> None:
-    rows = _rows(parse_workbook(_workbook(tmp_path)))
+    rows = _rows(parse_workbook(_workbook(tmp_path))[0])
 
     assert rows[-1].location == SourceLocation(sheet="Etiketler", row=2)
     assert rows[-1].text == "Beden: S | Etiket kodu: ETK-1000"

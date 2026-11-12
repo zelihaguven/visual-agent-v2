@@ -1,5 +1,9 @@
-"""Yüklenen dosyanın gerçek biçimini belirler."""
+"""Yüklenen dosyanın gerçek biçimini ve biçimin parçalama kuralı sürümünü belirler.
 
+Ağır paket yüklemez: API, belge işleme paketleri olmadan da bu modülü kullanır.
+"""
+
+from collections.abc import Mapping
 from enum import StrEnum
 from pathlib import Path
 
@@ -12,6 +16,7 @@ class InputFormat(StrEnum):
     IMAGE = "image"
     SQL = "sql"
     TEXT = "text"
+    MARKDOWN = "markdown"
 
 
 class UnsupportedFormat(ValueError):
@@ -37,9 +42,31 @@ _TYPES: dict[str, tuple[InputFormat, tuple[bytes, ...]]] = {
     ".tiff": (InputFormat.IMAGE, (b"II*\x00", b"MM\x00*")),
     ".sql": (InputFormat.SQL, ()),
     ".txt": (InputFormat.TEXT, ()),
-    ".md": (InputFormat.TEXT, ()),
+    ".md": (InputFormat.MARKDOWN, ()),
 }
 _MAGIC_LENGTH = 8
+
+RULES_VERSIONS: dict[InputFormat, int] = {
+    InputFormat.PDF: 1,
+    InputFormat.OFFICE: 1,
+    InputFormat.IMAGE: 1,
+    InputFormat.SPREADSHEET: 2,
+    InputFormat.LEGACY_SPREADSHEET: 2,
+    InputFormat.SQL: 2,
+    InputFormat.TEXT: 2,
+    InputFormat.MARKDOWN: 2,
+}
+"""Biçimin parçalarını üreten kuralların sürümü. Bir biçimin parçalarını ya da konumlarını
+değiştiren her değişiklikte o biçimin sürümü artırılır; eski sürümle işlenmiş belge yeniden
+işlenene kadar eski parçalarıyla kalır."""
+UNRECORDED_RULES = 1
+"""Sürüm kaydedilmeden önce işlenen belgeler ilk sürümle işlenmiştir."""
+
+
+def format_of_name(name: str) -> InputFormat | None:
+    """Uzantıya göre biçim; içerik denetlenmez. Desteklenmeyen uzantıda None."""
+    known = _TYPES.get(Path(name).suffix.lower())
+    return known[0] if known else None
 
 
 def detect_format(path: Path) -> InputFormat:
@@ -53,3 +80,13 @@ def detect_format(path: Path) -> InputFormat:
         if not start.startswith(signatures):
             raise UnsupportedFormat(f"{path.name}: dosya içeriği uzantısıyla uyuşmuyor")
     return input_format
+
+
+def is_outdated(report: Mapping[str, object], filename: str) -> bool:
+    """Belge, biçiminin bugünkü kuralından eski bir kuralla işlendiyse True (kayıtlı rapordan)."""
+    recorded = report.get("input_format")
+    input_format = InputFormat(recorded) if isinstance(recorded, str) else format_of_name(filename)
+    if input_format is None:
+        return False
+    version = report.get("rules_version", UNRECORDED_RULES)
+    return isinstance(version, int) and version < RULES_VERSIONS[input_format]

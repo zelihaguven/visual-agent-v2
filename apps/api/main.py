@@ -38,7 +38,7 @@ from visual_agent.domain.result import (
     NotFound,
     SmallTalk,
 )
-from visual_agent.ingest.formats import UnsupportedFormat, detect_format
+from visual_agent.ingest.formats import UnsupportedFormat, detect_format, is_outdated
 from visual_agent.settings import Settings
 from visual_agent.voice.client import Voice
 
@@ -123,6 +123,8 @@ class DocumentResponse(BaseModel):
     status: DocumentStatus
     error: str | None
     report: dict[str, object] | None
+    outdated: bool
+    """Belge, biçiminin bugünkü parçalama kuralından eski bir kuralla işlendi."""
 
 
 def _document_response(document: StoredDocument) -> DocumentResponse:
@@ -133,6 +135,7 @@ def _document_response(document: StoredDocument) -> DocumentResponse:
         status=document.status,
         error=document.error,
         report=document.report,
+        outdated=document.report is not None and is_outdated(document.report, document.filename),
     )
 
 
@@ -363,7 +366,7 @@ async def _chunk_source(chunk: Chunk, services: ApiServices) -> dict[str, object
             "title": title,
             "image_url": f"/api/chunks/{chunk.chunk_id}/preview.png",
         }
-    return {"kind": "text", "text": chunk.text, "title": title}
+    return {"kind": "text", "text": chunk.text, "title": title, "section": location.section}
 
 
 def _library_router(app: FastAPI) -> APIRouter:
