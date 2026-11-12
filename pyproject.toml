@@ -53,6 +53,7 @@ torchvision = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
 
 [dependency-groups]
 dev = [
+    "httpx2>=2.16.0",
     "mypy>=1.13",
     "openpyxl>=3.1.5",
     "pytest>=8.3",

@@ -661,6 +661,21 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Bedeli:** Belge işlenirken cevaplar yavaşlayabilir.
 - **Yeniden düşünülür:** Sunucu kurulumunda ya da arama gecikmesi sorun olursa.
 
+### Bağımlılık temizliği; httpx2 geri eklendi
+- **Ne zaman:** `#e048dde` (PR #20, 2026-11-12); geri ekleme `httpx-dev` dalı (2026-11-12).
+- **Ne yapıldı (PR #20):**
+  - `httpx2` dev bağımlılığı "hiçbir dosya import etmiyor" diye kaldırıldı.
+  - Ana bağımlılıklarda olan `pillow` ve `pypdfium2`'nin `ingest` ve `dev` gruplarındaki
+    tekrarları kaldırıldı.
+  - Yalnız testte kullanılan üç işlev silindi.
+- **Hata:** "Doğrudan import edilmiyor" kontrolü dolaylı kullanımı kaçırdı.
+  - FastAPI ve Starlette'in test istemcisi `httpx2`'yi kendisi kullanıyor.
+  - Paket kaldırılınca testler `StarletteDeprecationWarning` vermeye başladı.
+  - `httpx2>=2.16.0` dev bağımlılığı olarak geri eklendi (ekip onayıyla). Uyarı gitti,
+    testler geçiyor.
+- **Ders:** Bir bağımlılık kaldırılmadan önce kod içi import araması yetmez. Paketi kaldırıp
+  testleri uyarılarla birlikte çalıştırmak ve kilitteki dolaylı kullanımına bakmak gerekir.
+
 ### Docker paketi sunucu için kalır; denenmedi
 - **Ne zaman:** 0003.
 - **Neden:** Bu bilgisayarda Docker yok. Paketi yalnız CI'daki `services` işi sınıyor.
