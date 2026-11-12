@@ -46,7 +46,7 @@ _NOTICES = {
     "tr": {
         "clarify": "Netleştirmem gereken bir nokta var, ekrana bakın.",
         "not_found": (
-            "Bu bilgi belgelerde bulunamadı. Bir model ya da konu söylerseniz yardımcı olabilirim."
+            "Bu bilgi belgelerde bulunamadı. Soruyu başka sözcüklerle sorarsanız yeniden bakarım."
         ),
         "failed": "Cevap doğrulanamadı, ekrana bakın.",
         "partial": "Bazı değerler doğrulanamadı, ekrana bakın.",
@@ -55,7 +55,7 @@ _NOTICES = {
     },
     "en": {
         "clarify": "I need to clarify something, please check the screen.",
-        "not_found": "Not found in the documents. Tell me a model or topic and I can help.",
+        "not_found": "Not found in the documents. Ask in other words and I will look again.",
         "failed": "The answer could not be verified, please check the screen.",
         "partial": "Some values could not be verified, please check the screen.",
         "from_ocr": (
@@ -132,13 +132,24 @@ class PhraseCache:
 
 
 def _inventory_summary(result: Inventory, language: str) -> str:
-    """Liste sesle okunmaz; sayı söylenip kullanıcıya hangisi olduğu sorulur."""
+    """Liste sesle okunmaz; sayı söylenir. Liste varsa hangisi olduğu, yoksa konu sorulur."""
     documents, codes = result.document_count, result.code_count
+    listed = bool(result.documents)
     if language == "en":
         held = f"{documents} documents and {codes} codes" if codes else f"{documents} documents"
-        return f"I have {held}, the list is on screen. Which one do you mean?"
+        ask = (
+            "the list is on screen. Which one do you mean?"
+            if listed
+            else "tell me a topic or document name and I will look there."
+        )
+        return f"I have {held}, {ask}"
     held = f"{documents} belgede {codes} kod var" if codes else f"{documents} belge var"
-    return f"{held}, liste ekranda. Hangisini soruyorsunuz?"
+    ask = (
+        "liste ekranda. Hangisini soruyorsunuz?"
+        if listed
+        else "bir konu ya da belge adı söylerseniz ona göre ararım."
+    )
+    return f"{held}, {ask}"
 
 
 def _answered_notice_key(result: Answered) -> str | None:

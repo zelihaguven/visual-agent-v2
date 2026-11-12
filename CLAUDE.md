@@ -1,61 +1,80 @@
-# Visual Agent v2: çalışma kuralları
+# CLAUDE.md — visual-agent-v2
 
-Önceden yüklenmiş belgelere yazarak ya da konuşarak soru sorulan, her cevabı kaynağıyla
-gösteren web aracı. Başlamadan önce: README.md, docs/acik-notlar.md, docs/decisions/.
+Bu repo senin sorumluluğunda. Kodun düzeni, sadeliği ve doğruluğu senin mühendislik kararlarının sonucu; ona göre davran. Ama sorumluluk, aşağıdaki sınırların içinde geçerli: bazı kararlar ekipten onay ister (bkz. "Karar yetkisi").
 
-## Değişmeyen ilkeler
-- Yanlış değer asla doğrulanmış gösterilmez. "Bulunamadı" ya da netleştirme sorusu,
-  yanlış cevaptan iyidir. Haksız ret kabul edilebilir; haksız kabul edilemez.
-- Belgeye ya da alana özel elle yazılmış kural yok. Her kural görülmemiş belgede de
-  çalışmalı. Kural format düzeyinde olabilir (PDF, Word, markdown), belge düzeyinde
-  olamaz. Belgeler ham ya da hazır markdown olarak gelebilir; ikisi de desteklenir.
-  Test belgeleri üretimde kullanılmaz.
-- Buluta yalnız soru ve parçalar gider, yalnız ZDR sağlayıcılara. Ses saklanmaz.
-- Mevcut düzen korunur: katman sınırları (tests/test_architecture.py), mypy strict,
-  ruff (karmaşıklık 10), kapsam eşiği, Türkçe docstring ve mesajlar.
-- docs/acik-notlar.md: biten madde silinir, ertelenen madde eklenir. Ölçülmemiş bir
-  çıkarım sonuç gibi yazılmaz.
+Raporlarını ve açıklamalarını Türkçe yaz.
+
+## Ürün
+
+Fabrikadaki iç belgeler (kılavuzlar, sürüm notları, teknik föyler, Excel/Word dosyaları) üzerinde soru-cevap asistanı.
+
+- Kullanıcılar sabit değil: hattaki işçi de olabilir, bir iç aracı soran SQL uzmanı da.
+- Soru belge belirtmeden sorulabilir; sistem doğru belgeyi kendi bulur. Belirsizse (ör. iki benzer ürün modeli) hangisini kastettiğini sorar.
+- Cevap gerçek zamanlı olmalı; cevabın kaynak sayfası/bölümü görünür olmalı.
+- İleride: sesli soru-cevap, gerektiğinde görsel gösterme, departman bazlı yetki.
+
+## Değişmez kurallar
+
+1. **Yanlış değer asla verilmez.** Ölçü, ayar değeri, vida değeri gibi sayılar kaynakta doğrulanmadan kullanıcıya gösterilmez. Emin olunamıyorsa cevap vermemek, yanlış vermekten iyidir.
+2. **Alana bağımsız ve otomatik.** Şu anki test belgeleri üretimde kullanılmayacak. Gerçek belgeler elle düzeltilemez. Her kural, hiç görülmemiş belgelerde de kendiliğinden çalışmalı. Belgeye, soruya ya da belirli bir modele özel yama yazma.
+3. **Karışık belge türleri.** Gerçek belgeler ham (PDF, taranmış PDF, Word, Excel) ya da hazır Markdown olarak gelebilir. Dönüştürmede içerik kaybı olmamalı.
+4. **Bulut kullanımı.** Buluta yalnızca parçalar (chunk) gider, bütün belge gitmez. Yalnızca ZDR (Zero Data Retention) sağlayan sağlayıcılar kullanılır.
+5. **Maliyet / kalite dengesi.** Ucuz ama zayıf model kabul edilmez; maliyet de uçmamalı. Model değişikliği ölçümle gerekçelendirilir.
+6. **Uygulama boş açılmaz.** Repodaki örnek belgeler ve FastReact belgeleri uygulamada yüklü kalır.
+
+## Harcama ve indeksleme
+
+API limiti sınırlı. Gereksiz çağrı ve gereksiz indeksleme yapma.
+
+- **Yeniden indeksleme yapma** — ekip açıkça istemedikçe. Ölçümler ve testler mevcut indeksle çalışır. Bir değişiklik yeniden indeksleme gerektiriyorsa, yapma; gerektiğini ve tahmini süresini/maliyetini rapora yaz.
+- Aynı soru + aynı istem + aynı model için API'yi ikinci kez çağırma; önbelleği kullan.
+- Bir ölçüm turu beklenenden pahalıya gidecekse dur ve sor.
+- Her soruyu ölçümde bir kez çalıştır. Sonuç beklendiği gibi değilse istemi tekrar tekrar değiştirip yeniden ölçme; nedenini yaz ve geç.
+- İndeks kopyaları, vektör önbellekleri ve büyük ölçüm çıktıları repoya girmez (`.gitignore`).
+
+## Kod hijyeni
+
+Repo sade kalmalı. Daha önce "overengineered" bulundu; bunu tekrarlama.
+
+- Yeni kod yazmadan önce aynı işi yapan bir şey var mı bak. Varsa onu değiştir, yanına ikincisini yazma.
+- Yeni dosya/modül açıyorsan gerekçesini rapora yaz.
+- Tek seferlik betikler repoya girmez; scratchpad'de kalır.
+- Kullanılmayan kodu bulursan sil. "İleride lazım olur" diye kod bırakma.
+- Bir sorunu çözmek için katman ekleme; önce mevcut akışın içinde çözülüp çözülemeyeceğine bak.
+
+## Karar yetkisi
+
+**Kendin karar verebilirsin:**
+- Kod düzeni, yeniden adlandırma, ölü kod temizliği
+- Hata düzeltmeleri, test ekleme/düzeltme
+- Arayüzde küçük düzeltmeler
+- Mevcut mimari içinde kalan küçük iyileştirmeler
+
+**Önce ekibe sor:**
+- Yeniden indeksleme, parça boyutu / bölme mantığı değişikliği
+- Yeni model, yeni bağımlılık, reranker gibi yeni bileşenler
+- Cevap modelinin istemindeki (prompt) değişiklikler
+- Para veya sunucu gerektiren her şey
+- Değerlendirme setlerinin ve beklenen cevap dosyalarının (`evals/...beklenenler.json` vb.) içeriği — bunları düzeltme, sorunu bildir
+- `docs/acik-notlar.md`'deki ertelenmiş işlerden birine başlamak
 
 ## Çalışma biçimi
-- Adımlar sırayla, her adım ayrı commit. Her adımdan sonra: `uv run pytest`,
-  `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy`,
-  `apps/web` içinde `npm test` ve `npm run build`; sonra kısa rapor.
-- Görevde yazmayan iş yapılmaz. Yolda fark edilen diğer sorunlar düzeltilmez,
-  docs/acik-notlar.md'ye yazılır.
-- Yeni kod yazmadan önce aynı işi yapan kod aranır ve o kullanılır. Yeni bağımlılık için
-  önce sorulur.
-- Bir varsayım doğrulanamıyorsa ya da iş tarif edilenden büyük bir tasarım değişikliği
-  gerektiriyorsa uygulamadan önce sor.
-- Gizli dosyalar (.env, anahtarlar): değer yazdırılmaz, loglanmaz; değişiklik yapmadan
-  önce sorulur.
-- Varsayılan dala doğrudan commit yok; dal açılır, PR ile birleşir.
 
-## PR kuralları
-- Bugbot'un çözülmemiş bulgusu varken PR birleşmez. Bugbot hiç incelemediyse beklenir.
-  Bulguyu kendisi çözülmüş işaretlediyse yeni inceleme kaydı beklenmez.
-- Bugbot bir kez inceler. Gerçek hata ya da haksız kabul düzeltilir; diğer bulgular
-  docs/acik-notlar.md'ye yazılır ve PR birleşir.
-- Aynı PR'da ikinci düzeltme turu için önce sor.
-- PR'ı kimin birleştireceği her PR için ayrıca söylenir; söylenmediyse birleştirme.
+- Her iş kendi dalında yapılır. Ana dala doğrudan yazma, birleştirme yapma.
+- Aynı hatanın etrafında tur atma. Bir yaklaşım işe yaramazsa nedenini yaz, açık notlara ekle, sıradaki işe geç.
+- Ertelenen fikirler ve öneriler `docs/acik-notlar.md`'ye yazılır; oradan kendiliğinden iş seçme.
+- Her dal gönderilmeden önce şunlar geçmeli:
+  - `ruff`, format, `mypy`, `pytest`
+  - Web dosyası değiştiyse `npm test` ve `npm run build`
+- Örnek belgeleri yükleme: `uv run python -m apps.sample_documents`
 
-## Ölçüm
-- Geçerli taban: evals/baselines/taban (bu bilgisayar). Doğrulanmış yanlış değer her
-  ölçümde 0 olmalı; değilse dur ve bildir.
-- Ölçüm, uygulamanın kendi kodunu kullanır; ölçüm için ayrı kopya mantık yazılmaz. Tek
-  seferlik betikler evals/output altında kalır, repoya girmez, iş bitince silinir.
-- Aynı API çağrısı iki kez yapılmaz: cevap önbelleği evals/output altında. Denetim ya da
-  puanlama değişikliği `python -m evals.replay` ile önbellekten, maliyetsiz ölçülür.
-- Yeni model isteği ya da belge vektörü gerekiyorsa önce sor. Cevaplar LLM ile puanlanmaz.
-- Kararsız sorular (0004) gerileme sayılmadan önce ayrıca incelenir.
-- Ölçüm indeksleri (evals/output/run*-taban, evals/output/fastreact/calisma)
-  değiştirilmez; yalnız kopyaları kullanılır.
+## Rapor biçimi
 
-## Yerel kurulum (bu bilgisayar)
-- Windows, yönetici yetkisi yok, Docker yok. Uygulama: `baslat.bat`
-  (http://127.0.0.1:8080). Node, Tesseract ve LibreOffice %LOCALAPPDATA%\Programs altında.
-- Uygulamanın verisi data/ altında (SQLite, gömülü Qdrant, belgeler). İçinden hiçbir şey
-  silinmez; gerekirse önce sorulur.
-- Gömülü Qdrant klasörü tek sürece kilitlenir: uygulama açıkken aynı klasörü açan ikinci
-  süreç çalıştırılmaz.
-- Dosyalar LF ve UTF-8 yazılır (baslat.bat CRLF). Python'da yazarken satır sonu açıkça
-  belirtilir.
+Her iş sonunda kısa ve dürüst bir rapor ver:
+
+- Ne yapıldı, hangi dalda
+- **Hedeflenen sorun gerçekten çözüldü mü** — çözülmediyse açıkça yaz
+- Testler ve ölçümler (önce / sonra), doğrulanmış yanlış değer sayısı
+- Maliyet ve süre değişimi
+- Net satır değişimi (eklenen / silinen) ve açılan yeni dosyalar
+- Ekibin karar vermesi veya bakması gerekenler

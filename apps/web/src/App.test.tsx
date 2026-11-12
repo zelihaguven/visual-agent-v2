@@ -258,6 +258,59 @@ describe("App", () => {
     });
   });
 
+  it("scrolls each new question to the top of the conversation", async () => {
+    const scrolled: Element[] = [];
+    const scrollIntoView = vi.fn(function (this: Element) {
+      scrolled.push(this);
+    });
+    Element.prototype.scrollIntoView = scrollIntoView;
+    stubApi({ "/api/documents": () => jsonResponse([]), "/api/ask": () => sse([answered]) });
+    render(<App />);
+
+    await ask("ilk soru");
+    await screen.findByText("Doğrulandı");
+    await ask("ikinci soru");
+    await waitFor(() => expect(screen.getAllByText("Doğrulandı")).toHaveLength(2));
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+    expect(scrollIntoView).toHaveBeenLastCalledWith({ block: "start", behavior: "smooth" });
+    expect(scrolled.map((turn) => turn.querySelector(".question")?.textContent)).toEqual([
+      "ilk soru",
+      "ikinci soru",
+    ]);
+  });
+
+  it("says a sentence was hidden, without claiming there was a value", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          { type: "item_unverified", index: 0, message: "x", source_numbers: [] },
+          {
+            ...answered,
+            result: {
+              ...answered.result,
+              status: "failed",
+              items: [
+                { ...answered.result.items[0], verified: false, citations: [] },
+                { ...answered.result.items[0], verified: false },
+              ],
+            },
+          },
+        ]),
+    });
+    render(<App />);
+    await ask("soru");
+
+    expect(
+      await screen.findByText("Bu cümle kaynakla doğrulanamadığı için gösterilmiyor."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Bu cümle kaynakla doğrulanamadığı için gösterilmiyor. Kaynağa bakın."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Değer doğrulanamadı/)).not.toBeInTheDocument();
+  });
+
   it("states clearly when the answer is not in the documents", async () => {
     stubApi({
       "/api/documents": () => jsonResponse([]),
@@ -277,6 +330,7 @@ describe("App", () => {
     await ask("soru");
 
     expect(await screen.findByText("Bu bilgi belgelerde bulunamadı.")).toBeInTheDocument();
+    expect(screen.queryByText(/model/i)).not.toBeInTheDocument();
   });
 
   it("shows an error when the answer stream fails", async () => {
@@ -625,6 +679,29 @@ describe("App", () => {
     expect(await screen.findByText("1 belge, 205 kod")).toBeInTheDocument();
     expect(screen.getByText("PNT-1, PNT-2 ve 203 kod daha")).toBeInTheDocument();
     expect(screen.getByText("Hangisini soruyorsunuz?")).toBeInTheDocument();
+  });
+
+  it("gives only the count when too many documents would be listed", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          {
+            type: "done",
+            timings: {},
+            question: "soru",
+            scope_inherited: false,
+            context: null,
+            result: { kind: "inventory", document_count: 377, code_count: 0, documents: [] },
+          },
+        ]),
+    });
+    render(<App />);
+    await ask("neler var");
+
+    expect(await screen.findByText("377 belge, 0 kod")).toBeInTheDocument();
+    expect(screen.getByText(/Bir konu ya da belge adı yazarsanız/)).toBeInTheDocument();
+    expect(screen.queryByText("Hangisini soruyorsunuz?")).not.toBeInTheDocument();
   });
 
   describe("conversation mode", () => {

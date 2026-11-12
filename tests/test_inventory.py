@@ -228,8 +228,8 @@ def test_no_classifier_means_plain_not_found() -> None:
             "dört belgede on iki kod var, liste ekranda. Hangisini soruyorsunuz?",
         ),
         (
-            Inventory(documents=(), document_count=4, code_count=0),
-            "dört belge var, liste ekranda. Hangisini soruyorsunuz?",
+            Inventory(documents=(), document_count=7, code_count=0),
+            "yedi belge var, bir konu ya da belge adı söylerseniz ona göre ararım.",
         ),
     ],
 )
@@ -388,3 +388,42 @@ def test_small_talk_reaches_the_client_as_its_own_kind(tmp_path: Path) -> None:
     events = ask_events(voice_client(tmp_path, None, [], SmallTalk(text="Merhaba")), False)
 
     assert events[-1]["result"] == {"kind": "small_talk", "text": "Merhaba"}
+
+
+def _release_catalog(deps: AskDeps, count: int) -> None:
+    for number in range(count):
+        deps.catalog.add(
+            DocumentMeta(doc_id=f"rn{number}", title=f"RELEASE_NOTES_Software_Releases_4{number}")
+        )
+
+
+def test_inventory_keeps_documents_whose_title_carries_the_topic() -> None:
+    deps = deps_with(FakeClassifier())
+    _release_catalog(deps, 2)
+
+    outcome = ask(deps, "release notes dosyalarında ne var")
+
+    assert isinstance(outcome.result, Inventory)
+    assert outcome.result.document_count == 2
+    assert [item.doc_id for item in outcome.result.documents] == ["rn0", "rn1"]
+
+
+def test_inventory_topic_is_a_phrase_not_a_single_word() -> None:
+    deps = deps_with(FakeClassifier())
+    _release_catalog(deps, 2)
+
+    outcome = ask(deps, "Kılavuz belgelerinde ne var?")
+
+    assert isinstance(outcome.result, Inventory)
+    assert outcome.result.document_count == 5
+
+
+def test_inventory_counts_but_does_not_list_more_than_four_documents() -> None:
+    deps = deps_with(FakeClassifier())
+    _release_catalog(deps, 10)
+
+    outcome = ask(deps, "release note olan kaç belge var")
+
+    assert isinstance(outcome.result, Inventory)
+    assert outcome.result.document_count == 10
+    assert outcome.result.documents == ()
