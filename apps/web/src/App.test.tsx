@@ -681,6 +681,29 @@ describe("App", () => {
     expect(screen.getByText("Hangisini soruyorsunuz?")).toBeInTheDocument();
   });
 
+  it("gives only the count when too many documents would be listed", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          {
+            type: "done",
+            timings: {},
+            question: "soru",
+            scope_inherited: false,
+            context: null,
+            result: { kind: "inventory", document_count: 377, code_count: 0, documents: [] },
+          },
+        ]),
+    });
+    render(<App />);
+    await ask("neler var");
+
+    expect(await screen.findByText("377 belge, 0 kod")).toBeInTheDocument();
+    expect(screen.getByText(/Bir konu ya da belge adı yazarsanız/)).toBeInTheDocument();
+    expect(screen.queryByText("Hangisini soruyorsunuz?")).not.toBeInTheDocument();
+  });
+
   describe("conversation mode", () => {
     const phrase = (name: string) => ({ audio: btoa(name), mime: "audio/wav" });
     const PHRASES = { greeting: phrase("merhaba"), waiting: [phrase("bir")] };

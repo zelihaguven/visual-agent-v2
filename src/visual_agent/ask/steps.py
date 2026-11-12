@@ -6,12 +6,12 @@ import time
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 
+from visual_agent.ask.agreement import agreed_answer, candidate_documents
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.language import detect_language
 from visual_agent.ask.streaming import INCOMPLETE_MESSAGE, StreamAssembler
 from visual_agent.domain.answer import (
     AnswerKind,
-    AnswerVerification,
     ItemCheck,
     ModelAnswer,
     ModelItem,
@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 
 _MAX_EXACT_CHUNKS_PER_IDENTIFIER = 2
 _MIN_CLARIFY_DOCUMENTS = 2
+_MAX_CLARIFY_DOCUMENTS = 4
 _SERVICE_DOWN = "Cevap servisi şu an kullanılamıyor. Bulunan kaynak sayfaları aşağıda."
 _MODEL_FAILED = "Model güvenilir bir cevap üretemedi. Değeri kaynaktan kontrol edin."
 
@@ -290,12 +291,13 @@ def _answered_item(item: ModelItem, check: ItemCheck, hits: Sequence[Hit]) -> An
 
 
 def _clarification(
-    answer: ModelAnswer, verification: AnswerVerification, state: AskState, deps: AskDeps
+    answer: ModelAnswer, documents: Sequence[str], state: AskState, deps: AskDeps
 ) -> Clarify:
-    documents = list(
-        dict.fromkeys(state.hits[n - 1].chunk.doc_id for n in verification.clarify_options)
+    """Belge düğmeleri yalnız 2-4 aday belgede gösterilir; daha çoğu listelenmez."""
+    show_choices = (
+        _MIN_CLARIFY_DOCUMENTS <= len(documents) <= _MAX_CLARIFY_DOCUMENTS
+        and not state.request.doc_ids
     )
-    show_choices = len(documents) >= _MIN_CLARIFY_DOCUMENTS and not state.request.doc_ids
     return Clarify(
         question=safe_clarify_question(
             answer.clarify.question if answer.clarify else "", state.question, state.language
@@ -315,7 +317,12 @@ async def verify(state: AskState, deps: AskDeps) -> AskState:
     if verification.status is VerificationStatus.NOT_FOUND:
         return replace(state, result=NotFound())
     if verification.status is VerificationStatus.CLARIFY:
-        return replace(state, result=_clarification(answer, verification, state, deps))
+        documents = candidate_documents(state.hits, verification.clarify_options)
+        agreed, cost = await agreed_answer(
+            state.question, state.language, state.hits, documents, deps, _citation
+        )
+        result = agreed or _clarification(answer, documents, state, deps)
+        return replace(state, result=result, cost_usd=state.cost_usd + cost)
     if answer.kind is not AnswerKind.ANSWER:
         citations = tuple(_citation(hit) for hit in state.hits)
         return replace(state, result=Failed(reason=_MODEL_FAILED, citations=citations))

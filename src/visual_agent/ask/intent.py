@@ -3,10 +3,12 @@
 import asyncio
 import logging
 import re
+from collections.abc import Sequence
 from dataclasses import replace
 
 from visual_agent.ask.deps import AskDeps
 from visual_agent.ask.steps import AskState
+from visual_agent.catalog.memory import DocumentCatalog, squash
 from visual_agent.domain.result import AskResult, Inventory, InventoryDocument, SmallTalk
 from visual_agent.generation.intent import Intent
 from visual_agent.verification.text import identifiers_in, normalize
@@ -14,6 +16,10 @@ from visual_agent.verification.text import identifiers_in, normalize
 logger = logging.getLogger(__name__)
 
 _MAX_LISTED_CODES = 200
+MAX_LISTED_DOCUMENTS = 4
+_MIN_TOPIC_WORDS = 2
+_MAX_TOPIC_WORDS = 4
+_WORD_RE = re.compile(r"\w+")
 SMALL_TALK_REPLIES: dict[str, dict[Intent, str]] = {
     "tr": {
         "greeting": "Merhaba, nasıl yardımcı olabilirim?",
@@ -68,9 +74,33 @@ def common_small_talk(question: str) -> Intent | None:
     return "about_to_ask" if _ANNOUNCING_RE.fullmatch(text) else _COMMON_SMALL_TALK.get(text)
 
 
+def _topic_phrases(question: str) -> set[str]:
+    """Sorudaki 2-4 kelimelik ardışık öbekler; tek kelime belge adı gibi aranmaz."""
+    words = _WORD_RE.findall(normalize(question))
+    return {
+        squash(" ".join(words[start : start + size]))
+        for size in range(_MIN_TOPIC_WORDS, _MAX_TOPIC_WORDS + 1)
+        for start in range(len(words) - size + 1)
+    }
+
+
+def topic_documents(
+    question: str, allowed: Sequence[str], catalog: DocumentCatalog
+) -> tuple[str, ...]:
+    """Başlığında sorudaki bir öbek geçen belgeler; hiçbirinde geçmiyorsa hepsi."""
+    phrases = _topic_phrases(question)
+    matched = tuple(
+        doc_id
+        for doc_id in allowed
+        if any(phrase in squash(catalog.title(doc_id)) for phrase in phrases)
+    )
+    return matched or tuple(allowed)
+
+
 def _build_inventory(state: AskState, deps: AskDeps) -> Inventory:
+    """Sayılar kayıtlardan gelir; dörtten çok belge varsa belgeler listelenmez."""
     documents = []
-    for doc_id in state.allowed:
+    for doc_id in topic_documents(state.question, state.allowed, deps.catalog):
         codes = deps.identifiers.codes_of(doc_id)
         documents.append(
             InventoryDocument(
@@ -81,7 +111,7 @@ def _build_inventory(state: AskState, deps: AskDeps) -> Inventory:
             )
         )
     return Inventory(
-        documents=tuple(documents),
+        documents=tuple(documents) if len(documents) <= MAX_LISTED_DOCUMENTS else (),
         document_count=len(documents),
         code_count=sum(document.code_count for document in documents),
     )

@@ -132,13 +132,24 @@ class PhraseCache:
 
 
 def _inventory_summary(result: Inventory, language: str) -> str:
-    """Liste sesle okunmaz; sayı söylenip kullanıcıya hangisi olduğu sorulur."""
+    """Liste sesle okunmaz; sayı söylenir. Liste varsa hangisi olduğu, yoksa konu sorulur."""
     documents, codes = result.document_count, result.code_count
+    listed = bool(result.documents)
     if language == "en":
         held = f"{documents} documents and {codes} codes" if codes else f"{documents} documents"
-        return f"I have {held}, the list is on screen. Which one do you mean?"
+        ask = (
+            "the list is on screen. Which one do you mean?"
+            if listed
+            else "tell me a topic or document name and I will look there."
+        )
+        return f"I have {held}, {ask}"
     held = f"{documents} belgede {codes} kod var" if codes else f"{documents} belge var"
-    return f"{held}, liste ekranda. Hangisini soruyorsunuz?"
+    ask = (
+        "liste ekranda. Hangisini soruyorsunuz?"
+        if listed
+        else "bir konu ya da belge adı söylerseniz ona göre ararım."
+    )
+    return f"{held}, {ask}"
 
 
 def _answered_notice_key(result: Answered) -> str | None:
