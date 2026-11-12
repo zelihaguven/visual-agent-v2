@@ -50,10 +50,6 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Yüklenen Office dosyaları işçide LibreOffice ile açılıyor; işçinin internet erişimi kapatılabilir.
 - Yerel kurulumda arayüzü nginx değil API sunuyor: nginx'teki güvenlik başlıkları (CSP, X-Frame-Options, nosniff, Referrer-Policy) ve `/api/ask`, `/api/speak`, `/api/transcribe` için hız sınırı yerelde yok. Ağa açmadan önce bunlar API'ye ya da önündeki bir vekil sunucuya eklenmeli.
 
-## Sağlayıcı
-
-- İlk token için konan zaman aşımı (`answer_first_token_seconds`, varsayılan 2,5 sn) akışın her okumasına uygulanıyor (`generation/openrouter.py`). İlk tokendan sonra sağlayıcı 2,5 sn'den uzun duraklarsa cevap `ReadTimeout` ile düşüyor.
-
 ## Kurulum
 
 - Sunucu (Docker) kurulumundaki Docling model indirme komutu (`docling-tools models download`) önceki bilgisayarda takıldı ve hiç doğrulanmadı. Yerel kurulumda bu komut kullanılmıyor, modeller ilk belgede kendiliğinden iniyor. Sunucuya ilk kurulumda denenecek; takılırsa nedeni bulunacak.
