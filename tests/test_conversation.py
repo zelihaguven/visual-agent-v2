@@ -244,14 +244,30 @@ def test_partially_verified_answer_becomes_the_next_context() -> None:
     )
 
 
-def test_unverified_answer_does_not_replace_the_context() -> None:
+def test_hidden_answer_keeps_the_question_but_not_its_documents() -> None:
     payload = answer_payload("Dış paça 99.", "Dış paça 99")
 
     outcome = ask_with(deps_with(follows(), FakeClient(payload)), "Peki dış paça kaç?")
 
     assert isinstance(outcome.result, Answered)
-    assert outcome.result.status is not VerificationStatus.VERIFIED
-    assert outcome.context == PREVIOUS
+    assert outcome.result.status is VerificationStatus.FAILED
+    assert outcome.context == PREVIOUS.model_copy(update={"question": RESOLVED})
+
+
+def test_follow_up_after_a_hidden_answer_is_completed_from_the_hidden_turn() -> None:
+    """dikim-sohbet-2: "S beden bel?" -> "L beden?" (cevap gizlendi) -> "Etiketi ne?"."""
+    first = ConversationContext(question="PNT-4417 S beden bel kaç?", doc_ids=("a",))
+    hidden = answer_payload("L beden bel 42,0 cm.", "M: 76,5")  # kaynakta birim yok
+    second = ask_with(
+        deps_with(follows("PNT-4417 L beden bel kaç?"), FakeClient(hidden)), "L beden?", first
+    )
+    assert isinstance(second.result, Answered)
+    assert second.result.status is VerificationStatus.FAILED
+
+    rewriter = follows("PNT-4417 L beden etiketi ne?")
+    ask_with(deps_with(rewriter, FakeClient(VERIFIED)), "Etiketi ne?", second.context)
+
+    assert rewriter.calls == [("PNT-4417 L beden bel kaç?", "Etiketi ne?")]
 
 
 def test_not_found_keeps_the_previous_context() -> None:
