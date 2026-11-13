@@ -245,3 +245,21 @@ def test_boundary_set_does_not_change_the_main_set(tmp_path: Path) -> None:
     main = generate_set(seed=7, output=tmp_path / "ana")
 
     assert "sinir" not in {document.domain for document in main.documents}
+
+
+def _group_ranges(path: Path) -> set[str]:
+    workbook = openpyxl.load_workbook(path)
+    return {str(merged) for sheet in workbook.worksheets for merged in sheet.merged_cells.ranges}
+
+
+def test_group_header_spans_every_size_column(
+    generated: tuple[GoldSet, Path], boundary: tuple[GoldSet, Path]
+) -> None:
+    gold, output = boundary
+    model_sheets = next(d for d in gold.documents if d.doc_id == "sinir-model-sayfa")
+    main, main_output = generated
+    sewing = next(d for d in main.documents if d.carrier is Carrier.XLSX and "dikim" in d.doc_id)
+
+    # Sınır: S, M, L üçü de grup başlığının altında. Dikim: son sütun (tolerans) dışarıda.
+    assert _group_ranges(output / model_sheets.filename) == {"B2:D2"}
+    assert "B2:D2" in _group_ranges(main_output / sewing.filename)

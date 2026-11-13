@@ -315,12 +315,15 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   - Taban 7 ve 11: hiçbir sorunun sonucu değişmedi (`dikim-excel` soruları dahil).
   - Tek sayfalı Excel'lerin parçaları değişmez; sürüm biçim düzeyinde olduğu için onlar da
     "eski kuralla işlendi" görünür, ama yeniden işlenmeleri zorunlu değil.
-- **Bilinen:**
-  - Yeni belgenin iki sorusu (`3102 bel M`, `3103 basen L`) doğru değeri buluyor ama
-    gizleniyor: üretilen tabloda grup başlığı L sütununa uzanmıyor, model alıntıda etiketi
-    "düzeltiyor" ve alıntı kaynakla birebir tutmuyor.
-  - Yeni belge "Basen / Beden M" taşıdığı için model adı vermeyen eski iki sınır sorusu
-    (`sinir-sutun-basen-m`, `sinir-sutun-bel-l-teyit`) artık netleştirme soruyor.
+- **Sonra düzeltilen** (`sinir-olcu-adlari` dalı):
+  - Yeni belge eski beden tablosuyla aynı ölçü adlarını (Bel, Basen) taşıyordu; model adı
+    vermeyen eski iki sınır sorusu (`sinir-sutun-basen-m`, `sinir-sutun-bel-l-teyit`) haklı
+    olarak netleştirme soruyordu. Ölçü adları Göğüs, Omuz, Kol boyu yapıldı.
+  - Üreticide grup başlığı son beden sütununa (L) uzanmıyordu; iki soru doğru değeri bulup
+    alıntıdaki etiket kaynakla birebir tutmadığı için gizleniyordu. Grup başlığının kapsadığı
+    sütun sayısı artık açıkça veriliyor (dikim tablolarında tolerans sütunu dışarıda kalır).
+  - Yalnız bu belge yeniden işlendi (9 parça, 4 sn). Sınır seti 32/32, doğrulanmış yanlış 0;
+    canlı maliyet 0,0009 $ (yeni 4 soru; değişen bağlamla sorulan 12 eski soru önbellekten).
 
 ## Cevap modeli ve istem
 

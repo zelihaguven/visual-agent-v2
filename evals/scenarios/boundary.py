@@ -70,15 +70,27 @@ SIZES = (
 MODEL_SHEETS = (
     (
         "PNT-3101",
-        (("Bel", "70", "72", "74"), ("Basen", "94", "96", "98"), ("Boy", "102", "104", "106")),
+        (
+            ("Göğüs", "70", "72", "74"),
+            ("Omuz", "94", "96", "98"),
+            ("Kol boyu", "102", "104", "106"),
+        ),
     ),
     (
         "PNT-3102",
-        (("Bel", "75", "77", "79"), ("Basen", "99", "101", "103"), ("Boy", "107", "109", "111")),
+        (
+            ("Göğüs", "75", "77", "79"),
+            ("Omuz", "99", "101", "103"),
+            ("Kol boyu", "107", "109", "111"),
+        ),
     ),
     (
         "PNT-3103",
-        (("Bel", "80", "82", "84"), ("Basen", "104", "106", "108"), ("Boy", "112", "114", "116")),
+        (
+            ("Göğüs", "80", "82", "84"),
+            ("Omuz", "104", "106", "108"),
+            ("Kol boyu", "112", "114", "116"),
+        ),
     ),
 )
 WASHING = (("Pamuk", "30", "60"), ("Polyester", "20", "40"), ("Yün", "20", "30"))
@@ -225,39 +237,40 @@ def _model_sheet_questions(document: ScenarioDocument) -> tuple[GoldQuestion, ..
 
     return (
         ask(
-            "sinir-sayfa-3102-bel-m",
-            "PNT-3102 modelinde M beden bel kaç?",
+            "sinir-sayfa-3102-gogus-m",
+            "PNT-3102 modelinde M beden göğüs kaç?",
             "77",
             "PNT-3102 · Beden M: 77",
             1,
             0,
         ),
         ask(
-            "sinir-sayfa-3103-basen-l",
-            "PNT-3103 L beden basen ölçüsü nedir?",
+            "sinir-sayfa-3103-omuz-l",
+            "PNT-3103 L beden omuz ölçüsü nedir?",
             "108",
             "PNT-3103 · Beden L: 108",
             2,
             1,
         ),
         ask(
-            "sinir-sayfa-3101-boy-s",
-            "PNT-3101 modelinin S beden boyu ne kadar?",
+            "sinir-sayfa-3101-kol-s",
+            "PNT-3101 modelinin S beden kol boyu ne kadar?",
             "102",
             "PNT-3101 · Beden S: 102",
             0,
             2,
         ),
         ask(
-            "sinir-sayfa-3102-basen-m-teyit",
-            "PNT-3102 M beden basen 96 mı?",
+            "sinir-sayfa-3102-omuz-m-teyit",
+            "PNT-3102 M beden omuz 96 mı?",
             "101",
             "PNT-3102 · Beden M: 101",
             1,
             1,
             QuestionKind.CONFIRM_WRONG,
         ),
-        # Olmayan model: komşu sayfadan değer verilmemeli, kod belgelerde geçmiyor denmeli.
+        # Olmayan model: kod belgelerde geçmiyor denmeli. "M beden bel" yalnız kodsuz beden
+        # tablosunda var (74); oradan ya da komşu model sayfasından değer verilmemeli.
         make_question(
             question_id="sinir-sayfa-3104-yok",
             text="PNT-3104 M beden bel kaç?",

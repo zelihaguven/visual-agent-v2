@@ -21,6 +21,8 @@ class TableBlock:
     headers: tuple[str, ...]
     rows: tuple[tuple[str, ...], ...]
     group_header: str | None = None
+    # Grup başlığının altındaki değer sütunu sayısı; verilmezse ilk sütundan sonrakilerin hepsi.
+    group_width: int | None = None
 
 
 @dataclass(frozen=True)
