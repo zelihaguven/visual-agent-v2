@@ -22,6 +22,7 @@ from visual_agent.domain.result import (
     ClarifyChoice,
     Inventory,
     InventoryDocument,
+    NotFound,
 )
 from visual_agent.settings import Settings
 
@@ -222,3 +223,20 @@ def test_inventory_shows_readable_names(tmp_path: Path) -> None:
 
     documents = events[-1]["result"]["documents"]  # type: ignore[index]
     assert documents[0]["title"] == "Main Menu - Setup (part 1)"
+
+
+def test_suggested_documents_show_readable_names(tmp_path: Path) -> None:
+    _, repository = _names(tmp_path)
+    not_found = NotFound(
+        reason="E050 seçilen belgelerde geçmiyor.",
+        suggestions=(ClarifyChoice(doc_id="md", label="08_Setup_part1"),),
+    )
+
+    events = _events(
+        _client(tmp_path, AskOutcome(result=not_found, timings={}), repository)
+        .post("/api/ask", json={"question": "soru"})
+        .text
+    )
+
+    suggestions = events[-1]["result"]["suggestions"]  # type: ignore[index]
+    assert suggestions == [{"doc_id": "md", "label": "Main Menu - Setup (part 1)"}]

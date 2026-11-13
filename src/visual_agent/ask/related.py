@@ -25,9 +25,5 @@ def with_related_headings(result: AskResult, hits: Sequence[Hit], language: str)
     if not isinstance(result, NotFound) or result.reason or not hits:
         return result
     headings = list(dict.fromkeys(_heading(hit) for hit in hits))[:MAX_RELATED]
-    documents = tuple(dict.fromkeys(hit.chunk.doc_id for hit in hits))[:MAX_RELATED]
     lead = _LEADS.get(language, _LEADS["tr"])
-    return NotFound(
-        reason=lead + "; ".join(headings) + ".",
-        suggested_doc_ids=result.suggested_doc_ids or documents,
-    )
+    return NotFound(reason=lead + "; ".join(headings) + ".", suggestions=result.suggestions)

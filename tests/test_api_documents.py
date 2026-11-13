@@ -90,7 +90,7 @@ def test_ask_streams_events_and_final_typed_result(tmp_path: Path) -> None:
     events = _events(response.text)
     assert events[0] == {"type": "status", "stage": "retrieve"}
     assert events[-1]["type"] == "done"
-    assert events[-1]["result"] == {"kind": "not_found", "reason": "yok", "suggested_doc_ids": []}
+    assert events[-1]["result"] == {"kind": "not_found", "reason": "yok", "suggestions": []}
 
 
 @pytest.mark.parametrize("question", ["", "   ", "x" * 2001])

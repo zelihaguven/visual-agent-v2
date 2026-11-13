@@ -302,7 +302,7 @@ def test_code_outside_the_inherited_document_only_says_this_document() -> None:
     assert isinstance(outcome.result, NotFound)
     assert outcome.scope_inherited
     assert outcome.result.reason == ""
-    assert outcome.result.suggested_doc_ids == ("b",)
+    assert [s.doc_id for s in outcome.result.suggestions] == ["b"]
 
 
 def test_not_found_keeps_the_previous_context() -> None:

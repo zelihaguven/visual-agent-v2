@@ -109,11 +109,17 @@ def _code_not_found(missing: Sequence[str], state: AskState, deps: AskDeps) -> N
         )
     )
     codes = ", ".join(item.upper() for item in missing)
+    choices = tuple(
+        ClarifyChoice(doc_id=doc_id, label=deps.catalog.title(doc_id))
+        for doc_id in suggested[:_MAX_CLARIFY_DOCUMENTS]
+    )
     if suggested and state.scope_inherited:
         # Kod başka belgede var; arayüz "bu belgede yok" der ve "Tüm belgelerde ara" önerir.
-        return NotFound(reason="", suggested_doc_ids=suggested)
-    place = "seçilen belgelerde" if suggested and state.request.doc_ids else "belgelerde"
-    return NotFound(reason=f"{codes} {place} geçmiyor.", suggested_doc_ids=suggested)
+        return NotFound(reason="", suggestions=choices)
+    # Kod kapsam dışındaki bir belgede varsa (seçilen, adı geçen ya da önceki turun belgesi)
+    # "belgelerde geçmiyor" denmez; o belge düğme olarak önerilir.
+    place = "seçilen belgelerde" if suggested else "belgelerde"
+    return NotFound(reason=f"{codes} {place} geçmiyor.", suggestions=choices)
 
 
 CONTEXT_GONE_QUESTION = (

@@ -1,4 +1,4 @@
-import type { AskResult, Citation, SpokenItem } from "../api";
+import type { AskResult, Citation, DocumentChoice, SpokenItem } from "../api";
 import type { Turn, TurnItem } from "../turn";
 
 const STAGE_LABELS: Record<string, string> = {
@@ -239,6 +239,27 @@ function InventoryView({ result }: { result: Extract<AskResult, { kind: "invento
   );
 }
 
+function DocumentChoices({
+  choices,
+  onChoose,
+}: {
+  choices: DocumentChoice[];
+  onChoose: (docId: string) => void;
+}) {
+  if (choices.length === 0) {
+    return null;
+  }
+  return (
+    <div className="choices">
+      {choices.map((choice) => (
+        <button key={choice.doc_id} type="button" className="choice" onClick={() => onChoose(choice.doc_id)}>
+          {choice.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: Props) {
   const { result } = turn;
   const fullQuestion = turn.resolvedQuestion ?? turn.question;
@@ -259,18 +280,10 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: P
       return (
         <div className="clarify">
           <p>{result.question}</p>
-          <div className="choices">
-            {result.options.map((option) => (
-              <button
-                key={option.doc_id}
-                type="button"
-                className="choice"
-                onClick={() => onAskAgain(fullQuestion, [option.doc_id])}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <DocumentChoices
+            choices={result.options}
+            onChoose={(docId) => onAskAgain(fullQuestion, [docId])}
+          />
         </div>
       );
     case "not_found":
@@ -284,6 +297,10 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: P
           ) : (
             <p className="muted">Soruyu başka sözcüklerle sorarsanız yeniden bakarım.</p>
           )}
+          <DocumentChoices
+            choices={result.suggestions}
+            onChoose={(docId) => onAskAgain(fullQuestion, [docId])}
+          />
           {turn.scopeInherited && (
             <div className="choices">
               <button type="button" className="choice" onClick={() => onAskAgain(fullQuestion, null)}>

@@ -22,6 +22,9 @@ export type AnsweredItem = {
   source_quote?: string | null;
 };
 
+/** Kullanıcının tek tıkla o belgede yeniden sorabileceği belge. */
+export type DocumentChoice = { doc_id: string; label: string };
+
 export type AskResult =
   | {
       kind: "answered";
@@ -30,8 +33,8 @@ export type AskResult =
       has_conflict: boolean;
       problems: string[];
     }
-  | { kind: "clarify"; question: string; options: { doc_id: string; label: string }[] }
-  | { kind: "not_found"; reason: string; suggested_doc_ids: string[] }
+  | { kind: "clarify"; question: string; options: DocumentChoice[] }
+  | { kind: "not_found"; reason: string; suggestions: DocumentChoice[] }
   | { kind: "small_talk"; text: string }
   | {
       kind: "inventory";

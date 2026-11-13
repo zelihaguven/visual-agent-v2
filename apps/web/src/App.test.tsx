@@ -363,7 +363,7 @@ describe("App", () => {
             question: "soru",
             scope_inherited: false,
             context: null,
-            result: { kind: "not_found", reason: "", suggested_doc_ids: [] },
+            result: { kind: "not_found", reason: "", suggestions: [] },
           },
         ]),
     });
@@ -617,7 +617,7 @@ describe("App", () => {
             question: "PNT-4417 kordon boyu kaç?",
             scope_inherited: true,
             context: CONTEXT,
-            result: { kind: "not_found", reason: "", suggested_doc_ids: [] },
+            result: { kind: "not_found", reason: "", suggestions: [] },
           },
         ]),
     });
@@ -629,6 +629,34 @@ describe("App", () => {
 
     await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
     expect(askBodies(fetchMock)[1]).toEqual({ question: "PNT-4417 kordon boyu kaç?" });
+  });
+
+  it("offers the documents that contain the asked code as choices", async () => {
+    const fetchMock = stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          {
+            type: "done",
+            timings: {},
+            question: "E050 nedir?",
+            scope_inherited: false,
+            context: null,
+            result: {
+              kind: "not_found",
+              reason: "E050 seçilen belgelerde geçmiyor.",
+              suggestions: [{ doc_id: "b", label: "Kılavuz" }],
+            },
+          },
+        ]),
+    });
+    render(<App />);
+    await ask("E050 nedir?");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Kılavuz" }));
+
+    await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
+    expect(askBodies(fetchMock)[1]).toEqual({ question: "E050 nedir?", doc_ids: ["b"] });
   });
 
   it("shows a command once when the sentence is only the command", async () => {

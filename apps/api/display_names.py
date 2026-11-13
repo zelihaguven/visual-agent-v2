@@ -79,9 +79,8 @@ class DocumentNames:
         for item in result.get("items", []):
             await self._citations(item.get("citations", []), find)
         await self._citations(result.get("citations", []), find)
-        if result.get("kind") == "clarify":
-            for option in result.get("options", []):
-                option["label"] = await self.name(option["doc_id"], option["label"], find)
+        for option in [*result.get("options", []), *result.get("suggestions", [])]:
+            option["label"] = await self.name(option["doc_id"], option["label"], find)
         if result.get("kind") == "inventory":
             for document in result.get("documents", []):
                 document["title"] = await self.name(document["doc_id"], document["title"], find)
