@@ -1,6 +1,6 @@
 """Bulunan parçaları modele verilecek kaynaklara çevirir."""
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from visual_agent.domain.answer import PromptSource
 from visual_agent.domain.document import ChunkKind
@@ -11,7 +11,10 @@ _CLOSING_TAG = "</kaynak"
 _NEUTRAL_CLOSING_TAG = "< /kaynak"
 
 
-def to_prompt_sources(hits: Sequence[Hit]) -> dict[int, PromptSource]:
+def to_prompt_sources(
+    hits: Sequence[Hit], language_of: Callable[[str], str]
+) -> dict[int, PromptSource]:
+    """language_of: belge kimliğinden katalogdaki dili."""
     return {
         number: PromptSource(
             number=number,
@@ -20,6 +23,7 @@ def to_prompt_sources(hits: Sequence[Hit]) -> dict[int, PromptSource]:
             ocr_uncertain=hit.chunk.ocr_uncertain,
             is_code=hit.chunk.kind is ChunkKind.CODE,
             from_ocr=hit.chunk.from_ocr,
+            language=language_of(hit.chunk.doc_id),
         )
         for number, hit in enumerate(hits, start=1)
     }

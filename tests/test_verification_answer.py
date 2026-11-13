@@ -37,51 +37,51 @@ def answer(*items: ModelItem) -> ModelAnswer:
 
 
 def test_correct_item_passes() -> None:
-    assert verify_item(item("İç paça 76,5."), SOURCES).ok
+    assert verify_item(item("İç paça 76,5."), SOURCES, "tr").ok
 
 
 def test_quote_must_exist_in_the_source() -> None:
-    check = verify_item(item("İç paça 76,5.", quote="M: 76,5 cm tam"), SOURCES)
+    check = verify_item(item("İç paça 76,5.", quote="M: 76,5 cm tam"), SOURCES, "tr")
 
     assert not check.ok
     assert "birebir" in check.problems[0]
 
 
 def test_unknown_source_number_fails() -> None:
-    assert not verify_item(item("İç paça 76,5.", source_no=9), SOURCES).ok
+    assert not verify_item(item("İç paça 76,5.", source_no=9), SOURCES, "tr").ok
 
 
 def test_number_must_come_from_its_own_quote() -> None:
-    check = verify_item(item("İç paça 78.", quote="M: 76,5"), SOURCES)
+    check = verify_item(item("İç paça 78.", quote="M: 76,5"), SOURCES, "tr")
 
     assert not check.ok
     assert "78" in check.problems[0]
 
 
 def test_identifier_not_in_quote_or_source_context_fails() -> None:
-    check = verify_item(item("PNT-4471 için iç paça 76,5."), SOURCES)
+    check = verify_item(item("PNT-4471 için iç paça 76,5."), SOURCES, "tr")
 
     assert not check.ok
     assert "pnt-4471" in check.problems[0]
 
 
 def test_identifier_from_cited_source_title_is_allowed() -> None:
-    assert verify_item(item("PNT-4417 için iç paça 76,5."), SOURCES).ok
+    assert verify_item(item("PNT-4417 için iç paça 76,5."), SOURCES, "tr").ok
 
 
 def test_tolerance_cannot_be_dropped() -> None:
     quote = "11 (± 1) bar"
 
-    assert not verify_item(item("Basınç 11 bar.", quote=quote, source_no=2), SOURCES).ok
-    assert verify_item(item("Basınç 11 (± 1) bar.", quote=quote, source_no=2), SOURCES).ok
+    assert not verify_item(item("Basınç 11 bar.", quote=quote, source_no=2), SOURCES, "tr").ok
+    assert verify_item(item("Basınç 11 (± 1) bar.", quote=quote, source_no=2), SOURCES, "tr").ok
 
 
 def test_foreign_alphabet_fails() -> None:
-    assert not verify_item(item("İç paça 76,5 金额."), SOURCES).ok
+    assert not verify_item(item("İç paça 76,5 金额."), SOURCES, "tr").ok
 
 
 def test_uncertain_ocr_value_blocks_the_item() -> None:
-    check = verify_item(item("Debi 299.999%.", quote="299.999%", source_no=5), SOURCES)
+    check = verify_item(item("Debi 299.999%.", quote="299.999%", source_no=5), SOURCES, "tr")
 
     assert not check.ok
     assert "OCR" in check.problems[0]
@@ -92,13 +92,13 @@ OCR_SOURCES = {1: PromptSource(number=1, text=OCR_ROW, ocr_uncertain=("10",), fr
 
 
 def test_uncertain_value_does_not_hide_a_longer_value_that_contains_it() -> None:
-    check = verify_item(item("M beden dış paça 102,5.", quote="M: 102,5"), OCR_SOURCES)
+    check = verify_item(item("M beden dış paça 102,5.", quote="M: 102,5"), OCR_SOURCES, "tr")
 
     assert check.ok, check.problems
 
 
 def test_uncertain_value_itself_is_still_hidden() -> None:
-    check = verify_item(item("Tolerans 10 cm.", quote="Tolerans (cm): 10"), OCR_SOURCES)
+    check = verify_item(item("Tolerans 10 cm.", quote="Tolerans (cm): 10"), OCR_SOURCES, "tr")
 
     assert not check.ok
     assert "OCR" in check.problems[0]
@@ -115,14 +115,14 @@ def test_uncertain_value_itself_is_still_hidden() -> None:
 def test_thousands_and_sign_cannot_change_a_value(source: str, text: str) -> None:
     sources = {1: PromptSource(number=1, text=source)}
 
-    assert not verify_item(item(text, quote=source), sources).ok
+    assert not verify_item(item(text, quote=source), sources, "tr").ok
 
 
 def test_same_value_written_the_same_way_still_passes() -> None:
     sources = {1: PromptSource(number=1, text="Çalışma sıcaklığı -5 °C, ceza 1.000 TL")}
     quote = "Çalışma sıcaklığı -5 °C, ceza 1.000 TL"
 
-    assert verify_item(item("Sıcaklık -5 °C, ceza 1.000 TL.", quote=quote), sources).ok
+    assert verify_item(item("Sıcaklık -5 °C, ceza 1.000 TL.", quote=quote), sources, "tr").ok
 
 
 @pytest.mark.parametrize(
@@ -137,7 +137,7 @@ def test_same_value_written_the_same_way_still_passes() -> None:
 def test_numbers_hidden_in_words_or_codes_are_still_checked(source: str, text: str) -> None:
     sources = {1: PromptSource(number=1, text=source)}
 
-    assert not verify_item(item(text, quote=source), sources).ok
+    assert not verify_item(item(text, quote=source), sources, "tr").ok
 
 
 @pytest.mark.parametrize(
@@ -151,7 +151,7 @@ def test_numbers_hidden_in_words_or_codes_are_still_checked(source: str, text: s
 def test_same_value_in_words_or_lower_case_still_passes(source: str, text: str) -> None:
     sources = {1: PromptSource(number=1, text=source)}
 
-    assert verify_item(item(text, quote=source), sources).ok
+    assert verify_item(item(text, quote=source), sources, "tr").ok
 
 
 @pytest.mark.parametrize(
@@ -187,7 +187,7 @@ def test_same_value_in_words_or_lower_case_still_passes(source: str, text: str) 
 def test_unit_must_be_in_the_quote_or_its_own_column_header(
     source: str, quote: str, text: str, ok: bool
 ) -> None:
-    check = verify_item(item(text, quote=quote), {1: PromptSource(number=1, text=source)})
+    check = verify_item(item(text, quote=quote), {1: PromptSource(number=1, text=source)}, "tr")
 
     assert check.ok is ok, check.problems
 
@@ -195,7 +195,7 @@ def test_unit_must_be_in_the_quote_or_its_own_column_header(
 def test_capitalised_number_word_is_checked_without_crashing() -> None:
     sources = {1: PromptSource(number=1, text="İzin 3 gündür")}
 
-    check = verify_item(item("İki gün izin var.", quote="İzin 3 gündür"), sources)
+    check = verify_item(item("İki gün izin var.", quote="İzin 3 gündür"), sources, "tr")
 
     assert not check.ok
 
@@ -205,46 +205,46 @@ def test_cut_quote_at_the_limit_is_tolerated() -> None:
     sources = {1: PromptSource(number=1, text=long_text)}
     cut_quote = long_text[:140] + " bozuk**"
 
-    assert verify_item(item("Metin burada.", quote=cut_quote), sources).ok
+    assert verify_item(item("Metin burada.", quote=cut_quote), sources, "tr").ok
 
 
 def test_short_quote_with_different_ending_is_not_tolerated() -> None:
-    assert not verify_item(item("Metin.", quote="M: 76,5 başka"), SOURCES).ok
+    assert not verify_item(item("Metin.", quote="M: 76,5 başka"), SOURCES, "tr").ok
 
 
 def test_field_label_quote_matches_a_cell() -> None:
-    assert verify_item(item("Tolerans 0,5.", quote="Tolerans: 0,5"), SOURCES).ok
+    assert verify_item(item("Tolerans 0,5.", quote="Tolerans: 0,5"), SOURCES, "tr").ok
 
 
 def test_quote_joining_two_cells_is_rejected() -> None:
-    assert not verify_item(item("76,5.", quote="M: 76,5 | Tolerans: 0,5 fazla"), SOURCES).ok
+    assert not verify_item(item("76,5.", quote="M: 76,5 | Tolerans: 0,5 fazla"), SOURCES, "tr").ok
 
 
 def test_code_reference_supplies_identifiers_without_a_quote() -> None:
     reference = ModelItem(text="SIP_TARIH kolonu SIPARIS_TARIHI olur.", code_source_no=3)
 
-    assert verify_item(reference, SOURCES).ok
+    assert verify_item(reference, SOURCES, "tr").ok
 
 
 def test_code_reference_must_point_to_a_code_source() -> None:
     reference = ModelItem(text="Komut bu.", code_source_no=1)
 
-    assert not verify_item(reference, SOURCES).ok
+    assert not verify_item(reference, SOURCES, "tr").ok
 
 
 def test_wrong_identifier_next_to_code_reference_fails() -> None:
     reference = ModelItem(text="SIP_TARIHI kolonu değişir.", code_source_no=3)
 
-    assert not verify_item(reference, SOURCES).ok
+    assert not verify_item(reference, SOURCES, "tr").ok
 
 
 def test_item_from_ocr_text_is_marked_and_makes_answer_partial() -> None:
     sources = {1: PromptSource(number=1, text="Bağlantı limiti: 386", from_ocr=True)}
     candidate = item("Bağlantı limiti 386.", quote="Bağlantı limiti: 386")
 
-    assert verify_item(candidate, sources).ok
-    assert verify_item(candidate, sources).from_figure
-    assert verify_answer(answer(candidate), sources).status is VerificationStatus.PARTIAL
+    assert verify_item(candidate, sources, "tr").ok
+    assert verify_item(candidate, sources, "tr").from_figure
+    assert verify_answer(answer(candidate), sources, "tr").status is VerificationStatus.PARTIAL
 
 
 def test_one_ocr_item_makes_the_whole_answer_partial() -> None:
@@ -255,6 +255,7 @@ def test_one_ocr_item_makes_the_whole_answer_partial() -> None:
     result = verify_answer(
         answer(item("M 76,5.", quote="M: 76,5"), item("L 80,5.", quote="L: 80,5", source_no=2)),
         sources,
+        "tr",
     )
 
     assert result.status is VerificationStatus.PARTIAL
@@ -264,22 +265,22 @@ def test_command_read_by_ocr_is_marked() -> None:
     sources = {1: PromptSource(number=1, text="DROP TABLE T;", is_code=True, from_ocr=True)}
     command = ModelItem(text="Tabloyu siler.", code_source_no=1)
 
-    assert verify_item(command, sources).from_figure
+    assert verify_item(command, sources, "tr").from_figure
 
 
 def test_code_written_without_its_hyphen_matches_the_source() -> None:
     sources = {1: PromptSource(number=1, text="GML-6473 Kalça: 48,0")}
     candidate = item("GML6473 kalça 48,0.", quote="GML-6473 Kalça: 48,0")
 
-    assert verify_item(candidate, sources).ok
+    assert verify_item(candidate, sources, "tr").ok
 
 
 def test_all_items_valid_is_verified() -> None:
-    assert verify_answer(answer(item("76,5.")), SOURCES).status is VerificationStatus.VERIFIED
+    assert verify_answer(answer(item("76,5.")), SOURCES, "tr").status is VerificationStatus.VERIFIED
 
 
 def test_one_bad_item_fails_the_answer_but_keeps_item_results() -> None:
-    result = verify_answer(answer(item("76,5."), item("78.")), SOURCES)
+    result = verify_answer(answer(item("76,5."), item("78.")), SOURCES, "tr")
 
     assert result.status is VerificationStatus.FAILED
     assert [check.ok for check in result.items] == [True, False]
@@ -288,17 +289,17 @@ def test_one_bad_item_fails_the_answer_but_keeps_item_results() -> None:
 def test_repeated_sentence_fails() -> None:
     sentence = "Bu ayar her zaman sol tarafta yapılır."
 
-    result = verify_answer(answer(item(sentence), item(sentence)), SOURCES)
+    result = verify_answer(answer(item(sentence), item(sentence)), SOURCES, "tr")
 
     assert result.status is VerificationStatus.FAILED
 
 
 def test_empty_answer_fails() -> None:
-    assert verify_answer(answer(), SOURCES).status is VerificationStatus.FAILED
+    assert verify_answer(answer(), SOURCES, "tr").status is VerificationStatus.FAILED
 
 
 def test_not_found_is_reported() -> None:
-    result = verify_answer(ModelAnswer(kind=AnswerKind.NOT_FOUND), SOURCES)
+    result = verify_answer(ModelAnswer(kind=AnswerKind.NOT_FOUND), SOURCES, "tr")
 
     assert result.status is VerificationStatus.NOT_FOUND
 
@@ -311,19 +312,19 @@ def test_clarification_needs_real_sources() -> None:
             clarify=ClarifyRequest(question="Hangisi?", options=options),
         )
 
-    valid = verify_answer(clarify(1, 2), SOURCES)
+    valid = verify_answer(clarify(1, 2), SOURCES, "tr")
 
     assert valid.status is VerificationStatus.CLARIFY
     assert valid.clarify_options == (1, 2)
-    assert verify_answer(clarify(1, 9), SOURCES).status is VerificationStatus.FAILED
+    assert verify_answer(clarify(1, 9), SOURCES, "tr").status is VerificationStatus.FAILED
 
 
 def test_concurrent_verification_gives_identical_results() -> None:
     target = answer(item("76,5."), item("78."))
-    expected = verify_answer(target, SOURCES)
+    expected = verify_answer(target, SOURCES, "tr")
 
     with ThreadPoolExecutor(max_workers=8) as pool:
-        results = list(pool.map(lambda _: verify_answer(target, SOURCES), range(200)))
+        results = list(pool.map(lambda _: verify_answer(target, SOURCES, "tr"), range(200)))
 
     assert all(result == expected for result in results)
 
@@ -340,7 +341,7 @@ def test_concurrent_verification_gives_identical_results() -> None:
 def test_field_quote_requires_contiguous_text_in_the_named_cell(quote: str, expected: bool) -> None:
     sources = {1: PromptSource(number=1, text="Code: E050 | Remedy: turn off and check")}
 
-    assert verify_item(item("Kontrol edin.", quote=quote), sources).ok is expected
+    assert verify_item(item("Kontrol edin.", quote=quote), sources, "tr").ok is expected
 
 
 def test_one_source_can_hold_all_options_of_a_clarification() -> None:
@@ -350,7 +351,7 @@ def test_one_source_can_hold_all_options_of_a_clarification() -> None:
         clarify=ClarifyRequest(question="Hangi beden?", options=(ClarifyOption(source_no=1),)),
     )
 
-    result = verify_answer(answer, SOURCES)
+    result = verify_answer(answer, SOURCES, "tr")
 
     assert result.status is VerificationStatus.CLARIFY
     assert result.clarify_options == (1,)
@@ -359,7 +360,7 @@ def test_one_source_can_hold_all_options_of_a_clarification() -> None:
 def test_sentence_failing_only_on_its_unit_carries_its_quote() -> None:
     sources = {1: PromptSource(number=1, text="Bel | M: 40,5 | L: 42,5")}
 
-    check = verify_item(item("L beden bel 42,5 cm.", quote="L: 42,5"), sources)
+    check = verify_item(item("L beden bel 42,5 cm.", quote="L: 42,5"), sources, "tr")
 
     assert not check.ok
     assert check.quote == "L: 42,5"
@@ -375,4 +376,38 @@ def test_sentence_failing_only_on_its_unit_carries_its_quote() -> None:
 def test_quote_is_only_for_a_unit_only_failure(text: str) -> None:
     sources = {1: PromptSource(number=1, text="Bel | M: 40,5 | L: 42,5")}
 
-    assert verify_item(item(text, quote="L: 42,5"), sources).quote is None
+    assert verify_item(item(text, quote="L: 42,5"), sources, "tr").quote is None
+
+
+def _single(source: str, text: str, language: str = "tr", source_language: str = "tr") -> bool:
+    sources = {1: PromptSource(number=1, text=source, language=source_language)}
+    return verify_item(item(text, quote=source), sources, language).ok
+
+
+def test_turkish_ten_written_as_a_word_is_checked() -> None:
+    assert not _single("Bekleme 5 dakikadır", "Bekleme on dakikadır.")
+    assert _single("Bekleme 10 dakikadır", "Bekleme on dakikadır.")
+
+
+def test_turkish_ten_in_the_source_counts_only_when_the_document_is_turkish() -> None:
+    assert _single("Bekleme süresi on dakikadır", "Bekleme 10 dakikadır.")
+    assert not _single("Turn on the switch", "Şalteri 10 kez açın.", source_language="en")
+    assert not _single("Bekleme süresi on dakikadır", "Bekleme 10 dakikadır.", source_language="")
+
+
+def test_english_on_is_not_a_number_in_an_english_answer() -> None:
+    assert _single("Turn on the switch", "Turn on the switch.", language="en", source_language="en")
+
+
+@pytest.mark.parametrize(
+    ("source", "text", "ok"),
+    [
+        ("Ağırlık: 500", "Ağırlık 500 gr.", False),
+        ("Hacim: 2", "Hacim 2 lt.", False),
+        ("Ağırlık 500 g", "Ağırlık 500 gr.", True),
+        ("Ağırlık 500 gr", "Ağırlık 500 g.", True),
+        ("Hacim 2 lt", "Hacim 2 l.", True),
+    ],
+)
+def test_turkish_unit_abbreviations_are_units(source: str, text: str, ok: bool) -> None:
+    assert _single(source, text) is ok

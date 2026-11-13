@@ -41,7 +41,8 @@ def test_vulgar_fraction_reads_as_the_same_number() -> None:
 
 
 def test_word_numbers_ignore_ambiguous_words() -> None:
-    assert word_numbers("every six months, a team of two workers, back on again, once") == {
+    text = "every six months, a team of two workers, back on again, once"
+    assert word_numbers(text, "en") == {
         "6",
         "2",
     }
@@ -80,4 +81,21 @@ def test_identifiers_in(text: str, expected: set[str]) -> None:
     [("İki gün", {"2"}), ("ALTI adım", {"6"}), ("SIX steps", {"6"}), ("Üç kez", {"3"})],
 )
 def test_word_numbers_read_capitalised_turkish_and_english(text: str, expected: set[str]) -> None:
-    assert word_numbers(text) == expected
+    assert word_numbers(text, "tr") == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "language", "expected"),
+    [
+        ("Bekleme on dakikadır.", "tr", {"10"}),
+        ("Bekleme ON dakikadır.", "tr", {"10"}),
+        ("Turn on the switch.", "en", set()),
+        ("Turn on the switch.", "", set()),
+        ("Bekleme on dakikadır.", "", set()),
+        ("İki ya da two.", "en", {"2"}),
+    ],
+)
+def test_turkish_ten_counts_only_in_turkish_text(
+    text: str, language: str, expected: set[str]
+) -> None:
+    assert word_numbers(text, language) == expected

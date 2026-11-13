@@ -3,7 +3,7 @@
 import re
 from collections.abc import Iterable, Sequence
 
-from visual_agent.domain.document import DocumentMeta
+from visual_agent.domain.document import UNDETECTED_LANGUAGE, DocumentMeta
 from visual_agent.verification.text import identifiers_in
 
 _MIN_TITLE_WORDS_FOR_MATCH = 2
@@ -33,6 +33,10 @@ class DocumentCatalog:
         return tuple(
             doc_id for doc_id, meta in self._documents.items() if groups & set(meta.access)
         )
+
+    def language(self, doc_id: str) -> str:
+        meta = self._documents.get(doc_id)
+        return meta.language if meta is not None else UNDETECTED_LANGUAGE
 
     def languages(self, doc_ids: Iterable[str]) -> list[str]:
         return list(dict.fromkeys(self._documents[doc_id].language for doc_id in doc_ids))

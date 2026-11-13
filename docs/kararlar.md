@@ -524,6 +524,25 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   riski taşıyor.
 - **Yeniden düşünülür:** Gerçek tablolarda yanlış satır ya da sütun görülürse.
 
+### Sayı sözcükleri ve birimler tek tabloda; ses değeri yorumlamaz
+- **Ne zaman:** 2026-11-13. `deger-dogrulugu` dalı (inceleme listesi #1, #4, #5).
+- **Kural:**
+  - Yazıyla sayılar ve birimler `verification/text.py`'de tek tabloda. Doğrulama, akış maskesi
+    ve sesli okuma oradan beslenir.
+  - Türkçe "on" (10) yalnız Türkçe metinde sayıdır. Cümlede cevabın dili, alıntıda belgenin
+    katalogdaki dili kullanılır; dili bilinmeyen kaynakta "on" sayılmaz. Belge dili
+    `document_language` ile belirlendiği için onun düzeltmesi (#6) buraya da yansır.
+  - "gr" ve "lt", "g" ve "l"nin eş anlamlısı. Kaynakta birimsiz değere eklenirse cümle gizlenir.
+  - Ses: "1.234,50" ve "1.234.567" Türkçe binlik biçimi olarak okunur. "1.500", "1,500" ve
+    "12.05.2024" gibi anlamı belirsiz yazımlar yorumlanmaz: ayraç adıyla, sonrası rakam rakam
+    okunur ("bir nokta beş sıfır sıfır"). Tek harfli birim yalnız küçük harfle birimdir
+    ("38 M" beden).
+- **Neden:** Sesli okuma "1.500"ü "bir virgül beş sıfır sıfır" yani 1,5 okuyordu; "on dakika"
+  kaynakta ne yazdığına bakılmadan geçiyordu (kural 1).
+- **Ölçüm** (seed 7, seed 11, FastReact; önbellekten, 0 $, ıska 0): hiçbir soru ve madde
+  değişmedi; gizlenen cümle 10'da kaldı, doğrulanmış yanlış 0. Ölçülen cümlelerin ve taban
+  belgelerinin okunuşu da değişmedi; etkiyi yalnız yeni testler gösteriyor.
+
 ## Netleştirme ve sohbet
 
 ### Elle yazılmış netleştirme kuralları çıkarıldı

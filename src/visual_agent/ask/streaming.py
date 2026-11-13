@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from visual_agent.domain.answer import ItemCheck, ModelItem, PromptSource
 from visual_agent.verification.answer import code_source_number, verify_item
-from visual_agent.verification.text import UNIT_PATTERN, identifier_spans
+from visual_agent.verification.text import UNIT_PATTERN, identifier_spans, word_number_re
 
 Event = dict[str, object]
 EventSink = Callable[[Event], None]
@@ -20,10 +20,6 @@ _HIDDEN = "▒▒▒"
 _ANSWER_KEY = '"cevap"'
 _TEXT_KEY = "metin"
 _MAX_ESCAPE_TAIL = 7
-_NUMBER_WORDS = {
-    "tr": "bir iki üç dört beş altı yedi sekiz dokuz on onbir oniki",
-    "en": "one two three four five six seven eight nine ten eleven twelve",
-}
 _DIGIT_LIKE = r"\d±①-⓿❶-➓¼-¾⅐-⅟²³¹"
 _NUMBER_TOKEN_RE = re.compile(
     rf"[^\s]*[{_DIGIT_LIKE}][^\s]*(?:\s+(?:{UNIT_PATTERN})(?!\w))?", re.IGNORECASE
@@ -31,16 +27,11 @@ _NUMBER_TOKEN_RE = re.compile(
 _VISIBLE_WORD_RE = re.compile(r"[^\W\d_]{2,}")
 
 
-def _number_word_re(language: str) -> re.Pattern[str]:
-    words = _NUMBER_WORDS.get(language, _NUMBER_WORDS["tr"]).split()
-    return re.compile(r"(?<!\w)(" + "|".join(words) + r")(?!\w)", re.IGNORECASE)
-
-
 def _hidden_spans(text: str, language: str) -> list[tuple[int, int]]:
     spans = sorted(
         [
             *(match.span() for match in _NUMBER_TOKEN_RE.finditer(text)),
-            *(match.span() for match in _number_word_re(language).finditer(text)),
+            *(match.span() for match in word_number_re(language).finditer(text)),
             *identifier_spans(text),
         ]
     )
@@ -217,7 +208,7 @@ class StreamAssembler:
         while len(self._checked) < len(bounds):
             start, end = bounds[len(self._checked)]
             item = self._parse_item(content[start:end])
-            check = verify_item(item, self._sources) if item is not None else None
+            check = verify_item(item, self._sources, self._language) if item is not None else None
             self._checked.append((item, check))
 
     def _reveal(self, seconds: float) -> None:

@@ -39,7 +39,7 @@ def _quote_problems(item: ModelItem, sources: Sources) -> list[str]:
     problems = []
     for quote in item.quotes:
         source = sources.get(quote.source_no)
-        if source is None or not quote_matches(quote.text, source.text):
+        if source is None or not quote_matches(quote.text, source.text, source.language):
             problems.append(f"alıntı [{quote.source_no}] kaynakta birebir değil")
     return problems
 
@@ -123,10 +123,22 @@ def _unit_problems(item: ModelItem, evidence: str, sources: Sources) -> list[str
     return [f"cümlede kaynakta yazmayan birim: {missing}"] if missing else []
 
 
-def _token_problems(item: ModelItem, evidence: str, sources: Sources) -> list[str]:
+def _written_numbers(
+    item: ModelItem, sources: Sources, code_source: PromptSource | None
+) -> set[str]:
+    """Dayanaktaki yazıyla sayılar, her parça kendi belgesinin diliyle okunur."""
+    parts = [(sources[q.source_no], q.text) for q in item.quotes if q.source_no in sources]
+    if code_source is not None:
+        parts.append((code_source, code_source.text))
+    return {value for source, text in parts for value in word_numbers(text, source.language)}
+
+
+def _token_problems(
+    item: ModelItem, evidence: str, written: set[str], sources: Sources, language: str
+) -> list[str]:
     problems = []
-    stated = numbers_in(item.text) | (word_numbers(item.text) - _ARTICLE_NUMBERS)
-    stray_numbers = stated - numbers_in(evidence) - word_numbers(evidence)
+    stated = numbers_in(item.text) | (word_numbers(item.text, language) - _ARTICLE_NUMBERS)
+    stray_numbers = stated - numbers_in(evidence) - written
     if stray_numbers:
         problems.append(f"cümlede kendi alıntısında olmayan sayı: {sorted(stray_numbers)}")
     cited = [sources[q.source_no].context for q in item.quotes if q.source_no in sources]
@@ -150,8 +162,8 @@ def _rests_on_ocr(item: ModelItem, sources: Sources) -> bool:
     return any(number in sources and sources[number].from_ocr for number in numbers)
 
 
-def verify_item(item: ModelItem, sources: Sources) -> ItemCheck:
-    """Her sayı ve teknik ad, cümlenin kendi dayanağında bulunmalıdır."""
+def verify_item(item: ModelItem, sources: Sources, language: str) -> ItemCheck:
+    """Her sayı ve teknik ad, cümlenin kendi dayanağında bulunmalıdır; language cevabın dili."""
     problems = _quote_problems(item, sources)
     code_source = _code_source(item, sources)
     if item.code_source_no is not None and code_source is None:
@@ -160,7 +172,8 @@ def verify_item(item: ModelItem, sources: Sources) -> ItemCheck:
         [*(quote.text for quote in item.quotes), code_source.text if code_source else ""]
     )
     problems += _ocr_problems(item, sources)
-    problems += _token_problems(item, evidence, sources)
+    written = _written_numbers(item, sources, code_source)
+    problems += _token_problems(item, evidence, written, sources, language)
     problems += _tolerance_problems(item.text, evidence)
     others = len(problems)
     problems += _unit_problems(item, evidence, sources)
@@ -198,16 +211,16 @@ def _has_repeated_sentence(answer: ModelAnswer) -> bool:
 _SAFE_CLARIFY_QUESTION = {"tr": "Hangisi için soruyorsunuz?", "en": "Which one do you mean?"}
 
 
-def _values_in(text: str) -> set[str]:
+def _values_in(text: str, language: str) -> set[str]:
     codes = {compact_identifier(value) for value in identifiers_in(text)} | prefixed_codes_in(text)
-    numbers = numbers_in(text) | (word_numbers(text) - _ARTICLE_NUMBERS)
+    numbers = numbers_in(text) | (word_numbers(text, language) - _ARTICLE_NUMBERS)
     return codes | numbers
 
 
 def safe_clarify_question(question: str, user_question: str, language: str) -> str:
     """Netleştirme sorusu kaynağa karşı denetlenmez; kullanıcının söylemediği sayı ya da kod
     taşıyorsa ya da boşsa yerine sabit soru gelir."""
-    if question.strip() and _values_in(question) <= _values_in(user_question):
+    if question.strip() and _values_in(question, language) <= _values_in(user_question, language):
         return question
     return _SAFE_CLARIFY_QUESTION.get(language, _SAFE_CLARIFY_QUESTION["tr"])
 
@@ -230,12 +243,12 @@ def _final_status(checks: tuple[ItemCheck, ...], repeated: bool) -> Verification
     return VerificationStatus.VERIFIED
 
 
-def verify_answer(answer: ModelAnswer, sources: Sources) -> AnswerVerification:
+def verify_answer(answer: ModelAnswer, sources: Sources, language: str) -> AnswerVerification:
     if answer.kind is AnswerKind.NOT_FOUND:
         return AnswerVerification(status=VerificationStatus.NOT_FOUND)
     if answer.kind is AnswerKind.CLARIFY:
         return _verify_clarification(answer, sources)
-    checks = tuple(verify_item(item, sources) for item in answer.items)
+    checks = tuple(verify_item(item, sources, language) for item in answer.items)
     repeated = _has_repeated_sentence(answer)
     problems = [problem for check in checks for problem in check.problems]
     if repeated:

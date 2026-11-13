@@ -8,7 +8,7 @@ from markdown_it import MarkdownIt
 _NUMBER = r"\d+(?:[.,]\d+)?"
 MINUS_SIGNS = "-−–"
 _SIGNED_NUMBER_RE = re.compile(rf"(?:(?<![\w.,])[{MINUS_SIGNS}](?=\d))?{_NUMBER}")
-_AMBIGUOUS_GROUPING_RE = re.compile(r"[1-9]\d{0,2}[.,]\d{3}")
+AMBIGUOUS_GROUPING_RE = re.compile(r"[1-9]\d{0,2}[.,]\d{3}")
 TOLERANCE_RE = re.compile(rf"({_NUMBER})\s*\(\s*±\s*({_NUMBER})\s*\)")
 CITATION_RE = re.compile(r"\[(\d+)\]")
 _MULTI_CITATION_RE = re.compile(r"\[(\d+(?:\s*[,;–-]\s*\d+)+)\]")
@@ -20,104 +20,112 @@ _LINE_BREAK_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
 _LEADING_DECIMAL_RE = re.compile(r"(?<![\d.,])[.,](\d)")
 _MAX_CITATION_RANGE = 20
 
-_UPPER = "A-ZÇĞİÖŞÜ"
+UPPER = "A-ZÇĞİÖŞÜ"
 _LOWER = "a-zçğıöşü"
 _IDENTIFIER_RE = re.compile(
     r"(?<![\w-])(?:"
-    rf"[{_UPPER}][{_UPPER}0-9]*(?:[_-][{_UPPER}0-9]+)+"
+    rf"[{UPPER}][{UPPER}0-9]*(?:[_-][{UPPER}0-9]+)+"
     rf"|[{_LOWER}][{_LOWER}0-9]*(?:_[{_LOWER}0-9]+)+"
-    rf"|[{_UPPER}]+\d+[{_UPPER}]*"
+    rf"|[{UPPER}]+\d+[{UPPER}]*"
     r")(?![\w-])"
 )
 _BACKTICK_RE = re.compile(r"`([^`\n]+)`")
-# Sayının hemen ardından gelen birimler; sesli akışta gizleme ve birim denetimi ortak kullanır.
-UNITS = [
-    "mm",
-    "cm",
-    "m",
-    "km",
-    "in",
-    "inch",
-    "inches",
-    "inç",
-    "″",
-    '"',
-    "ft",
-    "µm",
-    "g",
-    "kg",
-    "mg",
-    "lb",
-    "oz",
-    "n",
-    "nm",
-    "v",
-    "kv",
-    "a",
-    "ma",
-    "w",
-    "kw",
-    "hz",
-    "khz",
-    "rpm",
-    "dk",
-    "dakika",
-    "sn",
-    "saniye",
-    "s",
-    "sec",
-    "min",
-    "h",
-    "saat",
-    "gün",
-    "°c",
-    "°f",
-    "°",
-    "%",
-    "bar",
-    "psi",
-    "pa",
-    "kpa",
-    "mpa",
-    "l",
-    "ml",
-    "cc",
-    "tl",
-]
+# Sayının hemen ardından gelen birimler: yazım -> (ortak biçim, Türkçe okunuşu).
+# Doğrulama, akış maskesi ve sesli okuma bu tek tablodan beslenir; okunuşu boş birim seste
+# yazıldığı gibi kalır.
+UNITS: dict[str, tuple[str, str]] = {
+    "mm": ("mm", "milimetre"),
+    "cm": ("cm", "santimetre"),
+    "m": ("m", "metre"),
+    "km": ("km", "kilometre"),
+    "in": ("inch", ""),
+    "inch": ("inch", ""),
+    "inches": ("inch", ""),
+    "inç": ("inch", ""),
+    "″": ("inch", ""),
+    '"': ("inch", ""),
+    "ft": ("ft", ""),
+    "µm": ("µm", ""),
+    "g": ("g", "gram"),
+    "gr": ("g", "gram"),
+    "kg": ("kg", "kilogram"),
+    "mg": ("mg", "miligram"),
+    "lb": ("lb", ""),
+    "oz": ("oz", ""),
+    "n": ("n", ""),
+    "nm": ("nm", ""),
+    "v": ("v", ""),
+    "kv": ("kv", ""),
+    "a": ("a", ""),
+    "ma": ("ma", ""),
+    "w": ("w", ""),
+    "kw": ("kw", ""),
+    "hz": ("hz", ""),
+    "khz": ("khz", ""),
+    "rpm": ("rpm", ""),
+    "dk": ("min", ""),
+    "dakika": ("min", ""),
+    "sn": ("s", ""),
+    "saniye": ("s", ""),
+    "s": ("s", ""),
+    "sec": ("s", ""),
+    "min": ("min", ""),
+    "h": ("h", ""),
+    "saat": ("h", ""),
+    "gün": ("gün", ""),
+    "°c": ("°c", ""),
+    "°f": ("°f", ""),
+    "°": ("°", ""),
+    "%": ("%", ""),
+    "bar": ("bar", ""),
+    "psi": ("psi", ""),
+    "pa": ("pa", ""),
+    "kpa": ("kpa", ""),
+    "mpa": ("mpa", ""),
+    "l": ("l", "litre"),
+    "lt": ("l", "litre"),
+    "ml": ("ml", "mililitre"),
+    "cc": ("cc", ""),
+    "tl": ("tl", "Türk lirası"),
+}
 UNIT_PATTERN = "|".join(sorted((re.escape(unit) for unit in UNITS), key=len, reverse=True))
 _MEASURE_RE = re.compile(rf"(?<![\w.,])({_NUMBER})\s?({UNIT_PATTERN})(?!\w)", re.IGNORECASE)
 _HEADER_UNIT_RE = re.compile(rf"[(\[]\s*({UNIT_PATTERN})\s*[)\]]", re.IGNORECASE)
-_UNIT_ALIASES = {
-    "in": "inch",
-    "inches": "inch",
-    "inç": "inch",
-    "″": "inch",
-    '"': "inch",
-    "dk": "min",
-    "dakika": "min",
-    "sn": "s",
-    "saniye": "s",
-    "sec": "s",
-    "saat": "h",
-}
 _IDENTIFIER_SEPARATOR_RE = re.compile(r"[-_\s]+")
 
-_WORD_NUMBER_LISTS = (
-    "one two three four five six seven eight nine ten eleven twelve",
-    "uno dos tres cuatro cinco seis siete ocho nueve diez - doce",
-    "- deux trois quatre cinq six sept huit neuf dix onze douze",
-    "bir iki üç dört beş altı yedi sekiz dokuz - onbir oniki",
-)
-_WORD_NUMBERS = {
+# Yazıyla sayılar, dile göre; "_" isteğe bağlı boşluktur ("on iki", "oniki"). "-" hiç sayılmayan
+# yazımdır: Fransızca "un" belirsiz tanımlık, İspanyolca "once" İngilizce sözcük.
+_WORD_NUMBER_LISTS = {
+    "en": "one two three four five six seven eight nine ten eleven twelve",
+    "es": "uno dos tres cuatro cinco seis siete ocho nueve diez - doce",
+    "fr": "- deux trois quatre cinq six sept huit neuf dix onze douze",
+    "tr": "bir iki üç dört beş altı yedi sekiz dokuz on on_bir on_iki",
+}
+# Başka dilde yaygın sözcük olan yazım yalnız kendi dilindeki metinde sayıdır ("turn on").
+_OWN_LANGUAGE_ONLY = {"on": "tr"}
+_SPELLINGS = {
     word: value
-    for words in _WORD_NUMBER_LISTS
+    for words in _WORD_NUMBER_LISTS.values()
     for value, word in enumerate(words.split(), start=1)
     if word != "-"
 } | {"twice": 2}
-_WORD_NUMBER_RE = re.compile(
-    r"(?<!\w)(" + "|".join(sorted(_WORD_NUMBERS, key=len, reverse=True)) + r")(?!\w)",
-    re.IGNORECASE,
-)
+_WORD_NUMBERS = {word.replace("_", ""): value for word, value in _SPELLINGS.items()}
+
+
+def _word_number_re(language: str) -> re.Pattern[str]:
+    words = (w for w in _SPELLINGS if _OWN_LANGUAGE_ONLY.get(w, language) == language)
+    spelled = sorted(
+        (re.escape(word).replace("_", r"\s*") for word in words), key=len, reverse=True
+    )
+    return re.compile(r"(?<!\w)(" + "|".join(spelled) + r")(?!\w)", re.IGNORECASE)
+
+
+_WORD_NUMBER_RES = {language: _word_number_re(language) for language in [*_WORD_NUMBER_LISTS, ""]}
+
+
+def word_number_re(language: str) -> re.Pattern[str]:
+    """Bu dildeki metinde yazıyla sayı olan sözcükler; dili bilinmeyen metinde "on" sayılmaz."""
+    return _WORD_NUMBER_RES.get(language, _WORD_NUMBER_RES[""])
 
 
 def _build_char_table() -> dict[int, str]:
@@ -205,7 +213,7 @@ def canonical_number(raw: str) -> str:
     """
     sign = "-" if raw[:1] in MINUS_SIGNS else ""
     digits = raw.lstrip(MINUS_SIGNS)
-    if _AMBIGUOUS_GROUPING_RE.fullmatch(digits):
+    if AMBIGUOUS_GROUPING_RE.fullmatch(digits):
         return sign + digits
     value = digits.replace(",", ".")
     return sign + (value.rstrip("0").rstrip(".") if "." in value else value)
@@ -219,34 +227,39 @@ def numbers_in(text: str) -> set[str]:
     return {canonical_number(match.group(0)) for match in _SIGNED_NUMBER_RE.finditer(cleaned)}
 
 
-def word_numbers(text: str) -> set[str]:
-    """Alıntıda yazıyla geçen sayılar; yalnız kaynak tarafında kullanılır."""
-    values = (_word_value(word) for word in _WORD_NUMBER_RE.findall(text))
+def word_numbers(text: str, language: str) -> set[str]:
+    """Metinde yazıyla geçen sayılar; dil, metnin dili (cevapta sorunun, kaynakta belgenin)."""
+    values = (_word_value(word) for word in word_number_re(language).findall(text))
     return {str(value) for value in values if value is not None}
 
 
 def _word_value(word: str) -> int | None:
     """Büyük harfli Türkçe yazımlar ("İki", "ALTI") da okunur; tanınmayan sözcük atlanır."""
-    for candidate in (word.replace("İ", "i").casefold(), word.replace("I", "ı").casefold()):
+    compact = "".join(word.split())
+    for candidate in (compact.replace("İ", "i").casefold(), compact.replace("I", "ı").casefold()):
         if candidate in _WORD_NUMBERS:
             return _WORD_NUMBERS[candidate]
     return None
+
+
+def _unit_form(unit: str) -> str:
+    """Eş anlamlı birimlerin ortak biçimi ("gr" -> "g", "dakika" -> "min")."""
+    name = unit.casefold()
+    return UNITS.get(name, (name, ""))[0]
 
 
 def measures_in(text: str) -> set[tuple[str, str]]:
     """Birimiyle yazılmış değerler: ("5", "mm"); eş anlamlı birimler tek biçime iner."""
     found = set()
     for number, unit in _MEASURE_RE.findall(canon_chars(text)):
-        name = unit.casefold()
-        found.add((canonical_number(number), _UNIT_ALIASES.get(name, name)))
+        found.add((canonical_number(number), _unit_form(unit)))
     return found
 
 
 def header_units(label: str) -> set[str]:
     """Sütun başlığında parantez içinde yazan birimler ("Ücret (TL)", "Boy [mm]"); parantezsiz
     tek harf ("Beden M") birim sayılmaz."""
-    names = (unit.casefold() for unit in _HEADER_UNIT_RE.findall(canon_chars(label)))
-    return {_UNIT_ALIASES.get(name, name) for name in names}
+    return {_unit_form(unit) for unit in _HEADER_UNIT_RE.findall(canon_chars(label))}
 
 
 def prefixed_codes_in(text: str) -> set[str]:

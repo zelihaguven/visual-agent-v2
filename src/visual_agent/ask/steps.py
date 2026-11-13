@@ -33,6 +33,7 @@ from visual_agent.generation.openrouter import AttemptRecord, ServiceUnavailable
 from visual_agent.generation.parse import ParseFailure, parse_answer
 from visual_agent.generation.sources import build_user_message, to_prompt_sources
 from visual_agent.verification.answer import (
+    Sources,
     code_source_number,
     safe_clarify_question,
     verify_answer,
@@ -211,21 +212,23 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     return replace(state, hits=hits)
 
 
-def _stream_callbacks(state: AskState) -> tuple[StreamAssembler | None, StreamCallbacks | None]:
+def _stream_callbacks(
+    state: AskState, sources: Sources
+) -> tuple[StreamAssembler | None, StreamCallbacks | None]:
     if state.request.on_event is None:
         return None, None
-    assembler = StreamAssembler(
-        to_prompt_sources(state.hits), state.language, state.request.on_event
-    )
+    assembler = StreamAssembler(sources, state.language, state.request.on_event)
     return assembler, StreamCallbacks(
         on_delta=assembler.feed, may_retry=assembler.may_retry, on_reset=assembler.reset
     )
 
 
-def _partial_result(assembler: StreamAssembler, hits: Sequence[Hit]) -> Answered:
+def _partial_result(assembler: StreamAssembler, hits: Sequence[Hit], sources: Sources) -> Answered:
     return Answered(
         status=VerificationStatus.PARTIAL,
-        items=tuple(_answered_item(item, check, hits) for item, check in assembler.verified),
+        items=tuple(
+            _answered_item(item, check, hits, sources) for item, check in assembler.verified
+        ),
         problems=(INCOMPLETE_MESSAGE,),
     )
 
@@ -248,7 +251,8 @@ async def generate(state: AskState, deps: AskDeps) -> AskState:
             "content": build_user_message(state.hits, state.question, state.language),
         },
     ]
-    assembler, callbacks = _stream_callbacks(state)
+    sources = to_prompt_sources(state.hits, deps.catalog.language)
+    assembler, callbacks = _stream_callbacks(state, sources)
     try:
         stream = await deps.answer_client.stream(messages, callbacks)
     except ServiceUnavailable as error:
@@ -265,7 +269,7 @@ async def generate(state: AskState, deps: AskDeps) -> AskState:
     )
     if stream.incomplete and assembler is not None:
         assembler.interrupted()
-        return replace(current, result=_partial_result(assembler, state.hits))
+        return replace(current, result=_partial_result(assembler, state.hits, sources))
     parsed = parse_answer(stream.content, stream.finish)
     if isinstance(parsed, ParseFailure):
         logger.warning("Model çıktısı okunamadı: %s %s", parsed.reason, parsed.detail)
@@ -277,9 +281,11 @@ def _hit_at(number: int, hits: Sequence[Hit]) -> Hit | None:
     return hits[number - 1] if 1 <= number <= len(hits) else None
 
 
-def _answered_item(item: ModelItem, check: ItemCheck, hits: Sequence[Hit]) -> AnsweredItem:
+def _answered_item(
+    item: ModelItem, check: ItemCheck, hits: Sequence[Hit], sources: Sources
+) -> AnsweredItem:
     numbers = [n for n in check.source_numbers if 1 <= n <= len(hits)]
-    number = code_source_number(item, to_prompt_sources(hits))
+    number = code_source_number(item, sources)
     code_hit = _hit_at(number, hits) if number is not None else None
     return AnsweredItem(
         text=item.text,
@@ -315,7 +321,8 @@ def _clarification(
 async def verify(state: AskState, deps: AskDeps) -> AskState:
     assert state.answer is not None
     answer = state.answer
-    verification = verify_answer(answer, to_prompt_sources(state.hits))
+    sources = to_prompt_sources(state.hits, deps.catalog.language)
+    verification = verify_answer(answer, sources, state.language)
     if verification.status is VerificationStatus.NOT_FOUND:
         return replace(state, result=NotFound())
     if verification.status is VerificationStatus.CLARIFY:
@@ -329,7 +336,7 @@ async def verify(state: AskState, deps: AskDeps) -> AskState:
         citations = tuple(_citation(hit) for hit in state.hits)
         return replace(state, result=Failed(reason=_MODEL_FAILED, citations=citations))
     items = tuple(
-        _answered_item(item, check, state.hits)
+        _answered_item(item, check, state.hits, sources)
         for item, check in zip(answer.items, verification.items, strict=True)
     )
     result = Answered(
