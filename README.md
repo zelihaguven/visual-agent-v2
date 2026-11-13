@@ -111,10 +111,10 @@ uv run python -m evals.run_questions --set evals/output/set7 --work evals/output
 
 Model cevapları `evals/output/answer-cache` altında saklanır; aynı istek yeniden gönderilmez. Önbellekten gelen soruların süresi ve maliyeti rapora girmez, sayıları yazılır. Yeniden sormak için `--refresh-cache`. Uygulama bu önbelleği kullanmaz.
 
-Belge işleme kapsamını ölçmek için:
+Belge işleme kapsamını ölçmek için (`--work` o setin parça önbelleği; önbellek varsa belgeler yeniden işlenmez, işleme kodunu ölçmek için boş bir klasör verin):
 
 ```bash
-uv run python -m evals.ingest_check --set evals/output/set7
+uv run python -m evals.ingest_check --set evals/output/set7 --work evals/output/n10/w7
 ```
 
 ## Yapı

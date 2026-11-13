@@ -8,14 +8,29 @@ import httpx
 import pytest
 from qdrant_client import AsyncQdrantClient
 
-from evals import index_cache
+from evals import index_cache, ingest_check
 from evals.answer_cache import CacheCounts, CachingTransport, Usage
+from evals.gold import (
+    Carrier,
+    GoldDocument,
+    GoldQuestion,
+    GoldSet,
+    GoldSource,
+    Outcome,
+    QuestionKind,
+)
 from evals.index_cache import chunks_fingerprint, ensure_index, load_or_ingest, read_chunks
 from evals.run_documents import ask_all, folder_documents, question_row
 from tests.test_ask_pipeline import CHUNKS, FakeClient, FakeRetriever, answer_payload, make_deps
 from visual_agent.ask.language import document_language
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.document import Chunk, ChunkKind, SourceLocation
+from visual_agent.domain.document import (
+    UNDETECTED_LANGUAGE,
+    Chunk,
+    ChunkKind,
+    DocumentMeta,
+    SourceLocation,
+)
 from visual_agent.domain.result import (
     Answered,
     AnsweredItem,
@@ -185,14 +200,17 @@ def test_each_file_in_a_folder_is_a_document_named_after_it(tmp_path: Path) -> N
 
     documents = folder_documents(tmp_path)
 
-    assert [(path.name, meta.doc_id, meta.title) for path, meta in documents] == [
-        ("a.md", "a.md", "a"),
-        ("b.md", "b.md", "b"),
+    assert [(path.name, meta.doc_id, meta.title, meta.language) for path, meta in documents] == [
+        ("a.md", "a.md", "a", UNDETECTED_LANGUAGE),
+        ("b.md", "b.md", "b", UNDETECTED_LANGUAGE),
     ]
 
 
-def _failing_ingest(documents: object) -> tuple[dict[str, list[Chunk]], dict[str, str], float]:
-    return {"a.md": [_chunk("a.md", 0)]}, {"b.md": "ValueError: bozuk"}, 0.1
+def _failing_ingest(documents: object) -> tuple[dict[str, list[Chunk]], dict[str, Any]]:
+    return {"a.md": [_chunk("a.md", 0)]}, {
+        "errors": {"b.md": "ValueError: bozuk"},
+        "per_document": {"a.md": {"seconds": 0.1, "report": {"warnings": []}}},
+    }
 
 
 def test_partial_ingest_is_kept_when_allowed(
@@ -217,3 +235,61 @@ def test_failed_ingest_leaves_no_cache_so_the_next_run_retries(
     assert not (tmp_path / "chunks.json").exists()
     assert not (tmp_path / "ingest.json").exists()
     assert read_chunks(tmp_path) is None
+
+
+def _gold_set(directory: Path) -> None:
+    gold = GoldSet(
+        seed=1,
+        documents=(
+            GoldDocument(doc_id="a.md", filename="a.md", domain="d", carrier=Carrier.PDF),
+            GoldDocument(doc_id="b.md", filename="b.md", domain="d", carrier=Carrier.SCAN),
+        ),
+        questions=(
+            GoldQuestion(
+                question_id="q",
+                text="?",
+                kind=QuestionKind.DIRECT,
+                domain="d",
+                outcome=Outcome.ANSWERED,
+                sources=(GoldSource(doc_id="b.md"),),
+                expected_values=("7",),
+            ),
+        ),
+        document_texts={"a.md": "A belgesi\nmetin", "b.md": "B belgesi\nmetin"},
+    )
+    (directory / "gold.json").write_text(gold.model_dump_json(), encoding="utf-8")
+
+
+def test_ingest_check_reports_a_broken_document_instead_of_failing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(index_cache, "_ingest_all", _failing_ingest)
+    _gold_set(tmp_path)
+
+    report = ingest_check.run(tmp_path, tmp_path / "work")
+
+    assert report["errors"] == {"b.md": "ValueError: bozuk"}
+    assert report["missing"][0]["question"] == "q"  # type: ignore[index]
+    assert report["documents"] == [
+        {"doc_id": "a.md", "carrier": "pdf", "seconds": 0.1, "report": {"warnings": []}}
+    ]
+
+
+def test_ingest_check_reads_documents_like_the_application(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    seen: list[DocumentMeta] = []
+
+    def ingest(documents: index_cache.Documents) -> tuple[dict[str, list[Chunk]], dict[str, Any]]:
+        seen.extend(meta for _, meta in documents)
+        return {}, {"errors": {}, "documents": 0, "per_document": {}}
+
+    monkeypatch.setattr(index_cache, "_ingest_all", ingest)
+    _gold_set(tmp_path)
+
+    ingest_check.run(tmp_path, tmp_path / "work")
+
+    assert [(meta.title, meta.language) for meta in seen] == [
+        ("A belgesi", UNDETECTED_LANGUAGE),
+        ("B belgesi", UNDETECTED_LANGUAGE),
+    ]

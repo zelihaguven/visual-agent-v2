@@ -1,40 +1,21 @@
-"""Üretilen setin belge işlemeden doğru kaynakla çıktığını ölçer (işçi imajında çalışır)."""
+"""Üretilen setin belge işlemeden doğru kaynakla çıktığını ölçer (işçi imajında çalışır).
+
+Parçalar run_questions ile aynı önbellekten (--work) okunur: önbellek varsa belgeler yeniden
+işlenmez. İşleme kodunu ölçmek için boş bir --work verin. İşlenemeyen belge varsa önbellek
+yazılmaz (run_questions o klasörde durur); sonraki koşu bütün belgeleri yeniden işler.
+"""
 
 import argparse
 import json
-import tempfile
-import time
 from collections import Counter
 from collections.abc import Sequence
 from pathlib import Path
 
-from evals.gold import GoldQuestion, GoldSet, GoldSource
-from evals.scoring import extract_tokens
-from visual_agent.domain.document import Chunk, DocumentMeta
-from visual_agent.settings import Settings
-
-
-def source_matches(chunk: Chunk, source: GoldSource) -> bool:
-    if chunk.doc_id != source.doc_id:
-        return False
-    location = chunk.location
-    return (
-        (source.page is None or location.page == source.page)
-        and (source.sheet is None or location.sheet == source.sheet)
-        and (source.row is None or location.row == source.row)
-    )
-
-
-def question_found(question: GoldQuestion, chunks: Sequence[Chunk]) -> bool:
-    """Her beklenen değer, doğru konumdaki parçalardan birinde bulunmalıdır."""
-    expected = frozenset().union(*(extract_tokens(value) for value in question.expected_values))
-    candidates = [c for c in chunks if any(source_matches(c, s) for s in question.sources)]
-    available = (
-        frozenset().union(*(extract_tokens(chunk.text) for chunk in candidates))
-        if candidates
-        else frozenset()
-    )
-    return expected <= available
+from evals.gold import GoldQuestion, GoldSet
+from evals.index_cache import load_or_ingest
+from evals.run_questions import gold_documents
+from evals.scoring import extract_tokens, question_found
+from visual_agent.domain.document import Chunk
 
 
 def unsafe_tokens(chunks: Sequence[Chunk], truth: str) -> list[str]:
@@ -54,34 +35,19 @@ def blocked_values(question: GoldQuestion, chunks: Sequence[Chunk]) -> list[str]
     return [value for value in question.expected_values if extract_tokens(value) <= flagged]
 
 
-def run(set_directory: Path) -> dict[str, object]:
-    from visual_agent.ingest.external import locate_tools
-    from visual_agent.ingest.pipeline import ingest_document
-    from visual_agent.ingest.tools import default_tools
-
+def run(set_directory: Path, work: Path) -> dict[str, object]:
+    """Belgeler run_questions ile aynı biçimde ve aynı parça önbelleğiyle işlenir."""
     gold = GoldSet.model_validate_json((set_directory / "gold.json").read_text(encoding="utf-8"))
-    settings = Settings()
-    tools = default_tools(locate_tools(settings.soffice_path, settings.tesseract_path))
-    chunks: dict[str, tuple[Chunk, ...]] = {}
-    per_document: list[dict[str, object]] = []
-    for document in gold.documents:
-        started = time.perf_counter()
-        with tempfile.TemporaryDirectory() as work:
-            result = ingest_document(
-                set_directory / document.filename,
-                DocumentMeta(doc_id=document.doc_id, title=Path(document.filename).stem),
-                tools,
-                Path(work),
-            )
-        chunks[document.doc_id] = result.chunks
-        per_document.append(
-            {
-                "doc_id": document.doc_id,
-                "carrier": document.carrier.value,
-                "seconds": round(time.perf_counter() - started, 1),
-                "report": result.report.model_dump(),
-            }
-        )
+    work.mkdir(parents=True, exist_ok=True)
+    found_chunks, manifest = load_or_ingest(
+        gold_documents(gold, set_directory), work, keep_partial=False
+    )
+    chunks = {document.doc_id: found_chunks.get(document.doc_id, []) for document in gold.documents}
+    per_document = [
+        {"doc_id": document.doc_id, "carrier": document.carrier.value, **info}
+        for document in gold.documents
+        if (info := manifest.get("per_document", {}).get(document.doc_id)) is not None
+    ]
     carriers = {document.doc_id: document.carrier.value for document in gold.documents}
     totals: Counter[str] = Counter()
     found: Counter[str] = Counter()
@@ -118,6 +84,7 @@ def run(set_directory: Path) -> dict[str, object]:
         if question.sources
     }
     return {
+        "errors": manifest.get("errors", {}),
         "unsafe_tokens": {key: value for key, value in unsafe.items() if value},
         "blocked_expected_values": {key: value for key, value in blocked.items() if value},
         "by_carrier": {carrier: [found[carrier], totals[carrier]] for carrier in sorted(totals)},
@@ -128,9 +95,16 @@ def run(set_directory: Path) -> dict[str, object]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Belge işleme kapsamını ölçer.")
-    parser.add_argument("--set", type=Path, default=Path("evals/output/set"))
+    parser.add_argument("--set", type=Path, required=True)
+    parser.add_argument(
+        "--work",
+        type=Path,
+        required=True,
+        help="o setin parça önbelleği (run_questions ile aynı klasör); önbellek varsa belgeler "
+        "yeniden işlenmez, işleme kodunu ölçmek için boş bir klasör verin",
+    )
     arguments = parser.parse_args()
-    print(json.dumps(run(arguments.set), ensure_ascii=False, indent=1))
+    print(json.dumps(run(arguments.set, arguments.work), ensure_ascii=False, indent=1))
 
 
 if __name__ == "__main__":
