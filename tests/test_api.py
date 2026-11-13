@@ -44,13 +44,13 @@ def _client_with(checks: Mapping[str, Check]) -> TestClient:
     return TestClient(create_app(Settings(_env_file=None), services))
 
 
-def test_health_reports_service_is_up_and_login_is_off() -> None:
+def test_health_reports_service_is_up() -> None:
     client = TestClient(create_app(Settings(_env_file=None)))
 
     response = client.get("/api/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "auth_enabled": False}
+    assert response.json() == {"status": "ok"}
 
 
 def test_health_is_ok_when_every_dependency_answers() -> None:

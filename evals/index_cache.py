@@ -119,9 +119,7 @@ async def ensure_index(
     for start in range(0, len(flat), _EMBED_BATCH):
         batch = list(flat[start : start + _EMBED_BATCH])
         texts = [chunk.embed_text for chunk in batch]
-        await store.upsert(
-            batch, ("all",), dense.encode_documents(texts), sparse.encode_documents(texts)
-        )
+        await store.upsert(batch, dense.encode_documents(texts), sparse.encode_documents(texts))
         print(f"vektör: {start + len(batch)}/{len(flat)}", file=sys.stderr, flush=True)
     saved = {
         "fingerprint": fingerprint,

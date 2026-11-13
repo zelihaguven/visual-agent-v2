@@ -95,7 +95,7 @@ class FakeIndexer:
     removed: list[str] = field(default_factory=list)
     remove_error: Exception | None = None
 
-    async def index(self, doc_id: str, access: Sequence[str], chunks: Sequence[Chunk]) -> None:
+    async def index(self, doc_id: str, chunks: Sequence[Chunk]) -> None:
         if self.error is not None:
             raise self.error
         self.indexed.append((doc_id, len(chunks)))

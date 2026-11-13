@@ -1,7 +1,7 @@
 """Belge kaydı. Kalıcı depo, belge yükleme ile birlikte A5'te eklenir."""
 
 import re
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
 
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, DocumentMeta
 from visual_agent.verification.text import identifiers_in
@@ -31,13 +31,8 @@ class DocumentCatalog:
         meta = self._documents.get(doc_id)
         return meta.title if meta is not None else None
 
-    def visible_doc_ids(self, access: Sequence[str] | None) -> tuple[str, ...]:
-        if access is None:
-            return tuple(self._documents)
-        groups = {*access, "all"}
-        return tuple(
-            doc_id for doc_id, meta in self._documents.items() if groups & set(meta.access)
-        )
+    def doc_ids(self) -> tuple[str, ...]:
+        return tuple(self._documents)
 
     def language(self, doc_id: str) -> str:
         meta = self._documents.get(doc_id)

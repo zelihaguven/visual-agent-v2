@@ -70,7 +70,6 @@ class FakeRetriever:
         bm25_query: str,
         doc_ids: Sequence[str] | None,
         top_k: int,
-        access: Sequence[str] | None = None,
     ) -> list[Hit]:
         self.calls.append({"query": query, "bm25": bm25_query, "doc_ids": doc_ids, "top_k": top_k})
         return [Hit(chunk=item, score=1.0 / (index + 1)) for index, item in enumerate(self.hits)]

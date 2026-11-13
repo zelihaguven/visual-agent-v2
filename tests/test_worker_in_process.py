@@ -53,9 +53,9 @@ def test_indexer_replaces_previous_vectors_of_the_document() -> None:
     async def run() -> list[str]:
         store = QdrantChunkStore(AsyncQdrantClient(":memory:"), "test")
         indexer = LazyIndexer(store, SharedEncoders(lambda: (FakeDense(), FakeSparse())))
-        await indexer.index("a", ("all",), [_chunk("a:0"), _chunk("a:1")])
-        await indexer.index("a", ("all",), [_chunk("a:2")])
-        arms = await store.search([1.0, 0.0], {1: 1.0}, None, None, 10)
+        await indexer.index("a", [_chunk("a:0"), _chunk("a:1")])
+        await indexer.index("a", [_chunk("a:2")])
+        arms = await store.search([1.0, 0.0], {1: 1.0}, None, 10)
         await indexer.remove("b")
         return [item.chunk.chunk_id for item in arms[0]]
 

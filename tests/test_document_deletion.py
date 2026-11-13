@@ -228,11 +228,9 @@ def test_deleted_before_vectors_are_written_leaves_nothing_behind(tmp_path: Path
         real = LazyIndexer(store, SharedEncoders(lambda: (FakeDense(), FakeSparse())))
 
         class DeletedDuringIngest:
-            async def index(
-                self, doc_id: str, access: Sequence[str], chunks: Sequence[Chunk]
-            ) -> None:
+            async def index(self, doc_id: str, chunks: Sequence[Chunk]) -> None:
                 await delete_document(doc_id, repository, store.delete_document, storage)
-                await real.index(doc_id, access, chunks)
+                await real.index(doc_id, chunks)
 
             async def remove(self, doc_id: str) -> None:
                 await real.remove(doc_id)
@@ -281,9 +279,9 @@ def test_search_catalog_forgets_a_deleted_document(tmp_path: Path) -> None:
     snapshots = SnapshotProvider(repository)
 
     async def run() -> tuple[tuple[str, ...], tuple[str, ...]]:
-        before = (await snapshots.current()).catalog.visible_doc_ids(None)
+        before = (await snapshots.current()).catalog.doc_ids()
         await delete_document("d", repository, Vectors().remove, storage)
-        after = (await snapshots.current()).catalog.visible_doc_ids(None)
+        after = (await snapshots.current()).catalog.doc_ids()
         return before, after
 
     before, after = asyncio.run(run())

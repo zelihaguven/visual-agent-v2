@@ -36,7 +36,7 @@ class LazyIndexer:
         self._store = store
         self._encoders = encoders
 
-    async def index(self, doc_id: str, access: Sequence[str], chunks: Sequence[Chunk]) -> None:
+    async def index(self, doc_id: str, chunks: Sequence[Chunk]) -> None:
         dense, sparse = await self._encoders.get()
         await self._store.ensure_collection(dense.size)
         texts = [chunk.embed_text for chunk in chunks]
@@ -45,7 +45,7 @@ class LazyIndexer:
             asyncio.to_thread(sparse.encode_documents, texts),
         )
         await self._store.delete_document(doc_id)
-        await self._store.upsert(chunks, access, dense_vectors, sparse_vectors)
+        await self._store.upsert(chunks, dense_vectors, sparse_vectors)
 
     async def remove(self, doc_id: str) -> None:
         await self._store.delete_document(doc_id)

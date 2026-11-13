@@ -27,7 +27,6 @@ class Retriever(Protocol):
         bm25_query: str,
         doc_ids: Sequence[str] | None,
         top_k: int,
-        access: Sequence[str] | None = None,
     ) -> list[Hit]: ...
 
 
@@ -41,7 +40,6 @@ class AnswerStreamer(Protocol):
 class AskRequest:
     question: str
     doc_ids: tuple[str, ...] | None = None
-    access: tuple[str, ...] | None = None
     on_event: EventSink | None = None
     context: ConversationContext | None = None
 

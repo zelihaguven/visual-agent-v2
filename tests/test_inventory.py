@@ -72,16 +72,6 @@ def test_inventory_question_lists_documents_and_codes_from_the_records() -> None
     }
 
 
-def test_inventory_only_counts_documents_the_user_can_see() -> None:
-    deps = deps_with(FakeClassifier())
-    deps.catalog.add(DocumentMeta(doc_id="gizli", title="Gizli", access=("muhasebe",)))
-
-    outcome = asyncio.run(answer_question(AskRequest("Neler var?", access=("dikim",)), deps))
-
-    assert isinstance(outcome.result, Inventory)
-    assert outcome.result.document_count == 3
-
-
 def test_inventory_answer_does_not_use_search_or_the_model() -> None:
     deps = deps_with(FakeClassifier())
 

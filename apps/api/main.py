@@ -96,7 +96,6 @@ class ApiServices:
 
 class HealthResponse(BaseModel):
     status: Literal["ok", "unavailable"]
-    auth_enabled: bool
     dependencies: dict[str, bool] | None = None
 
 
@@ -343,7 +342,6 @@ def _health_router(app: FastAPI) -> APIRouter:
             response.status_code = 503
         return HealthResponse(
             status="ok" if healthy else "unavailable",
-            auth_enabled=app.state.settings.auth_enabled,
             dependencies=states,
         )
 
