@@ -118,7 +118,7 @@ def _fake_tools(calls: list[str], page_kind: PageKind = PageKind.TEXT) -> Ingest
         ]
 
     def images(path: Path, pages: list[PageInfo], language: str) -> list[Element]:
-        calls.append("images")
+        calls.append(f"images:{language}")
         return [Element(ElementKind.FIGURE, "Görsel metni", SourceLocation(page=1), from_ocr=True)]
 
     return IngestTools(
@@ -194,7 +194,7 @@ def test_word_file_goes_through_pdf_and_embedded_image_reading(tmp_path: Path) -
 
     result = ingest_document(path, META, _fake_tools(calls), tmp_path)
 
-    assert calls == ["office", "inspect", "ocr:tr", "parse:converted.pdf", "images"]
+    assert calls == ["office", "inspect", "ocr:tr", "parse:converted.pdf", "images:tr"]
     assert result.display_pdf == tmp_path / "converted.pdf"
     assert {chunk.kind for chunk in result.chunks} == {ChunkKind.TEXT, ChunkKind.FIGURE}
 
@@ -206,7 +206,8 @@ def test_scanned_pages_do_not_get_a_second_image_pass(tmp_path: Path) -> None:
 
     ingest_document(path, META, _fake_tools(calls, page_kind=PageKind.NONE), tmp_path)
 
-    assert "images" in calls  # okuyucu çağrılır; sayfa seçimi okuyucunun sorumluluğundadır
+    # Okuyucu çağrılır; sayfa seçimi okuyucunun sorumluluğundadır.
+    assert any(call.startswith("images:") for call in calls)
 
 
 def test_report_summarizes_what_was_read(tmp_path: Path) -> None:
