@@ -161,8 +161,9 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   - Tablo satırları başlıklarıyla ayrı parça. Sıralı listede madde numarası kalıyor.
   - Sayfası ve sayfa adı olmayan parçanın konumu bölüm yolu (`SourceLocation.section`).
     Kaynak etiketi ve kaynak paneli bunu gösteriyor.
-  - Kural biçim düzeyinde. Başlık düzeyi bildirmeyen biçimlerde (PDF, Excel) bölüm kuralı
-    değişmedi.
+  - Kural biçim düzeyinde. Başlık düzeyi bildirmeyen biçimlerde (PDF) bölüm kuralı
+    değişmedi. Excel'de her sayfa en üst düzey başlıktır ("Excel'de her sayfa kendi
+    bölümüyle başlar").
 - **Neden:**
   - Ürün hedefi "cevabın kaynak bölümü görünür" ve FastReact belgeleri markdown.
   - Önce başlıklar bölüm adı olmuyordu ve kaynak yalnız dosya adıyla görünüyordu.
@@ -235,7 +236,8 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   - Her biçimin kural sürümü belge raporuna yazılıyor.
   - Eski sürümle işlenmiş belge listede "eski okuma kuralıyla işlendi" diye görünüyor.
   - Bir biçimin parçalarını ya da konumlarını değiştiren her değişiklikte o biçimin sürümü
-    artırılıyor. Markdown, metin, SQL ve Excel 2'de; PDF, Office ve görsel 1'de.
+    artırılıyor. Excel (xlsx, xls) 3'te; Markdown, metin ve SQL 2'de; PDF, Office ve görsel
+    1'de.
 - **Neden:** Parçalama kuralı değişince eski belgeler sessizce eski parçalarıyla kalıyordu.
   Hangi belgelerin yeniden işlenmesi gerektiği bilinmiyordu.
 - **Neden kodla engellenmedi:**
@@ -291,6 +293,34 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Ne zaman:** 0001, `#1475acb`, `#cae391f`.
 - **Neden:** Kural "sistem komutu yerleştirmez, değiştirmez, çalıştırmaz" (0001). Model
   komutu yazmaz, yalnız kaynak numarasını verir (`kod_kaynak_no`). Ölçüm yok.
+
+### Excel'de her sayfa kendi bölümüyle başlar
+- **Ne zaman:** 2026-11-13. `excel-sayfa-bolum` dalı; ürün sahibi onayı.
+- **Kural:** Excel sayfa başlığı en üst düzey başlıktır; önceki sayfanın adı ve başlığı
+  sonraki sayfanın bölüm yoluna girmez. Yalnız tablo biçimleri (xlsx, xls) etkilenir; Word,
+  PDF ve Markdown başlıkları değişmez. Tablo biçimlerinin kural sürümü 3: önceden yüklenmiş
+  Excel'ler arayüzde "eski kuralla işlendi" görünür ve yeniden işlenmelidir.
+- **Neden:** Sayfa başlığının düzeyi yoktu; ikinci sayfa ilk sayfanın altına alt bölüm
+  olarak giriyordu (`PNT-3101 · … · PNT-3102 · …`). Önceki sayfanın kodu sonraki sayfaların
+  parçalarında da görünüyor, arama yanlış sayfanın satırını öne çekiyordu (kural 1).
+- **Ölçüm** (ölçüm indeksi n10; uygulamanın indeksine dokunulmadı. Yalnız Excel belgeleri
+  yeniden işlendi, değişen yalnız çok sayfalı iki
+  belge: taban setlerinde `dikim-excel` 7 parça, sınır setinde `sinir-model-sayfa` 9 parça;
+  işleme ve vektör birkaç saniye; canlı maliyet toplam ~0,01 $):
+  - Sınır setine model başına sayfa düzeninde bir Excel ve 5 soru eklendi (kod yalnız sayfa
+    adında). Sızıntı varken 1 doğrulanmış yanlış: "PNT-3102 M beden basen 96 mı?" sorusuna
+    PNT-3101 sayfasının satırı getirilip 96 doğrulandı. Düzeltmeden sonra 0: doğru sayfadan
+    101. `PNT-3101 S beden boy` gizliyken doğru oldu; olmayan model (PNT-3104) iki koşuda da
+    "geçmiyor".
+  - Taban 7 ve 11: hiçbir sorunun sonucu değişmedi (`dikim-excel` soruları dahil).
+  - Tek sayfalı Excel'lerin parçaları değişmez; sürüm biçim düzeyinde olduğu için onlar da
+    "eski kuralla işlendi" görünür, ama yeniden işlenmeleri zorunlu değil.
+- **Bilinen:**
+  - Yeni belgenin iki sorusu (`3102 bel M`, `3103 basen L`) doğru değeri buluyor ama
+    gizleniyor: üretilen tabloda grup başlığı L sütununa uzanmıyor, model alıntıda etiketi
+    "düzeltiyor" ve alıntı kaynakla birebir tutmuyor.
+  - Yeni belge "Basen / Beden M" taşıdığı için model adı vermeyen eski iki sınır sorusu
+    (`sinir-sutun-basen-m`, `sinir-sutun-bel-l-teyit`) artık netleştirme soruyor.
 
 ## Cevap modeli ve istem
 

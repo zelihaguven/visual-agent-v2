@@ -77,6 +77,16 @@ def test_excel_every_sheet_is_read(tmp_path: Path) -> None:
     assert rows[-1].text == "Beden: S | Etiket kodu: ETK-1000"
 
 
+def test_each_sheet_starts_its_own_section(tmp_path: Path) -> None:
+    """Önceki sayfanın adı ve başlığı sonraki sayfanın bölüm yoluna girmez."""
+    chunks = build_chunks(parse_workbook(_workbook(tmp_path))[0], META)
+    labels = [chunk for chunk in chunks if chunk.location.sheet == "Etiketler"]
+
+    assert {chunk.section for chunk in labels} == {"Etiketler"}
+    assert all("Ölçüler" not in chunk.section for chunk in labels)
+    assert all("PNT-4417" not in chunk.embed_text for chunk in labels)
+
+
 def test_sql_file_becomes_code_with_comment_as_heading(tmp_path: Path) -> None:
     path = tmp_path / "rapor.sql"
     path.write_text("-- Aylık ciro\nSELECT SUM(TUTAR)\nFROM FATURA;\n", encoding="utf-8")

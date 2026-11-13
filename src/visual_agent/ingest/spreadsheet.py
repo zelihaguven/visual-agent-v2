@@ -162,7 +162,9 @@ def _parse_sheet(sheet: Worksheet) -> list[Element]:
     header_index = _find_header(grid)
     labels = _labels(grid, header_index)
     section = _SECTION_SEPARATOR.join([sheet.title, *_title_rows(grid, header_index)])
-    elements = [Element(ElementKind.HEADING, section, SourceLocation(sheet=sheet.title))]
+    # Her sayfa en üst düzey başlıktır: önceki sayfanın adı bu sayfanın bölüm yoluna girmez.
+    heading = Element(ElementKind.HEADING, section, SourceLocation(sheet=sheet.title), level=1)
+    elements = [heading]
     for offset, row in enumerate(grid[header_index + 1 :], start=header_index + 2):
         text = labeled_row(labels, row)
         if text:
