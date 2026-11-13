@@ -636,7 +636,7 @@ def test_number_word_in_the_source_is_read_in_the_document_language(
 ) -> None:
     """Kaynaktaki "on" yalnız katalogda Türkçe olan belgede 10 sayılır."""
     source = chunk("b:2", "b", "Bekleme süresi on dakikadır.", ChunkKind.TEXT, title="Kılavuz")
-    client = FakeClient(answer_payload("Bekleme 10 dakikadır.", quote=source.text))
+    client = FakeClient(answer_payload("Bekleme on dakikadır.", quote=source.text))
     deps = make_deps(client, FakeRetriever(hits=[source]), languages={"b": language})
 
     outcome = ask(deps, "Bekleme kaç dakika?")

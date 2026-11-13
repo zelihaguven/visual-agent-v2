@@ -96,7 +96,8 @@ def test_grouped_numbers_never_change_value(text: str, expected: str) -> None:
     ("text", "expected"),
     [
         ("Ağırlık 500 gr.", "Ağırlık beş yüz gram."),
-        ("Ağırlık 500 g.", "Ağırlık beş yüz gram."),
+        # "g" ivme de olabilir ("50 g"): yazıldığı gibi kalır.
+        ("Titreşim 50 g.", "Titreşim elli g."),
         ("Hacim 2 lt.", "Hacim iki litre."),
         ("Fiyat 5 tl.", "Fiyat beş Türk lirası."),
         ("Fiyat 5 Tl.", "Fiyat beş Türk lirası."),

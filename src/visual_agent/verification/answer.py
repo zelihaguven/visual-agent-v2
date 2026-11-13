@@ -26,6 +26,7 @@ from visual_agent.verification.text import (
     normalize,
     numbers_in,
     prefixed_codes_in,
+    turkish_tens,
     word_numbers,
 )
 
@@ -123,22 +124,23 @@ def _unit_problems(item: ModelItem, evidence: str, sources: Sources) -> list[str
     return [f"cümlede kaynakta yazmayan birim: {missing}"] if missing else []
 
 
-def _written_numbers(
-    item: ModelItem, sources: Sources, code_source: PromptSource | None
-) -> set[str]:
-    """Dayanaktaki yazıyla sayılar, her parça kendi belgesinin diliyle okunur."""
+def _evidence_tens(item: ModelItem, sources: Sources, code_source: PromptSource | None) -> set[str]:
+    """Dayanaktaki Türkçe "on" sözcükleri, her parça kendi belgesinin diliyle okunur."""
     parts = [(sources[q.source_no], q.text) for q in item.quotes if q.source_no in sources]
     if code_source is not None:
         parts.append((code_source, code_source.text))
-    return {value for source, text in parts for value in word_numbers(text, source.language)}
+    return {value for source, text in parts for value in turkish_tens(text, source.language)}
 
 
 def _token_problems(
-    item: ModelItem, evidence: str, written: set[str], sources: Sources, language: str
+    item: ModelItem, evidence: str, tens: set[str], sources: Sources, language: str
 ) -> list[str]:
+    """Kaynaktaki "on" sözcüğü yalnız cümlede yazıyla yazılmış sayıyı karşılar: "click on" ya da
+    "ON konumu" rakamla yazılmış 10'un kanıtı olamaz."""
     problems = []
-    stated = numbers_in(item.text) | (word_numbers(item.text, language) - _ARTICLE_NUMBERS)
-    stray_numbers = stated - numbers_in(evidence) - written
+    backed = numbers_in(evidence) | word_numbers(evidence)
+    written = (word_numbers(item.text) | turkish_tens(item.text, language)) - _ARTICLE_NUMBERS
+    stray_numbers = (numbers_in(item.text) - backed) | (written - backed - tens)
     if stray_numbers:
         problems.append(f"cümlede kendi alıntısında olmayan sayı: {sorted(stray_numbers)}")
     cited = [sources[q.source_no].context for q in item.quotes if q.source_no in sources]
@@ -172,8 +174,8 @@ def verify_item(item: ModelItem, sources: Sources, language: str) -> ItemCheck:
         [*(quote.text for quote in item.quotes), code_source.text if code_source else ""]
     )
     problems += _ocr_problems(item, sources)
-    written = _written_numbers(item, sources, code_source)
-    problems += _token_problems(item, evidence, written, sources, language)
+    tens = _evidence_tens(item, sources, code_source)
+    problems += _token_problems(item, evidence, tens, sources, language)
     problems += _tolerance_problems(item.text, evidence)
     others = len(problems)
     problems += _unit_problems(item, evidence, sources)
@@ -213,7 +215,8 @@ _SAFE_CLARIFY_QUESTION = {"tr": "Hangisi için soruyorsunuz?", "en": "Which one 
 
 def _values_in(text: str, language: str) -> set[str]:
     codes = {compact_identifier(value) for value in identifiers_in(text)} | prefixed_codes_in(text)
-    numbers = numbers_in(text) | (word_numbers(text, language) - _ARTICLE_NUMBERS)
+    words = word_numbers(text) | turkish_tens(text, language)
+    numbers = numbers_in(text) | (words - _ARTICLE_NUMBERS)
     return codes | numbers
 
 

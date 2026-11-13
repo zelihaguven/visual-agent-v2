@@ -46,7 +46,7 @@ UNITS: dict[str, tuple[str, str]] = {
     '"': ("inch", ""),
     "ft": ("ft", ""),
     "µm": ("µm", ""),
-    "g": ("g", "gram"),
+    "g": ("g", ""),  # ivme de olabilir ("50 g"); seste yazıldığı gibi kalır
     "gr": ("g", "gram"),
     "kg": ("kg", "kilogram"),
     "mg": ("mg", "miligram"),
@@ -93,39 +93,43 @@ _MEASURE_RE = re.compile(rf"(?<![\w.,])({_NUMBER})\s?({UNIT_PATTERN})(?!\w)", re
 _HEADER_UNIT_RE = re.compile(rf"[(\[]\s*({UNIT_PATTERN})\s*[)\]]", re.IGNORECASE)
 _IDENTIFIER_SEPARATOR_RE = re.compile(r"[-_\s]+")
 
-# Yazıyla sayılar, dile göre; "_" isteğe bağlı boşluktur ("on iki", "oniki"). "-" hiç sayılmayan
-# yazımdır: Fransızca "un" belirsiz tanımlık, İspanyolca "once" İngilizce sözcük.
-_WORD_NUMBER_LISTS = {
-    "en": "one two three four five six seven eight nine ten eleven twelve",
-    "es": "uno dos tres cuatro cinco seis siete ocho nueve diez - doce",
-    "fr": "- deux trois quatre cinq six sept huit neuf dix onze douze",
-    "tr": "bir iki üç dört beş altı yedi sekiz dokuz on on_bir on_iki",
-}
-# Başka dilde yaygın sözcük olan yazım yalnız kendi dilindeki metinde sayıdır ("turn on").
-_OWN_LANGUAGE_ONLY = {"on": "tr"}
-_SPELLINGS = {
+# Yazıyla sayılar. "-" sayılmayan yazımdır: Fransızca "un" belirsiz tanımlık, İspanyolca "once"
+# İngilizce sözcük, Türkçe "on" aşağıda ayrı.
+_WORD_NUMBER_LISTS = (
+    "one two three four five six seven eight nine ten eleven twelve",
+    "uno dos tres cuatro cinco seis siete ocho nueve diez - doce",
+    "- deux trois quatre cinq six sept huit neuf dix onze douze",
+    "bir iki üç dört beş altı yedi sekiz dokuz - onbir oniki",
+)
+_WORD_NUMBERS = {
     word: value
-    for words in _WORD_NUMBER_LISTS.values()
+    for words in _WORD_NUMBER_LISTS
     for value, word in enumerate(words.split(), start=1)
     if word != "-"
 } | {"twice": 2}
-_WORD_NUMBERS = {word.replace("_", ""): value for word, value in _SPELLINGS.items()}
-
-
-def _word_number_re(language: str) -> re.Pattern[str]:
-    words = (w for w in _SPELLINGS if _OWN_LANGUAGE_ONLY.get(w, language) == language)
-    spelled = sorted(
-        (re.escape(word).replace("_", r"\s*") for word in words), key=len, reverse=True
+_WORD_NUMBER_RE = re.compile(
+    r"(?<!\w)(" + "|".join(sorted(_WORD_NUMBERS, key=len, reverse=True)) + r")(?!\w)",
+    re.IGNORECASE,
+)
+# Türkçe "on" başka sözcüklerle karışır: "turn on", "click on", anahtar konumu "ON". Yalnız Türkçe
+# metinde, küçük harfle ya da büyük harfle başlayarak yazılınca sayıdır; tamamı büyük "ON" değildir.
+_TURKISH_TENS = {"on": 10, "on bir": 11, "on iki": 12}
+_TURKISH_TENS_RE = re.compile(
+    r"(?<!\w)("
+    + "|".join(
+        f"[{word[0]}{word[0].upper()}]{re.escape(word[1:]).replace(r'\ ', r'\s+')}"
+        for word in sorted(_TURKISH_TENS, key=len, reverse=True)
     )
-    return re.compile(r"(?<!\w)(" + "|".join(spelled) + r")(?!\w)", re.IGNORECASE)
+    + r")(?!\w)"
+)
 
 
-_WORD_NUMBER_RES = {language: _word_number_re(language) for language in [*_WORD_NUMBER_LISTS, ""]}
-
-
-def word_number_re(language: str) -> re.Pattern[str]:
-    """Bu dildeki metinde yazıyla sayı olan sözcükler; dili bilinmeyen metinde "on" sayılmaz."""
-    return _WORD_NUMBER_RES.get(language, _WORD_NUMBER_RES[""])
+def word_number_spans(text: str, language: str) -> list[tuple[int, int]]:
+    """Yazıyla sayıların konumları; akışta değer doğrulanana kadar gizlenir."""
+    spans = [match.span() for match in _WORD_NUMBER_RE.finditer(text)]
+    if language == "tr":
+        spans += [match.span() for match in _TURKISH_TENS_RE.finditer(text)]
+    return spans
 
 
 def _build_char_table() -> dict[int, str]:
@@ -227,16 +231,24 @@ def numbers_in(text: str) -> set[str]:
     return {canonical_number(match.group(0)) for match in _SIGNED_NUMBER_RE.finditer(cleaned)}
 
 
-def word_numbers(text: str, language: str) -> set[str]:
-    """Metinde yazıyla geçen sayılar; dil, metnin dili (cevapta sorunun, kaynakta belgenin)."""
-    values = (_word_value(word) for word in word_number_re(language).findall(text))
+def word_numbers(text: str) -> set[str]:
+    """Metinde yazıyla geçen, başka sözcükle karışmayan sayılar."""
+    values = (_word_value(word) for word in _WORD_NUMBER_RE.findall(text))
     return {str(value) for value in values if value is not None}
+
+
+def turkish_tens(text: str, language: str) -> set[str]:
+    """Türkçe metinde "on", "on bir", "on iki"; başka dilde ya da dil bilinmiyorsa boş."""
+    if language != "tr":
+        return set()
+    return {
+        str(_TURKISH_TENS[" ".join(m.casefold().split())]) for m in _TURKISH_TENS_RE.findall(text)
+    }
 
 
 def _word_value(word: str) -> int | None:
     """Büyük harfli Türkçe yazımlar ("İki", "ALTI") da okunur; tanınmayan sözcük atlanır."""
-    compact = "".join(word.split())
-    for candidate in (compact.replace("İ", "i").casefold(), compact.replace("I", "ı").casefold()):
+    for candidate in (word.replace("İ", "i").casefold(), word.replace("I", "ı").casefold()):
         if candidate in _WORD_NUMBERS:
             return _WORD_NUMBERS[candidate]
     return None

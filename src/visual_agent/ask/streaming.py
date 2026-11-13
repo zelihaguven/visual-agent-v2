@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from visual_agent.domain.answer import ItemCheck, ModelItem, PromptSource
 from visual_agent.verification.answer import code_source_number, verify_item
-from visual_agent.verification.text import UNIT_PATTERN, identifier_spans, word_number_re
+from visual_agent.verification.text import UNIT_PATTERN, identifier_spans, word_number_spans
 
 Event = dict[str, object]
 EventSink = Callable[[Event], None]
@@ -31,7 +31,7 @@ def _hidden_spans(text: str, language: str) -> list[tuple[int, int]]:
     spans = sorted(
         [
             *(match.span() for match in _NUMBER_TOKEN_RE.finditer(text)),
-            *(match.span() for match in word_number_re(language).finditer(text)),
+            *word_number_spans(text, language),
             *identifier_spans(text),
         ]
     )

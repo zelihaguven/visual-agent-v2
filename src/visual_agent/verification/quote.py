@@ -15,6 +15,7 @@ from visual_agent.verification.text import (
     identifiers_in,
     markdown_plain_form,
     quote_form,
+    turkish_tens,
     word_numbers,
 )
 
@@ -105,7 +106,7 @@ def _carries_values(tail: str, written_tail: str, language: str) -> bool:
     return (
         any(character.isdigit() for character in tail)
         or bool(identifiers_in(tail))
-        or bool(word_numbers(written_tail, language))
+        or bool(word_numbers(written_tail) | turkish_tens(written_tail, language))
     )
 
 

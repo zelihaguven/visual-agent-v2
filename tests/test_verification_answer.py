@@ -389,10 +389,28 @@ def test_turkish_ten_written_as_a_word_is_checked() -> None:
     assert _single("Bekleme 10 dakikadır", "Bekleme on dakikadır.")
 
 
-def test_turkish_ten_in_the_source_counts_only_when_the_document_is_turkish() -> None:
-    assert _single("Bekleme süresi on dakikadır", "Bekleme 10 dakikadır.")
-    assert not _single("Turn on the switch", "Şalteri 10 kez açın.", source_language="en")
-    assert not _single("Bekleme süresi on dakikadır", "Bekleme 10 dakikadır.", source_language="")
+def test_turkish_ten_in_the_source_backs_only_a_written_ten_in_a_turkish_document() -> None:
+    assert _single("Bekleme süresi on dakikadır", "Bekleme on dakikadır.")
+    assert not _single("Bekleme süresi on dakikadır", "Bekleme on dakikadır.", source_language="")
+    assert not _single("Turn on the switch", "Şalteri on kez açın.", source_language="en")
+
+
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("Bekleme süresi on dakikadır", "Bekleme 10 dakikadır."),
+        ("Anahtarı ON konumuna getirin", "Anahtarı 10 numaralı konuma getirin."),
+        ("Click on Save ve bekleyin", "Bekleme 10 olmalıdır."),
+    ],
+)
+def test_word_on_in_the_source_never_backs_the_digit_ten(source: str, text: str) -> None:
+    assert not _single(source, text)
+
+
+def test_switch_state_on_is_not_a_number() -> None:
+    assert _single(
+        "Set the power switch to ON", "Güç anahtarını ON konumuna getirin.", source_language="en"
+    )
 
 
 def test_english_on_is_not_a_number_in_an_english_answer() -> None:
