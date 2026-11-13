@@ -661,3 +661,77 @@ def test_code_missing_from_the_named_document_says_so_beside_the_suggestion() ->
     assert isinstance(outcome.result, NotFound)
     assert [s.doc_id for s in outcome.result.suggestions] == ["b"]
     assert outcome.result.reason == "E050 seçilen belgelerde geçmiyor."
+
+
+def _deps_with(
+    chunks: list[Chunk], titles: dict[str, str], client: FakeClient, hits: list[Chunk]
+) -> AskDeps:
+    catalog = DocumentCatalog()
+    for doc_id, title in titles.items():
+        catalog.add(DocumentMeta(doc_id=doc_id, title=title, language="tr"))
+    return replace(
+        make_deps(client, FakeRetriever(hits=hits)),
+        catalog=catalog,
+        identifiers=build_identifier_index(chunks),
+    )
+
+
+def test_code_in_the_section_heading_does_not_pull_every_row_of_the_section() -> None:
+    """Bölüm adındaki kod o bölümün bütün satırlarını "tam eşleşme" yapmaz."""
+    rows = [
+        Chunk(
+            chunk_id=f"t:{index}",
+            doc_id="t",
+            kind=ChunkKind.TABLE_ROW,
+            text=f"Beden {size}: {value}",
+            title="Ölçü föyü",
+            section="PNT-1162 ölçü tablosu",
+            location=SourceLocation(sheet="Ölçüler", row=index),
+        )
+        for index, (size, value) in enumerate([("S", "72"), ("M", "74"), ("L", "76")])
+    ]
+    client = FakeClient(answer_payload("M beden bel 74.", quote=rows[1].text))
+    deps = _deps_with(rows, {"t": "Ölçü föyü"}, client, hits=[rows[1]])
+
+    outcome = ask(deps, "PNT-1162 M beden bel kaç?")
+
+    assert [hit.chunk.chunk_id for hit in outcome.hits] == ["t:1"]
+
+
+def test_code_in_the_text_is_still_an_exact_match_even_if_another_document_is_named_after_it() -> (
+    None
+):
+    """Belge adı denetimi yalnız aranan belgelere bakar."""
+    named = chunk("a:1", "a", "Genel bilgi.", ChunkKind.TEXT, title="PNT-1162 föyü")
+    mention = chunk("b:1", "b", "PNT-1162 yerine PNT-1163 kullanılır.", ChunkKind.TEXT, title="Not")
+    other = chunk("b:2", "b", "Genel not.", ChunkKind.TEXT, title="Not")
+    client = FakeClient(answer_payload("PNT-1163 kullanılır.", quote=mention.text))
+    deps = _deps_with(
+        [named, mention, other], {"a": "PNT-1162 föyü", "b": "Not"}, client, hits=[other]
+    )
+
+    outcome = ask(deps, "PNT-1162 ne oldu?", ("b",))
+
+    assert [hit.chunk.chunk_id for hit in outcome.hits][:1] == ["b:1"]
+
+
+@pytest.mark.parametrize("written", ["PNT 1162", "pnt-1162", "PNT_1162", "`PNT-1162 modu`"])
+def test_code_written_differently_in_the_text_is_still_an_exact_match(written: str) -> None:
+    rows = [
+        Chunk(
+            chunk_id=f"t:{index}",
+            doc_id="t",
+            kind=ChunkKind.TEXT,
+            text=text,
+            title="Tork föyü",
+            section="PNT-1162 ayarları",
+            location=SourceLocation(page=1),
+        )
+        for index, text in enumerate(["Genel bilgi.", f"{written} için tork 5 Nm."])
+    ]
+    client = FakeClient(answer_payload("Tork 5 Nm.", quote=rows[1].text))
+    deps = _deps_with(rows, {"t": "Tork föyü"}, client, hits=[rows[0]])
+
+    outcome = ask(deps, "PNT-1162 tork kaç?")
+
+    assert [hit.chunk.chunk_id for hit in outcome.hits][:1] == ["t:1"]

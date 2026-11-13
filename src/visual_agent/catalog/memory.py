@@ -61,9 +61,10 @@ class DocumentCatalog:
             if any(squash(name) in target for name in self._names(self._documents[doc_id]))
         )
 
-    def is_document_name(self, identifier: str) -> bool:
+    def is_document_name(self, identifier: str, doc_ids: Iterable[str]) -> bool:
+        """Kod, verilen belgelerden birinin başlığındaki kod mu."""
         return any(
             squash(identifier) == squash(known)
-            for meta in self._documents.values()
-            for known in identifiers_in(meta.title)
+            for doc_id in doc_ids
+            for known in identifiers_in(self._documents[doc_id].title)
         )

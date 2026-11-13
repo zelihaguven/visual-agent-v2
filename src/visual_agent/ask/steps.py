@@ -87,12 +87,18 @@ def _search_domain(state: AskState) -> tuple[str, ...]:
 
 
 def _exact_chunks(identifiers: Sequence[str], state: AskState, deps: AskDeps) -> tuple[Chunk, ...]:
-    """Belge adı olan kodlar yalnız kapsamı belirler, kaynak listesini doldurmaz."""
+    """Kodu kendi metninde taşıyan parçalar kaynakların başına eklenir.
+
+    Başlıkta ya da bölüm adında geçen kod ("PNT-1162 ölçü tablosu"), metninde kod geçmeyen
+    satırları öne geçirmez; kodun hangi belgede olduğu kararı ise başlık dahil verilir. Aranan
+    belgelerden birinin adı olan kod yalnız kapsamı belirler.
+    """
+    domain = _search_domain(state)
     chunks: dict[str, Chunk] = {}
     for identifier in identifiers:
-        if deps.catalog.is_document_name(identifier):
+        if deps.catalog.is_document_name(identifier, domain):
             continue
-        found = deps.identifiers.chunks_for(identifier, _search_domain(state))
+        found = deps.identifiers.chunks_naming(identifier, domain)
         ordered = sorted(found, key=lambda chunk: chunk.kind is not ChunkKind.TABLE_ROW)
         for chunk in ordered[:_MAX_EXACT_CHUNKS_PER_IDENTIFIER]:
             chunks.setdefault(chunk.chunk_id, chunk)
