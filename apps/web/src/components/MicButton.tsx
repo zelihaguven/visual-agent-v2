@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 
 import { transcribeAudio } from "../api";
-import { canListen } from "../listening";
+import { canListen, record, type Recording } from "../listening";
 
 const MAX_RECORDING_MS = 60_000;
 
@@ -21,7 +21,7 @@ const LABELS: Record<MicState, string> = {
 
 export function MicButton({ isDisabled, onTranscript, onError }: Props) {
   const [state, setState] = useState<MicState>("idle");
-  const recorder = useRef<MediaRecorder | null>(null);
+  const active = useRef<{ stream: MediaStream; recording: Recording } | null>(null);
   const limit = useRef<number | undefined>(undefined);
 
   async function send(audio: Blob) {
@@ -48,23 +48,30 @@ export function MicButton({ isDisabled, onTranscript, onError }: Props) {
       onError("Mikrofona erişilemedi. Tarayıcı iznini kontrol edin.");
       return;
     }
-    const active = new MediaRecorder(stream);
-    const parts: Blob[] = [];
-    active.ondataavailable = (event) => parts.push(event.data);
-    active.onstop = () => {
-      window.clearTimeout(limit.current);
-      stream.getTracks().forEach((track) => track.stop());
-      void send(new Blob(parts, { type: active.mimeType }));
-    };
-    recorder.current = active;
-    active.start();
-    limit.current = window.setTimeout(() => active.stop(), MAX_RECORDING_MS);
+    active.current = { stream, recording: record(stream) };
+    // Mikrofon kendiliğinden kapanırsa (cihaz çıkarıldı) kayıt beklemeden gönderilir.
+    stream.getTracks().forEach((track) => {
+      track.onended = () => void finish();
+    });
+    limit.current = window.setTimeout(() => void finish(), MAX_RECORDING_MS);
     setState("recording");
+  }
+
+  async function finish() {
+    const current = active.current;
+    if (current === null) {
+      return;
+    }
+    active.current = null;
+    window.clearTimeout(limit.current);
+    const audio = await current.recording.stop();
+    current.stream.getTracks().forEach((track) => track.stop());
+    await send(audio);
   }
 
   function toggle() {
     if (state === "recording") {
-      recorder.current?.stop();
+      void finish();
     } else if (state === "idle") {
       void start();
     }

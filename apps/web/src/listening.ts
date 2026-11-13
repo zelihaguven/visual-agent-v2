@@ -137,7 +137,9 @@ export async function openMicrophone(): Promise<Microphone> {
   };
 }
 
-function record(stream: MediaStream): { stop: () => Promise<Blob>; cancel: () => void } {
+export type Recording = { stop: () => Promise<Blob>; cancel: () => void };
+
+export function record(stream: MediaStream): Recording {
   const recorder = new MediaRecorder(stream);
   const parts: Blob[] = [];
   recorder.ondataavailable = (event) => parts.push(event.data);
