@@ -81,6 +81,9 @@ def test_plain_sentence_about_a_command_is_read_then_points_to_the_screen() -> N
         # Türkçe biçim (binlik nokta, ondalık virgül) belirsiz değil.
         ("Fiyat 1.234,50 TL.", "Fiyat bin iki yüz otuz dört virgül beş sıfır Türk lirası."),
         ("Toplam 1.234.567 adet.", "Toplam bir iki üç dört beş altı yedi adet."),
+        # Tek ayraçlı nokta saat ya da tarih olabilir; yorumlanmaz.
+        ("Saat 14.30.", "Saat on dört nokta üç sıfır."),
+        ("Teslim 15.06.", "Teslim on beş nokta sıfır altı."),
         # Başka karışık biçimler yazıldığı gibi okunur.
         ("Değer 1,234.50.", "Değer bir virgül iki üç dört nokta beş sıfır."),
         ("Tarih 12.05.2024.", "Tarih on iki nokta sıfır beş nokta iki sıfır iki dört."),

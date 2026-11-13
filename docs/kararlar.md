@@ -529,22 +529,22 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Kural:**
   - Yazıyla sayılar ve birimler `verification/text.py`'de tek tabloda. Doğrulama, akış maskesi
     ve sesli okuma oradan beslenir.
+  - Bir sayı bütün ayraçlarıyla tek değerdir: "1,234.50", "1.234,50", "12.05.2024" bölünmez.
+    Ondalığı düşmüş "1,234" ya da tarihten koparılmış "2024" doğrulanmaz.
   - Türkçe "on" (10), "on bir", "on iki" yalnız Türkçe metinde sayıdır. Cümlede cevabın dili,
     alıntıda belgenin katalogdaki dili kullanılır; dili bilinmeyen kaynakta sayılmaz. Belge dili
     `document_language` ile belirlendiği için onun düzeltmesi (#6) buraya da yansır.
-  - Kaynaktaki "on" yalnız cümlede yazıyla yazılmış sayıyı karşılar; rakamla yazılmış 10'un
-    kanıtı olamaz ("click on Save", "ON konumu"). Tamamı büyük harfli "ON" hiçbir tarafta sayı
-    değildir (anahtar konumu).
-  - Bilinen açık: Türkçe cümle "on dakika", Türkçe belgede yalnız "click on" geçen alıntıya
-    dayanırsa geçer. Bu dal öncesinde cümledeki "on" hiç denetlenmiyordu.
-  - "gr" ve "lt", "g" ve "l"nin eş anlamlısı. Kaynakta birimsiz değere eklenirse cümle gizlenir.
-    Seste "g" okunmaz (ivme de olabilir), yazıldığı gibi kalır.
-  - Ses: "1.234,50" ve "1.234.567" Türkçe binlik biçimi olarak okunur. "1.500", "1,500" ve
-    "12.05.2024" gibi anlamı belirsiz yazımlar yorumlanmaz: ayraç adıyla, sonrası rakam rakam
-    okunur ("bir nokta beş sıfır sıfır"). Tek harfli birim yalnız küçük harfle birimdir
-    ("38 M" beden).
-- **Neden:** Sesli okuma "1.500"ü "bir virgül beş sıfır sıfır" yani 1,5 okuyordu; "on dakika"
-  kaynakta ne yazdığına bakılmadan geçiyordu (kural 1).
+  - Kaynaktaki "on", cümledeki "on"u yalnız ikisinin ardındaki sözcük aynıysa karşılar ("on
+    dakika" ↔ "on dakika"). Rakamla yazılmış 10'un kanıtı olamaz ("click on Save", "ON
+    konumu"). Tamamı büyük harfli "ON" hiçbir tarafta sayı değildir (anahtar konumu).
+  - "lt", "l"nin eş anlamlısı. "gr" yalnız Türkçe belgede "g" ile eş; İngilizce belgede grain
+    olabileceği için ayrı birim kalır. Kaynakta birimsiz değere eklenen birim cümleyi gizler.
+  - Ses yalnız Türkçe binlik biçimini ("1.234,50", "1.234.567") değeriyle okur. Öteki her
+    ayraç adıyla, sonrası rakam rakam okunur: "1.500" bir nokta beş sıfır sıfır, "14.30" on
+    dört nokta üç sıfır, "42,5" kırk iki virgül beş. Tek harfli birim yalnız küçük harfle
+    birimdir ("38 M" beden); "g" okunmaz (ivme de olabilir).
+- **Neden:** Sesli okuma "1.500"ü 1,5 okuyordu; "on dakika" kaynakta ne yazdığına bakılmadan
+  geçiyordu; kaynakta "1,234.50" varken "1,234" doğrulanıyordu (kural 1).
 - **Ölçüm** (seed 7, seed 11, FastReact; önbellekten, 0 $, ıska 0): hiçbir soru ve madde
   değişmedi; gizlenen cümle 10'da kaldı, doğrulanmış yanlış 0. Ölçülen cümlelerin ve taban
   belgelerinin okunuşu da değişmedi; etkiyi yalnız yeni testler gösteriyor.

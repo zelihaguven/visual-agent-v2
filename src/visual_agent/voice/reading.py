@@ -2,7 +2,7 @@
 
 import re
 
-from visual_agent.verification.text import AMBIGUOUS_GROUPING_RE, UNITS, UPPER, identifiers_in
+from visual_agent.verification.text import NUMBER, UNITS, UPPER, identifiers_in
 
 CODE_ON_SCREEN = "Komut ekranda gösteriliyor."
 
@@ -57,12 +57,11 @@ _UNIT = "|".join(
 _MAX_SPELLED_LETTERS = 3
 _MAX_WORDED_NUMBER = 999_999
 
-_NUMBER = r"\d+(?:[.,]\d+)*"
 # Binlik noktası ve ondalık virgülüyle yazılmış Türkçe biçim; ondalık mı binlik mi belirsiz değil.
 _TURKISH_GROUPED_RE = re.compile(r"[1-9]\d{0,2}(?:\.\d{3})+(?:,\d+)?")
 _TOKEN_RE = re.compile(
-    rf"%(?P<percent>{_NUMBER})"
-    rf"|(?<![\w-])(?P<number>{_NUMBER})(?![\w-])"
+    rf"%(?P<percent>{NUMBER})"
+    rf"|(?<![\w-])(?P<number>{NUMBER})(?![\w-])"
     rf"(?:(?P<percent_after>%)|(?P<close>\)?)\s?(?P<unit>{_UNIT})(?!\w))?"
     rf"(?P<suffix>'\w+)?"
     rf"|(?<![\w-])(?P<code>[{UPPER}][{UPPER}0-9]*(?:[-_][{UPPER}0-9]+)*)(?![\w-])"
@@ -99,17 +98,15 @@ def _digit_words(digits: str) -> str:
 def _number_words(raw: str) -> str:
     """Okunan değer yazılan değerle aynıdır; ayraç ancak anlamı belliyse yorumlanır.
 
-    "1.234,50" ve "1.234.567" Türkçe binlik biçimidir. "1.500" ve "1,500" binlik de ondalık da
-    olabilir; "12.05.2024" ve "1,234.50" gibi karışık biçimler de yorumlanmaz: ayraç adıyla,
-    sonrası rakam rakam okunur. Tek ayraçlı öteki sayılar ondalıktır ("42,5", "12.5").
+    Yalnız Türkçe binlik biçimi ("1.234,50", "1.234.567") değeriyle okunur. Öteki her ayraç
+    adıyla, sonrası rakam rakam okunur: "42,5" kırk iki virgül beş, "14.30" on dört nokta üç
+    sıfır, "1.500" bir nokta beş sıfır sıfır. Saat, tarih ya da binlik olabilecek yazım yorumlanmaz.
     """
     if _TURKISH_GROUPED_RE.fullmatch(raw) and (raw.count(".") > 1 or "," in raw):
         whole, _, fraction = raw.replace(".", "").partition(",")
         spoken = _integer_words(whole)
         return f"{spoken} virgül {_digit_words(fraction)}" if fraction else spoken
     parts = re.split(r"([.,])", raw)
-    if len(parts) == 3 and not AMBIGUOUS_GROUPING_RE.fullmatch(raw):
-        return f"{_integer_words(parts[0])} virgül {_digit_words(parts[2])}"
     words = [_integer_words(parts[0])]
     for separator, digits in zip(parts[1::2], parts[2::2], strict=True):
         words += ["virgül" if separator == "," else "nokta", _digit_words(digits)]

@@ -389,8 +389,10 @@ def test_turkish_ten_written_as_a_word_is_checked() -> None:
     assert _single("Bekleme 10 dakikadır", "Bekleme on dakikadır.")
 
 
-def test_turkish_ten_in_the_source_backs_only_a_written_ten_in_a_turkish_document() -> None:
+def test_turkish_ten_in_the_source_backs_only_the_same_written_phrase() -> None:
     assert _single("Bekleme süresi on dakikadır", "Bekleme on dakikadır.")
+    assert not _single("Click on Save ve on dakika bekleyin", "Bekleme on saniyedir.")
+    assert not _single("Click on Save ve bekleyin", "Bekleme on dakikadır.")
     assert not _single("Bekleme süresi on dakikadır", "Bekleme on dakikadır.", source_language="")
     assert not _single("Turn on the switch", "Şalteri on kez açın.", source_language="en")
 
@@ -415,6 +417,28 @@ def test_switch_state_on_is_not_a_number() -> None:
 
 def test_english_on_is_not_a_number_in_an_english_answer() -> None:
     assert _single("Turn on the switch", "Turn on the switch.", language="en", source_language="en")
+
+
+@pytest.mark.parametrize(
+    ("source", "text"),
+    [
+        ("Price 1,234.50 USD", "Fiyat 1,234 USD."),
+        ("Fiyat 1.234,50", "Fiyat 1.234."),
+        ("Tarih 12.05.2024", "Yıl 2024."),
+    ],
+)
+def test_value_cut_from_a_grouped_number_is_not_verified(source: str, text: str) -> None:
+    assert not _single(source, text)
+
+
+def test_grouped_number_written_the_same_is_verified() -> None:
+    assert _single("Fiyat 1.234,50 TL", "Fiyat 1.234,50 TL.")
+
+
+def test_gr_is_grams_only_in_a_turkish_document() -> None:
+    assert _single("Weight 5 gr", "Ağırlık 5 gr.", source_language="en", language="en")
+    assert not _single("Weight 5 gr", "Ağırlık 5 g.", source_language="en", language="en")
+    assert _single("Ağırlık 5 gr", "Weight 5 g.", language="en")
 
 
 @pytest.mark.parametrize(

@@ -31,6 +31,9 @@ from visual_agent.verification.text import (
         ("5-10 mm aralığı", {"5", "10"}),
         ("Bel 40,0 ya da 40", {"40"}),
         ("30. günde ödeme yapılır", {"30"}),
+        ("Price 1,234.50 USD", {"1,234.50"}),
+        ("Fiyat 1.234,50 TL", {"1.234,50"}),
+        ("Tarih 12.05.2024.", {"12.05.2024"}),
     ],
 )
 def test_numbers_in(text: str, expected: set[str]) -> None:
@@ -87,8 +90,9 @@ def test_word_numbers_read_capitalised_turkish_and_english(text: str, expected: 
 @pytest.mark.parametrize(
     ("text", "language", "expected"),
     [
-        ("Bekleme on dakikadır.", "tr", {"10"}),
-        ("On dakika bekleyin, on iki adım.", "tr", {"10", "12"}),
+        ("Bekleme on dakikadır.", "tr", {("10", "dakikadır")}),
+        ("On dakika bekleyin, on iki adım.", "tr", {("10", "dakika"), ("12", "adım")}),
+        ("Süre on.", "tr", {("10", "")}),
         ("Anahtarı ON konumuna getirin.", "tr", set()),
         ("Turn on the switch.", "en", set()),
         ("Bekleme on dakikadır.", "", set()),
@@ -96,6 +100,6 @@ def test_word_numbers_read_capitalised_turkish_and_english(text: str, expected: 
     ],
 )
 def test_turkish_ten_counts_only_in_turkish_text(
-    text: str, language: str, expected: set[str]
+    text: str, language: str, expected: set[tuple[str, str]]
 ) -> None:
     assert turkish_tens(text, language) == expected

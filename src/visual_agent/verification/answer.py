@@ -85,15 +85,24 @@ def _tolerance_problems(text: str, evidence: str) -> list[str]:
     return problems
 
 
-def _row_measures(line: str) -> set[tuple[str, str]]:
+# Dayanak parçaları: (metin, belgenin dili). Yazıyla sayı ve birim, parçanın kendi diliyle okunur.
+Evidence = list[tuple[str, str]]
+
+
+def _evidence(item: ModelItem, sources: Sources, code_source: PromptSource | None) -> Evidence:
+    parts = [(q.text, sources[q.source_no].language) for q in item.quotes if q.source_no in sources]
+    return parts + ([(code_source.text, code_source.language)] if code_source else [])
+
+
+def _row_measures(line: str, language: str) -> set[tuple[str, str]]:
     """Hücrenin sütun başlığındaki birim o hücreye, satırın ilk hücresindeki birim ("Tork (Nm)",
     devrik tablo) o satırın bütün değerlerine sayılır; başka sütunun başlığı sayılmaz."""
-    row_units = header_units(line.split("|", 1)[0]) if "|" in line else set()
+    row_units = header_units(line.split("|", 1)[0], language) if "|" in line else set()
     return {
         (number, unit)
         for label, value in labeled_cells(line)
         for number in numbers_in(value)
-        for unit in header_units(label) | row_units
+        for unit in header_units(label, language) | row_units
     }
 
 
@@ -102,55 +111,61 @@ def _header_measures(item: ModelItem, sources: Sources) -> set[tuple[str, str]]:
     found: set[tuple[str, str]] = set()
     for quote in item.quotes:
         source, wanted = sources.get(quote.source_no), normalize(quote.text)
-        lines = [
-            line
-            for line in (source.text if source else "").splitlines()
-            if wanted in normalize(line)
-        ]
+        if source is None:
+            continue
+        lines = [line for line in source.text.splitlines() if wanted in normalize(line)]
         for line in [quote.text, *lines]:
-            found |= _row_measures(line)
+            found |= _row_measures(line, source.language)
     return found
 
 
-def _unit_problems(item: ModelItem, evidence: str, sources: Sources) -> list[str]:
+def _unit_problems(
+    item: ModelItem, evidence: Evidence, sources: Sources, language: str
+) -> list[str]:
     """Cümlede sayının birimi alıntıda o sayıyla ya da sayının sütun başlığında yazılı olmalı."""
-    allowed = measures_in(evidence) | _header_measures(item, sources)
+    allowed = {m for text, lang in evidence for m in measures_in(text, lang)}
+    allowed |= _header_measures(item, sources)
     values = numbers_in(item.text)  # kodun içindeki rakam ("PNT-1126 S") değer değildir
     missing = sorted(
         f"{number} {unit}"
-        for number, unit in measures_in(item.text)
+        for number, unit in measures_in(item.text, language)
         if number in values and (number, unit) not in allowed
     )
     return [f"cümlede kaynakta yazmayan birim: {missing}"] if missing else []
 
 
-def _evidence_tens(item: ModelItem, sources: Sources, code_source: PromptSource | None) -> set[str]:
-    """Dayanaktaki Türkçe "on" sözcükleri, her parça kendi belgesinin diliyle okunur."""
-    parts = [(sources[q.source_no], q.text) for q in item.quotes if q.source_no in sources]
-    if code_source is not None:
-        parts.append((code_source, code_source.text))
-    return {value for source, text in parts for value in turkish_tens(text, source.language)}
+def _stray_tens(text: str, language: str, backed: set[str], evidence: Evidence) -> set[str]:
+    """Cümledeki Türkçe "on" rakamla ya da aynı sözcüğün önündeki "on" ile karşılanır
+    ("on dakika" <-> "on dakika"); "click on", "ON konumu" kanıt olamaz."""
+    phrases = {phrase for part, lang in evidence for phrase in turkish_tens(part, lang)}
+    return {
+        value
+        for value, following in turkish_tens(text, language)
+        if value not in backed and not (following and (value, following) in phrases)
+    }
 
 
 def _token_problems(
-    item: ModelItem, evidence: str, tens: set[str], sources: Sources, language: str
+    item: ModelItem, evidence: Evidence, sources: Sources, language: str
 ) -> list[str]:
-    """Kaynaktaki "on" sözcüğü yalnız cümlede yazıyla yazılmış sayıyı karşılar: "click on" ya da
-    "ON konumu" rakamla yazılmış 10'un kanıtı olamaz."""
     problems = []
-    backed = numbers_in(evidence) | word_numbers(evidence)
-    written = (word_numbers(item.text) | turkish_tens(item.text, language)) - _ARTICLE_NUMBERS
-    stray_numbers = (numbers_in(item.text) - backed) | (written - backed - tens)
+    joined = " ".join(text for text, _ in evidence)
+    backed = numbers_in(joined) | word_numbers(joined)
+    stray_numbers = (
+        (numbers_in(item.text) - backed)
+        | (word_numbers(item.text) - _ARTICLE_NUMBERS - backed)
+        | _stray_tens(item.text, language, backed, evidence)
+    )
     if stray_numbers:
         problems.append(f"cümlede kendi alıntısında olmayan sayı: {sorted(stray_numbers)}")
     cited = [sources[q.source_no].context for q in item.quotes if q.source_no in sources]
-    allowed = {compact_identifier(value) for value in identifiers_in(" ".join([evidence, *cited]))}
+    allowed = {compact_identifier(value) for value in identifiers_in(" ".join([joined, *cited]))}
     stray_identifiers = {
         value for value in identifiers_in(item.text) if compact_identifier(value) not in allowed
     }
     if stray_identifiers:
         problems.append(f"cümlede kaynakta olmayan teknik ad: {sorted(stray_identifiers)}")
-    stray_codes = prefixed_codes_in(item.text) - prefixed_codes_in(" ".join([evidence, *cited]))
+    stray_codes = prefixed_codes_in(item.text) - prefixed_codes_in(" ".join([joined, *cited]))
     if stray_codes:
         problems.append(f"cümlede kaynakta olmayan kod: {sorted(stray_codes)}")
     return problems
@@ -170,15 +185,12 @@ def verify_item(item: ModelItem, sources: Sources, language: str) -> ItemCheck:
     code_source = _code_source(item, sources)
     if item.code_source_no is not None and code_source is None:
         problems.append(f"kod kaynağı [{item.code_source_no}] geçersiz")
-    evidence = " ".join(
-        [*(quote.text for quote in item.quotes), code_source.text if code_source else ""]
-    )
+    evidence = _evidence(item, sources, code_source)
     problems += _ocr_problems(item, sources)
-    tens = _evidence_tens(item, sources, code_source)
-    problems += _token_problems(item, evidence, tens, sources, language)
-    problems += _tolerance_problems(item.text, evidence)
+    problems += _token_problems(item, evidence, sources, language)
+    problems += _tolerance_problems(item.text, " ".join(text for text, _ in evidence))
     others = len(problems)
-    problems += _unit_problems(item, evidence, sources)
+    problems += _unit_problems(item, evidence, sources, language)
     if FOREIGN_SCRIPT_RE.search(item.text):
         problems.append("cümlede başka alfabeden karakter")
     numbers = tuple(quote.source_no for quote in item.quotes)
@@ -215,7 +227,7 @@ _SAFE_CLARIFY_QUESTION = {"tr": "Hangisi için soruyorsunuz?", "en": "Which one 
 
 def _values_in(text: str, language: str) -> set[str]:
     codes = {compact_identifier(value) for value in identifiers_in(text)} | prefixed_codes_in(text)
-    words = word_numbers(text) | turkish_tens(text, language)
+    words = word_numbers(text) | {value for value, _ in turkish_tens(text, language)}
     numbers = numbers_in(text) | (words - _ARTICLE_NUMBERS)
     return codes | numbers
 

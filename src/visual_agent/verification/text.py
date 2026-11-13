@@ -5,11 +5,12 @@ import unicodedata
 
 from markdown_it import MarkdownIt
 
-_NUMBER = r"\d+(?:[.,]\d+)?"
+# Bir sayı bütün ayraçlarıyla tek değerdir: "1,234.50" ve "12.05.2024" bölünmez.
+NUMBER = r"\d+(?:[.,]\d+)*"
 MINUS_SIGNS = "-−–"
-_SIGNED_NUMBER_RE = re.compile(rf"(?:(?<![\w.,])[{MINUS_SIGNS}](?=\d))?{_NUMBER}")
-AMBIGUOUS_GROUPING_RE = re.compile(r"[1-9]\d{0,2}[.,]\d{3}")
-TOLERANCE_RE = re.compile(rf"({_NUMBER})\s*\(\s*±\s*({_NUMBER})\s*\)")
+_SIGNED_NUMBER_RE = re.compile(rf"(?:(?<![\w.,])[{MINUS_SIGNS}](?=\d))?{NUMBER}")
+_AMBIGUOUS_GROUPING_RE = re.compile(r"[1-9]\d{0,2}[.,]\d{3}")
+TOLERANCE_RE = re.compile(rf"({NUMBER})\s*\(\s*±\s*({NUMBER})\s*\)")
 CITATION_RE = re.compile(r"\[(\d+)\]")
 _MULTI_CITATION_RE = re.compile(r"\[(\d+(?:\s*[,;–-]\s*\d+)+)\]")
 CUT_CITATION_RE = re.compile(r"\s*\[\d*$")
@@ -47,7 +48,7 @@ UNITS: dict[str, tuple[str, str]] = {
     "ft": ("ft", ""),
     "µm": ("µm", ""),
     "g": ("g", ""),  # ivme de olabilir ("50 g"); seste yazıldığı gibi kalır
-    "gr": ("g", "gram"),
+    "gr": ("gr", "gram"),  # Türkçe belgede gram, İngilizce belgede grain
     "kg": ("kg", "kilogram"),
     "mg": ("mg", "miligram"),
     "lb": ("lb", ""),
@@ -89,7 +90,7 @@ UNITS: dict[str, tuple[str, str]] = {
     "tl": ("tl", "Türk lirası"),
 }
 UNIT_PATTERN = "|".join(sorted((re.escape(unit) for unit in UNITS), key=len, reverse=True))
-_MEASURE_RE = re.compile(rf"(?<![\w.,])({_NUMBER})\s?({UNIT_PATTERN})(?!\w)", re.IGNORECASE)
+_MEASURE_RE = re.compile(rf"(?<![\w.,])({NUMBER})\s?({UNIT_PATTERN})(?!\w)", re.IGNORECASE)
 _HEADER_UNIT_RE = re.compile(rf"[(\[]\s*({UNIT_PATTERN})\s*[)\]]", re.IGNORECASE)
 _IDENTIFIER_SEPARATOR_RE = re.compile(r"[-_\s]+")
 
@@ -120,7 +121,7 @@ _TURKISH_TENS_RE = re.compile(
         f"[{word[0]}{word[0].upper()}]{re.escape(word[1:]).replace(r'\ ', r'\s+')}"
         for word in sorted(_TURKISH_TENS, key=len, reverse=True)
     )
-    + r")(?!\w)"
+    + r")(?!\w)(?:\s+(\w+))?"
 )
 
 
@@ -128,7 +129,7 @@ def word_number_spans(text: str, language: str) -> list[tuple[int, int]]:
     """Yazıyla sayıların konumları; akışta değer doğrulanana kadar gizlenir."""
     spans = [match.span() for match in _WORD_NUMBER_RE.finditer(text)]
     if language == "tr":
-        spans += [match.span() for match in _TURKISH_TENS_RE.finditer(text)]
+        spans += [match.span(1) for match in _TURKISH_TENS_RE.finditer(text)]
     return spans
 
 
@@ -213,11 +214,12 @@ def canonical_number(raw: str) -> str:
     """Aynı sayının yazım farkı yok sayılır; binlik mi ondalık mı belirsizse yazıldığı gibi kalır.
 
     "40,0" ile "40" aynıdır. "1.000" ve "1.500" binlik de olabilir, bu yüzden "1" ya da "1,5"
-    ile eşleşmez. Eksi işareti değerin parçasıdır.
+    ile eşleşmez. Birden çok ayraçlı sayı ("1.234,50", "12.05.2024") da yazıldığı gibi kalır.
+    Eksi işareti değerin parçasıdır.
     """
     sign = "-" if raw[:1] in MINUS_SIGNS else ""
     digits = raw.lstrip(MINUS_SIGNS)
-    if AMBIGUOUS_GROUPING_RE.fullmatch(digits):
+    if _AMBIGUOUS_GROUPING_RE.fullmatch(digits) or len(re.findall("[.,]", digits)) > 1:
         return sign + digits
     value = digits.replace(",", ".")
     return sign + (value.rstrip("0").rstrip(".") if "." in value else value)
@@ -237,12 +239,16 @@ def word_numbers(text: str) -> set[str]:
     return {str(value) for value in values if value is not None}
 
 
-def turkish_tens(text: str, language: str) -> set[str]:
-    """Türkçe metinde "on", "on bir", "on iki"; başka dilde ya da dil bilinmiyorsa boş."""
+def turkish_tens(text: str, language: str) -> set[tuple[str, str]]:
+    """Türkçe metinde "on", "on bir", "on iki" ve ardındaki sözcük: ("10", "dakika").
+
+    Başka dilde ya da dil bilinmiyorsa boş. Ardında sözcük yoksa ikinci öğe boştur.
+    """
     if language != "tr":
         return set()
     return {
-        str(_TURKISH_TENS[" ".join(m.casefold().split())]) for m in _TURKISH_TENS_RE.findall(text)
+        (str(_TURKISH_TENS[" ".join(word.casefold().split())]), fold_identifier(following))
+        for word, following in _TURKISH_TENS_RE.findall(text)
     }
 
 
@@ -254,24 +260,28 @@ def _word_value(word: str) -> int | None:
     return None
 
 
-def _unit_form(unit: str) -> str:
-    """Eş anlamlı birimlerin ortak biçimi ("gr" -> "g", "dakika" -> "min")."""
+_TURKISH_UNIT_ALIASES = {"gr": "g"}
+
+
+def _unit_form(unit: str, language: str) -> str:
+    """Eş anlamlı birimlerin ortak biçimi ("dakika" -> "min"; Türkçe metinde "gr" -> "g")."""
     name = unit.casefold()
-    return UNITS.get(name, (name, ""))[0]
+    form = UNITS.get(name, (name, ""))[0]
+    return _TURKISH_UNIT_ALIASES.get(form, form) if language == "tr" else form
 
 
-def measures_in(text: str) -> set[tuple[str, str]]:
+def measures_in(text: str, language: str) -> set[tuple[str, str]]:
     """Birimiyle yazılmış değerler: ("5", "mm"); eş anlamlı birimler tek biçime iner."""
     found = set()
     for number, unit in _MEASURE_RE.findall(canon_chars(text)):
-        found.add((canonical_number(number), _unit_form(unit)))
+        found.add((canonical_number(number), _unit_form(unit, language)))
     return found
 
 
-def header_units(label: str) -> set[str]:
+def header_units(label: str, language: str) -> set[str]:
     """Sütun başlığında parantez içinde yazan birimler ("Ücret (TL)", "Boy [mm]"); parantezsiz
     tek harf ("Beden M") birim sayılmaz."""
-    return {_unit_form(unit) for unit in _HEADER_UNIT_RE.findall(canon_chars(label))}
+    return {_unit_form(unit, language) for unit in _HEADER_UNIT_RE.findall(canon_chars(label))}
 
 
 def prefixed_codes_in(text: str) -> set[str]:
