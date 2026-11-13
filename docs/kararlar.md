@@ -783,6 +783,16 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Sonra:** Giriş ve departman bazlı yetki, arayüz ağa açılmadan önce ayrıca tasarlanacak
   (açık notlar, "Yayına almadan önce").
 
+## Arayüz
+
+### Tek açık tema; koyu tema kaldırıldı
+- **Ne zaman:** 2026-11-13, `arayuz-stil` dalı; ürün sahibi kararı.
+- **Ne:** Yeni tasarım tek açık temada (açık gri zemin, beyaz kartlar, cam efekti yalnız
+  çekmecelerde). İşletim sisteminin koyu tema tercihine uyan renkler silindi.
+- **Neden:** Yeni tasarım tek temada sade kalsın; atölyede açık tema daha okunur.
+- **Geri eklemek için:** Yeni bir gerekçe gerekir (ör. gece vardiyasında ölçülmüş bir okuma
+  sorunu).
+
 ## Ses
 
 ### Yazıya çevirme: elevenlabs/scribe-v2 (bulut)

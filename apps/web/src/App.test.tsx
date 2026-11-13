@@ -1523,3 +1523,86 @@ describe("layout", () => {
     expect(screen.queryByText("Beden: M")).not.toBeInTheDocument();
   });
 });
+
+describe("landing actions", () => {
+  const ready = { title: "Föy", filename: "foy.pdf", status: "ready", error: null, report: null };
+
+  it("focuses the question box from the write card", async () => {
+    stubApi({ "/api/documents": () => jsonResponse([]) });
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Yazarak sor/ }));
+
+    expect(screen.getByLabelText("Sorunuz")).toHaveFocus();
+  });
+
+  it("opens the documents drawer and the file picker from the add card", async () => {
+    stubApi({ "/api/documents": () => jsonResponse([]) });
+    render(<App />);
+    const picker = vi.spyOn(HTMLInputElement.prototype, "click");
+
+    fireEvent.click(screen.getByRole("button", { name: /Belge ekle/ }));
+
+    expect(screen.getByRole("list", { name: "Belgeler" })).toBeInTheDocument();
+    expect(picker).toHaveBeenCalledTimes(1);
+    expect(picker.mock.contexts[0]).toBe(screen.getByLabelText("Belge yükle"));
+  });
+
+  it("shows the document state and opens the drawer when something failed", async () => {
+    stubApi({
+      "/api/documents": () =>
+        jsonResponse([
+          { ...ready, doc_id: "a" },
+          { ...ready, doc_id: "b" },
+          { ...ready, doc_id: "c", status: "processing" },
+          { ...ready, doc_id: "d", status: "failed", error: "Belge işlenemedi." },
+        ]),
+    });
+    render(<App />);
+
+    const card = await screen.findByRole("button", {
+      name: "2 belge hazır, 1 işleniyor, 1 hata. Belgeleri aç",
+    });
+    fireEvent.click(card);
+
+    expect(screen.getByRole("list", { name: "Belgeler" })).toBeInTheDocument();
+  });
+
+  it("shows a plain state line when nothing failed", async () => {
+    stubApi({ "/api/documents": () => jsonResponse([{ ...ready, doc_id: "a" }]) });
+    render(<App />);
+
+    expect(await screen.findByRole("status")).toHaveTextContent("1 belge hazır");
+    expect(screen.queryByText(/hata/)).not.toBeInTheDocument();
+  });
+
+  it("leaves the landing actions once a question is asked", async () => {
+    stubApi({ "/api/documents": () => jsonResponse([]), "/api/ask": () => sse([answered]) });
+    render(<App />);
+    await ask("soru");
+
+    await screen.findByText("İç paça 76,5 cm.");
+    expect(screen.queryByRole("button", { name: /Yazarak sor/ })).not.toBeInTheDocument();
+  });
+
+  it("keeps the source quote of a hidden sentence apart from the hidden-sentence notice", async () => {
+    const hidden = {
+      ...answered,
+      result: {
+        ...answered.result,
+        status: "failed",
+        items: [
+          { ...answered.result.items[0], verified: false, source_quote: "L: 42,5" },
+          { ...answered.result.items[0], verified: false, source_quote: null },
+        ],
+      },
+    };
+    stubApi({ "/api/documents": () => jsonResponse([]), "/api/ask": () => sse([hidden]) });
+    render(<App />);
+    await ask("soru");
+
+    expect(await screen.findByText("Doğrulanamadı")).toBeInTheDocument();
+    expect(screen.getByText('Kaynakta yazan: "L: 42,5"')).toHaveClass("source-quote");
+    expect(screen.getByText(/doğrulanamadığı için gösterilmiyor/)).toHaveClass("hidden-note");
+  });
+});

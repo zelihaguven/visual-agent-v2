@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useState, type ChangeEvent, type Ref } from "react";
 
 import {
   deleteDocument,
@@ -57,12 +57,24 @@ function DocumentNotes({ title, report }: { title: string; report: DocumentRepor
   );
 }
 
+export type DocumentSummary = { total: number; ready: number; pending: number; failed: number };
+
+function summarize(documents: DocumentInfo[]): DocumentSummary {
+  return {
+    total: documents.length,
+    ready: documents.filter((document) => document.status === "ready").length,
+    pending: documents.filter(isPending).length,
+    failed: documents.filter((document) => document.status === "failed").length,
+  };
+}
+
 type Props = {
   onClose: () => void;
-  onCountChange?: (count: number) => void;
+  onSummary?: (summary: DocumentSummary) => void;
+  uploadInput?: Ref<HTMLInputElement>;
 };
 
-export function DocumentsPanel({ onClose, onCountChange }: Props) {
+export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
   const [documents, setDocuments] = useState<DocumentInfo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,9 +87,9 @@ export function DocumentsPanel({ onClose, onCountChange }: Props) {
   useEffect(() => {
     // Liste gelmeden sayı gösterilmez: "0 belge" yanlış izlenim verir.
     if (hasLoaded) {
-      onCountChange?.(documents.length);
+      onSummary?.(summarize(documents));
     }
-  }, [documents.length, hasLoaded, onCountChange]);
+  }, [documents, hasLoaded, onSummary]);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -172,6 +184,7 @@ export function DocumentsPanel({ onClose, onCountChange }: Props) {
       <label className={`upload ${isUploading ? "is-busy" : ""}`}>
         <span>{isUploading ? "Yükleniyor" : "Belge ekle"}</span>
         <input
+          ref={uploadInput}
           type="file"
           accept={ACCEPTED_TYPES}
           aria-label="Belge yükle"

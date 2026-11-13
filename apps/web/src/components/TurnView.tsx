@@ -48,8 +48,13 @@ export function sourceQuoteText(quote: string): string {
   return `Kaynakta yazan: "${quote}"`;
 }
 
-function hiddenText(quote: string | null | undefined, hasSources: boolean): string {
-  return quote ? sourceQuoteText(quote) : unverifiedText(hasSources);
+/** Kaynak alıntısı nötr metin; gizleme mesajı uyarı rengiyle ayrılır. */
+function HiddenText({ quote, hasSources }: { quote?: string | null; hasSources: boolean }) {
+  return quote ? (
+    <span className="source-quote">{sourceQuoteText(quote)}</span>
+  ) : (
+    <span className="hidden-note">{unverifiedText(hasSources)}</span>
+  );
 }
 
 const SECTION_SEPARATOR = " · ";
@@ -144,7 +149,9 @@ function StreamedItems({
           <li key={index} className={`answer-item is-${item.state}`}>
             {item.state === "streaming" && <MaskedText text={item.text} />}
             {item.state === "verified" && item.text}
-            {item.state === "unverified" && hiddenText(item.quote, citations.length > 0)}
+            {item.state === "unverified" && (
+              <HiddenText quote={item.quote} hasSources={citations.length > 0} />
+            )}
             {item.state !== "streaming" && (
               <CitationButtons citations={citations} onOpenSource={onOpenSource} />
             )}
@@ -212,7 +219,9 @@ function FinalAnswer({
       <ol className="answer-items">
         {result.items.map((item, index) => (
           <li key={index} className={`answer-item ${item.verified ? "is-verified" : "is-unverified"}`}>
-            {!item.verified && hiddenText(item.source_quote, item.citations.length > 0)}
+            {!item.verified && (
+              <HiddenText quote={item.source_quote} hasSources={item.citations.length > 0} />
+            )}
             {item.verified && item.text.trim() !== item.code?.trim() && item.text}
             {item.code !== null && (
               <pre className="code-block">

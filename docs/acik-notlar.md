@@ -48,6 +48,7 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 
 ## Belge yönetimi
 
+- Açılış ekranında son sorulan sorular listesi (sunucuda yeni uç nokta gerektirir).
 - Belge grupları: yüklerken kullanıcının seçtiği grup (ör. Dikim, SQL, Diğer). Veritabanında alan ve mevcut belgeler için bir kerelik gruplama gerektirir; şimdilik dosya türüne göre gruplanıyor.
 - Aynı belgenin eski ve yeni sürümü birlikte yüklenebiliyor; ikisi de aramaya giriyor, aralarındaki sürüm ilişkisi bilinmiyor. Farklı değer verdiklerinde ne olduğu "Cevap kalitesi"ndeki maddede. Yüklemede aynı başlık uyarısı ya da sürüm yönetimi ayrı tasarım ister.
 - Yerel vektörleme yavaş: bu bilgisayarda parça başına ~0,9 sn (FastReact, 1847 parça, 1655 sn ≈ 27,6 dk). Daha büyük belge setlerinde ilk yükleme saatler sürebilir; ölçek için ayrıca ölçülmedi.
