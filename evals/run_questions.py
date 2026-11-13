@@ -16,14 +16,14 @@ from evals.index_cache import Documents, ensure_index, load_or_ingest
 from evals.scoring import AnswerItem, AnswerRecord, question_found, score_question, summarize
 from visual_agent.ask.clients import ask_deps, build_model_clients
 from visual_agent.ask.deps import AskDeps, AskRequest
-from visual_agent.ask.language import detect_language, document_language
+from visual_agent.ask.language import document_language
 from visual_agent.ask.orchestrator import answer_question
 from visual_agent.ask.steps import AskState, resolve_scope, retrieve
 from visual_agent.catalog.identifiers import build_identifier_index
 from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.conversation import ConversationContext
-from visual_agent.domain.document import Chunk, DocumentMeta
+from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk, DocumentMeta
 from visual_agent.domain.result import Answered, AskResult, Citation, Clarify, NotFound
 from visual_agent.generation.openrouter import StreamCallbacks, StreamResult
 from visual_agent.retrieval.encoders import BgeM3Dense, Bm25Sparse
@@ -32,18 +32,16 @@ from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
 from visual_agent.settings import Settings
 
 _COLLECTION = "evaluation"
-_LANGUAGE_SAMPLE_CHARS = 2000
 _FIRST_TURN = 1
 
 
 def _meta(gold: GoldSet, doc_id: str) -> DocumentMeta:
-    """Belge işleme (OCR dili dahil) altın verideki metinden okunan dille yapılır."""
-    text = gold.document_texts[doc_id]
-    return DocumentMeta(
-        doc_id=doc_id,
-        title=text.splitlines()[0],
-        language=detect_language(text[:_LANGUAGE_SAMPLE_CHARS]),
-    )
+    """Belge uygulamadaki gibi dili bilinmeden işlenir: ilk OCR tur+eng ile yapılır.
+
+    Katalog dili sonra parçalardan okunur (gold_catalog).
+    """
+    title = gold.document_texts[doc_id].splitlines()[0]
+    return DocumentMeta(doc_id=doc_id, title=title, language=UNDETECTED_LANGUAGE)
 
 
 def gold_documents(gold: GoldSet, set_directory: Path) -> Documents:

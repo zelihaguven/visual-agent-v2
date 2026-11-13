@@ -24,7 +24,13 @@ from evals.run_documents import ask_all, folder_documents, question_row
 from tests.test_ask_pipeline import CHUNKS, FakeClient, FakeRetriever, answer_payload, make_deps
 from visual_agent.ask.language import document_language
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.document import Chunk, ChunkKind, SourceLocation
+from visual_agent.domain.document import (
+    UNDETECTED_LANGUAGE,
+    Chunk,
+    ChunkKind,
+    DocumentMeta,
+    SourceLocation,
+)
 from visual_agent.domain.result import (
     Answered,
     AnsweredItem,
@@ -194,9 +200,9 @@ def test_each_file_in_a_folder_is_a_document_named_after_it(tmp_path: Path) -> N
 
     documents = folder_documents(tmp_path)
 
-    assert [(path.name, meta.doc_id, meta.title) for path, meta in documents] == [
-        ("a.md", "a.md", "a"),
-        ("b.md", "b.md", "b"),
+    assert [(path.name, meta.doc_id, meta.title, meta.language) for path, meta in documents] == [
+        ("a.md", "a.md", "a", UNDETECTED_LANGUAGE),
+        ("b.md", "b.md", "b", UNDETECTED_LANGUAGE),
     ]
 
 
@@ -266,4 +272,24 @@ def test_ingest_check_reports_a_broken_document_instead_of_failing(
     assert report["missing"][0]["question"] == "q"  # type: ignore[index]
     assert report["documents"] == [
         {"doc_id": "a.md", "carrier": "pdf", "seconds": 0.1, "report": {"warnings": []}}
+    ]
+
+
+def test_ingest_check_reads_documents_like_the_application(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    seen: list[DocumentMeta] = []
+
+    def ingest(documents: index_cache.Documents) -> tuple[dict[str, list[Chunk]], dict[str, Any]]:
+        seen.extend(meta for _, meta in documents)
+        return {}, {"errors": {}, "documents": 0, "per_document": {}}
+
+    monkeypatch.setattr(index_cache, "_ingest_all", ingest)
+    _gold_set(tmp_path)
+
+    ingest_check.run(tmp_path, tmp_path / "work")
+
+    assert [(meta.title, meta.language) for meta in seen] == [
+        ("A belgesi", UNDETECTED_LANGUAGE),
+        ("B belgesi", UNDETECTED_LANGUAGE),
     ]

@@ -3,7 +3,8 @@
     python -m evals.run_documents --documents KLASOR --questions sorular.json \\
         --work evals/output/calisma --output evals/output/sonuc.json
 
-- Her dosya bir belgedir: doc_id dosya adı, başlık dosya adının gövdesidir (yüklemedeki gibi).
+- Her dosya bir belgedir: doc_id dosya adı, başlık dosya adının gövdesi, dil bilinmiyor
+  (yüklemedeki gibi; ilk OCR tur+eng).
 - İndeks --work altında kendi gömülü Qdrant klasöründedir; uygulamanın indeksine dokunmaz.
 - Parçalar ve vektörler bir kez üretilir; tekrar çalıştırmada indeks yeniden kurulmaz.
 - Model cevapları önbellektedir; sonuç dosyasında olan soru yeniden sorulmaz.
@@ -32,7 +33,7 @@ from visual_agent.ask.language import document_language
 from visual_agent.ask.orchestrator import answer_question
 from visual_agent.catalog.identifiers import build_identifier_index
 from visual_agent.catalog.memory import DocumentCatalog
-from visual_agent.domain.document import Chunk, DocumentMeta
+from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk, DocumentMeta
 from visual_agent.domain.result import Answered, AskOutcome, Clarify, NotFound
 from visual_agent.retrieval.hybrid import HybridRetriever
 from visual_agent.retrieval.qdrant_store import COLLECTION, QdrantChunkStore, open_client
@@ -42,9 +43,10 @@ PREVIEW_CHARS = 200
 
 
 def folder_documents(folder: Path) -> Documents:
-    """Her dosya bir belge: doc_id dosya adı, başlık dosya adının gövdesi (yüklemedeki gibi)."""
+    """Her dosya bir belge, yüklemedeki gibi: doc_id dosya adı, başlık dosya adının gövdesi,
+    dil bilinmiyor (ilk OCR tur+eng)."""
     return [
-        (path, DocumentMeta(doc_id=path.name, title=path.stem))
+        (path, DocumentMeta(doc_id=path.name, title=path.stem, language=UNDETECTED_LANGUAGE))
         for path in sorted(item for item in folder.iterdir() if item.is_file())
     ]
 
