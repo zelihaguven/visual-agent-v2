@@ -14,7 +14,6 @@ from visual_agent.verification.text import UNIT_PATTERN, identifier_spans, word_
 Event = dict[str, object]
 EventSink = Callable[[Event], None]
 
-UNVERIFIED_MESSAGE = "Bu cümle kaynakla doğrulanamadığı için gösterilmiyor."
 INCOMPLETE_MESSAGE = "Cevap tamamlanamadı, kaynağa bakın."
 _HIDDEN = "▒▒▒"
 _ANSWER_KEY = '"cevap"'
@@ -235,7 +234,6 @@ class StreamAssembler:
                     {
                         "type": "item_unverified",
                         "index": index,
-                        "message": UNVERIFIED_MESSAGE,
                         "source_numbers": numbers,
                         "quote": check.quote if check is not None else None,
                     }

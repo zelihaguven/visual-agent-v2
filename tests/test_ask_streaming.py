@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from visual_agent.ask.streaming import UNVERIFIED_MESSAGE, StreamAssembler, mask_values
+from visual_agent.ask.streaming import StreamAssembler, mask_values
 from visual_agent.domain.answer import PromptSource
 
 SOURCES = {
@@ -80,12 +80,12 @@ def test_verified_item_is_revealed_with_its_sources() -> None:
     assert verified[0]["source_numbers"] == [1]
 
 
-def test_failed_item_shows_message_and_does_not_block_the_next() -> None:
+def test_failed_item_is_reported_and_does_not_block_the_next() -> None:
     assembler, events = assemble()
 
     feed_all(assembler, content(item("Değer 99."), item("Değer 76,5.")))
 
-    assert of_type(events, "item_unverified")[0]["message"] == UNVERIFIED_MESSAGE
+    assert of_type(events, "item_unverified")[0]["index"] == 0
     assert of_type(events, "item_verified")[0]["index"] == 1
 
 

@@ -126,7 +126,6 @@ def test_stream_collects_content_and_cost_and_decodes_utf8() -> None:
     assert result.provider == "alpha"
     assert result.finish == "stop"
     assert result.cost_usd == pytest.approx(0.002)
-    assert result.first_token_seconds is not None
     assert not result.incomplete
 
 

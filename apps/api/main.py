@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Annotated, Literal, Protocol
 
-from fastapi import APIRouter, Depends, FastAPI, Form, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Response, UploadFile
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
@@ -232,8 +232,6 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
                     {
                         "type": "done",
                         "result": _result_payload(outcome.result),
-                        "timings": outcome.timings,
-                        "question": outcome.question,
                         "scope_inherited": outcome.scope_inherited,
                         "context": outcome.context.model_dump(mode="json")
                         if outcome.context is not None
@@ -284,7 +282,7 @@ def _safe_suffix(filename: str) -> str:
     return Path(filename.replace("\\", "/")).suffix.lower()
 
 
-async def _store_upload(file: UploadFile, title: str, services: ApiServices) -> StoredDocument:
+async def _store_upload(file: UploadFile, services: ApiServices) -> StoredDocument:
     filename = Path((file.filename or "belge").replace("\\", "/")).name
     doc_id = uuid.uuid4().hex
     directory = services.storage_directory / doc_id
@@ -295,7 +293,7 @@ async def _store_upload(file: UploadFile, title: str, services: ApiServices) -> 
         detect_format(target)
         document = StoredDocument(
             doc_id=doc_id,
-            title=(title.strip() or Path(filename).stem)[:_MAX_TITLE_CHARS],
+            title=Path(filename).stem[:_MAX_TITLE_CHARS],
             filename=filename,
             status=DocumentStatus.QUEUED,
             stored_path=str(target),
@@ -379,7 +377,7 @@ async def _chunk_source(chunk: Chunk, services: ApiServices) -> dict[str, object
             "title": title,
             "image_url": f"/api/chunks/{chunk.chunk_id}/preview.png",
         }
-    return {"kind": "text", "text": chunk.text, "title": title, "section": location.section}
+    return {"kind": "text", "text": chunk.text, "section": location.section}
 
 
 def _library_router(app: FastAPI) -> APIRouter:
@@ -395,11 +393,9 @@ def _library_router(app: FastAPI) -> APIRouter:
         ]
 
     @router.post("/documents", response_model=DocumentResponse, status_code=201)
-    async def upload(
-        file: UploadFile, services: ServicesDep, title: Annotated[str, Form()] = ""
-    ) -> DocumentResponse:
+    async def upload(file: UploadFile, services: ServicesDep) -> DocumentResponse:
         return await _document_response(
-            await _store_upload(file, title, services), services.document_names
+            await _store_upload(file, services), services.document_names
         )
 
     @router.delete("/documents/{doc_id}", status_code=204)

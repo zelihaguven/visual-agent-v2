@@ -329,7 +329,7 @@ describe("App", () => {
       "/api/documents": () => jsonResponse([]),
       "/api/ask": () =>
         sse([
-          { type: "item_unverified", index: 0, message: "x", source_numbers: [] },
+          { type: "item_unverified", index: 0, source_numbers: [] },
           {
             ...answered,
             result: {
@@ -368,7 +368,7 @@ describe("App", () => {
       "/api/documents": () => jsonResponse([]),
       "/api/ask": () =>
         sse([
-          { type: "item_unverified", index: 0, message: "x", source_numbers: [1], quote: "L: 42,5" },
+          { type: "item_unverified", index: 0, source_numbers: [1], quote: "L: 42,5" },
           { ...answered, result: { ...answered.result, status: "failed", items: [quoted] } },
         ]),
       "/api/speak": () => jsonResponse({ audios: [{ audio: btoa("ses"), mime: "audio/wav" }] }),

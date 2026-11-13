@@ -115,7 +115,7 @@ export function App() {
       control.abort();
     }
     signal?.addEventListener("abort", stop);
-    setTurns((current) => [...current, newTurn(id, question, docIds)]);
+    setTurns((current) => [...current, newTurn(id, question)]);
     setIsAsking(true);
     try {
       await askQuestion(

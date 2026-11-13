@@ -172,7 +172,7 @@ def test_clarify_buttons_show_readable_names(tmp_path: Path) -> None:
     assert options == [{"doc_id": "md", "label": "Main Menu - Setup (part 1)"}]
 
 
-def test_text_source_panel_shows_the_readable_name(tmp_path: Path) -> None:
+def test_page_source_panel_shows_the_readable_name(tmp_path: Path) -> None:
     _, repository = _names(tmp_path)
     chunk = Chunk(
         chunk_id="md:0",
@@ -180,7 +180,7 @@ def test_text_source_panel_shows_the_readable_name(tmp_path: Path) -> None:
         kind=ChunkKind.TEXT,
         text="x",
         title="08_Setup_part1",
-        location=SourceLocation(),
+        location=SourceLocation(page=1),
     )
     repository.chunks = {chunk.chunk_id: chunk}
 

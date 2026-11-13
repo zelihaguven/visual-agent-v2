@@ -12,7 +12,6 @@ export type TurnItem = {
 export type Turn = {
   id: string;
   question: string;
-  docIds: string[] | null;
   resolvedQuestion: string | null;
   scopeInherited: boolean;
   stage: string | null;
@@ -23,11 +22,10 @@ export type Turn = {
   error: string | null;
 };
 
-export function newTurn(id: string, question: string, docIds: string[] | null = null): Turn {
+export function newTurn(id: string, question: string): Turn {
   return {
     id,
     question,
-    docIds,
     resolvedQuestion: null,
     scopeInherited: false,
     stage: null,
@@ -69,7 +67,7 @@ export function applyEvent(turn: Turn, event: AskEvent): Turn {
     case "item_unverified":
       return withItem(turn, event.index, {
         state: "unverified",
-        text: event.message,
+        text: "",
         sourceNumbers: event.source_numbers,
         quote: event.quote ?? null,
       });

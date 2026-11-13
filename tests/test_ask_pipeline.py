@@ -95,8 +95,6 @@ class FakeClient:
             content=content,
             provider="p",
             finish="stop",
-            first_token_seconds=0.1,
-            timeline=(),
             cost_usd=0.001,
             attempts=(),
             incomplete=self.incomplete,
@@ -606,8 +604,8 @@ class FallbackClient(FakeClient):
     ) -> StreamResult:
         result = await super().stream(messages, callbacks)
         attempts = (
-            AttemptRecord("alpha", "zaman aşımı", runaway=False, seconds=2.5),
-            AttemptRecord("beta", "", runaway=False, seconds=1.25),
+            AttemptRecord("alpha", "zaman aşımı", seconds=2.5),
+            AttemptRecord("beta", "", seconds=1.25),
         )
         return replace(result, attempts=attempts)
 
@@ -620,7 +618,7 @@ def test_provider_attempts_and_wait_reach_the_outcome() -> None:
 
 
 def test_attempts_are_kept_when_every_provider_fails() -> None:
-    attempts = (AttemptRecord("alpha", "500", runaway=False, seconds=0.5),)
+    attempts = (AttemptRecord("alpha", "500", seconds=0.5),)
     client = FakeClient(error=ServiceUnavailable("yok", attempts))
 
     outcome = ask(make_deps(client), "soru nedir")
