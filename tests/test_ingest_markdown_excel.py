@@ -207,7 +207,14 @@ def _old_report() -> dict[str, object]:
 
 @pytest.mark.parametrize(
     ("filename", "outdated"),
-    [("kilavuz.md", True), ("tablo.xlsx", True), ("rapor.sql", True), ("belge.pdf", False)],
+    [
+        ("kilavuz.md", True),
+        ("tablo.xlsx", True),
+        ("rapor.sql", True),
+        ("tarama.pdf", True),
+        ("foto.jpg", True),
+        ("belge.docx", False),
+    ],
 )
 def test_old_reports_are_outdated_only_where_the_rules_changed(
     filename: str, outdated: bool

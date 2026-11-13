@@ -145,6 +145,20 @@ def test_skipped_images_are_listed_in_the_report(tmp_path: Path) -> None:
     assert report.warnings == (warning,)
 
 
+def test_pages_left_as_image_only_are_warned_about(tmp_path: Path) -> None:
+    path = tmp_path / "belge.pdf"
+    path.write_bytes(b"%PDF-x")
+
+    def ocr(path: Path, pages: list[PageInfo], language: str, work: Path) -> OcrOutcome:
+        return OcrOutcome(pdf_path=path, ocr_pages={}, image_only_pages=(2, 3, 5))
+
+    report = ingest_document(path, META, replace(_fake_tools([]), run_ocr=ocr), tmp_path).report
+
+    assert report.warnings == (
+        "Sayfa 2-3,5: metin okunamadı, yalnız görüntü olarak kaldı; aramada bulunmaz.",
+    )
+
+
 def _image_box(width: float, height: float) -> Box:
     return Box(
         page=1,

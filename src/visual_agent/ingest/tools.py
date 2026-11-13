@@ -236,6 +236,7 @@ def run_ocr(
     result_path = work / f"{path.stem}.ocr.pdf"
     chosen: dict[int, Path] = {}
     uncertain: dict[int, tuple[str, ...]] = {}
+    image_only: list[int] = []
     for index, (flag, infos) in enumerate(groups.items()):
         target = work / f"{path.stem}.group{index}.pdf"
         _run_ocrmypdf(path, target, flag, ocr_language, [info.page for info in infos], environment)
@@ -244,8 +245,12 @@ def run_ocr(
             if choice is LayerChoice.NEW:
                 chosen[info.page] = target
                 uncertain[info.page] = tokens
+            elif choice is LayerChoice.IMAGE_ONLY:
+                image_only.append(info.page)
     _merge_pages(path, chosen, result_path)
-    return OcrOutcome(pdf_path=result_path, ocr_pages=uncertain)
+    return OcrOutcome(
+        pdf_path=result_path, ocr_pages=uncertain, image_only_pages=tuple(sorted(image_only))
+    )
 
 
 def _merge_pages(source: Path, chosen: dict[int, Path], target: Path) -> None:

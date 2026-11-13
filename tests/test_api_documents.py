@@ -243,7 +243,7 @@ def test_document_processed_with_older_rules_is_marked_outdated(tmp_path: Path) 
     old_report = {"warnings": [], "uncertain_values": 0}
     documents = [
         stored().model_copy(update={"filename": "kilavuz.md", "report": old_report}),
-        stored("d2").model_copy(update={"report": old_report}),
+        stored("d2").model_copy(update={"filename": "belge.docx", "report": old_report}),
     ]
 
     body = make_client(tmp_path, FakeRepository(documents=documents)).get("/api/documents").json()
