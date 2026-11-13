@@ -1,4 +1,8 @@
-"""Kısa, JSON dönen yardımcı model çağrıları. ZDR her çağrıda zorunludur."""
+"""Kısa, JSON dönen yardımcı model çağrıları. ZDR her çağrıda zorunludur.
+
+Süre sınırını çağıran koyar (`asyncio.wait_for`). Paylaşılan httpx istemcisinin varsayılan
+5 sn sınırı da geçerlidir: `wait_for` daha uzunsa önce httpx keser.
+"""
 
 import json
 import re
@@ -8,7 +12,6 @@ from typing import Any
 
 import httpx
 
-_TIMEOUT_SECONDS = 15.0
 _OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
 
 
@@ -38,7 +41,6 @@ class JsonModel:
         response = await self.http.post(
             f"{self.base_url}/chat/completions",
             headers={"Authorization": f"Bearer {self.api_key}"},
-            timeout=_TIMEOUT_SECONDS,
             json={
                 "model": self.model,
                 "messages": [

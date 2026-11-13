@@ -16,9 +16,8 @@ export type AnsweredItem = {
   text: string;
   citations: Citation[];
   verified: boolean;
-  from_figure: boolean;
+  from_ocr: boolean;
   code: string | null;
-  problems: string[];
   source_quote?: string | null;
 };
 
@@ -31,7 +30,6 @@ export type AskResult =
       status: "verified" | "partial" | "failed";
       items: AnsweredItem[];
       has_conflict: boolean;
-      problems: string[];
     }
   | { kind: "clarify"; question: string; options: DocumentChoice[] }
   | { kind: "not_found"; reason: string; suggestions: DocumentChoice[] }
@@ -61,7 +59,7 @@ export type AskEvent =
       index: number;
       text: string;
       source_numbers: number[];
-      from_figure: boolean;
+      from_ocr: boolean;
       has_code: boolean;
     }
   | { type: "item_audio"; index: number; audio: string; mime: string }
@@ -69,7 +67,6 @@ export type AskEvent =
   | {
       type: "item_unverified";
       index: number;
-      message: string;
       source_numbers: number[];
       quote?: string | null;
     }
@@ -78,8 +75,6 @@ export type AskEvent =
   | {
       type: "done";
       result: AskResult;
-      timings: Record<string, number>;
-      question: string;
       scope_inherited: boolean;
       context: ConversationContext | null;
     }
@@ -111,7 +106,7 @@ export type SourceView =
       highlight_row: number;
       rows: { row: number; text: string }[];
     }
-  | { kind: "text"; text: string; title: string; section?: string | null };
+  | { kind: "text"; text: string; section?: string | null };
 
 export type PhraseAudio = { audio: string; mime: string };
 export type VoicePhrases = { greeting: PhraseAudio; waiting: PhraseAudio[] };

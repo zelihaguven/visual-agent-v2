@@ -6,14 +6,12 @@ export type TurnItem = {
   state: ItemState;
   text: string;
   sourceNumbers: number[];
-  fromFigure: boolean;
   quote?: string | null;
 };
 
 export type Turn = {
   id: string;
   question: string;
-  docIds: string[] | null;
   resolvedQuestion: string | null;
   scopeInherited: boolean;
   stage: string | null;
@@ -24,11 +22,10 @@ export type Turn = {
   error: string | null;
 };
 
-export function newTurn(id: string, question: string, docIds: string[] | null = null): Turn {
+export function newTurn(id: string, question: string): Turn {
   return {
     id,
     question,
-    docIds,
     resolvedQuestion: null,
     scopeInherited: false,
     stage: null,
@@ -60,21 +57,18 @@ export function applyEvent(turn: Turn, event: AskEvent): Turn {
         state: "streaming",
         text: event.text,
         sourceNumbers: [],
-        fromFigure: false,
       });
     case "item_verified":
       return withItem(turn, event.index, {
         state: "verified",
         text: event.text,
         sourceNumbers: event.source_numbers,
-        fromFigure: event.from_figure,
       });
     case "item_unverified":
       return withItem(turn, event.index, {
         state: "unverified",
-        text: event.message,
+        text: "",
         sourceNumbers: event.source_numbers,
-        fromFigure: false,
         quote: event.quote ?? null,
       });
     case "searching":

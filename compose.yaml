@@ -18,7 +18,6 @@ services:
       target: api
     restart: unless-stopped
     environment: &app-environment
-      VA_AUTH_ENABLED: ${VA_AUTH_ENABLED:-false}
       VA_QDRANT_URL: http://qdrant:6333
       VA_DATABASE_PATH: /data/db/visual_agent.db
       VA_OPENROUTER_API_KEY: ${VA_OPENROUTER_API_KEY:-}

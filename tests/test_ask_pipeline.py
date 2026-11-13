@@ -70,7 +70,6 @@ class FakeRetriever:
         bm25_query: str,
         doc_ids: Sequence[str] | None,
         top_k: int,
-        access: Sequence[str] | None = None,
     ) -> list[Hit]:
         self.calls.append({"query": query, "bm25": bm25_query, "doc_ids": doc_ids, "top_k": top_k})
         return [Hit(chunk=item, score=1.0 / (index + 1)) for index, item in enumerate(self.hits)]
@@ -96,8 +95,6 @@ class FakeClient:
             content=content,
             provider="p",
             finish="stop",
-            first_token_seconds=0.1,
-            timeline=(),
             cost_usd=0.001,
             attempts=(),
             incomplete=self.incomplete,
@@ -533,7 +530,7 @@ def test_answer_from_an_ocr_chunk_is_partial() -> None:
     assert isinstance(outcome.result, Answered)
     assert outcome.result.status.value == "partial"
     assert outcome.result.items[0].verified
-    assert outcome.result.items[0].from_figure
+    assert outcome.result.items[0].from_ocr
 
 
 def test_quoting_a_whole_command_shows_it_from_the_source() -> None:
@@ -607,8 +604,8 @@ class FallbackClient(FakeClient):
     ) -> StreamResult:
         result = await super().stream(messages, callbacks)
         attempts = (
-            AttemptRecord("alpha", "zaman aşımı", runaway=False, seconds=2.5),
-            AttemptRecord("beta", "", runaway=False, seconds=1.25),
+            AttemptRecord("alpha", "zaman aşımı", seconds=2.5),
+            AttemptRecord("beta", "", seconds=1.25),
         )
         return replace(result, attempts=attempts)
 
@@ -621,7 +618,7 @@ def test_provider_attempts_and_wait_reach_the_outcome() -> None:
 
 
 def test_attempts_are_kept_when_every_provider_fails() -> None:
-    attempts = (AttemptRecord("alpha", "500", runaway=False, seconds=0.5),)
+    attempts = (AttemptRecord("alpha", "500", seconds=0.5),)
     client = FakeClient(error=ServiceUnavailable("yok", attempts))
 
     outcome = ask(make_deps(client), "soru nedir")

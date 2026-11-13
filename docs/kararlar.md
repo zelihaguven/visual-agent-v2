@@ -747,6 +747,19 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Neden:** Bu bilgisayarda Docker yok. Paketi yalnız CI'daki `services` işi sınıyor.
 - **Not:** nginx'teki güvenlik başlıkları ve hız sınırı yerelde yok (açık notlar).
 
+### Yetki altyapısı kaldırıldı; giriş ağa açılmadan önce ayrıca ele alınacak
+- **Ne zaman:** 2026-11-13, `temizlik-5a` dalı; ürün sahibi kararı.
+- **Ne kalktı:** Soru, arama ve belge kaydındaki `access` alanları, Qdrant'taki yetki süzgeci,
+  `VA_AUTH_ENABLED` ayarı ve `/api/health`'teki `auth_enabled` alanı.
+- **Neden:** Hiçbir istek yetki grubu vermiyordu ve her belge "all" olarak yazılıyordu; süzgeç
+  hiç çalışmıyordu. "İleride lazım olur" diye bırakılan koddu. Eski `VA_AUTH_ENABLED=true`
+  artık uygulamayı durdurmuyor, yok sayılıyor.
+- **Veri:** Qdrant'taki mevcut parçaların `access` alanı ve eski SQLite dosyalarındaki
+  `access` sütunu yerinde kaldı (yeniden indeksleme ve göç yok); kod artık okumuyor. Yeni
+  parçalar ve yeni veritabanları bu alanı taşımıyor.
+- **Sonra:** Giriş ve departman bazlı yetki, arayüz ağa açılmadan önce ayrıca tasarlanacak
+  (açık notlar, "Yayına almadan önce").
+
 ## Ses
 
 ### Yazıya çevirme: elevenlabs/scribe-v2 (bulut)

@@ -1,8 +1,8 @@
 """Uygulamanın tek ayar nesnesi: başlangıçta doğrulanır, sonra değişmez."""
 
-from typing import Literal, Self
+from typing import Literal
 
-from pydantic import AnyHttpUrl, Field, SecretStr, field_validator, model_validator
+from pydantic import AnyHttpUrl, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,7 +14,6 @@ class Settings(BaseSettings):
         frozen=True,
     )
 
-    auth_enabled: bool = False
     qdrant_url: AnyHttpUrl = AnyHttpUrl("http://localhost:6333")
     qdrant_path: str | None = None
     database_path: str = "data/visual_agent.db"
@@ -46,9 +45,3 @@ class Settings(BaseSettings):
     def empty_path_means_server(cls, value: object) -> object:
         """Boş yol verilmemiş sayılır: Qdrant sunucusu, arayüzsüz API, araçlar PATH'ten."""
         return None if isinstance(value, str) and not value.strip() else value
-
-    @model_validator(mode="after")
-    def reject_unimplemented_login(self) -> Self:
-        if self.auth_enabled:
-            raise ValueError("giriş henüz uygulanmadı; VA_AUTH_ENABLED=false bırakın")
-        return self

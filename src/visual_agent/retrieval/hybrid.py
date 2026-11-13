@@ -32,14 +32,13 @@ class HybridRetriever:
         bm25_query: str,
         doc_ids: Sequence[str] | None,
         top_k: int,
-        access: Sequence[str] | None = None,
     ) -> list[Hit]:
         dense_vector, sparse_vector = await asyncio.gather(
             asyncio.to_thread(self._dense.encode_query, query),
             asyncio.to_thread(self._sparse.encode_query, bm25_query),
         )
         dense_arm, sparse_arm = await self._store.search(
-            dense_vector, sparse_vector, doc_ids, access, _PREFETCH_K
+            dense_vector, sparse_vector, doc_ids, _PREFETCH_K
         )
         fused = rrf_fuse(dense_arm, sparse_arm, _FUSED_K)
         kept = [item for item in fused if not is_table_of_contents(item.chunk.text)]

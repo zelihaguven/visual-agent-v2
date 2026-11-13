@@ -1,19 +1,8 @@
-import hashlib
 import json
-from pathlib import Path
 
 import pytest
 
 from visual_agent.generation.prompts import load_answer_prompt, load_answer_schema
-
-BASELINE = Path(__file__).parent.parent / "evals" / "baselines" / "pilot_answer_prompt.md"
-PILOT_PROMPT_SHA256_PREFIX = "85142a07b62aa24e"
-
-
-def test_pilot_prompt_baseline_is_unchanged() -> None:
-    digest = hashlib.sha256(BASELINE.read_bytes()).hexdigest()
-
-    assert digest.startswith(PILOT_PROMPT_SHA256_PREFIX)
 
 
 @pytest.mark.parametrize(

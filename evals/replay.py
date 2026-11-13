@@ -44,7 +44,6 @@ class RecordedRetriever:
         bm25_query: str,
         doc_ids: Sequence[str] | None,
         top_k: int,
-        access: Sequence[str] | None = None,
     ) -> list[Hit]:
         return list(self.hits)
 

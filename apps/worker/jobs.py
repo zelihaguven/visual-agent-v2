@@ -43,7 +43,7 @@ class JobRepository(Protocol):
 
 
 class Indexer(Protocol):
-    async def index(self, doc_id: str, access: Sequence[str], chunks: Sequence[Chunk]) -> None: ...
+    async def index(self, doc_id: str, chunks: Sequence[Chunk]) -> None: ...
 
     async def remove(self, doc_id: str) -> None: ...
 
@@ -90,12 +90,11 @@ class DocumentProcessor:
             doc_id=document.doc_id,
             title=document.title,
             language=document.language,
-            access=document.access,
         )
         with tempfile.TemporaryDirectory() as work:
             result = await asyncio.to_thread(self._ingest, source, meta, Path(work))
             display = self._keep_display_pdf(result.display_pdf, source)
-        await self._indexer.index(document.doc_id, document.access, result.chunks)
+        await self._indexer.index(document.doc_id, result.chunks)
         try:
             ready = await self._repository.mark_ready(
                 document.doc_id,

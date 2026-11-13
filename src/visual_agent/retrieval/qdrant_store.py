@@ -14,7 +14,6 @@ COLLECTION = "documents"
 _DENSE = "dense"
 _SPARSE = "bm25"
 _POINT_NAMESPACE = uuid.UUID("7a1e9d10-3f5b-4a54-9c0e-0d3b2f6a8c11")
-_ACCESS_ALL = "all"
 _UPSERT_BATCH = 64
 
 SparseVector = Mapping[int, float]
@@ -32,16 +31,12 @@ def _point_id(chunk_id: str) -> str:
     return str(uuid.uuid5(_POINT_NAMESPACE, chunk_id))
 
 
-def _filter(doc_ids: Sequence[str] | None, access: Sequence[str] | None) -> models.Filter | None:
-    conditions: list[models.Condition] = []
-    if doc_ids is not None:
-        conditions.append(
-            models.FieldCondition(key="doc_id", match=models.MatchAny(any=list(doc_ids)))
-        )
-    if access is not None:
-        allowed = sorted({*access, _ACCESS_ALL})
-        conditions.append(models.FieldCondition(key="access", match=models.MatchAny(any=allowed)))
-    return models.Filter(must=conditions) if conditions else None
+def _filter(doc_ids: Sequence[str] | None) -> models.Filter | None:
+    if doc_ids is None:
+        return None
+    return models.Filter(
+        must=[models.FieldCondition(key="doc_id", match=models.MatchAny(any=list(doc_ids)))]
+    )
 
 
 def _sparse_vector(values: SparseVector) -> models.SparseVector:
@@ -81,7 +76,6 @@ class QdrantChunkStore:
     async def upsert(
         self,
         chunks: Sequence[Chunk],
-        access: Sequence[str],
         dense: Sequence[Sequence[float]],
         sparse: Sequence[SparseVector],
     ) -> None:
@@ -91,7 +85,6 @@ class QdrantChunkStore:
                 vector={_DENSE: list(dense_vector), _SPARSE: _sparse_vector(sparse_vector)},
                 payload={
                     "doc_id": chunk.doc_id,
-                    "access": list(access),
                     "chunk": chunk.model_dump(mode="json"),
                 },
             )
@@ -106,7 +99,7 @@ class QdrantChunkStore:
             return
         await self._client.delete(
             self._collection,
-            points_selector=models.FilterSelector(filter=_filter((doc_id,), None)),
+            points_selector=models.FilterSelector(filter=_filter((doc_id,))),
         )
 
     async def search(
@@ -114,11 +107,10 @@ class QdrantChunkStore:
         dense: Sequence[float],
         sparse: SparseVector,
         doc_ids: Sequence[str] | None,
-        access: Sequence[str] | None,
         limit: int,
     ) -> list[list[ScoredChunk]]:
-        """Yetki koşulu sorgunun içindedir: yetkisiz parça hiçbir kola girmez."""
-        condition = _filter(doc_ids, access)
+        """Belge koşulu sorgunun içindedir: kapsam dışı parça hiçbir kola girmez."""
+        condition = _filter(doc_ids)
         requests = [
             models.QueryRequest(
                 query=list(dense), using=_DENSE, filter=condition, limit=limit, with_payload=True

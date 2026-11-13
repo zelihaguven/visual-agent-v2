@@ -121,7 +121,6 @@ def test_context_reaches_the_pipeline_and_the_next_context_is_returned(tmp_path:
 
     assert received[0].context is not None
     assert received[0].context.question == "Önceki soru?"
-    assert events[-1]["question"] == "Tam soru?"
     assert events[-1]["scope_inherited"] is True
     assert events[-1]["context"] == context
 
@@ -155,19 +154,18 @@ def test_upload_stores_file_and_queues_it(tmp_path: Path) -> None:
     response = client.post(
         "/api/documents",
         files={"file": ("kılavuz.pdf", b"%PDF-1.7 icerik", "application/pdf")},
-        data={"title": "Kılavuz"},
     )
 
     assert response.status_code == 201
     created = repository.created[0]
-    assert created.title == "Kılavuz"
+    assert created.title == "kılavuz"
     assert created.status is DocumentStatus.QUEUED
     assert created.language == UNDETECTED_LANGUAGE
     assert Path(created.stored_path).read_bytes() == b"%PDF-1.7 icerik"
     assert Path(created.stored_path).is_relative_to(tmp_path)
 
 
-def test_upload_uses_file_name_when_title_is_missing(tmp_path: Path) -> None:
+def test_upload_title_is_the_file_name(tmp_path: Path) -> None:
     repository = FakeRepository()
 
     make_client(tmp_path, repository).post(
@@ -268,7 +266,7 @@ def test_text_source_without_a_location_returns_the_text(tmp_path: Path) -> None
 
     body = make_client(tmp_path, repository).get("/api/chunks/d1:1/source").json()
 
-    assert body == {"kind": "text", "text": "Beden: M", "title": "Belge", "section": None}
+    assert body == {"kind": "text", "text": "Beden: M", "section": None}
 
 
 def test_text_source_shows_its_section_path(tmp_path: Path) -> None:

@@ -153,7 +153,7 @@ def _context_documents_gone(
 async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
     """Kapsamı belirler; kod hiçbir yerde yoksa arama ve model çalışmadan durur."""
     request = state.request
-    allowed = deps.catalog.visible_doc_ids(request.access)
+    allowed = deps.catalog.doc_ids()
     mentioned = deps.catalog.mentioned_in(state.question, allowed)
     explicit = tuple(doc for doc in request.doc_ids or () if doc in allowed)
     inherited = tuple(doc for doc in state.inherited_doc_ids if doc in allowed)
@@ -212,9 +212,7 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
         return replace(state, result=NotFound())
     bm25_query, translate_seconds = await _bm25_query(state, deps)
     state = replace(state, translate_seconds=translate_seconds)
-    found = await deps.retriever.search(
-        state.question, bm25_query, domain, deps.top_k, state.request.access
-    )
+    found = await deps.retriever.search(state.question, bm25_query, domain, deps.top_k)
     hits = _with_exact_chunks(state, found, deps.top_k)
     if not hits:
         return replace(state, result=NotFound())
@@ -303,7 +301,7 @@ def _answered_item(
         text=item.text,
         citations=tuple(_citation(hits[number - 1]) for number in dict.fromkeys(numbers)),
         verified=check.ok,
-        from_figure=check.from_figure,
+        from_ocr=check.from_ocr,
         code=code_hit.chunk.text if check.ok and code_hit is not None else None,
         problems=check.problems,
         source_quote=check.quote,

@@ -46,7 +46,6 @@ class DocumentMeta(FrozenModel):
     doc_id: str
     title: str
     language: str = "tr"
-    access: tuple[str, ...] = ("all",)
 
 
 class Chunk(FrozenModel):

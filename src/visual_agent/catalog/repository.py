@@ -32,7 +32,6 @@ class StoredDocument(FrozenModel):
     status: DocumentStatus
     stored_path: str
     language: str = "tr"
-    access: tuple[str, ...] = ("all",)
     display_pdf: str | None = None
     report: dict[str, Any] | None = None
     error: str | None = None
@@ -46,7 +45,6 @@ CREATE TABLE IF NOT EXISTS documents (
     status TEXT NOT NULL,
     stored_path TEXT NOT NULL,
     language TEXT NOT NULL DEFAULT 'tr',
-    access TEXT NOT NULL DEFAULT '["all"]',
     display_pdf TEXT,
     report TEXT,
     error TEXT,
@@ -62,9 +60,7 @@ CREATE TABLE IF NOT EXISTS chunks (
 );
 CREATE INDEX IF NOT EXISTS chunks_doc_idx ON chunks (doc_id, position);
 """
-_COLUMNS = (
-    "doc_id, title, filename, status, stored_path, language, access, display_pdf, report, error"
-)
+_COLUMNS = "doc_id, title, filename, status, stored_path, language, display_pdf, report, error"
 _VISIBLE = "status != 'deleting'"
 
 
@@ -77,7 +73,6 @@ def _to_document(row: sqlite3.Row) -> StoredDocument:
         status=DocumentStatus(row["status"]),
         stored_path=row["stored_path"],
         language=row["language"],
-        access=tuple(json.loads(row["access"])),
         display_pdf=row["display_pdf"],
         report=json.loads(report) if report else None,
         error=row["error"],
@@ -148,8 +143,8 @@ class DocumentRepository:
         await self._db.run(
             lambda connection: connection.execute(
                 "INSERT INTO documents"
-                " (doc_id, title, filename, status, stored_path, language, access)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?)",
+                " (doc_id, title, filename, status, stored_path, language)"
+                " VALUES (?, ?, ?, ?, ?, ?)",
                 (
                     document.doc_id,
                     document.title,
@@ -157,7 +152,6 @@ class DocumentRepository:
                     document.status.value,
                     document.stored_path,
                     document.language,
-                    json.dumps(list(document.access)),
                 ),
             )
         )
@@ -331,7 +325,7 @@ class DocumentRepository:
     async def load_ready(self) -> tuple[list[DocumentMeta], list[Chunk]]:
         def read(connection: sqlite3.Connection) -> tuple[list[sqlite3.Row], list[sqlite3.Row]]:
             documents = connection.execute(
-                "SELECT doc_id, title, language, access FROM documents WHERE status = 'ready'"
+                "SELECT doc_id, title, language FROM documents WHERE status = 'ready'"
             ).fetchall()
             chunks = connection.execute(
                 "SELECT c.payload FROM chunks c JOIN documents d USING (doc_id)"
@@ -348,7 +342,6 @@ class DocumentRepository:
                     doc_id=row["doc_id"],
                     title=row["title"],
                     language=row["language"],
-                    access=tuple(json.loads(row["access"])),
                 )
                 for row in documents
             ],

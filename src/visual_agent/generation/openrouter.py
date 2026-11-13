@@ -5,7 +5,7 @@ import json
 import logging
 import time
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import httpx
@@ -104,7 +104,6 @@ class StreamCallbacks:
 class AttemptRecord:
     provider: str
     error: str
-    runaway: bool
     seconds: float
 
 
@@ -113,8 +112,6 @@ class StreamResult:
     content: str
     provider: str
     finish: str | None
-    first_token_seconds: float | None
-    timeline: tuple[tuple[float, int], ...]
     cost_usd: float
     attempts: tuple[AttemptRecord, ...]
     incomplete: bool = False
@@ -128,15 +125,11 @@ class _Attempt:
     error: str = ""
     runaway: bool = False
     finish: str | None = None
-    first_token_seconds: float | None = None
-    timeline: list[tuple[float, int]] = field(default_factory=list)
     cost_usd: float = 0.0
     whitespace_run: int = 0
 
     def record(self) -> AttemptRecord:
-        return AttemptRecord(
-            self.provider, self.error, self.runaway, time.perf_counter() - self.started
-        )
+        return AttemptRecord(self.provider, self.error, time.perf_counter() - self.started)
 
     def result(
         self,
@@ -148,8 +141,6 @@ class _Attempt:
             content=self.content,
             provider=self.provider,
             finish=finish if finish is not None else self.finish,
-            first_token_seconds=self.first_token_seconds,
-            timeline=tuple(self.timeline),
             cost_usd=self.cost_usd,
             attempts=tuple(attempts),
             incomplete=incomplete,
@@ -198,10 +189,7 @@ class AnswerClient:
     def _append_piece(
         self, attempt: _Attempt, piece: str, seconds: float, callbacks: StreamCallbacks | None
     ) -> None:
-        if not attempt.content:
-            attempt.first_token_seconds = seconds
         attempt.content += piece
-        attempt.timeline.append((round(seconds, 3), len(attempt.content)))
         if callbacks is not None and callbacks.on_delta is not None:
             try:
                 callbacks.on_delta(attempt.content, seconds)

@@ -32,7 +32,6 @@ _STRIP_CHARACTERS = ".,;:()[]{}\"'”“’‘«»|_"
 
 
 class LayerChoice(StrEnum):
-    ORIGINAL = "original"
     NEW = "new"
     OLD = "old"
     IMAGE_ONLY = "image_only"

@@ -16,16 +16,18 @@ Yığın: `http://127.0.0.1:8080`. Belgeler: `sql-kilavuz.pdf`, `dikim-tarama.pd
 
 ## Duyuru anahtarı
 
-"Sesli modda dikkat" sütunundaki harfler, cevaptan sonra duyulması gereken sabit cümledir.
+"Sesli modda dikkat" sütunundaki harfler, cevaptan sonra duyulması gereken sabit cümledir. Cümleler `apps/api/voice.py` içindeki `_NOTICES` ile aynıdır; biri değişirse bu tablo da güncellenir.
 
 | Harf | Durum | Duyulması gereken |
 | --- | --- | --- |
 | A | Doğrulandı | Yalnız cevap. Ek duyuru **yok**. |
 | B | Kısmen doğrulandı | Cevap, ardından: "Bu cevap görsel ya da taramadan okundu, kaynağı ekrandan kontrol edin." |
-| C | Doğrulanamadı | Değer **okunmaz**. "Bazı değerler doğrulanamadı, ekrana bakın." |
-| D | Bulunamadı | "Bu bilgi belgelerde bulunamadı. Bir model ya da konu söylerseniz yardımcı olabilirim." |
+| C | Doğrulanamadı | Değer **okunmaz**. "Bazı değerler doğrulanamadı, ekrana bakın." Gizlenen her cümlenin yerine kaynak satırı gösterildiyse bu duyuru yok; o cümlelerin yerinde "Kaynaktaki satır ekranda gösteriliyor." duyulur. |
+| D | Bulunamadı | "Bu bilgi belgelerde bulunamadı. Soruyu başka sözcüklerle sorarsanız yeniden bakarım." |
 | E | Netleştirme | Soruda rakam yoksa sorunun kendisi okunur; rakam varsa "Netleştirmem gereken bir nokta var, ekrana bakın." |
 | K | Komut | Komut okunmaz, "Komut ekranda gösteriliyor." duyulur. |
+| F | Cevap verilemedi (servis hatası) | "Cevap doğrulanamadı, ekrana bakın." |
+| T | Cevap yarıda kesildi | "Cevap tamamlanamadı, ekrana bakın." |
 
 Okuma biçimi: ondalık "kırk virgül beş" gibi, kodun rakamları tek tek ("pe ne te bir bir altı iki"), beden harfi "me", "le", "se" olarak okunur.
 

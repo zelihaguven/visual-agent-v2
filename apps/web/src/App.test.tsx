@@ -89,7 +89,7 @@ const answered = {
         text: "İç paça 76,5 cm.",
         citations: [CITATION],
         verified: true,
-        from_figure: false,
+        from_ocr: false,
         code: null,
         problems: [],
       },
@@ -114,7 +114,7 @@ describe("applyEvent", () => {
       index: 0,
       text: "İç paça 76,5 cm.",
       source_numbers: [1],
-      from_figure: false, has_code: false,
+      from_ocr: false, has_code: false,
     });
 
     expect(turn.items[0]).toMatchObject({ state: "verified", text: "İç paça 76,5 cm." });
@@ -127,7 +127,7 @@ describe("applyEvent", () => {
       index: 0,
       text: "76,5",
       source_numbers: [],
-      from_figure: false, has_code: false,
+      from_ocr: false, has_code: false,
     });
     turn = applyEvent(turn, { type: "item_stream", index: 0, text: "▒▒▒" });
 
@@ -172,7 +172,7 @@ describe("App", () => {
             index: 0,
             text: "İç paça 76,5 cm.",
             source_numbers: [1],
-            from_figure: false, has_code: false,
+            from_ocr: false, has_code: false,
           },
           answered,
         ]),
@@ -329,7 +329,7 @@ describe("App", () => {
       "/api/documents": () => jsonResponse([]),
       "/api/ask": () =>
         sse([
-          { type: "item_unverified", index: 0, message: "x", source_numbers: [] },
+          { type: "item_unverified", index: 0, source_numbers: [] },
           {
             ...answered,
             result: {
@@ -368,7 +368,7 @@ describe("App", () => {
       "/api/documents": () => jsonResponse([]),
       "/api/ask": () =>
         sse([
-          { type: "item_unverified", index: 0, message: "x", source_numbers: [1], quote: "L: 42,5" },
+          { type: "item_unverified", index: 0, source_numbers: [1], quote: "L: 42,5" },
           { ...answered, result: { ...answered.result, status: "failed", items: [quoted] } },
         ]),
       "/api/speak": () => jsonResponse({ audios: [{ audio: btoa("ses"), mime: "audio/wav" }] }),

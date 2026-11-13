@@ -10,15 +10,6 @@ def make_settings(**overrides: Any) -> Settings:
     return Settings(_env_file=None, **overrides)
 
 
-def test_login_is_off_by_default() -> None:
-    assert make_settings().auth_enabled is False
-
-
-def test_enabling_login_before_it_exists_fails_at_startup() -> None:
-    with pytest.raises(ValidationError, match="giriş henüz uygulanmadı"):
-        make_settings(auth_enabled=True)
-
-
 def test_values_are_read_from_prefixed_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("VA_QDRANT_URL", "http://qdrant:6333")
 

@@ -43,8 +43,6 @@ class SequenceClient:
             content=json.dumps(reply),
             provider="p",
             finish="stop",
-            first_token_seconds=0.1,
-            timeline=(),
             cost_usd=0.001,
             attempts=(),
         )

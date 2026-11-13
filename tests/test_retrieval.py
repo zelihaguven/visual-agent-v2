@@ -20,7 +20,7 @@ from visual_agent.retrieval.normalization import normalize_for_bm25
 from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
 
 
-def _chunk(chunk_id: str, doc_id: str, text: str, access: tuple[str, ...] = ("all",)) -> Chunk:
+def _chunk(chunk_id: str, doc_id: str, text: str) -> Chunk:
     return Chunk(
         chunk_id=chunk_id,
         doc_id=doc_id,
@@ -89,12 +89,7 @@ async def _indexed_store() -> QdrantChunkStore:
     ]
     dense, sparse = FakeDense(), FakeSparse()
     texts = [chunk.embed_text for chunk in chunks]
-    await store.upsert(
-        chunks,
-        ("all",),
-        dense.encode_documents(texts),
-        sparse.encode_documents(texts),
-    )
+    await store.upsert(chunks, dense.encode_documents(texts), sparse.encode_documents(texts))
     return store
 
 
@@ -120,17 +115,6 @@ def test_chunks_survive_the_round_trip() -> None:
 
     assert found.location.page == 1
     assert found.kind is ChunkKind.TEXT
-
-
-def test_access_filter_hides_other_groups() -> None:
-    async def run() -> list[Chunk]:
-        store = QdrantChunkStore(AsyncQdrantClient(":memory:"), "test")
-        await store.ensure_collection(dense_size=2)
-        await store.upsert([_chunk("1", "a", "elma")], ("ik",), [[1.0, 0.0]], [{1: 1.0}])
-        allowed = await store.search([1.0, 0.0], {1: 1.0}, None, ("kalite",), 5)
-        return [item.chunk for arm in allowed for item in arm]
-
-    assert asyncio.run(run()) == []
 
 
 def test_delete_document_removes_its_chunks() -> None:
@@ -187,12 +171,12 @@ def test_embedded_folder_keeps_vectors_after_reopening(tmp_path: Path) -> None:
         client = open_client("http://kullanilmaz:6333", folder)
         store = QdrantChunkStore(client, "test")
         await store.ensure_collection(dense_size=2)
-        await store.upsert([_chunk("1", "a", "elma")], ("all",), [[1.0, 0.0]], [{1: 1.0}])
+        await store.upsert([_chunk("1", "a", "elma")], [[1.0, 0.0]], [{1: 1.0}])
         await client.close()
 
     async def read() -> list[str]:
         client = open_client("http://kullanilmaz:6333", folder)
-        arms = await QdrantChunkStore(client, "test").search([1.0, 0.0], {1: 1.0}, None, None, 5)
+        arms = await QdrantChunkStore(client, "test").search([1.0, 0.0], {1: 1.0}, None, 5)
         await client.close()
         return [item.chunk.chunk_id for item in arms[0]]
 

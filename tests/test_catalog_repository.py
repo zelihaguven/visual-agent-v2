@@ -25,7 +25,6 @@ def _document(doc_id: str, status: DocumentStatus = DocumentStatus.QUEUED) -> St
         filename=f"{doc_id}.pdf",
         status=status,
         stored_path=f"/belgeler/{doc_id}.pdf",
-        access=("all", "dikim"),
     )
 
 
@@ -227,15 +226,25 @@ def test_only_ready_documents_reach_the_search_catalog(tmp_path: Path) -> None:
     assert asyncio.run(run()) == (["a"], ["a:0"])
 
 
-def test_ready_document_access_groups_reach_the_catalog(tmp_path: Path) -> None:
+def test_database_with_the_old_access_column_still_takes_documents(tmp_path: Path) -> None:
+    path = tmp_path / "veri" / "katalog.db"
+    path.parent.mkdir(parents=True)
+    with sqlite3.connect(path) as old:
+        old.execute(
+            "CREATE TABLE documents (doc_id TEXT PRIMARY KEY, title TEXT NOT NULL,"
+            " filename TEXT NOT NULL, status TEXT NOT NULL, stored_path TEXT NOT NULL,"
+            " language TEXT NOT NULL DEFAULT 'tr', access TEXT NOT NULL DEFAULT '[\"all\"]',"
+            " display_pdf TEXT, report TEXT, error TEXT,"
+            " created_at TEXT NOT NULL DEFAULT '', updated_at TEXT NOT NULL DEFAULT '')"
+        )
     repository = _repository(tmp_path)
 
-    async def run() -> tuple[str, ...]:
+    async def run() -> list[str]:
         await repository.create_document(_document("a", DocumentStatus.PROCESSING))
         await repository.mark_ready("a", "tr", [], Report(pages=0), None)
-        return (await repository.load_ready())[0][0].access
+        return [meta.doc_id for meta in (await repository.load_ready())[0]]
 
-    assert asyncio.run(run()) == ("all", "dikim")
+    assert asyncio.run(run()) == ["a"]
 
 
 def test_version_changes_only_when_ready_documents_change(tmp_path: Path) -> None:

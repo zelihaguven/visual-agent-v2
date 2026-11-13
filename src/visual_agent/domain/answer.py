@@ -65,7 +65,9 @@ class ModelAnswer(_Frozen):
         if self.kind is AnswerKind.CLARIFY:
             enough = self.clarify is not None and len(self.clarify.options) >= MIN_CLARIFY_OPTIONS
             if not enough or self.items:
-                raise ValueError("netleştirme en az iki seçenek ister ve cevap içeremez")
+                raise ValueError(
+                    f"netleştirme en az {MIN_CLARIFY_OPTIONS} seçenek ister ve cevap içeremez"
+                )
         return self
 
 
@@ -82,7 +84,7 @@ class PromptSource(_Frozen):
 
 class ItemCheck(_Frozen):
     ok: bool
-    from_figure: bool
+    from_ocr: bool
     problems: tuple[str, ...]
     source_numbers: tuple[int, ...]
     quote: str | None = None
