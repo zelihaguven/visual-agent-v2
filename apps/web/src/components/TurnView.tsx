@@ -1,5 +1,4 @@
 import type { AskResult, Citation, DocumentChoice, SpokenItem } from "../api";
-import { readableName } from "../documentGroups";
 import type { Turn, TurnItem } from "../turn";
 
 const STAGE_LABELS: Record<string, string> = {
@@ -68,17 +67,16 @@ export function citationLocation(citation: Citation): string {
   return (parts[0] === title ? parts.slice(1) : parts).join(SECTION_SEPARATOR);
 }
 
-/** Cevabın altındaki kısa etiket: okunur ad ve sayfa ya da satır. Ayrıntı kaynak panelinde. */
+/** Cevabın altındaki kısa etiket: okunur ad (sunucudan) ve sayfa ya da satır. Ayrıntı panelde. */
 export function citationLabel(citation: Citation): string {
-  const { location } = citation;
-  const name = readableName(citation.title);
-  if (location.page !== null) {
-    return `${name} · s.${location.page}`;
-  }
+  const { title, location } = citation;
   if (location.sheet !== null) {
-    return `${name} · satır ${location.row ?? "?"}`;
+    return `${title} · satır ${location.row ?? "?"}`;
   }
-  return name;
+  if (location.page !== null) {
+    return `${title} · s.${location.page}`;
+  }
+  return title;
 }
 
 /** Tam ad ve yer: ipucu metni ve kaynak paneli için. */

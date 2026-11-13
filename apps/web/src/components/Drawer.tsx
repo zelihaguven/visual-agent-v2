@@ -1,5 +1,8 @@
 import { useEffect, useRef, type ReactNode } from "react";
 
+// Açık çekmeceler açılış sırasıyla; Escape yalnız en üsttekini kapatır.
+const openDrawers: symbol[] = [];
+
 type Props = {
   isOpen: boolean;
   side: "left" | "right";
@@ -17,23 +20,30 @@ export function Drawer({ isOpen, side, label, onClose, children }: Props) {
   const opener = useRef<HTMLElement | null>(null);
   const close = useRef(onClose);
   close.current = onClose;
+  const key = useRef(Symbol("drawer"));
 
   useEffect(() => {
     if (!isOpen) {
       return;
     }
+    const self = key.current;
+    openDrawers.push(self);
     opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     panel.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.stopPropagation();
+      if (event.key === "Escape" && openDrawers.at(-1) === self) {
         close.current();
       }
     };
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
-      opener.current?.focus();
+      openDrawers.splice(openDrawers.indexOf(self), 1);
+      // Açan öğe bu arada kalktıysa (yeni tur) odak soru kutusuna döner.
+      const target = opener.current?.isConnected
+        ? opener.current
+        : document.getElementById("question");
+      target?.focus();
     };
   }, [isOpen]);
 

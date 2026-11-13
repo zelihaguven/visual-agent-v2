@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from apps.api.display_names import DocumentNames, markdown_title
+from apps.api.display_names import DocumentNames, file_name_words, markdown_title
 from apps.api.main import ApiServices, create_app
 from tests.test_api_documents import FakeRepository
 from visual_agent.ask.deps import AskRequest
@@ -74,7 +74,7 @@ def _names(tmp_path: Path) -> tuple[DocumentNames, FakeRepository]:
     ("doc_id", "expected"),
     [
         ("md", "Main Menu - Setup (part 1)"),
-        ("pdf", "dikim-pdf"),
+        ("pdf", "dikim pdf"),
         ("own", "Kullanıcının adı"),
         ("plain", "notlar"),
         ("yok", "gelen ad"),
@@ -136,7 +136,7 @@ def test_sources_answers_and_context_show_readable_names(tmp_path: Path) -> None
     assert events[0]["sources"][0]["title"] == "Main Menu - Setup (part 1)"  # type: ignore[index]
     done = events[-1]
     citations = done["result"]["items"][0]["citations"]  # type: ignore[index]
-    assert [c["title"] for c in citations] == ["Main Menu - Setup (part 1)", "dikim-pdf"]
+    assert [c["title"] for c in citations] == ["Main Menu - Setup (part 1)", "dikim pdf"]
     assert done["context"]["titles"] == ["Main Menu - Setup (part 1)"]  # type: ignore[index]
 
 
@@ -240,3 +240,21 @@ def test_suggested_documents_show_readable_names(tmp_path: Path) -> None:
 
     suggestions = events[-1]["result"]["suggestions"]  # type: ignore[index]
     assert suggestions == [{"doc_id": "md", "label": "Main Menu - Setup (part 1)"}]
+
+
+@pytest.mark.parametrize(
+    ("stem", "expected"),
+    [
+        ("dikim-excel", "dikim excel"),
+        ("08_Setup_part1", "08 Setup part1"),
+        ("PNT-4417", "PNT-4417"),
+        ("M8-1.25", "M8-1.25"),
+        ("Kılavuz_v3.2", "Kılavuz v3.2"),
+        ("FastReact_4.5", "FastReact 4.5"),
+        ("Main Menu - Setup", "Main Menu - Setup"),
+    ],
+)
+def test_file_names_read_as_words_without_losing_codes_or_versions(
+    stem: str, expected: str
+) -> None:
+    assert file_name_words(stem) == expected

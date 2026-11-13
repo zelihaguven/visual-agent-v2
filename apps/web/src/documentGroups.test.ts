@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { groupDocuments, groupOf, readableName } from "./documentGroups";
+import { groupDocuments, groupOf } from "./documentGroups";
 
 describe("groupOf", () => {
   it.each([
@@ -29,13 +29,3 @@ describe("groupDocuments", () => {
   });
 });
 
-describe("readableName", () => {
-  it.each([
-    ["dikim-excel", "dikim excel"],
-    ["08_Setup_part1.md", "08 Setup part1"],
-    ["PNT-1126 ölçü föyü", "PNT-1126 ölçü föyü"],
-    ["Main Menu - Setup", "Main Menu - Setup"],
-  ])("reads %s as %s", (title, readable) => {
-    expect(readableName(title)).toBe(readable);
-  });
-});

@@ -8,7 +8,7 @@ import {
   type DocumentInfo,
   type DocumentReport,
 } from "../api";
-import { groupDocuments, readableName, type DocumentGroup } from "../documentGroups";
+import { groupDocuments, type DocumentGroup } from "../documentGroups";
 import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES, uploadLimitMessage } from "../limits";
 
 const POLL_MILLISECONDS = 3000;
@@ -70,13 +70,19 @@ export function DocumentsPanel({ onClose, onCountChange }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toggled, setToggled] = useState<Partial<Record<DocumentGroup, boolean>>>({});
 
+  const [hasLoaded, setHasLoaded] = useState(false);
+
   useEffect(() => {
-    onCountChange?.(documents.length);
-  }, [documents.length, onCountChange]);
+    // Liste gelmeden sayı gösterilmez: "0 belge" yanlış izlenim verir.
+    if (hasLoaded) {
+      onCountChange?.(documents.length);
+    }
+  }, [documents.length, hasLoaded, onCountChange]);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     try {
       setDocuments(await listDocuments(signal));
+      setHasLoaded(true);
       setListError(null);
     } catch {
       if (!signal?.aborted) {
@@ -158,7 +164,7 @@ export function DocumentsPanel({ onClose, onCountChange }: Props) {
   return (
     <div className="documents">
       <header className="drawer-header">
-        <h2 id="documents-heading">Belgeler</h2>
+        <h2>Belgeler</h2>
         <button type="button" className="ghost" onClick={onClose}>
           Kapat
         </button>
@@ -233,7 +239,7 @@ function DocumentRow({
   return (
     <li className="document">
       <span className="document-title" title={document.filename}>
-        {readableName(document.title)}
+        {document.title}
       </span>
       {status !== null && <span className={`status is-${document.status}`}>{status}</span>}
       {document.outdated === true && <span className="status is-outdated">Eski kural</span>}

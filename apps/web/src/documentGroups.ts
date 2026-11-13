@@ -1,4 +1,5 @@
-// Belge grupları ve okunur adlar: yalnız dosya adına bakar, belgeye özel kural yok.
+// Belge grupları: yalnız dosya uzantısına bakar, belgeye özel kural yok.
+// Okunur ad sunucuda üretilir (apps/api/display_names.py); burada ad dönüştürülmez.
 
 export const GROUP_ORDER = ["PDF", "Word", "Excel", "Markdown", "SQL", "Görsel", "Diğer"] as const;
 
@@ -36,16 +37,4 @@ export function groupDocuments<T extends { filename: string }>(
     group,
     documents: documents.filter((document) => groupOf(document.filename) === group),
   })).filter((entry) => entry.documents.length > 0);
-}
-
-/**
- * Ad dosya adına benziyorsa (boşluk yok) uzantı atılır, "-" ve "_" boşluk olur.
- * Boşluklu adlara dokunulmaz: "PNT-1126 ölçü föyü" gibi koddaki tire korunur.
- */
-export function readableName(title: string): string {
-  const trimmed = title.trim();
-  if (/\s/.test(trimmed)) {
-    return trimmed;
-  }
-  return trimmed.replace(EXTENSION_RE, "").replace(/[-_]+/g, " ").trim() || trimmed;
 }

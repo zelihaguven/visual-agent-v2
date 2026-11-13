@@ -149,7 +149,10 @@ export function App() {
     } catch {
       updateTurn((turn) => {
         if (stoppedByUser.current === control) {
-          return { ...turn, stage: null, notice: ASK_STOPPED };
+          // Cevap tamamlandıktan sonra basılan Durdur bir şeyi yarıda kesmedi.
+          return turn.result !== null
+            ? { ...turn, stage: null }
+            : { ...turn, stage: null, notice: ASK_STOPPED };
         }
         return control.signal.aborted
           ? { ...turn, stage: null }

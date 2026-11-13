@@ -1324,21 +1324,18 @@ describe("App", () => {
 describe("citationLabel", () => {
   const pageless = { page: null, boxes: [], sheet: null, row: null };
 
-  it("is a short readable name with the page", () => {
-    const citation = { ...CITATION, title: "dikim-tarama.pdf" };
-
-    expect(citationLabel(citation)).toBe("dikim tarama · s.2");
-  });
-
-  it("keeps the hyphen of a code inside a name with spaces", () => {
+  it("is the readable name from the server with the page", () => {
     expect(citationLabel(CITATION)).toBe("PNT-4417 ölçü föyü · s.2");
   });
 
   it("gives the row of a spreadsheet source", () => {
     const location = { ...pageless, sheet: "Ölçüler", row: 5 };
 
-    expect(citationLabel({ ...CITATION, title: "08_Setup_part1", location })).toBe(
-      "08 Setup part1 · satır 5",
+    expect(citationLabel({ ...CITATION, title: "Ölçü föyü", location })).toBe(
+      "Ölçü föyü · satır 5",
+    );
+    expect(citationDetail({ ...CITATION, title: "Ölçü föyü", location })).toBe(
+      "Ölçü föyü · Ölçüler · satır 5",
     );
   });
 
@@ -1488,6 +1485,25 @@ describe("layout", () => {
 
     await screen.findByText("İç paça 76,5 cm.");
     expect(screen.queryByText(/Anlaşılan soru/)).not.toBeInTheDocument();
+  });
+
+  it("closes only the drawer opened last with Escape", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse(DOCUMENTS),
+      "/api/ask": () => sse([answered]),
+      "/api/chunks/d1%3A0/source": () =>
+        jsonResponse({ kind: "text", text: "Beden: M", section: null }),
+    });
+    render(<App />);
+    await ask("soru");
+    fireEvent.click(await screen.findByRole("button", { name: "PNT-4417 ölçü föyü · s.2" }));
+    await screen.findByText("Beden: M");
+    openDocuments();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(screen.queryByRole("list", { name: "Belgeler" })).not.toBeInTheDocument();
+    expect(screen.getByText("Beden: M")).toBeInTheDocument();
   });
 
   it("closes the source drawer with Escape", async () => {
