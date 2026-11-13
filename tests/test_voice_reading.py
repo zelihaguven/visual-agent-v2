@@ -70,3 +70,52 @@ def test_plain_sentence_about_a_command_is_read_then_points_to_the_screen() -> N
     text = "Kolon adı şu komutla değişir."
 
     assert spoken_text(text, "tr", has_code=True) == f"{text} {CODE_ON_SCREEN}"
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # Binlik mi ondalık mı belirsiz: ayraçtan sonrası rakam rakam, değer yorumlanmaz.
+        ("Parti 1.500 adet.", "Parti bir nokta beş sıfır sıfır adet."),
+        ("Parti 1,500 adet.", "Parti bir virgül beş sıfır sıfır adet."),
+        # Türkçe biçim (binlik nokta, ondalık virgül) belirsiz değil.
+        ("Fiyat 1.234,50 TL.", "Fiyat bin iki yüz otuz dört virgül beş sıfır Türk lirası."),
+        ("Toplam 1.234.567 adet.", "Toplam bir iki üç dört beş altı yedi adet."),
+        # Tek ayraçlı nokta saat ya da tarih olabilir; yorumlanmaz.
+        ("Saat 14.30.", "Saat on dört nokta üç sıfır."),
+        ("Teslim 15.06.", "Teslim on beş nokta sıfır altı."),
+        # Başka karışık biçimler yazıldığı gibi okunur.
+        ("Değer 1,234.50.", "Değer bir virgül iki üç dört nokta beş sıfır."),
+        ("Tarih 12.05.2024.", "Tarih on iki nokta sıfır beş nokta iki sıfır iki dört."),
+        ("Oran 12%.", "Oran yüzde on iki."),
+        # Sayı ya bütün okunur ya hiç dokunulmaz; parçası okunmaz.
+        (
+            "Aralık 1.500-2.000 mm.",
+            "Aralık bir nokta beş sıfır sıfır tire iki nokta sıfır sıfır sıfır milimetre.",
+        ),
+        ("Aralık 5-10 mm.", "Aralık beş tire on milimetre."),
+        ("Sıcaklık -1.500 derece.", "Sıcaklık eksi bir nokta beş sıfır sıfır derece."),
+        ("Kod x1.500 ve 2,5x3,5.", "Kod x1.500 ve 2,5x3,5."),
+        ("Oran %1.500.", "Oran yüzde bir nokta beş sıfır sıfır."),
+    ],
+)
+def test_grouped_numbers_never_change_value(text: str, expected: str) -> None:
+    assert spoken_text(text, "tr") == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("Ağırlık 500 gr.", "Ağırlık beş yüz gram."),
+        # "g" ivme de olabilir ("50 g"): yazıldığı gibi kalır.
+        ("Titreşim 50 g.", "Titreşim elli g."),
+        ("Hacim 2 lt.", "Hacim iki litre."),
+        ("Fiyat 5 tl.", "Fiyat beş Türk lirası."),
+        ("Fiyat 5 Tl.", "Fiyat beş Türk lirası."),
+        # Tek harfli birim büyük harfle yazılırsa beden olabilir; birim sayılmaz.
+        ("Beden 38 M.", "Beden otuz sekiz me."),
+        ("Beden 42 L.", "Beden kırk iki le."),
+    ],
+)
+def test_units_come_from_the_shared_unit_list(text: str, expected: str) -> None:
+    assert spoken_text(text, "tr") == expected

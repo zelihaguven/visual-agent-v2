@@ -628,3 +628,18 @@ def test_sentence_hidden_only_for_its_unit_keeps_its_source_quote() -> None:
     item = outcome.result.items[0]
     assert not item.verified
     assert item.source_quote == ROW
+
+
+@pytest.mark.parametrize(("language", "verified"), [("tr", True), ("en", False)])
+def test_number_word_in_the_source_is_read_in_the_document_language(
+    language: str, verified: bool
+) -> None:
+    """Kaynaktaki "on" yalnız katalogda Türkçe olan belgede 10 sayılır."""
+    source = chunk("b:2", "b", "Bekleme süresi on dakikadır.", ChunkKind.TEXT, title="Kılavuz")
+    client = FakeClient(answer_payload("Bekleme on dakikadır.", quote=source.text))
+    deps = make_deps(client, FakeRetriever(hits=[source]), languages={"b": language})
+
+    outcome = ask(deps, "Bekleme kaç dakika?")
+
+    assert isinstance(outcome.result, Answered)
+    assert outcome.result.items[0].verified is verified

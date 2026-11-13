@@ -5,11 +5,13 @@ import unicodedata
 
 from markdown_it import MarkdownIt
 
-_NUMBER = r"\d+(?:[.,]\d+)?"
+# Bir sayı bütün ayraçlarıyla tek değerdir: "1,234.50" ve "12.05.2024" bölünmez. Sahiplenici
+# (possessive) eşleşme geri çekilmez; sayının yalnız başı ayrı bir değer olarak yakalanamaz.
+NUMBER = r"\d++(?:[.,]\d++)*+"
 MINUS_SIGNS = "-−–"
-_SIGNED_NUMBER_RE = re.compile(rf"(?:(?<![\w.,])[{MINUS_SIGNS}](?=\d))?{_NUMBER}")
+_SIGNED_NUMBER_RE = re.compile(rf"(?:(?<![\w.,])[{MINUS_SIGNS}](?=\d))?{NUMBER}")
 _AMBIGUOUS_GROUPING_RE = re.compile(r"[1-9]\d{0,2}[.,]\d{3}")
-TOLERANCE_RE = re.compile(rf"({_NUMBER})\s*\(\s*±\s*({_NUMBER})\s*\)")
+TOLERANCE_RE = re.compile(rf"({NUMBER})\s*\(\s*±\s*({NUMBER})\s*\)")
 CITATION_RE = re.compile(r"\[(\d+)\]")
 _MULTI_CITATION_RE = re.compile(r"\[(\d+(?:\s*[,;–-]\s*\d+)+)\]")
 CUT_CITATION_RE = re.compile(r"\s*\[\d*$")
@@ -20,88 +22,81 @@ _LINE_BREAK_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
 _LEADING_DECIMAL_RE = re.compile(r"(?<![\d.,])[.,](\d)")
 _MAX_CITATION_RANGE = 20
 
-_UPPER = "A-ZÇĞİÖŞÜ"
+UPPER = "A-ZÇĞİÖŞÜ"
 _LOWER = "a-zçğıöşü"
 _IDENTIFIER_RE = re.compile(
     r"(?<![\w-])(?:"
-    rf"[{_UPPER}][{_UPPER}0-9]*(?:[_-][{_UPPER}0-9]+)+"
+    rf"[{UPPER}][{UPPER}0-9]*(?:[_-][{UPPER}0-9]+)+"
     rf"|[{_LOWER}][{_LOWER}0-9]*(?:_[{_LOWER}0-9]+)+"
-    rf"|[{_UPPER}]+\d+[{_UPPER}]*"
+    rf"|[{UPPER}]+\d+[{UPPER}]*"
     r")(?![\w-])"
 )
 _BACKTICK_RE = re.compile(r"`([^`\n]+)`")
-# Sayının hemen ardından gelen birimler; sesli akışta gizleme ve birim denetimi ortak kullanır.
-UNITS = [
-    "mm",
-    "cm",
-    "m",
-    "km",
-    "in",
-    "inch",
-    "inches",
-    "inç",
-    "″",
-    '"',
-    "ft",
-    "µm",
-    "g",
-    "kg",
-    "mg",
-    "lb",
-    "oz",
-    "n",
-    "nm",
-    "v",
-    "kv",
-    "a",
-    "ma",
-    "w",
-    "kw",
-    "hz",
-    "khz",
-    "rpm",
-    "dk",
-    "dakika",
-    "sn",
-    "saniye",
-    "s",
-    "sec",
-    "min",
-    "h",
-    "saat",
-    "gün",
-    "°c",
-    "°f",
-    "°",
-    "%",
-    "bar",
-    "psi",
-    "pa",
-    "kpa",
-    "mpa",
-    "l",
-    "ml",
-    "cc",
-    "tl",
-]
-UNIT_PATTERN = "|".join(sorted((re.escape(unit) for unit in UNITS), key=len, reverse=True))
-_MEASURE_RE = re.compile(rf"(?<![\w.,])({_NUMBER})\s?({UNIT_PATTERN})(?!\w)", re.IGNORECASE)
-_HEADER_UNIT_RE = re.compile(rf"[(\[]\s*({UNIT_PATTERN})\s*[)\]]", re.IGNORECASE)
-_UNIT_ALIASES = {
-    "in": "inch",
-    "inches": "inch",
-    "inç": "inch",
-    "″": "inch",
-    '"': "inch",
-    "dk": "min",
-    "dakika": "min",
-    "sn": "s",
-    "saniye": "s",
-    "sec": "s",
-    "saat": "h",
+# Sayının hemen ardından gelen birimler: yazım -> (ortak biçim, Türkçe okunuşu).
+# Doğrulama, akış maskesi ve sesli okuma bu tek tablodan beslenir; okunuşu boş birim seste
+# yazıldığı gibi kalır.
+UNITS: dict[str, tuple[str, str]] = {
+    "mm": ("mm", "milimetre"),
+    "cm": ("cm", "santimetre"),
+    "m": ("m", "metre"),
+    "km": ("km", "kilometre"),
+    "in": ("inch", ""),
+    "inch": ("inch", ""),
+    "inches": ("inch", ""),
+    "inç": ("inch", ""),
+    "″": ("inch", ""),
+    '"': ("inch", ""),
+    "ft": ("ft", ""),
+    "µm": ("µm", ""),
+    "g": ("g", ""),  # ivme de olabilir ("50 g"); seste yazıldığı gibi kalır
+    "gr": ("gr", "gram"),  # Türkçe belgede gram, İngilizce belgede grain
+    "kg": ("kg", "kilogram"),
+    "mg": ("mg", "miligram"),
+    "lb": ("lb", ""),
+    "oz": ("oz", ""),
+    "n": ("n", ""),
+    "nm": ("nm", ""),
+    "v": ("v", ""),
+    "kv": ("kv", ""),
+    "a": ("a", ""),
+    "ma": ("ma", ""),
+    "w": ("w", ""),
+    "kw": ("kw", ""),
+    "hz": ("hz", ""),
+    "khz": ("khz", ""),
+    "rpm": ("rpm", ""),
+    "dk": ("min", ""),
+    "dakika": ("min", ""),
+    "sn": ("s", ""),
+    "saniye": ("s", ""),
+    "s": ("s", ""),
+    "sec": ("s", ""),
+    "min": ("min", ""),
+    "h": ("h", ""),
+    "saat": ("h", ""),
+    "gün": ("gün", ""),
+    "°c": ("°c", ""),
+    "°f": ("°f", ""),
+    "°": ("°", ""),
+    "%": ("%", ""),
+    "bar": ("bar", ""),
+    "psi": ("psi", ""),
+    "pa": ("pa", ""),
+    "kpa": ("kpa", ""),
+    "mpa": ("mpa", ""),
+    "l": ("l", "litre"),
+    "lt": ("l", "litre"),
+    "ml": ("ml", "mililitre"),
+    "cc": ("cc", ""),
+    "tl": ("tl", "Türk lirası"),
 }
+UNIT_PATTERN = "|".join(sorted((re.escape(unit) for unit in UNITS), key=len, reverse=True))
+_MEASURE_RE = re.compile(rf"(?<![\w.,])({NUMBER})\s?({UNIT_PATTERN})(?!\w)", re.IGNORECASE)
+_HEADER_UNIT_RE = re.compile(rf"[(\[]\s*({UNIT_PATTERN})\s*[)\]]", re.IGNORECASE)
 _IDENTIFIER_SEPARATOR_RE = re.compile(r"[-_\s]+")
 
+# Yazıyla sayılar. "-" sayılmayan yazımdır: Fransızca "un" belirsiz tanımlık, İspanyolca "once"
+# İngilizce sözcük, Türkçe "on" aşağıda ayrı.
 _WORD_NUMBER_LISTS = (
     "one two three four five six seven eight nine ten eleven twelve",
     "uno dos tres cuatro cinco seis siete ocho nueve diez - doce",
@@ -118,6 +113,19 @@ _WORD_NUMBER_RE = re.compile(
     r"(?<!\w)(" + "|".join(sorted(_WORD_NUMBERS, key=len, reverse=True)) + r")(?!\w)",
     re.IGNORECASE,
 )
+# Türkçe "on" başka sözcüklerle karışır: "turn on", "click on", anahtar konumu "ON". Yalnız Türkçe
+# metinde, küçük harfle ya da büyük harfle başlayarak yazılınca sayıdır; tamamı büyük "ON" değildir.
+_TURKISH_TENS = {"on": 10, "on bir": 11, "on iki": 12}
+_TURKISH_TENS_RE = re.compile(r"(?<!\w)([oO]n(?:\s+(?:bir|iki))?)(?!\w)(?:\s+(\w+))?")
+_FOLLOWED_NUMBER_RE = re.compile(rf"(?<![\w.,])({NUMBER})\s+(\w+)")
+
+
+def word_number_spans(text: str, language: str) -> list[tuple[int, int]]:
+    """Yazıyla sayıların konumları; akışta değer doğrulanana kadar gizlenir."""
+    spans = [match.span() for match in _WORD_NUMBER_RE.finditer(text)]
+    if language == "tr":
+        spans += [match.span(1) for match in _TURKISH_TENS_RE.finditer(text)]
+    return spans
 
 
 def _build_char_table() -> dict[int, str]:
@@ -201,11 +209,12 @@ def canonical_number(raw: str) -> str:
     """Aynı sayının yazım farkı yok sayılır; binlik mi ondalık mı belirsizse yazıldığı gibi kalır.
 
     "40,0" ile "40" aynıdır. "1.000" ve "1.500" binlik de olabilir, bu yüzden "1" ya da "1,5"
-    ile eşleşmez. Eksi işareti değerin parçasıdır.
+    ile eşleşmez. Birden çok ayraçlı sayı ("1.234,50", "12.05.2024") da yazıldığı gibi kalır.
+    Eksi işareti değerin parçasıdır.
     """
     sign = "-" if raw[:1] in MINUS_SIGNS else ""
     digits = raw.lstrip(MINUS_SIGNS)
-    if _AMBIGUOUS_GROUPING_RE.fullmatch(digits):
+    if _AMBIGUOUS_GROUPING_RE.fullmatch(digits) or len(re.findall("[.,]", digits)) > 1:
         return sign + digits
     value = digits.replace(",", ".")
     return sign + (value.rstrip("0").rstrip(".") if "." in value else value)
@@ -220,9 +229,22 @@ def numbers_in(text: str) -> set[str]:
 
 
 def word_numbers(text: str) -> set[str]:
-    """Alıntıda yazıyla geçen sayılar; yalnız kaynak tarafında kullanılır."""
+    """Metinde yazıyla geçen, başka sözcükle karışmayan sayılar."""
     values = (_word_value(word) for word in _WORD_NUMBER_RE.findall(text))
     return {str(value) for value in values if value is not None}
+
+
+def turkish_tens(text: str, language: str) -> set[tuple[str, str]]:
+    """Türkçe metinde "on", "on bir", "on iki" ve ardındaki sözcük: ("10", "dakika").
+
+    Başka dilde ya da dil bilinmiyorsa boş. Ardında sözcük yoksa ikinci öğe boştur.
+    """
+    if language != "tr":
+        return set()
+    return {
+        (str(_TURKISH_TENS[" ".join(word.casefold().split())]), fold_identifier(following))
+        for word, following in _TURKISH_TENS_RE.findall(text)
+    }
 
 
 def _word_value(word: str) -> int | None:
@@ -233,20 +255,42 @@ def _word_value(word: str) -> int | None:
     return None
 
 
-def measures_in(text: str) -> set[tuple[str, str]]:
+# Kaynaktaki "gr" Türkçe belgede cümledeki "g"yi de karşılar. Tersi yok: "g" ivme olabilir,
+# İngilizce belgede "gr" grain olabilir.
+_TURKISH_UNIT_ALIASES = {"gr": "g"}
+
+
+def _unit_forms(unit: str, language: str) -> set[str]:
+    """Eş anlamlı birimlerin ortak biçimi ("dakika" -> "min"). Cümle için dil "" verilir: birim
+    yazıldığı gibi kalır; kaynak için belgenin dili verilir, eş anlamlısı da eklenir."""
+    name = unit.casefold()
+    form = UNITS.get(name, (name, ""))[0]
+    alias = _TURKISH_UNIT_ALIASES.get(form) if language == "tr" else None
+    return {form, alias} if alias else {form}
+
+
+def measures_in(text: str, language: str) -> set[tuple[str, str]]:
     """Birimiyle yazılmış değerler: ("5", "mm"); eş anlamlı birimler tek biçime iner."""
-    found = set()
-    for number, unit in _MEASURE_RE.findall(canon_chars(text)):
-        name = unit.casefold()
-        found.add((canonical_number(number), _UNIT_ALIASES.get(name, name)))
-    return found
+    return {
+        (canonical_number(number), form)
+        for number, unit in _MEASURE_RE.findall(canon_chars(text))
+        for form in _unit_forms(unit, language)
+    }
 
 
-def header_units(label: str) -> set[str]:
+def header_units(label: str, language: str) -> set[str]:
     """Sütun başlığında parantez içinde yazan birimler ("Ücret (TL)", "Boy [mm]"); parantezsiz
     tek harf ("Beden M") birim sayılmaz."""
-    names = (unit.casefold() for unit in _HEADER_UNIT_RE.findall(canon_chars(label)))
-    return {_UNIT_ALIASES.get(name, name) for name in names}
+    units = _HEADER_UNIT_RE.findall(canon_chars(label))
+    return {form for unit in units for form in _unit_forms(unit, language)}
+
+
+def numbers_with_next_word(text: str) -> set[tuple[str, str]]:
+    """Rakamla yazılmış sayı ve ardındaki sözcük: ("10", "dakika")."""
+    return {
+        (canonical_number(number), fold_identifier(following))
+        for number, following in _FOLLOWED_NUMBER_RE.findall(canon_chars(text))
+    }
 
 
 def prefixed_codes_in(text: str) -> set[str]:

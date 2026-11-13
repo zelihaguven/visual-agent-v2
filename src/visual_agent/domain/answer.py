@@ -76,6 +76,8 @@ class PromptSource(_Frozen):
     ocr_uncertain: tuple[str, ...] = ()
     is_code: bool = False
     from_ocr: bool = False
+    language: str = ""
+    """Belgenin katalogdaki dili; kaynaktaki yazıyla sayılar bu dile göre okunur."""
 
 
 class ItemCheck(_Frozen):

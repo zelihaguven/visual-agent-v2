@@ -15,6 +15,7 @@ from visual_agent.verification.text import (
     identifiers_in,
     markdown_plain_form,
     quote_form,
+    turkish_tens,
     word_numbers,
 )
 
@@ -96,7 +97,7 @@ def _field_matches(quote: str, source: str, form: Form) -> bool:
     )
 
 
-def _carries_values(tail: str, written_tail: str) -> bool:
+def _carries_values(tail: str, written_tail: str, language: str) -> bool:
     """Denetlenmeyen kuyrukta sayı, yazıyla sayı ya da teknik ad olamaz; olursa kanıt sayılırdı.
 
     Yazıyla sayı alıntının yazıldığı hâlinden okunur: küçük harfe indirmek "İki" ve "ALTI"
@@ -105,7 +106,7 @@ def _carries_values(tail: str, written_tail: str) -> bool:
     return (
         any(character.isdigit() for character in tail)
         or bool(identifiers_in(tail))
-        or bool(word_numbers(written_tail))
+        or bool(word_numbers(written_tail) | turkish_tens(written_tail, language))
     )
 
 
@@ -121,7 +122,7 @@ def _written_tail(quote: str, normalized_words: list[str], head_count: int) -> s
     return " ".join(written_words[-(tail_count + extra) :])
 
 
-def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
+def _cut_prefix_matches(quote: str, normalized_source: str, form: Form, language: str) -> bool:
     """Uzunluk sınırına dayanıp sonu bozulan alıntının başı kaynakla örtüşüyorsa kabul eder."""
     if len(quote) < QUOTE_LIMIT - _CUT_MARGIN:
         return False
@@ -132,11 +133,11 @@ def _cut_prefix_matches(quote: str, normalized_source: str, form: Form) -> bool:
         if contains_whole(normalized_source, head):
             tail = normalized[len(head) :]
             written_tail = _written_tail(quote, words, count)
-            return len(tail) <= _CUT_MAX_TAIL and not _carries_values(tail, written_tail)
+            return len(tail) <= _CUT_MAX_TAIL and not _carries_values(tail, written_tail, language)
     return False
 
 
-def _matches(quote: str, source: str, form: Form) -> bool:
+def _matches(quote: str, source: str, form: Form, language: str) -> bool:
     without_citation = CUT_CITATION_RE.sub("", quote)
     normalized_quote = form(without_citation)
     if not normalized_quote:
@@ -145,9 +146,10 @@ def _matches(quote: str, source: str, form: Form) -> bool:
     return (
         contains_whole(normalized_source, normalized_quote)
         or _field_matches(without_citation, source, form)
-        or _cut_prefix_matches(quote, normalized_source, form)
+        or _cut_prefix_matches(quote, normalized_source, form, language)
     )
 
 
-def quote_matches(quote: str, source: str) -> bool:
-    return any(_matches(quote, source, form) for form in _FORMS)
+def quote_matches(quote: str, source: str, language: str) -> bool:
+    """language: kaynağın (belgenin) dili."""
+    return any(_matches(quote, source, form, language) for form in _FORMS)

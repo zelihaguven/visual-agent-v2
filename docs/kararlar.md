@@ -524,6 +524,35 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   riski taşıyor.
 - **Yeniden düşünülür:** Gerçek tablolarda yanlış satır ya da sütun görülürse.
 
+### Sayı sözcükleri ve birimler tek tabloda; ses değeri yorumlamaz
+- **Ne zaman:** 2026-11-13. `deger-dogrulugu` dalı (inceleme listesi #1, #4, #5).
+- **Kural:**
+  - Yazıyla sayılar ve birimler `verification/text.py`'de tek tabloda. Doğrulama, akış maskesi
+    ve sesli okuma oradan beslenir.
+  - Bir sayı bütün ayraçlarıyla tek değerdir: "1,234.50", "1.234,50", "12.05.2024" bölünmez.
+    Ondalığı düşmüş "1,234" ya da tarihten koparılmış "2024" doğrulanmaz.
+  - Türkçe "on" (10), "on bir", "on iki" yalnız Türkçe metinde sayıdır. Cümlede cevabın dili,
+    alıntıda belgenin katalogdaki dili kullanılır; dili bilinmeyen kaynakta sayılmaz. Belge dili
+    `document_language` ile belirlendiği için onun düzeltmesi (#6) buraya da yansır.
+  - Cümledeki "on", dayanakta aynı sözcüğün önündeki "on" ya da 10 ile karşılanır ("on dakika"
+    ↔ "on dakika" / "10 dakika"); "10 mm ... 3 dakika" ya da "10 adet ... beş" ("on beş")
+    karşılamaz. Ardında sözcük yoksa 10 aranır. Kaynaktaki "on" rakamla yazılmış 10'un kanıtı
+    olamaz ("click on Save", "ON konumu"). Tamamı büyük harfli "ON" hiçbir tarafta sayı değildir.
+  - "lt", "l"nin eş anlamlısı. Türkçe belgedeki "gr", cümledeki "g"yi karşılar; tersi yok ("g"
+    ivme olabilir). İngilizce belgede "gr" grain olabileceği için ayrı birim kalır. Kaynakta
+    birimsiz değere eklenen birim cümleyi gizler.
+  - Ses yalnız Türkçe binlik biçimini ("1.234,50") değeriyle okur (999.999 üstü rakam rakam). Öteki her
+    ayraç adıyla, sonrası rakam rakam okunur: "1.500" bir nokta beş sıfır sıfır, "14.30" on
+    dört nokta üç sıfır, "42,5" kırk iki virgül beş. Tek harfli birim yalnız küçük harfle
+    birimdir ("38 M" beden); "g" okunmaz (ivme de olabilir). Sayı ya bütün okunur ya hiç
+    dokunulmaz: "1.500-2.000" bir nokta beş sıfır sıfır tire iki nokta…, "-5" eksi beş; "x1.500"
+    yazıldığı gibi kalır.
+- **Neden:** Sesli okuma "1.500"ü 1,5 okuyordu; "on dakika" kaynakta ne yazdığına bakılmadan
+  geçiyordu; kaynakta "1,234.50" varken "1,234" doğrulanıyordu (kural 1).
+- **Ölçüm** (seed 7, seed 11, FastReact; önbellekten, 0 $, ıska 0): hiçbir soru ve madde
+  değişmedi; gizlenen cümle 10'da kaldı, doğrulanmış yanlış 0. Ölçülen cümlelerin ve taban
+  belgelerinin okunuşu da değişmedi; etkiyi yalnız yeni testler gösteriyor.
+
 ## Netleştirme ve sohbet
 
 ### Elle yazılmış netleştirme kuralları çıkarıldı

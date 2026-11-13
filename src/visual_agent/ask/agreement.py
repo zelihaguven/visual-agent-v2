@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 MIN_SHARED_QUOTE_WORDS = 3
 
 Cite = Callable[[Hit], Citation]
+LanguageOf = Callable[[str], str]
 
 
 def candidate_documents(hits: Sequence[Hit], option_numbers: Sequence[int]) -> list[str]:
@@ -33,20 +34,27 @@ def candidate_documents(hits: Sequence[Hit], option_numbers: Sequence[int]) -> l
     return list(dict.fromkeys(hit.chunk.doc_id for hit in hits if hit.chunk.doc_id in chosen))
 
 
-def _shared_hit(quote: str, hits: Sequence[Hit]) -> Hit | None:
+def _shared_hit(quote: str, hits: Sequence[Hit], language_of: LanguageOf) -> Hit | None:
     if len(quote.split()) < MIN_SHARED_QUOTE_WORDS:
         return None
-    return next((hit for hit in hits if quote_matches(quote, hit.chunk.text)), None)
+    return next(
+        (
+            hit
+            for hit in hits
+            if quote_matches(quote, hit.chunk.text, language_of(hit.chunk.doc_id))
+        ),
+        None,
+    )
 
 
 def _citations_elsewhere(
-    item: ModelItem, others: Sequence[Sequence[Hit]], cite: Cite
+    item: ModelItem, others: Sequence[Sequence[Hit]], cite: Cite, language_of: LanguageOf
 ) -> list[Citation] | None:
     """Öğenin her alıntısı her diğer belgede geçiyorsa o belgelerin atıfları; yoksa None."""
     citations: list[Citation] = []
     for hits in others:
         for quote in item.quotes:
-            found = _shared_hit(quote.text, hits)
+            found = _shared_hit(quote.text, hits, language_of)
             if found is None:
                 return None
             citations.append(cite(found))
@@ -59,19 +67,21 @@ def shared_answer(
     first: Sequence[Hit],
     others: Sequence[Sequence[Hit]],
     cite: Cite,
+    language: str,
+    language_of: LanguageOf,
 ) -> Answered | None:
     """İlk belgeden gelen cevap bütün aday belgelerde birebir geçiyorsa cevap; yoksa None."""
     parsed = parse_answer(content, finish)
     if isinstance(parsed, ParseFailure) or parsed.kind is not AnswerKind.ANSWER:
         return None
-    verification = verify_answer(parsed, to_prompt_sources(first))
+    verification = verify_answer(parsed, to_prompt_sources(first, language_of), language)
     if verification.status is not VerificationStatus.VERIFIED:
         return None
     items = []
     for item, check in zip(parsed.items, verification.items, strict=True):
         if item.code_source_no is not None or not item.quotes:
             return None
-        elsewhere = _citations_elsewhere(item, others, cite)
+        elsewhere = _citations_elsewhere(item, others, cite, language_of)
         if elsewhere is None:
             return None
         own = [cite(first[number - 1]) for number in check.source_numbers]
@@ -104,4 +114,7 @@ async def agreed_answer(
         return None, 0.0
     if stream.incomplete:
         return None, stream.cost_usd
-    return shared_answer(stream.content, stream.finish, first, others, cite), stream.cost_usd
+    shared = shared_answer(
+        stream.content, stream.finish, first, others, cite, language, deps.catalog.language
+    )
+    return shared, stream.cost_usd

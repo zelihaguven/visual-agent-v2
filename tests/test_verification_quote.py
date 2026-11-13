@@ -59,7 +59,7 @@ KWARGS_SOURCE = "pass **kwargs and **bold** text"
     ],
 )
 def test_real_quotes_differing_only_in_format_are_accepted(quote: str, source: str) -> None:
-    assert quote_matches(quote, source)
+    assert quote_matches(quote, source, "tr")
 
 
 @pytest.mark.parametrize(
@@ -73,7 +73,7 @@ def test_real_quotes_differing_only_in_format_are_accepted(quote: str, source: s
     ],
 )
 def test_markdown_emphasis_and_code_marks_are_format(quote: str, source: str) -> None:
-    assert quote_matches(quote, source)
+    assert quote_matches(quote, source, "tr")
 
 
 @pytest.mark.parametrize(
@@ -89,7 +89,7 @@ def test_markdown_emphasis_and_code_marks_are_format(quote: str, source: str) ->
     ],
 )
 def test_marks_that_may_be_content_are_not_dropped(quote: str, source: str) -> None:
-    assert not quote_matches(quote, source)
+    assert not quote_matches(quote, source, "tr")
 
 
 @pytest.mark.parametrize(
@@ -102,7 +102,7 @@ def test_marks_that_may_be_content_are_not_dropped(quote: str, source: str) -> N
     ],
 )
 def test_a_verbatim_quote_of_content_marks_is_accepted(source: str) -> None:
-    assert quote_matches(source, source)
+    assert quote_matches(source, source, "tr")
 
 
 @pytest.mark.parametrize(
@@ -123,12 +123,12 @@ def test_a_verbatim_quote_of_content_marks_is_accepted(source: str) -> None:
 def test_quotes_with_a_different_value_code_or_wording_are_still_rejected(
     quote: str, source: str
 ) -> None:
-    assert not quote_matches(quote, source)
+    assert not quote_matches(quote, source, "tr")
 
 
 def test_labeled_quote_matches_through_emphasis() -> None:
-    assert quote_matches("Week numbers: Enabled", "**Week numbers:** Enabled | Year 1: x")
-    assert quote_matches("Week numbers: Enabled", "Week numbers: Enabled | Year 1: x")
+    assert quote_matches("Week numbers: Enabled", "**Week numbers:** Enabled | Year 1: x", "tr")
+    assert quote_matches("Week numbers: Enabled", "Week numbers: Enabled | Year 1: x", "tr")
 
 
 @pytest.mark.parametrize(
@@ -171,11 +171,11 @@ def test_escaped_asterisks_are_literal_not_emphasis() -> None:
     ],
 )
 def test_quote_cannot_start_or_end_inside_a_number(quote: str, source: str) -> None:
-    assert not quote_matches(quote, source)
+    assert not quote_matches(quote, source, "tr")
 
 
 def test_labeled_quote_cannot_cut_a_number() -> None:
-    assert not quote_matches("Genişlik: 7", "Genişlik: 72 | Boy: 110")
+    assert not quote_matches("Genişlik: 7", "Genişlik: 72 | Boy: 110", "tr")
 
 
 @pytest.mark.parametrize(
@@ -188,7 +188,7 @@ def test_labeled_quote_cannot_cut_a_number() -> None:
     ],
 )
 def test_whole_numbers_are_still_accepted(quote: str, source: str) -> None:
-    assert quote_matches(quote, source)
+    assert quote_matches(quote, source, "tr")
 
 
 CUT_SOURCE = (
@@ -200,22 +200,22 @@ CUT_HEAD = CUT_SOURCE.removesuffix(" kayıt tutulur.")
 
 
 def test_cut_quote_cannot_add_a_number_in_its_unchecked_tail() -> None:
-    assert not quote_matches(CUT_HEAD + " değer 99 cm.", CUT_SOURCE)
+    assert not quote_matches(CUT_HEAD + " değer 99 cm.", CUT_SOURCE, "tr")
 
 
 def test_cut_quote_cannot_add_a_code_in_its_unchecked_tail() -> None:
-    assert not quote_matches(CUT_HEAD + " kod PNT-77.", CUT_SOURCE)
+    assert not quote_matches(CUT_HEAD + " kod PNT-77.", CUT_SOURCE, "tr")
 
 
 def test_cut_quote_with_a_plain_broken_tail_is_still_accepted() -> None:
-    assert quote_matches(CUT_HEAD + " kayıt tutu", CUT_SOURCE)
+    assert quote_matches(CUT_HEAD + " kayıt tutu", CUT_SOURCE, "tr")
 
 
 @pytest.mark.parametrize(
     "source", ["Çalışma sıcaklığı -5 °C", "Çalışma sıcaklığı −5 °C", "En düşük (-5 °C)"]
 )
 def test_quote_cannot_drop_the_minus_sign_of_a_value(source: str) -> None:
-    assert not quote_matches("5 °C", source)
+    assert not quote_matches("5 °C", source, "tr")
 
 
 @pytest.mark.parametrize(
@@ -227,17 +227,17 @@ def test_quote_cannot_drop_the_minus_sign_of_a_value(source: str) -> None:
     ],
 )
 def test_a_dash_that_is_not_a_sign_does_not_block_the_quote(quote: str, source: str) -> None:
-    assert quote_matches(quote, source)
+    assert quote_matches(quote, source, "tr")
 
 
 def test_digits_inside_a_code_are_not_a_quotable_value() -> None:
-    assert not quote_matches("5 adet", "Kod A-5 adet")
+    assert not quote_matches("5 adet", "Kod A-5 adet", "tr")
 
 
 def test_cut_quote_cannot_add_a_number_word_in_its_unchecked_tail() -> None:
-    assert not quote_matches(CUT_HEAD + " beş kez yapılır.", CUT_SOURCE)
+    assert not quote_matches(CUT_HEAD + " beş kez yapılır.", CUT_SOURCE, "tr")
 
 
 @pytest.mark.parametrize("tail", [" İki kez yapılır.", " ALTI kez yapılır.", " **İki** kez."])
 def test_cut_quote_cannot_add_a_capitalized_number_word_in_its_tail(tail: str) -> None:
-    assert not quote_matches(CUT_HEAD + tail, CUT_SOURCE)
+    assert not quote_matches(CUT_HEAD + tail, CUT_SOURCE, "tr")
