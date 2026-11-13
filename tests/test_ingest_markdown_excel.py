@@ -213,7 +213,7 @@ def _old_report() -> dict[str, object]:
         ("rapor.sql", True),
         ("tarama.pdf", True),
         ("foto.jpg", True),
-        ("belge.docx", False),
+        ("belge.docx", True),
     ],
 )
 def test_old_reports_are_outdated_only_where_the_rules_changed(

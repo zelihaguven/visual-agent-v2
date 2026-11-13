@@ -14,6 +14,7 @@ from visual_agent.ask.deps import AskRequest
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, Box, Chunk, ChunkKind, SourceLocation
 from visual_agent.domain.result import AskOutcome, NotFound
+from visual_agent.ingest.formats import RULES_VERSIONS, InputFormat
 from visual_agent.settings import Settings
 
 
@@ -241,9 +242,10 @@ def test_documents_are_listed(tmp_path: Path) -> None:
 
 def test_document_processed_with_older_rules_is_marked_outdated(tmp_path: Path) -> None:
     old_report = {"warnings": [], "uncertain_values": 0}
+    current = {**old_report, "rules_version": RULES_VERSIONS[InputFormat.OFFICE]}
     documents = [
         stored().model_copy(update={"filename": "kilavuz.md", "report": old_report}),
-        stored("d2").model_copy(update={"filename": "belge.docx", "report": old_report}),
+        stored("d2").model_copy(update={"filename": "belge.docx", "report": current}),
     ]
 
     body = make_client(tmp_path, FakeRepository(documents=documents)).get("/api/documents").json()
