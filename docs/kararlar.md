@@ -238,9 +238,16 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   - Her biçimin kural sürümü belge raporuna yazılıyor.
   - Eski sürümle işlenmiş belge listede "eski okuma kuralıyla işlendi" diye görünüyor.
   - Bir biçimin parçalarını ya da konumlarını değiştiren her değişiklikte o biçimin sürümü
-    artırılıyor. Excel (xlsx, xls) 3'te; Markdown, metin, SQL, PDF, görsel ve Office 2'de.
+    artırılıyor. Excel (xlsx, xls), PDF ve görsel 3'te; Markdown, metin, SQL ve Office 2'de.
     PDF, görsel ve Office 2: OCR kalite puanında tek büyük harf çöp sayılmaz. Office da
     2'ye çıkarıldı (ürün sahibi kararı), çünkü PDF'e çevrilip aynı OCR kararından geçiyor.
+    PDF ve görsel 3 (2026-11-13): yeniden işleme belgenin kayıtlı dilini ("tr") OCR'a
+    veriyordu, OCR yalnız `tur` ile okunuyordu; ilk yükleme ise `tur+eng`. Aynı dosya iki yolda
+    farklı okunuyordu (`dikim-foto`'da tolerans `1,0` yerine `10`). Artık OCR her işlemede
+    `tur+eng`; katalog dili yine parçalardan belirlenir. Sürüm yalnız sayıya baktığı için
+    sürüm 2'deki bütün PDF ve görseller (ilk yüklemede zaten tur+eng ile okunanlar dahil)
+    "eski kural" görünür. Office de aynı yoldan etkilenir (taranmış sayfa ve gömülü görsel
+    OCR'ı); ürün sahibinin talimatıyla 2'de bırakıldı.
 - **Neden:** Parçalama kuralı değişince eski belgeler sessizce eski parçalarıyla kalıyordu.
   Hangi belgelerin yeniden işlenmesi gerektiği bilinmiyordu.
 - **Neden kodla engellenmedi:**

@@ -6,11 +6,13 @@ from pathlib import Path
 import pytest
 
 from apps.worker.jobs import DocumentProcessor
+from tests.test_ingest_pipeline import _fake_tools
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
 from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
-from visual_agent.ingest.external import SOFFICE_MISSING, MissingTool
-from visual_agent.ingest.pipeline import IngestReport, IngestResult
+from visual_agent.ingest.external import SOFFICE_MISSING, MissingTool, tesseract_language
+from visual_agent.ingest.pipeline import IngestReport, IngestResult, ingest_document
+from visual_agent.ingest.text_layer import PageKind
 
 
 def _chunk(text: str = "Merhaba dünya bu bir metin") -> Chunk:
@@ -319,3 +321,21 @@ def test_failed_processing_of_a_deleted_document_still_cleans_up(tmp_path: Path)
     assert indexer.removed == ["d"]
     assert not Path(queued.stored_path).parent.exists()
     assert repository.purged == ["d"]
+
+
+def test_reprocessing_reads_ocr_in_turkish_and_english_whatever_the_stored_language(
+    tmp_path: Path,
+) -> None:
+    calls: list[str] = []
+    tools = _fake_tools(calls, PageKind.NONE)
+    stored = document(tmp_path).model_copy(update={"language": "tr"})  # önceden işlenmiş
+    repository, indexer = FakeRepository(queued=[stored]), FakeIndexer()
+
+    def ingest(path: Path, meta: DocumentMeta, work: Path) -> IngestResult:
+        return ingest_document(path, meta, tools, work)
+
+    asyncio.run(DocumentProcessor(repository, indexer, ingest).process_next())
+
+    # Sayfa OCR'ı ve gömülü görsel OCR'ı aynı dili alır.
+    readings = [call.split(":")[1] for call in calls if call.startswith(("ocr:", "images:"))]
+    assert [tesseract_language(language) for language in readings] == ["tur+eng", "tur+eng"]

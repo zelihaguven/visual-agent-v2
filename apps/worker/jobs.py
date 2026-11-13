@@ -10,7 +10,7 @@ from typing import Protocol
 
 from visual_agent.ask.language import document_language
 from visual_agent.catalog.repository import StoredDocument
-from visual_agent.domain.document import Chunk, DocumentMeta
+from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk, DocumentMeta
 from visual_agent.ingest.external import MissingTool
 from visual_agent.ingest.formats import UnsupportedFormat
 from visual_agent.ingest.pipeline import IngestReport, IngestResult
@@ -86,10 +86,12 @@ class DocumentProcessor:
 
     async def _process(self, document: StoredDocument) -> None:
         source = Path(document.stored_path)
+        # OCR dili kayıtlı dile bağlı değil: yeniden işleme de ilk yükleme gibi tur+eng okur.
+        # Belgenin dili yine parçalardan belirlenir (aşağıda document_language).
         meta = DocumentMeta(
             doc_id=document.doc_id,
             title=document.title,
-            language=document.language,
+            language=UNDETECTED_LANGUAGE,
         )
         with tempfile.TemporaryDirectory() as work:
             result = await asyncio.to_thread(self._ingest, source, meta, Path(work))

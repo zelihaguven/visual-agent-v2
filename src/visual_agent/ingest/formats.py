@@ -47,10 +47,11 @@ _TYPES: dict[str, tuple[InputFormat, tuple[bytes, ...]]] = {
 _MAGIC_LENGTH = 8
 
 RULES_VERSIONS: dict[InputFormat, int] = {
-    # PDF, Office ve görsel 2: tek büyük harf OCR çöpü sayılmaz, düşen sayfa için uyarı.
-    InputFormat.PDF: 2,
+    # 2: tek büyük harf OCR çöpü sayılmaz, düşen sayfa için uyarı (Office dahil).
+    # PDF ve görsel 3: yeniden işlemede de OCR tur+eng (kayıtlı dile bağlı değil).
+    InputFormat.PDF: 3,
     InputFormat.OFFICE: 2,
-    InputFormat.IMAGE: 2,
+    InputFormat.IMAGE: 3,
     InputFormat.SPREADSHEET: 3,
     InputFormat.LEGACY_SPREADSHEET: 3,
     InputFormat.SQL: 2,
