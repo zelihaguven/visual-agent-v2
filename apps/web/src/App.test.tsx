@@ -1061,6 +1061,42 @@ describe("App", () => {
       expect(create).toHaveBeenCalledTimes(2);
     });
 
+    it("asks again with speech when a clarification choice is pressed in conversation", async () => {
+      stubAudio();
+      hearInTurn("birinci");
+      let asks = 0;
+      const fetchMock = stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse(PHRASES),
+        "/api/transcribe": () => jsonResponse({ text: "iç paça kaç" }),
+        "/api/ask": () => {
+          asks += 1;
+          return asks === 1
+            ? sse([
+                {
+                  type: "done",
+                  timings: {},
+                  question: "iç paça kaç",
+                  scope_inherited: false,
+                  context: null,
+                  result: { kind: "clarify", question: "Hangi model?", options: [{ doc_id: "a", label: "Model A" }] },
+                },
+              ])
+            : sse([{ type: "item_audio", index: 0, audio: btoa("ses"), mime: "audio/wav" }, answered]);
+        },
+      });
+
+      await open(fetchMock);
+      const talk = screen.getByRole("region", { name: "Konuşma modu" });
+      const choice = await within(talk).findByRole("button", { name: "Model A" });
+      await waitFor(() => expect(choice).toBeEnabled());
+      fireEvent.click(choice);
+
+      await waitFor(() => expect(askBodiesOf(fetchMock)).toHaveLength(2));
+      expect(askBodiesOf(fetchMock)[1]).toEqual({ question: "iç paça kaç", doc_ids: ["a"], speak: true });
+      await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(3));
+    });
+
     it("asks to repeat instead of sending an empty transcript", async () => {
       stubAudio();
       hearInTurn("gurultu");

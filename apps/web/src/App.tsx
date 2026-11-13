@@ -291,9 +291,10 @@ export function App() {
             lastTurn={turns.at(-1) ?? null}
             takeGreeting={takeGreeting}
             playWaiting={playWaitingPhrase}
-            onAsk={(question, signal, onAudio, onSearching) =>
-              ask(question, null, {
-                context: latestContext.current,
+            onAsk={(question, choice, signal, onAudio, onSearching) =>
+              ask(question, choice?.docIds ?? null, {
+                // Seçim yeni bir sorudur; yazılı moddaki gibi bağlam taşımaz.
+                context: choice === null ? latestContext.current : null,
                 speak: true,
                 signal,
                 onAudio,
