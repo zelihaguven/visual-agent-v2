@@ -534,15 +534,19 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - Türkçe "on" (10), "on bir", "on iki" yalnız Türkçe metinde sayıdır. Cümlede cevabın dili,
     alıntıda belgenin katalogdaki dili kullanılır; dili bilinmeyen kaynakta sayılmaz. Belge dili
     `document_language` ile belirlendiği için onun düzeltmesi (#6) buraya da yansır.
-  - Kaynaktaki "on", cümledeki "on"u yalnız ikisinin ardındaki sözcük aynıysa karşılar ("on
-    dakika" ↔ "on dakika"). Rakamla yazılmış 10'un kanıtı olamaz ("click on Save", "ON
-    konumu"). Tamamı büyük harfli "ON" hiçbir tarafta sayı değildir (anahtar konumu).
-  - "lt", "l"nin eş anlamlısı. "gr" yalnız Türkçe belgede "g" ile eş; İngilizce belgede grain
-    olabileceği için ayrı birim kalır. Kaynakta birimsiz değere eklenen birim cümleyi gizler.
-  - Ses yalnız Türkçe binlik biçimini ("1.234,50", "1.234.567") değeriyle okur. Öteki her
+  - Cümledeki "on", dayanakta aynı sözcüğün önündeki "on" ya da 10 ile karşılanır ("on dakika"
+    ↔ "on dakika" / "10 dakika"); "10 mm ... 3 dakika" ya da "10 adet ... beş" ("on beş")
+    karşılamaz. Ardında sözcük yoksa 10 aranır. Kaynaktaki "on" rakamla yazılmış 10'un kanıtı
+    olamaz ("click on Save", "ON konumu"). Tamamı büyük harfli "ON" hiçbir tarafta sayı değildir.
+  - "lt", "l"nin eş anlamlısı. Türkçe belgedeki "gr", cümledeki "g"yi karşılar; tersi yok ("g"
+    ivme olabilir). İngilizce belgede "gr" grain olabileceği için ayrı birim kalır. Kaynakta
+    birimsiz değere eklenen birim cümleyi gizler.
+  - Ses yalnız Türkçe binlik biçimini ("1.234,50") değeriyle okur (999.999 üstü rakam rakam). Öteki her
     ayraç adıyla, sonrası rakam rakam okunur: "1.500" bir nokta beş sıfır sıfır, "14.30" on
     dört nokta üç sıfır, "42,5" kırk iki virgül beş. Tek harfli birim yalnız küçük harfle
-    birimdir ("38 M" beden); "g" okunmaz (ivme de olabilir).
+    birimdir ("38 M" beden); "g" okunmaz (ivme de olabilir). Sayı ya bütün okunur ya hiç
+    dokunulmaz: "1.500-2.000" bir nokta beş sıfır sıfır tire iki nokta…, "-5" eksi beş; "x1.500"
+    yazıldığı gibi kalır.
 - **Neden:** Sesli okuma "1.500"ü 1,5 okuyordu; "on dakika" kaynakta ne yazdığına bakılmadan
   geçiyordu; kaynakta "1,234.50" varken "1,234" doğrulanıyordu (kural 1).
 - **Ölçüm** (seed 7, seed 11, FastReact; önbellekten, 0 $, ıska 0): hiçbir soru ve madde

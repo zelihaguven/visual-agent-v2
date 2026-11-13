@@ -88,6 +88,14 @@ def test_plain_sentence_about_a_command_is_read_then_points_to_the_screen() -> N
         ("Değer 1,234.50.", "Değer bir virgül iki üç dört nokta beş sıfır."),
         ("Tarih 12.05.2024.", "Tarih on iki nokta sıfır beş nokta iki sıfır iki dört."),
         ("Oran 12%.", "Oran yüzde on iki."),
+        # Sayı ya bütün okunur ya hiç dokunulmaz; parçası okunmaz.
+        (
+            "Aralık 1.500-2.000 mm.",
+            "Aralık bir nokta beş sıfır sıfır tire iki nokta sıfır sıfır sıfır milimetre.",
+        ),
+        ("Aralık 5-10 mm.", "Aralık beş tire on milimetre."),
+        ("Sıcaklık -1.500 derece.", "Sıcaklık eksi bir nokta beş sıfır sıfır derece."),
+        ("Kod x1.500 ve 2,5x3,5.", "Kod x1.500 ve 2,5x3,5."),
         ("Oran %1.500.", "Oran yüzde bir nokta beş sıfır sıfır."),
     ],
 )

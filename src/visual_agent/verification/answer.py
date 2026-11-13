@@ -25,6 +25,7 @@ from visual_agent.verification.text import (
     measures_in,
     normalize,
     numbers_in,
+    numbers_with_next_word,
     prefixed_codes_in,
     turkish_tens,
     word_numbers,
@@ -119,29 +120,29 @@ def _header_measures(item: ModelItem, sources: Sources) -> set[tuple[str, str]]:
     return found
 
 
-def _unit_problems(
-    item: ModelItem, evidence: Evidence, sources: Sources, language: str
-) -> list[str]:
+def _unit_problems(item: ModelItem, evidence: Evidence, sources: Sources) -> list[str]:
     """Cümlede sayının birimi alıntıda o sayıyla ya da sayının sütun başlığında yazılı olmalı."""
     allowed = {m for text, lang in evidence for m in measures_in(text, lang)}
     allowed |= _header_measures(item, sources)
     values = numbers_in(item.text)  # kodun içindeki rakam ("PNT-1126 S") değer değildir
     missing = sorted(
         f"{number} {unit}"
-        for number, unit in measures_in(item.text, language)
+        for number, unit in measures_in(item.text, "")  # cümlede birim yazıldığı gibi
         if number in values and (number, unit) not in allowed
     )
     return [f"cümlede kaynakta yazmayan birim: {missing}"] if missing else []
 
 
 def _stray_tens(text: str, language: str, backed: set[str], evidence: Evidence) -> set[str]:
-    """Cümledeki Türkçe "on" rakamla ya da aynı sözcüğün önündeki "on" ile karşılanır
-    ("on dakika" <-> "on dakika"); "click on", "ON konumu" kanıt olamaz."""
+    """Cümledeki Türkçe "on", dayanakta aynı sözcüğün önündeki "on" ya da 10 ile karşılanır
+    ("on dakika" <-> "10 dakika"). "click on", "ON konumu", "10 mm" kanıt olamaz; "on beş"
+    "10 adet ... beş" ile karşılanmaz. Ardında sözcük yoksa ("Süre on.") yalnız 10 aranır."""
     phrases = {phrase for part, lang in evidence for phrase in turkish_tens(part, lang)}
+    phrases |= {phrase for part, _ in evidence for phrase in numbers_with_next_word(part)}
     return {
         value
         for value, following in turkish_tens(text, language)
-        if value not in backed and not (following and (value, following) in phrases)
+        if ((value, following) not in phrases if following else value not in backed)
     }
 
 
@@ -190,7 +191,7 @@ def verify_item(item: ModelItem, sources: Sources, language: str) -> ItemCheck:
     problems += _token_problems(item, evidence, sources, language)
     problems += _tolerance_problems(item.text, " ".join(text for text, _ in evidence))
     others = len(problems)
-    problems += _unit_problems(item, evidence, sources, language)
+    problems += _unit_problems(item, evidence, sources)
     if FOREIGN_SCRIPT_RE.search(item.text):
         problems.append("cümlede başka alfabeden karakter")
     numbers = tuple(quote.source_no for quote in item.quotes)

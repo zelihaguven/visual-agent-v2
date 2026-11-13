@@ -409,6 +409,19 @@ def test_word_on_in_the_source_never_backs_the_digit_ten(source: str, text: str)
     assert not _single(source, text)
 
 
+@pytest.mark.parametrize(
+    ("source", "text", "ok"),
+    [
+        ("Bekleme 10 dakika sürer", "On dakika bekleyin.", True),
+        ("Fırın 10 mm açık; 3 dakika bekleyin", "On dakika bekleyin.", False),
+        ("Paket: 10 adet somun, beş vida", "On beş vida takın.", False),
+        ("Süre: 10", "Süre on.", True),
+    ],
+)
+def test_written_ten_needs_the_same_following_word(source: str, text: str, ok: bool) -> None:
+    assert _single(source, text) is ok
+
+
 def test_switch_state_on_is_not_a_number() -> None:
     assert _single(
         "Set the power switch to ON", "Güç anahtarını ON konumuna getirin.", source_language="en"
@@ -446,7 +459,8 @@ def test_gr_is_grams_only_in_a_turkish_document() -> None:
     [
         ("Ağırlık: 500", "Ağırlık 500 gr.", False),
         ("Hacim: 2", "Hacim 2 lt.", False),
-        ("Ağırlık 500 g", "Ağırlık 500 gr.", True),
+        # "g" ivme de olabilir: kaynaktaki "g" cümledeki "gr"yi karşılamaz, tersi karşılar.
+        ("Ağırlık 500 g", "Ağırlık 500 gr.", False),
         ("Ağırlık 500 gr", "Ağırlık 500 g.", True),
         ("Hacim 2 lt", "Hacim 2 l.", True),
     ],

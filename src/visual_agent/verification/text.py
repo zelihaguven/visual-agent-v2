@@ -5,8 +5,9 @@ import unicodedata
 
 from markdown_it import MarkdownIt
 
-# Bir sayı bütün ayraçlarıyla tek değerdir: "1,234.50" ve "12.05.2024" bölünmez.
-NUMBER = r"\d+(?:[.,]\d+)*"
+# Bir sayı bütün ayraçlarıyla tek değerdir: "1,234.50" ve "12.05.2024" bölünmez. Sahiplenici
+# (possessive) eşleşme geri çekilmez; sayının yalnız başı ayrı bir değer olarak yakalanamaz.
+NUMBER = r"\d++(?:[.,]\d++)*+"
 MINUS_SIGNS = "-−–"
 _SIGNED_NUMBER_RE = re.compile(rf"(?:(?<![\w.,])[{MINUS_SIGNS}](?=\d))?{NUMBER}")
 _AMBIGUOUS_GROUPING_RE = re.compile(r"[1-9]\d{0,2}[.,]\d{3}")
@@ -115,14 +116,8 @@ _WORD_NUMBER_RE = re.compile(
 # Türkçe "on" başka sözcüklerle karışır: "turn on", "click on", anahtar konumu "ON". Yalnız Türkçe
 # metinde, küçük harfle ya da büyük harfle başlayarak yazılınca sayıdır; tamamı büyük "ON" değildir.
 _TURKISH_TENS = {"on": 10, "on bir": 11, "on iki": 12}
-_TURKISH_TENS_RE = re.compile(
-    r"(?<!\w)("
-    + "|".join(
-        f"[{word[0]}{word[0].upper()}]{re.escape(word[1:]).replace(r'\ ', r'\s+')}"
-        for word in sorted(_TURKISH_TENS, key=len, reverse=True)
-    )
-    + r")(?!\w)(?:\s+(\w+))?"
-)
+_TURKISH_TENS_RE = re.compile(r"(?<!\w)([oO]n(?:\s+(?:bir|iki))?)(?!\w)(?:\s+(\w+))?")
+_FOLLOWED_NUMBER_RE = re.compile(rf"(?<![\w.,])({NUMBER})\s+(\w+)")
 
 
 def word_number_spans(text: str, language: str) -> list[tuple[int, int]]:
@@ -260,28 +255,42 @@ def _word_value(word: str) -> int | None:
     return None
 
 
+# Kaynaktaki "gr" Türkçe belgede cümledeki "g"yi de karşılar. Tersi yok: "g" ivme olabilir,
+# İngilizce belgede "gr" grain olabilir.
 _TURKISH_UNIT_ALIASES = {"gr": "g"}
 
 
-def _unit_form(unit: str, language: str) -> str:
-    """Eş anlamlı birimlerin ortak biçimi ("dakika" -> "min"; Türkçe metinde "gr" -> "g")."""
+def _unit_forms(unit: str, language: str) -> set[str]:
+    """Eş anlamlı birimlerin ortak biçimi ("dakika" -> "min"). Cümle için dil "" verilir: birim
+    yazıldığı gibi kalır; kaynak için belgenin dili verilir, eş anlamlısı da eklenir."""
     name = unit.casefold()
     form = UNITS.get(name, (name, ""))[0]
-    return _TURKISH_UNIT_ALIASES.get(form, form) if language == "tr" else form
+    alias = _TURKISH_UNIT_ALIASES.get(form) if language == "tr" else None
+    return {form, alias} if alias else {form}
 
 
 def measures_in(text: str, language: str) -> set[tuple[str, str]]:
     """Birimiyle yazılmış değerler: ("5", "mm"); eş anlamlı birimler tek biçime iner."""
-    found = set()
-    for number, unit in _MEASURE_RE.findall(canon_chars(text)):
-        found.add((canonical_number(number), _unit_form(unit, language)))
-    return found
+    return {
+        (canonical_number(number), form)
+        for number, unit in _MEASURE_RE.findall(canon_chars(text))
+        for form in _unit_forms(unit, language)
+    }
 
 
 def header_units(label: str, language: str) -> set[str]:
     """Sütun başlığında parantez içinde yazan birimler ("Ücret (TL)", "Boy [mm]"); parantezsiz
     tek harf ("Beden M") birim sayılmaz."""
-    return {_unit_form(unit, language) for unit in _HEADER_UNIT_RE.findall(canon_chars(label))}
+    units = _HEADER_UNIT_RE.findall(canon_chars(label))
+    return {form for unit in units for form in _unit_forms(unit, language)}
+
+
+def numbers_with_next_word(text: str) -> set[tuple[str, str]]:
+    """Rakamla yazılmış sayı ve ardındaki sözcük: ("10", "dakika")."""
+    return {
+        (canonical_number(number), fold_identifier(following))
+        for number, following in _FOLLOWED_NUMBER_RE.findall(canon_chars(text))
+    }
 
 
 def prefixed_codes_in(text: str) -> set[str]:

@@ -2,7 +2,7 @@
 
 import re
 
-from visual_agent.verification.text import NUMBER, UNITS, UPPER, identifiers_in
+from visual_agent.verification.text import MINUS_SIGNS, NUMBER, UNITS, UPPER, identifiers_in
 
 CODE_ON_SCREEN = "Komut ekranda gösteriliyor."
 
@@ -61,7 +61,9 @@ _MAX_WORDED_NUMBER = 999_999
 _TURKISH_GROUPED_RE = re.compile(r"[1-9]\d{0,2}(?:\.\d{3})+(?:,\d+)?")
 _TOKEN_RE = re.compile(
     rf"%(?P<percent>{NUMBER})"
-    rf"|(?<![\w-])(?P<number>{NUMBER})(?![\w-])"
+    # Sayı bütün okunur ya da hiç dokunulmaz: "x1.500" ve "2,5x3" yazıldığı gibi kalır.
+    rf"|(?<![\w-])(?<!\d[.,])(?P<minus>[{MINUS_SIGNS}])?(?P<number>{NUMBER})"
+    rf"(?:[-–](?P<to>{NUMBER}))?+(?![\w-])"
     rf"(?:(?P<percent_after>%)|(?P<close>\)?)\s?(?P<unit>{_UNIT})(?!\w))?"
     rf"(?P<suffix>'\w+)?"
     rf"|(?<![\w-])(?P<code>[{UPPER}][{UPPER}0-9]*(?:[-_][{UPPER}0-9]+)*)(?![\w-])"
@@ -98,7 +100,8 @@ def _digit_words(digits: str) -> str:
 def _number_words(raw: str) -> str:
     """Okunan değer yazılan değerle aynıdır; ayraç ancak anlamı belliyse yorumlanır.
 
-    Yalnız Türkçe binlik biçimi ("1.234,50", "1.234.567") değeriyle okunur. Öteki her ayraç
+    Yalnız Türkçe binlik biçimi ("1.234,50") değeriyle okunur; 999.999'u aşan tam kısım
+    ("1.234.567") rakam rakam okunur. Öteki her ayraç
     adıyla, sonrası rakam rakam okunur: "42,5" kırk iki virgül beş, "14.30" on dört nokta üç
     sıfır, "1.500" bir nokta beş sıfır sıfır. Saat, tarih ya da binlik olabilecek yazım yorumlanmaz.
     """
@@ -130,6 +133,10 @@ def _replace(match: re.Match[str]) -> str:
         return f"yüzde {_number_words(match['percent'])}"
     if match["number"] is not None:
         spoken = _number_words(match["number"])
+        if match["minus"]:
+            spoken = f"eksi {spoken}"
+        if match["to"]:
+            spoken += f" tire {_number_words(match['to'])}"
         if match["percent_after"]:
             spoken = f"yüzde {spoken}"
         elif match["unit"]:
