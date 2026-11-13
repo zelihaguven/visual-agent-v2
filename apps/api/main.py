@@ -45,6 +45,7 @@ from visual_agent.voice.client import Voice
 logger = logging.getLogger(__name__)
 
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024
+_UPLOAD_LIMIT_MESSAGE = f"Dosya {MAX_UPLOAD_BYTES // (1024 * 1024)} MB sınırını aşıyor."
 _UPLOAD_CHUNK_BYTES = 1024 * 1024
 _MAX_TITLE_CHARS = 200
 _GENERIC_ERROR = "Cevap hazırlanırken bir sorun oluştu. Lütfen yeniden deneyin."
@@ -274,7 +275,7 @@ async def _save_upload(file: UploadFile, target: Path) -> None:
         while data := await file.read(_UPLOAD_CHUNK_BYTES):
             written += len(data)
             if written > MAX_UPLOAD_BYTES:
-                raise HTTPException(status_code=413, detail="Dosya 100 MB sınırını aşıyor.")
+                raise HTTPException(status_code=413, detail=_UPLOAD_LIMIT_MESSAGE)
             stream.write(data)
 
 

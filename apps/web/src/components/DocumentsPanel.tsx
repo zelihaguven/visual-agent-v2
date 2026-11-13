@@ -8,11 +8,11 @@ import {
   type DocumentInfo,
   type DocumentReport,
 } from "../api";
+import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES, uploadLimitMessage } from "../limits";
 
 const POLL_MILLISECONDS = 3000;
 // Bekleyen belge yokken de seyrek bakılır: başka sekmeden ya da komutla yüklenen belge görünür.
 const IDLE_POLL_MILLISECONDS = 30000;
-const ACCEPTED_TYPES = ".pdf,.docx,.doc,.pptx,.ppt,.odt,.rtf,.xlsx,.xls,.jpg,.jpeg,.png,.tif,.tiff,.sql,.txt,.md";
 const STATUS_LABELS: Record<DocumentInfo["status"], string> = {
   queued: "Sırada",
   processing: "İşleniyor",
@@ -96,6 +96,10 @@ export function DocumentsPanel() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) {
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setError(uploadLimitMessage());
       return;
     }
     setError(null);

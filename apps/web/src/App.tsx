@@ -17,6 +17,7 @@ import { DocumentsPanel } from "./components/DocumentsPanel";
 import { MicButton } from "./components/MicButton";
 import { SourcePanel } from "./components/SourcePanel";
 import { TurnView, type SpeechStatus } from "./components/TurnView";
+import { MAX_QUESTION_CHARS } from "./limits";
 import { canListen } from "./listening";
 import { AudioQueue } from "./speech";
 import { applyEvent, newTurn, type Turn } from "./turn";
@@ -259,7 +260,7 @@ export function App() {
             id="question"
             ref={draftInput}
             value={draft}
-            maxLength={2000}
+            maxLength={MAX_QUESTION_CHARS}
             autoComplete="off"
             placeholder="Sorunuzu yazın"
             onChange={(event) => {

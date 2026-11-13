@@ -14,7 +14,7 @@ from typing import Any
 
 from visual_agent.catalog.repository import StoredDocument
 
-MARKDOWN_SUFFIXES = frozenset({".md", ".markdown"})
+MARKDOWN_SUFFIX = ".md"
 _HEAD_BYTES = 4096
 _MAX_NAME_CHARS = 200
 _HEADING_RE = re.compile(r"^#[ \t]+(?P<text>.+?)[ \t]*#*[ \t]*$")
@@ -65,7 +65,7 @@ class DocumentNames:
         path = Path(document.stored_path)
         head = (
             await asyncio.to_thread(_read_head, path)
-            if path.suffix.lower() in MARKDOWN_SUFFIXES
+            if path.suffix.lower() == MARKDOWN_SUFFIX
             else ""
         )
         self._names[doc_id] = _readable(document, head)
