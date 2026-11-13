@@ -7,6 +7,7 @@ from dataclasses import replace
 from visual_agent.ask.deps import AskDeps
 from visual_agent.ask.intent import common_small_talk
 from visual_agent.ask.steps import AskState
+from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.conversation.grounding import is_grounded
 from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.conversation import ConversationContext
@@ -69,22 +70,23 @@ def _from_verified(state: AskState, result: Answered) -> ConversationContext | N
     )
 
 
-def _searched_context(state: AskState) -> ConversationContext:
-    """Gizlenen turda bağlama o turun sorusu ve o turda gerçekten aranan belgeler girer.
+def _scope_context(state: AskState, catalog: DocumentCatalog) -> ConversationContext:
+    """Bağlama o turun sorusu ve kapsamı girer; her belgenin adıyla.
 
+    Ad katalogdan, katalogda yoksa (silinmiş belge) aramadan ya da önceki bağlamdan gelir.
     Tur yeni bir kodla bütün belgelerde arandıysa kapsam boştur; önceki konunun belgeleri
     taşınmaz.
     """
     previous = state.request.context
-    titles = dict(zip(previous.doc_ids, previous.titles, strict=False)) if previous else {}
-    titles |= {hit.chunk.doc_id: hit.chunk.title for hit in state.hits}
+    # İstemcinin gönderdiği bağlamda ad olmayabilir; eksik ad boş sayılır.
+    known = dict(zip(previous.doc_ids, previous.titles, strict=False)) if previous else {}
+    known |= {hit.chunk.doc_id: hit.chunk.title for hit in state.hits}
     scope = state.scope or ()
-    return ConversationContext(
-        question=state.question, doc_ids=scope, titles=tuple(titles.get(doc, "") for doc in scope)
-    )
+    titles = tuple(catalog.find_title(doc) or known.get(doc, "") for doc in scope)
+    return ConversationContext(question=state.question, doc_ids=scope, titles=titles)
 
 
-def next_context(state: AskState) -> ConversationContext | None:
+def next_context(state: AskState, catalog: DocumentCatalog) -> ConversationContext | None:
     """Cevaplanan turda kullanıcının sorusu bağlama girer; netleştirme soruyu bekletir.
 
     Belgeler yalnız doğrulanmış cümlelerin kaynaklarından gelir. Cevap gizlendiyse soru yine
@@ -95,7 +97,7 @@ def next_context(state: AskState) -> ConversationContext | None:
     if isinstance(result, Answered):
         usable = result.status in _CONTEXT_STATUSES
         verified = _from_verified(state, result) if usable else None
-        return verified or _searched_context(state)
+        return verified or _scope_context(state, catalog)
     if isinstance(result, Clarify) and state.context_resolved:
-        return ConversationContext(question=state.question, doc_ids=state.scope or ())
+        return _scope_context(state, catalog)
     return state.request.context

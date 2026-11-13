@@ -91,8 +91,10 @@ class DocumentNames:
             await self._result(event["result"], find)
             context = event.get("context")
             if context is not None:
+                # İstemcinin gönderdiği bağlam geri dönebilir; onda ad eksik olabilir.
+                titles = [*context["titles"], *[""] * len(context["doc_ids"])]
                 context["titles"] = [
                     await self.name(doc_id, title, find)
-                    for doc_id, title in zip(context["doc_ids"], context["titles"], strict=False)
+                    for doc_id, title in zip(context["doc_ids"], titles, strict=False)
                 ]
         return event

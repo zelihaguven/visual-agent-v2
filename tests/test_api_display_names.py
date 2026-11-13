@@ -137,6 +137,21 @@ def test_sources_answers_and_context_show_readable_names(tmp_path: Path) -> None
     assert done["context"]["titles"] == ["Main Menu - Setup (part 1)"]  # type: ignore[index]
 
 
+def test_client_context_without_titles_does_not_break_the_answer(tmp_path: Path) -> None:
+    """Eski sekme adsız bağlam gönderebilir; bağlam geri dönünce akış kopmamalı."""
+    _, repository = _names(tmp_path)
+    context = ConversationContext(question="soru", doc_ids=("md",))
+    outcome = AskOutcome(result=Clarify(question="Hangisi?"), timings={}, context=context)
+
+    events = _events(
+        _client(tmp_path, outcome, repository).post("/api/ask", json={"question": "soru"}).text
+    )
+
+    done = events[-1]
+    assert done["type"] == "done"
+    assert done["context"]["titles"] == ["Main Menu - Setup (part 1)"]  # type: ignore[index]
+
+
 def test_clarify_buttons_show_readable_names(tmp_path: Path) -> None:
     _, repository = _names(tmp_path)
     clarify = Clarify(

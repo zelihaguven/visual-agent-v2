@@ -26,6 +26,11 @@ class DocumentCatalog:
     def title(self, doc_id: str) -> str:
         return self._documents[doc_id].title
 
+    def find_title(self, doc_id: str) -> str | None:
+        """Silinmiş belgede None."""
+        meta = self._documents.get(doc_id)
+        return meta.title if meta is not None else None
+
     def visible_doc_ids(self, access: Sequence[str] | None) -> tuple[str, ...]:
         if access is None:
             return tuple(self._documents)

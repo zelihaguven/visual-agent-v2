@@ -335,7 +335,7 @@ def test_clarification_keeps_the_question_it_is_waiting_on() -> None:
 
     assert isinstance(outcome.result, Clarify)
     assert outcome.context == ConversationContext(
-        question="Mavi pantolon dış paça kaç?", doc_ids=("a",)
+        question="Mavi pantolon dış paça kaç?", doc_ids=("a",), titles=("PNT-4417 ölçü föyü",)
     )
 
 
