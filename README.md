@@ -146,5 +146,6 @@ Hepsi `uv run python -m` ile çalışır.
 | `evals` | Test belgesi üretimi ve ölçüm |
 | `docs/kararlar.md` | Alınan kararlar |
 | `docs/acik-notlar.md` | Sonraya bırakılan konular |
+| `docs/sesli-altin-soru-seti.md` | Sesli modu elle denemek için soru seti ve duyurular |
 
 Ayarlar `VA_` önekli ortam değişkenlerinden ya da `.env` dosyasından okunur: [`settings.py`](src/visual_agent/settings.py).
