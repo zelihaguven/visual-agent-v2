@@ -29,7 +29,7 @@ Tesseract ya da LibreOffice yoksa uygulama yine açılır: açılışta hangi be
 
 2. `baslat.bat` dosyasına çift tıklayın. Paketleri kurar, arayüz eskiyse derler, eksik araçları bildirir ve tarayıcıda <http://127.0.0.1:8080> adresini açar. Kapatmak için pencerede Ctrl+C. macOS/Linux'ta: `uv sync --frozen --no-dev --extra retrieval --extra ingest && uv run --no-sync python -m apps.local`.
 
-İlk açılış internetten modelleri indirir ve uzun sürer: arama modeli (bge-m3, ~2,3 GB) açılışta, belge işleme modelleri (Docling, RapidOCR) ilk belgede. Modeller kullanıcının önbellek klasöründe kalır, sonraki açılışlar hızlıdır. Soru sormak için önce soldan belge yükleyin; işlenip "Hazır" olunca sorulabilir.
+İlk açılış internetten modelleri indirir ve uzun sürer: arama modeli (bge-m3, ~2,3 GB) açılışta, belge işleme modelleri (Docling, RapidOCR) ilk belgede. Modeller kullanıcının önbellek klasöründe kalır (BM25 modeli `data/models/fastembed`), sonraki açılışlar hızlıdır. İlk açılış ve ilk belge işlendikten sonra `.env`'e `VA_MODELS_OFFLINE=true` yazın: uygulama modelleri yalnız yerel önbellekten yükler, internetsiz açılır; model eksikse ne eksik olduğunu söyleyip durur. Soru sormak için önce soldan belge yükleyin; işlenip "Hazır" olunca sorulabilir.
 
 Örnek belgeler (`ornek-belgeler/`: FastReact kılavuzu ve üretilmiş test belgeleri) yalnız deneme ve ölçüm içindir, üretimde kullanılmaz. Yeni bilgisayarda uygulama açıkken `uv run --no-sync python -m apps.sample_documents` ile yüklenir; yüklü olanlar atlanır, kökteki test soruları yüklenmez.
 

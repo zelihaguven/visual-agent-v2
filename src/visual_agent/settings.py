@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     database_path: str = "data/visual_agent.db"
     worker_poll_seconds: float = Field(default=5.0, gt=0)
     worker_in_process: bool = True
+    # Açıkken modeller yalnız yerel önbellekten yüklenir; internetsiz açılış (ilk kurulumdan sonra).
+    # Yalnız yerel başlatıcı (apps.local) okur; Docker'da HF_HUB_OFFLINE ortamda verilir.
+    models_offline: bool = False
     # Yerel arayüzün portu; Docker'daki nginx eşlemesiyle aynı ad (önek yok).
     web_port: int = Field(
         default=8080, gt=0, le=65535, validation_alias=AliasChoices("WEB_PORT", "web_port")
