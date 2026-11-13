@@ -380,7 +380,8 @@ describe("App", () => {
     render(<App />);
     await ask("soru");
 
-    expect(await screen.findByText('Kaynakta yazan: "L: 42,5"')).toBeInTheDocument();
+    expect(await screen.findByText("L: 42,5")).toBeInTheDocument();
+    expect(screen.getByText("Kaynaktaki metin")).toHaveClass("quote-label");
     expect(screen.queryByText(/42,5 cm/)).not.toBeInTheDocument();
     fireEvent.click(await screen.findByRole("button", { name: "Cevabı seslendir" }));
     await screen.findByRole("button", { name: "Seslendirmeyi durdur" });
@@ -1602,7 +1603,9 @@ describe("landing actions", () => {
     await ask("soru");
 
     expect(await screen.findByText("Doğrulanamadı")).toBeInTheDocument();
-    expect(screen.getByText('Kaynakta yazan: "L: 42,5"')).toHaveClass("source-quote");
+    expect(screen.getByText("L: 42,5").closest(".source-quote")).toHaveTextContent(
+      "Kaynaktaki metin L: 42,5",
+    );
     expect(screen.getByText(/doğrulanamadığı için gösterilmiyor/)).toHaveClass("hidden-note");
   });
 });
