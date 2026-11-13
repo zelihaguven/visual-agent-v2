@@ -18,6 +18,7 @@ from visual_agent.ingest.formats import (
 from visual_agent.ingest.plain_text import parse_plain_text
 from visual_agent.ingest.spreadsheet import parse_workbook
 from visual_agent.ingest.text_layer import PageKind
+from visual_agent.ingest.two_reading import page_ranges
 from visual_agent.verification.text import contains_token
 
 _MIN_CAPTURED_TEXT_RATIO = 0.5
@@ -41,6 +42,8 @@ class PageInfo:
 class OcrOutcome:
     pdf_path: Path
     ocr_pages: Mapping[int, tuple[str, ...]]
+    # OCR okuması kalite eşiğinin altında kaldığı için metni indekse girmeyen sayfalar.
+    image_only_pages: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -170,6 +173,13 @@ def _build_report(
     )
 
 
+def _image_only_warnings(outcome: OcrOutcome) -> list[str]:
+    if not outcome.image_only_pages:
+        return []
+    pages = page_ranges(outcome.image_only_pages)
+    return [f"Sayfa {pages}: metin okunamadı, yalnız görüntü olarak kaldı; aramada bulunmaz."]
+
+
 def _pdf_source(path: Path, input_format: InputFormat, tools: IngestTools, work: Path) -> Path:
     if input_format is InputFormat.OFFICE:
         return tools.office_to_pdf(path, work)
@@ -189,7 +199,8 @@ def _parse(
         return _Parsed(*parse_workbook(tools.legacy_spreadsheet_to_xlsx(path, work)))
     pdf_path = _pdf_source(path, input_format, tools, work)
     elements, pages, outcome = _elements_from_pdf(pdf_path, meta, tools, work)
-    return _Parsed(elements, tools.skipped_image_warnings(pages), pages, outcome)
+    warnings = [*_image_only_warnings(outcome), *tools.skipped_image_warnings(pages)]
+    return _Parsed(elements, warnings, pages, outcome)
 
 
 def ingest_document(path: Path, meta: DocumentMeta, tools: IngestTools, work: Path) -> IngestResult:
