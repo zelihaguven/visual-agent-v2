@@ -1,3 +1,4 @@
+import asyncio
 import json
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -90,7 +91,7 @@ def test_ask_streams_events_and_final_typed_result(tmp_path: Path) -> None:
     events = _events(response.text)
     assert events[0] == {"type": "status", "stage": "retrieve"}
     assert events[-1]["type"] == "done"
-    assert events[-1]["result"] == {"kind": "not_found", "reason": "yok", "suggested_doc_ids": []}
+    assert events[-1]["result"] == {"kind": "not_found", "reason": "yok", "suggestions": []}
 
 
 @pytest.mark.parametrize("question", ["", "   ", "x" * 2001])
@@ -209,6 +210,28 @@ def test_oversized_upload_is_rejected(tmp_path: Path, monkeypatch: pytest.Monkey
     assert not any(tmp_path.iterdir())
 
 
+class BrokenRepository(FakeRepository):
+    async def create_document(self, document: StoredDocument) -> None:
+        raise OSError("veritabanı kilitli")
+
+
+def test_failed_registration_leaves_no_orphan_folder(tmp_path: Path) -> None:
+    client = TestClient(
+        create_app(
+            Settings(_env_file=None),
+            ApiServices(repository=BrokenRepository(), ask=None, storage_directory=tmp_path),  # type: ignore[arg-type]
+        ),
+        raise_server_exceptions=False,
+    )
+
+    response = client.post(
+        "/api/documents", files={"file": ("a.pdf", b"%PDF-1.7", "application/pdf")}
+    )
+
+    assert response.status_code == 500
+    assert not any(tmp_path.iterdir())
+
+
 def test_documents_are_listed(tmp_path: Path) -> None:
     body = make_client(tmp_path).get("/api/documents").json()
 
@@ -304,3 +327,60 @@ def test_services_missing_returns_unavailable() -> None:
     client = TestClient(create_app(Settings(_env_file=None)))
 
     assert client.get("/api/documents").status_code == 503
+
+
+def test_closed_connection_stops_the_answer(tmp_path: Path) -> None:
+    """Kullanıcı yeni soru sorunca istemci isteği iptal eder; sunucu cevap üretmeyi bırakır."""
+
+    async def scenario() -> bool:
+        stopped = asyncio.Event()
+
+        async def ask(request: AskRequest) -> AskOutcome:
+            assert request.on_event is not None
+            request.on_event({"type": "status", "stage": "generate"})
+            try:
+                await asyncio.sleep(3600)  # model akışı sürüyor
+            except asyncio.CancelledError:
+                stopped.set()
+                raise
+            raise AssertionError("akış bitmemeliydi")
+
+        app = create_app(
+            Settings(_env_file=None),
+            ApiServices(repository=FakeRepository(), ask=ask, storage_directory=tmp_path),
+        )
+        body = json.dumps({"question": "soru"}).encode()
+        first_event = asyncio.Event()
+        requested = False
+
+        async def receive() -> dict[str, object]:
+            nonlocal requested
+            if not requested:
+                requested = True
+                return {"type": "http.request", "body": body, "more_body": False}
+            await first_event.wait()
+            return {"type": "http.disconnect"}
+
+        async def send(message: dict[str, object]) -> None:
+            if message["type"] == "http.response.body" and message.get("body"):
+                first_event.set()
+
+        scope = {
+            "type": "http",
+            "asgi": {"version": "3.0"},
+            "http_version": "1.1",
+            "method": "POST",
+            "scheme": "http",
+            "path": "/api/ask",
+            "raw_path": b"/api/ask",
+            "query_string": b"",
+            "root_path": "",
+            "headers": [(b"content-type", b"application/json")],
+            "client": ("test", 1),
+            "server": ("test", 80),
+        }
+        await asyncio.wait_for(app(scope, receive, send), timeout=5)  # type: ignore[arg-type]
+        await asyncio.wait_for(stopped.wait(), timeout=1)
+        return stopped.is_set()
+
+    assert asyncio.run(scenario())

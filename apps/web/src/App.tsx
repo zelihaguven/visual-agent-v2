@@ -41,6 +41,7 @@ export function App() {
   const [isTalking, setIsTalking] = useState(false);
   const [speech, setSpeech] = useState<{ turnId: string; status: SpeechStatus } | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [hasVoiceService, setHasVoiceService] = useState(true);
   const nextId = useRef(0);
   const audio = useRef<AudioQueue | null>(null);
   const draftInput = useRef<HTMLInputElement>(null);
@@ -49,6 +50,7 @@ export function App() {
   const hasGreeted = useRef(false);
   const waitingTurn = useRef(0);
   const latestContext = useRef<ConversationContext | null>(null);
+  const activeAsk = useRef<AbortController | null>(null);
   const speechToken = useRef(0);
   const turnList = useRef<HTMLDivElement>(null);
   const shownTurns = useRef(0);
@@ -57,7 +59,11 @@ export function App() {
     const controller = new AbortController();
     fetchVoicePhrases(controller.signal)
       .then((ready) => {
-        phrases.current = ready;
+        if (ready === null) {
+          setHasVoiceService(false);
+        } else {
+          phrases.current = ready;
+        }
       })
       .catch(() => undefined);
     return () => controller.abort();
@@ -100,6 +106,15 @@ export function App() {
     const id = String(nextId.current);
     const updateTurn = (change: (turn: Turn) => Turn) =>
       setTurns((current) => current.map((turn) => (turn.id === id ? change(turn) : turn)));
+    // Aynı anda tek soru: yenisi öncekini iptal eder, sunucu da onu cevaplamayı bırakır.
+    activeAsk.current?.abort();
+    const control = new AbortController();
+    activeAsk.current = control;
+    const stop = () => control.abort();
+    if (signal?.aborted) {
+      control.abort();
+    }
+    signal?.addEventListener("abort", stop);
     setTurns((current) => [...current, newTurn(id, question, docIds)]);
     setIsAsking(true);
     try {
@@ -117,21 +132,25 @@ export function App() {
             audioQueue().enqueue(event.audio, event.mime);
             onAudio?.();
           }
-          if (event.type === "done") {
+          if (event.type === "done" && activeAsk.current === control) {
             updateContext(event.context);
           }
         },
-        signal,
+        control.signal,
         dictated,
       );
     } catch {
       updateTurn((turn) =>
-        signal?.aborted
+        control.signal.aborted
           ? { ...turn, stage: null }
           : applyEvent(turn, { type: "error", message: ASK_FAILED }),
       );
     } finally {
-      setIsAsking(false);
+      signal?.removeEventListener("abort", stop);
+      if (activeAsk.current === control) {
+        activeAsk.current = null;
+        setIsAsking(false);
+      }
     }
   }
 
@@ -220,6 +239,7 @@ export function App() {
               turn={turn}
               onOpenSource={setSource}
               onAskAgain={(question, docIds) => void ask(question, docIds, { context: null })}
+              isBusy={isAsking}
               speechStatus={speech?.turnId === turn.id ? speech.status : "idle"}
               onSpeak={(items) => void speakAnswer(turn.id, items)}
             />
@@ -250,7 +270,7 @@ export function App() {
             }}
           />
           <MicButton isDisabled={isAsking} onTranscript={handleTranscript} onError={setVoiceError} />
-          {canListen() && (
+          {canListen() && hasVoiceService && (
             <button
               type="button"
               className="icon-button"
@@ -276,9 +296,10 @@ export function App() {
             lastTurn={turns.at(-1) ?? null}
             takeGreeting={takeGreeting}
             playWaiting={playWaitingPhrase}
-            onAsk={(question, signal, onAudio, onSearching) =>
-              ask(question, null, {
-                context: latestContext.current,
+            onAsk={(question, choice, signal, onAudio, onSearching) =>
+              ask(question, choice?.docIds ?? null, {
+                // Seçim yeni bir sorudur; yazılı moddaki gibi bağlam taşımaz.
+                context: choice === null ? latestContext.current : null,
                 speak: true,
                 signal,
                 onAudio,

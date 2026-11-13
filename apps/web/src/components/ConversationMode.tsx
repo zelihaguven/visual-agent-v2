@@ -24,7 +24,11 @@ const STATUS: Record<Phase, string> = {
 };
 
 const NOT_HEARD = "Anlayamadım, tekrar söyler misiniz?";
+const VOICE_FAILED = "Ses servisine ulaşılamadı. Bitir'e basıp yazarak sorabilirsiniz.";
 const NO_MICROPHONE = "Mikrofona erişilemedi. Tarayıcı iznini kontrol edin.";
+
+/** Ekrandaki netleştirme ya da "Tüm belgelerde ara" seçimi: soru o belgelerde yeniden sorulur. */
+export type Choice = { question: string; docIds: string[] | null };
 
 type Props = {
   audio: AudioQueue;
@@ -33,6 +37,7 @@ type Props = {
   playWaiting: () => void;
   onAsk: (
     question: string,
+    choice: Choice | null,
     signal: AbortSignal,
     onAudio: () => void,
     onSearching: () => void,
@@ -41,21 +46,16 @@ type Props = {
   onClose: () => void;
 };
 
-async function transcribeSafely(audio: Blob): Promise<string> {
-  try {
-    return await transcribeAudio(audio);
-  } catch {
-    return "";
-  }
-}
-
 export function ConversationMode(props: Props) {
   const { audio, lastTurn, onOpenSource, onClose } = props;
   const [phase, setPhase] = useState<Phase>("starting");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [canChoose, setCanChoose] = useState(false);
   const bars = useRef<HTMLButtonElement>(null);
   const turnControl = useRef<AbortController | null>(null);
+  const listenControl = useRef<AbortController | null>(null);
+  const pendingChoice = useRef<Choice | null>(null);
   const latest = useRef(props);
 
   useEffect(() => {
@@ -70,7 +70,11 @@ export function ConversationMode(props: Props) {
       bars.current?.style.setProperty("--level", String(Math.min(1, level * LEVEL_GAIN)));
 
     /** Cevabı verir; kullanıcı araya girdiyse onun kaydını döndürür. */
-    async function handleUtterance(mic: Microphone, recording: Blob): Promise<Blob | null> {
+    async function handleTurn(
+      mic: Microphone,
+      question: () => Promise<string>,
+      choice: Choice | null,
+    ): Promise<Blob | null> {
       setPhase("thinking");
       setNotice(null);
       const control = new AbortController();
@@ -83,7 +87,15 @@ export function ConversationMode(props: Props) {
         audio.stop();
         setPhase("listening");
       });
-      const text = await transcribeSafely(recording);
+      let text: string;
+      try {
+        text = await question();
+      } catch (error) {
+        // Boş metin "duyulmadı"dır; servis hatası ayrı gösterilir ve döngü durur.
+        turnControl.current = null;
+        monitorEnd.abort();
+        throw error;
+      }
       if (!text && !control.signal.aborted && !session.signal.aborted) {
         setNotice(NOT_HEARD);
       }
@@ -91,6 +103,7 @@ export function ConversationMode(props: Props) {
         let waitingTimer: number | undefined;
         await latest.current.onAsk(
           text,
+          choice,
           control.signal,
           () => {
             window.clearTimeout(waitingTimer);
@@ -138,13 +151,40 @@ export function ConversationMode(props: Props) {
         if (recording === null) {
           setPhase("listening");
           showLevel(0);
-          recording = await listenForUtterance(mic, showLevel, session.signal);
+          // Ekrandaki seçim dinlemeyi keser ve döngünün içinde bir tur gibi cevaplanır:
+          // araya girme ve bekleme sesi aynı kalır, mikrofon cevabı soru sanmaz.
+          const listen = new AbortController();
+          const stopListening = () => listen.abort();
+          session.signal.addEventListener("abort", stopListening);
+          listenControl.current = listen;
+          setCanChoose(true);
+          recording = await listenForUtterance(mic, showLevel, listen.signal);
+          setCanChoose(false);
+          session.signal.removeEventListener("abort", stopListening);
+          listenControl.current = null;
+          // Dinleme bir kayıtla bittiği anda seçim de yapıldıysa seçim kazanır; kayıt atılır.
+          const choice = pendingChoice.current;
+          pendingChoice.current = null;
+          if (choice !== null && !session.signal.aborted) {
+            recording = await handleTurn(mic, async () => choice.question, choice);
+            continue;
+          }
         }
-        recording = recording === null ? null : await handleUtterance(mic, recording);
+        if (recording !== null) {
+          const heard = recording;
+          recording = await handleTurn(mic, () => transcribeAudio(heard), null);
+        }
       }
     }
 
-    void converse();
+    converse().catch(() => {
+      if (!session.signal.aborted) {
+        setError(VOICE_FAILED);
+      }
+      // Dinlemiyorken mikrofon açık görünmesin.
+      microphone?.close();
+      microphone = null;
+    });
     return () => {
       session.abort();
       turnControl.current?.abort();
@@ -152,12 +192,19 @@ export function ConversationMode(props: Props) {
     };
   }, [audio]);
 
+  function choose(question: string, docIds: string[] | null) {
+    if (listenControl.current !== null) {
+      pendingChoice.current = { question, docIds };
+      listenControl.current.abort();
+    }
+  }
+
   function interrupt() {
     turnControl.current?.abort();
     audio.stop();
   }
 
-  const canInterrupt = phase === "thinking" || phase === "speaking";
+  const canInterrupt = error === null && (phase === "thinking" || phase === "speaking");
   return (
     <section className="talk" aria-label="Konuşma modu">
       <div className="talk-stage">
@@ -186,7 +233,12 @@ export function ConversationMode(props: Props) {
       </div>
       <div className="talk-turn">
         {lastTurn !== null && (
-          <TurnView turn={lastTurn} onOpenSource={onOpenSource} onAskAgain={() => undefined} />
+          <TurnView
+            turn={lastTurn}
+            onOpenSource={onOpenSource}
+            onAskAgain={choose}
+            isBusy={!canChoose}
+          />
         )}
       </div>
       <button type="button" className="ghost talk-end" onClick={onClose}>

@@ -89,6 +89,9 @@ export function applyEvent(turn: Turn, event: AskEvent): Turn {
     case "done":
       return { ...turn, result: event.result, scopeInherited: event.scope_inherited, stage: null };
     case "error":
-      return { ...turn, error: event.message, stage: null };
+      // Gelmiş cevap geri alınmaz; sonradan gelen hata yalnız uyarı olur.
+      return turn.result !== null
+        ? { ...turn, notice: event.message, stage: null }
+        : { ...turn, error: event.message, stage: null };
   }
 }

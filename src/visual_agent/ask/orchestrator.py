@@ -68,6 +68,6 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
         provider_attempts=final.provider_attempts,
         provider_seconds=final.provider_seconds,
         question=final.question,
-        context=next_context(final),
+        context=next_context(final, deps.catalog),
         scope_inherited=final.scope_inherited,
     )

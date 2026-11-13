@@ -3,7 +3,7 @@
 from tests.test_ask_pipeline import FakeClient, FakeRetriever, ask, chunk, make_deps
 from visual_agent.ask.related import with_related_headings
 from visual_agent.domain.document import ChunkKind
-from visual_agent.domain.result import Answered, Hit, NotFound
+from visual_agent.domain.result import Answered, ClarifyChoice, Hit, NotFound
 
 NOT_FOUND = {"tur": "bulunamadi", "cevap": [], "celiski_var": False}
 
@@ -27,7 +27,7 @@ def test_not_found_lists_headings_of_retrieved_parts() -> None:
         "Doğrudan cevap bulunamadı. Aramada en yakın çıkan başlıklar: "
         "Kılavuz · Dışa aktarma; Ürünler."
     )
-    assert result.suggested_doc_ids == ("a", "b")
+    assert result.suggestions == ()  # en yakın belgeler yalnız metin; düğme değil
     assert "42" not in result.reason
 
 
@@ -43,7 +43,9 @@ def test_at_most_four_headings_in_the_question_language() -> None:
 
 def test_other_results_and_reasoned_not_found_are_kept() -> None:
     hits = [_hit("a:1", "a", "Kılavuz")]
-    reasoned = NotFound(reason="PNT-1 belgelerde geçmiyor.", suggested_doc_ids=("x",))
+    reasoned = NotFound(
+        reason="PNT-1 belgelerde geçmiyor.", suggestions=(ClarifyChoice(doc_id="x", label="X"),)
+    )
 
     assert with_related_headings(reasoned, hits, "tr") == reasoned
     assert with_related_headings(NotFound(), [], "tr") == NotFound()

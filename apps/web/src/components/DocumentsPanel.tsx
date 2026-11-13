@@ -10,6 +10,8 @@ import {
 } from "../api";
 
 const POLL_MILLISECONDS = 3000;
+// Bekleyen belge yokken de seyrek bakılır: başka sekmeden ya da komutla yüklenen belge görünür.
+const IDLE_POLL_MILLISECONDS = 30000;
 const ACCEPTED_TYPES = ".pdf,.docx,.doc,.pptx,.ppt,.odt,.rtf,.xlsx,.xls,.jpg,.jpeg,.png,.tif,.tiff,.sql,.txt,.md";
 const STATUS_LABELS: Record<DocumentInfo["status"], string> = {
   queued: "Sırada",
@@ -51,14 +53,16 @@ export function DocumentsPanel() {
   const [documents, setDocuments] = useState<DocumentInfo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     try {
       setDocuments(await listDocuments(signal));
+      setListError(null);
     } catch {
       if (!signal?.aborted) {
-        setError("Belge listesi alınamadı.");
+        setListError("Belge listesi alınamadı.");
       }
     }
   }, []);
@@ -71,11 +75,21 @@ export function DocumentsPanel() {
 
   const hasPending = documents.some(isPending);
   useEffect(() => {
-    if (!hasPending) {
-      return;
-    }
-    const timer = setInterval(() => void refresh(), POLL_MILLISECONDS);
-    return () => clearInterval(timer);
+    // Bir istek bitmeden sonrakine geçilmez; bileşen kapanınca bekleyen istek iptal edilir.
+    const controller = new AbortController();
+    const delay = hasPending ? POLL_MILLISECONDS : IDLE_POLL_MILLISECONDS;
+    let timer: number | undefined;
+    const poll = async () => {
+      await refresh(controller.signal);
+      if (!controller.signal.aborted) {
+        timer = window.setTimeout(() => void poll(), delay);
+      }
+    };
+    timer = window.setTimeout(() => void poll(), delay);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
   }, [hasPending, refresh]);
 
   async function handleFile(event: ChangeEvent<HTMLInputElement>) {
@@ -128,10 +142,13 @@ export function DocumentsPanel() {
           onChange={(event) => void handleFile(event)}
         />
       </label>
-      {error !== null && (
-        <p className="notice is-bad" role="alert">
-          {error}
-        </p>
+      {[listError, error].map(
+        (message) =>
+          message !== null && (
+            <p key={message} className="notice is-bad" role="alert">
+              {message}
+            </p>
+          ),
       )}
       <ul className="document-list" aria-label="Belgeler">
         {documents.map((document) => (
@@ -171,7 +188,7 @@ export function DocumentsPanel() {
           </li>
         ))}
       </ul>
-      {documents.length === 0 && error === null && (
+      {documents.length === 0 && listError === null && (
         <p className="muted">Soru sormak için önce bir belge ekleyin.</p>
       )}
     </section>

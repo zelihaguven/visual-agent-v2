@@ -302,7 +302,7 @@ def test_code_outside_the_inherited_document_only_says_this_document() -> None:
     assert isinstance(outcome.result, NotFound)
     assert outcome.scope_inherited
     assert outcome.result.reason == ""
-    assert outcome.result.suggested_doc_ids == ("b",)
+    assert [s.doc_id for s in outcome.result.suggestions] == ["b"]
 
 
 def test_not_found_keeps_the_previous_context() -> None:
@@ -335,7 +335,7 @@ def test_clarification_keeps_the_question_it_is_waiting_on() -> None:
 
     assert isinstance(outcome.result, Clarify)
     assert outcome.context == ConversationContext(
-        question="Mavi pantolon dış paça kaç?", doc_ids=("a",)
+        question="Mavi pantolon dış paça kaç?", doc_ids=("a",), titles=("PNT-4417 ölçü föyü",)
     )
 
 

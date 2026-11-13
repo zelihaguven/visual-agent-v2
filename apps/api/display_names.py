@@ -79,9 +79,11 @@ class DocumentNames:
         for item in result.get("items", []):
             await self._citations(item.get("citations", []), find)
         await self._citations(result.get("citations", []), find)
-        if result.get("kind") == "clarify":
-            for option in result.get("options", []):
-                option["label"] = await self.name(option["doc_id"], option["label"], find)
+        for option in [*result.get("options", []), *result.get("suggestions", [])]:
+            option["label"] = await self.name(option["doc_id"], option["label"], find)
+        if result.get("kind") == "inventory":
+            for document in result.get("documents", []):
+                document["title"] = await self.name(document["doc_id"], document["title"], find)
 
     async def rename(self, event: Event, find: FindDocument) -> Event:
         """Olaydaki belge adlarını okunur adla değiştirir; diğer alanlara dokunmaz."""
@@ -91,8 +93,10 @@ class DocumentNames:
             await self._result(event["result"], find)
             context = event.get("context")
             if context is not None:
+                # İstemcinin gönderdiği bağlam geri dönebilir; onda ad eksik olabilir.
+                titles = [*context["titles"], *[""] * len(context["doc_ids"])]
                 context["titles"] = [
                     await self.name(doc_id, title, find)
-                    for doc_id, title in zip(context["doc_ids"], context["titles"], strict=False)
+                    for doc_id, title in zip(context["doc_ids"], titles, strict=False)
                 ]
         return event

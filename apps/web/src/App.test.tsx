@@ -141,6 +141,15 @@ describe("applyEvent", () => {
     expect(applyEvent(turn, { type: "reset" }).items).toEqual({});
   });
 
+  it("keeps a received answer when an error arrives after it", () => {
+    let turn = applyEvent(newTurn("1", "soru"), answered as never);
+    turn = applyEvent(turn, { type: "error", message: "Bağlantı koptu." });
+
+    expect(turn.result).not.toBeNull();
+    expect(turn.error).toBeNull();
+    expect(turn.notice).toBe("Bağlantı koptu.");
+  });
+
   it("does not mutate the previous turn", () => {
     const turn = newTurn("1", "soru");
     applyEvent(turn, { type: "item_stream", index: 0, text: "Metin" });
@@ -259,6 +268,40 @@ describe("App", () => {
     });
   });
 
+  it("locks the choices of earlier turns while another question is being answered", async () => {
+    let asks = 0;
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => {
+        asks += 1;
+        if (asks === 1) {
+          return sse([
+            {
+              type: "done",
+              timings: {},
+              question: "soru",
+              scope_inherited: false,
+              context: null,
+              result: { kind: "clarify", question: "Hangi model?", options: [{ doc_id: "a", label: "Model A" }] },
+            },
+          ]);
+        }
+        // İkinci cevap akmaya devam ediyor: akış kapanmıyor.
+        return new Response(new ReadableStream({ start() {} }), {
+          headers: { "Content-Type": "text/event-stream" },
+        });
+      },
+    });
+    render(<App />);
+    await ask("iç paça kaç");
+    const choice = await screen.findByRole("button", { name: "Model A" });
+    expect(choice).toBeEnabled();
+
+    await ask("başka soru");
+
+    await waitFor(() => expect(choice).toBeDisabled());
+  });
+
   it("scrolls each new question to the top of the conversation", async () => {
     const scrolled: Element[] = [];
     const scrollIntoView = vi.fn(function (this: Element) {
@@ -354,7 +397,7 @@ describe("App", () => {
             question: "soru",
             scope_inherited: false,
             context: null,
-            result: { kind: "not_found", reason: "", suggested_doc_ids: [] },
+            result: { kind: "not_found", reason: "", suggestions: [] },
           },
         ]),
     });
@@ -389,6 +432,41 @@ describe("App", () => {
     const list = await screen.findByRole("list", { name: "Belgeler" });
     expect(within(list).getByText("İşleniyor")).toBeInTheDocument();
     expect(within(list).getByText("Belge işlenemedi.")).toBeInTheDocument();
+  });
+
+  it("clears the list error once the list loads again and notices documents added elsewhere", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      let calls = 0;
+      stubApi({
+        "/api/documents": () => {
+          calls += 1;
+          return calls === 1
+            ? jsonResponse({ detail: "yok" }, 503)
+            : jsonResponse([{ doc_id: "a", title: "Yeni föy", filename: "a.pdf", status: "ready", error: null, report: null }]);
+        },
+      });
+      render(<App />);
+      expect(await screen.findByText("Belge listesi alınamadı.")).toBeInTheDocument();
+
+      await vi.advanceTimersByTimeAsync(30_000);
+
+      expect(await screen.findByText("Yeni föy")).toBeInTheDocument();
+      expect(screen.queryByText("Belge listesi alınamadı.")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps an action error after the list is refreshed", async () => {
+    stubDocumentActions(404);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
+
+    expect(await screen.findByText("Belge bulunamadı.")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("Belge bulunamadı.")).toBeInTheDocument());
   });
 
   const READY_DOCUMENT = {
@@ -608,7 +686,7 @@ describe("App", () => {
             question: "PNT-4417 kordon boyu kaç?",
             scope_inherited: true,
             context: CONTEXT,
-            result: { kind: "not_found", reason: "", suggested_doc_ids: [] },
+            result: { kind: "not_found", reason: "", suggestions: [] },
           },
         ]),
     });
@@ -620,6 +698,34 @@ describe("App", () => {
 
     await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
     expect(askBodies(fetchMock)[1]).toEqual({ question: "PNT-4417 kordon boyu kaç?" });
+  });
+
+  it("offers the documents that contain the asked code as choices", async () => {
+    const fetchMock = stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          {
+            type: "done",
+            timings: {},
+            question: "E050 nedir?",
+            scope_inherited: false,
+            context: null,
+            result: {
+              kind: "not_found",
+              reason: "E050 seçilen belgelerde geçmiyor.",
+              suggestions: [{ doc_id: "b", label: "Kılavuz" }],
+            },
+          },
+        ]),
+    });
+    render(<App />);
+    await ask("E050 nedir?");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Kılavuz" }));
+
+    await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
+    expect(askBodies(fetchMock)[1]).toEqual({ question: "E050 nedir?", doc_ids: ["b"] });
   });
 
   it("shows a command once when the sentence is only the command", async () => {
@@ -953,6 +1059,88 @@ describe("App", () => {
       expect((await screen.findAllByText("Merhaba!")).length).toBeGreaterThan(0);
       await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(2));
       expect(create).toHaveBeenCalledTimes(2);
+    });
+
+    it("asks again with speech when a clarification choice is pressed in conversation", async () => {
+      stubAudio();
+      hearInTurn("birinci");
+      let asks = 0;
+      const fetchMock = stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse(PHRASES),
+        "/api/transcribe": () => jsonResponse({ text: "iç paça kaç" }),
+        "/api/ask": () => {
+          asks += 1;
+          return asks === 1
+            ? sse([
+                {
+                  type: "done",
+                  timings: {},
+                  question: "iç paça kaç",
+                  scope_inherited: false,
+                  context: null,
+                  result: { kind: "clarify", question: "Hangi model?", options: [{ doc_id: "a", label: "Model A" }] },
+                },
+              ])
+            : sse([{ type: "item_audio", index: 0, audio: btoa("ses"), mime: "audio/wav" }, answered]);
+        },
+      });
+
+      await open(fetchMock);
+      const talk = screen.getByRole("region", { name: "Konuşma modu" });
+      const choice = await within(talk).findByRole("button", { name: "Model A" });
+      await waitFor(() => expect(choice).toBeEnabled());
+      fireEvent.click(choice);
+
+      await waitFor(() => expect(askBodiesOf(fetchMock)).toHaveLength(2));
+      expect(askBodiesOf(fetchMock)[1]).toEqual({ question: "iç paça kaç", doc_ids: ["a"], speak: true });
+      await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(3));
+    });
+
+    it("shows a voice service failure instead of asking to repeat", async () => {
+      stubAudio();
+      hearInTurn("birinci", "ikinci");
+      const fetchMock = stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse(PHRASES),
+        "/api/transcribe": () => jsonResponse({ detail: "Ses servisi yapılandırılmamış." }, 503),
+      });
+
+      await open(fetchMock);
+
+      expect(await screen.findByRole("alert")).toHaveTextContent("Ses servisine ulaşılamadı");
+      expect(listening.close).toHaveBeenCalled();
+      expect(screen.queryByText("Anlayamadım, tekrar söyler misiniz?")).not.toBeInTheDocument();
+      expect(listening.listen).toHaveBeenCalledTimes(1);
+      expect(askBodiesOf(fetchMock)).toHaveLength(0);
+    });
+
+    it("hides conversation mode only when the server has no voice service", async () => {
+      stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse({ detail: "Ses servisi yapılandırılmamış." }, 503),
+      });
+      render(<App />);
+
+      await waitFor(() =>
+        expect(screen.queryByRole("button", { name: "Konuşma modu" })).not.toBeInTheDocument(),
+      );
+    });
+
+    it("keeps conversation mode when the phrases cannot be loaded for a passing reason", async () => {
+      const fetchMock = stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => {
+          throw new TypeError("ağ hatası");
+        },
+      });
+      render(<App />);
+
+      await waitFor(() =>
+        expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/voice/phrases")).toBe(true),
+      );
+      await new Promise((resolve) => setTimeout(resolve));
+      expect(screen.getByRole("button", { name: "Konuşma modu" })).toBeInTheDocument();
     });
 
     it("asks to repeat instead of sending an empty transcript", async () => {

@@ -22,6 +22,9 @@ export type AnsweredItem = {
   source_quote?: string | null;
 };
 
+/** Kullanıcının tek tıkla o belgede yeniden sorabileceği belge. */
+export type DocumentChoice = { doc_id: string; label: string };
+
 export type AskResult =
   | {
       kind: "answered";
@@ -30,8 +33,8 @@ export type AskResult =
       has_conflict: boolean;
       problems: string[];
     }
-  | { kind: "clarify"; question: string; options: { doc_id: string; label: string }[] }
-  | { kind: "not_found"; reason: string; suggested_doc_ids: string[] }
+  | { kind: "clarify"; question: string; options: DocumentChoice[] }
+  | { kind: "not_found"; reason: string; suggestions: DocumentChoice[] }
   | { kind: "small_talk"; text: string }
   | {
       kind: "inventory";
@@ -227,8 +230,12 @@ export async function transcribeAudio(audio: Blob): Promise<string> {
   return ((await response.json()) as { text: string }).text;
 }
 
-export async function fetchVoicePhrases(signal: AbortSignal): Promise<VoicePhrases> {
+/** Sunucuda ses servisi yoksa (503) null; geçici hatalarda hata fırlatır. */
+export async function fetchVoicePhrases(signal: AbortSignal): Promise<VoicePhrases | null> {
   const response = await fetch("/api/voice/phrases", { signal });
+  if (response.status === 503) {
+    return null;
+  }
   if (!response.ok) {
     throw new Error(await readError(response));
   }

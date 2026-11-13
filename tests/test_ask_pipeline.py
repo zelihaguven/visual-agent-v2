@@ -10,7 +10,15 @@ from visual_agent.ask.orchestrator import AskDeps, AskRequest, answer_question
 from visual_agent.catalog.identifiers import build_identifier_index
 from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
-from visual_agent.domain.result import Answered, AskOutcome, Clarify, Failed, Hit, NotFound
+from visual_agent.domain.result import (
+    Answered,
+    AskOutcome,
+    Clarify,
+    ClarifyChoice,
+    Failed,
+    Hit,
+    NotFound,
+)
 from visual_agent.generation.openrouter import (
     AttemptRecord,
     ServiceUnavailable,
@@ -250,7 +258,7 @@ def test_code_found_only_outside_the_chosen_document_says_so() -> None:
 
     assert isinstance(outcome.result, NotFound)
     assert outcome.result.reason == "E050 seçilen belgelerde geçmiyor."
-    assert outcome.result.suggested_doc_ids == ("b",)
+    assert outcome.result.suggestions == (ClarifyChoice(doc_id="b", label="Kılavuz"),)
 
 
 def test_no_ready_document_means_not_found_without_searching() -> None:
@@ -271,7 +279,7 @@ def test_code_of_another_document_is_not_answered_from_the_chosen_one() -> None:
     outcome = ask(make_deps(client, retriever), "PNT-4417 kaç?", ("b",))
 
     assert isinstance(outcome.result, NotFound)
-    assert outcome.result.suggested_doc_ids == ("a",)
+    assert [s.doc_id for s in outcome.result.suggestions] == ["a"]
     assert retriever.calls == []
 
 
@@ -291,7 +299,7 @@ def test_code_found_elsewhere_is_suggested() -> None:
     outcome = ask(make_deps(client), "E050 nedir?", ("a",))
 
     assert isinstance(outcome.result, NotFound)
-    assert outcome.result.suggested_doc_ids == ("b",)
+    assert [s.doc_id for s in outcome.result.suggestions] == ["b"]
     assert client.calls == []
 
 
@@ -643,3 +651,13 @@ def test_number_word_in_the_source_is_read_in_the_document_language(
 
     assert isinstance(outcome.result, Answered)
     assert outcome.result.items[0].verified is verified
+
+
+def test_code_missing_from_the_named_document_says_so_beside_the_suggestion() -> None:
+    """Kapsam soruda adı geçen belgeyle daralınca kod "belgelerde geçmiyor" denmez; başka
+    belgede var ve o belge düğme olarak önerilir."""
+    outcome = ask(make_deps(FakeClient()), "SQL kılavuzu E050 nedir?")
+
+    assert isinstance(outcome.result, NotFound)
+    assert [s.doc_id for s in outcome.result.suggestions] == ["b"]
+    assert outcome.result.reason == "E050 seçilen belgelerde geçmiyor."

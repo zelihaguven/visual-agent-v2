@@ -127,10 +127,13 @@ class DocumentResponse(BaseModel):
     """Belge, biçiminin bugünkü parçalama kuralından eski bir kuralla işlendi."""
 
 
-def _document_response(document: StoredDocument) -> DocumentResponse:
+async def _document_response(document: StoredDocument, names: DocumentNames) -> DocumentResponse:
+    async def itself(_: str) -> StoredDocument:
+        return document
+
     return DocumentResponse(
         doc_id=document.doc_id,
-        title=document.title,
+        title=await names.name(document.doc_id, document.title, itself),
         filename=document.filename,
         status=document.status,
         error=document.error,
@@ -210,39 +213,49 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
         else None
     )
     clock = _AskClock(spoken.on_event if spoken is not None else queue.put_nowait)
+    if request.speak and services.voice is None:
+        queue.put_nowait({"type": "audio_unavailable"})  # cevap yalnız ekranda gelir
 
     async def run() -> None:
+        """Önce cevap gider; kayıt ve ses ondan sonra, cevabı geri alamayacak biçimde çalışır."""
         outcome: AskOutcome | None = None
         try:
-            outcome = await services.ask(
-                AskRequest(
-                    question=request.question,
-                    doc_ids=request.doc_ids,
-                    context=request.context,
-                    on_event=clock,
+            try:
+                outcome = await services.ask(
+                    AskRequest(
+                        question=request.question,
+                        doc_ids=request.doc_ids,
+                        context=request.context,
+                        on_event=clock,
+                    )
                 )
-            )
-            _record_question(request, services, outcome, clock)
-            queue.put_nowait(
-                {
-                    "type": "done",
-                    "result": _result_payload(outcome.result),
-                    "timings": outcome.timings,
-                    "question": outcome.question,
-                    "scope_inherited": outcome.scope_inherited,
-                    "context": outcome.context.model_dump(mode="json")
-                    if outcome.context is not None
-                    else None,
-                }
-            )
-            if spoken is not None:
-                spoken.announce(outcome.result)
-                await spoken.finish()
-        except Exception:
-            logger.exception("Soru cevaplanamadı")
-            if outcome is None:
-                _record_question(request, services, None, clock)
-            queue.put_nowait({"type": "error", "message": _GENERIC_ERROR})
+                queue.put_nowait(
+                    {
+                        "type": "done",
+                        "result": _result_payload(outcome.result),
+                        "timings": outcome.timings,
+                        "question": outcome.question,
+                        "scope_inherited": outcome.scope_inherited,
+                        "context": outcome.context.model_dump(mode="json")
+                        if outcome.context is not None
+                        else None,
+                    }
+                )
+            except Exception:
+                logger.exception("Soru cevaplanamadı")
+                outcome = None
+                queue.put_nowait({"type": "error", "message": _GENERIC_ERROR})
+            try:
+                _record_question(request, services, outcome, clock)
+            except Exception:
+                logger.warning("Soru kaydı kurulamadı", exc_info=True)
+            if spoken is not None and outcome is not None:
+                try:
+                    spoken.announce(outcome.result)
+                    await spoken.finish()
+                except Exception:
+                    logger.warning("Cevap seslendirilemedi", exc_info=True)
+                    queue.put_nowait({"type": "audio_unavailable"})
         finally:
             queue.put_nowait(_END_OF_STREAM)
 
@@ -281,22 +294,23 @@ async def _store_upload(file: UploadFile, title: str, services: ApiServices) -> 
     try:
         await _save_upload(file, target)
         detect_format(target)
-    except UnsupportedFormat as error:
+        document = StoredDocument(
+            doc_id=doc_id,
+            title=(title.strip() or Path(filename).stem)[:_MAX_TITLE_CHARS],
+            filename=filename,
+            status=DocumentStatus.QUEUED,
+            stored_path=str(target),
+            language=UNDETECTED_LANGUAGE,
+        )
+        await services.repository.create_document(document)
+    except BaseException as error:
+        # Kaydı olmayan klasörü silme işi (retry_deletions) hiç bulmaz; kopan bağlantı dahil
+        # her hatada burada silinir.
         shutil.rmtree(directory, ignore_errors=True)
-        reason = str(error).replace(target.name, filename)
-        raise HTTPException(status_code=415, detail=reason) from error
-    except HTTPException:
-        shutil.rmtree(directory, ignore_errors=True)
+        if isinstance(error, UnsupportedFormat):
+            reason = str(error).replace(target.name, filename)
+            raise HTTPException(status_code=415, detail=reason) from error
         raise
-    document = StoredDocument(
-        doc_id=doc_id,
-        title=(title.strip() or Path(filename).stem)[:_MAX_TITLE_CHARS],
-        filename=filename,
-        status=DocumentStatus.QUEUED,
-        stored_path=str(target),
-        language=UNDETECTED_LANGUAGE,
-    )
-    await services.repository.create_document(document)
     return document
 
 
@@ -377,13 +391,18 @@ def _library_router(app: FastAPI) -> APIRouter:
 
     @router.get("/documents", response_model=list[DocumentResponse])
     async def documents(services: ServicesDep) -> list[DocumentResponse]:
-        return [_document_response(d) for d in await services.repository.list_documents()]
+        names = services.document_names
+        return [
+            await _document_response(d, names) for d in await services.repository.list_documents()
+        ]
 
     @router.post("/documents", response_model=DocumentResponse, status_code=201)
     async def upload(
         file: UploadFile, services: ServicesDep, title: Annotated[str, Form()] = ""
     ) -> DocumentResponse:
-        return _document_response(await _store_upload(file, title, services))
+        return await _document_response(
+            await _store_upload(file, title, services), services.document_names
+        )
 
     @router.delete("/documents/{doc_id}", status_code=204)
     async def delete(doc_id: str, services: ServicesDep) -> Response:
@@ -398,7 +417,7 @@ def _library_router(app: FastAPI) -> APIRouter:
     async def reprocess(doc_id: str, services: ServicesDep) -> DocumentResponse:
         document = await services.repository.reprocess(doc_id)
         if document is not None:
-            return _document_response(document)
+            return await _document_response(document, services.document_names)
         if await services.repository.get_document(doc_id) is None:
             raise HTTPException(status_code=404, detail="Belge bulunamadı.")
         raise HTTPException(status_code=409, detail="Belge zaten sırada ya da işleniyor.")

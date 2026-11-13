@@ -20,6 +20,9 @@ from visual_agent.domain.result import (
     Citation,
     Clarify,
     ClarifyChoice,
+    Inventory,
+    InventoryDocument,
+    NotFound,
 )
 from visual_agent.settings import Settings
 
@@ -137,6 +140,21 @@ def test_sources_answers_and_context_show_readable_names(tmp_path: Path) -> None
     assert done["context"]["titles"] == ["Main Menu - Setup (part 1)"]  # type: ignore[index]
 
 
+def test_client_context_without_titles_does_not_break_the_answer(tmp_path: Path) -> None:
+    """Eski sekme adsız bağlam gönderebilir; bağlam geri dönünce akış kopmamalı."""
+    _, repository = _names(tmp_path)
+    context = ConversationContext(question="soru", doc_ids=("md",))
+    outcome = AskOutcome(result=Clarify(question="Hangisi?"), timings={}, context=context)
+
+    events = _events(
+        _client(tmp_path, outcome, repository).post("/api/ask", json={"question": "soru"}).text
+    )
+
+    done = events[-1]
+    assert done["type"] == "done"
+    assert done["context"]["titles"] == ["Main Menu - Setup (part 1)"]  # type: ignore[index]
+
+
 def test_clarify_buttons_show_readable_names(tmp_path: Path) -> None:
     _, repository = _names(tmp_path)
     clarify = Clarify(
@@ -173,3 +191,52 @@ def test_text_source_panel_shows_the_readable_name(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(_env_file=None), services))
 
     assert client.get("/api/chunks/md:0/source").json()["title"] == "Main Menu - Setup (part 1)"
+
+
+def test_document_list_shows_readable_names(tmp_path: Path) -> None:
+    _, repository = _names(tmp_path)
+
+    async def ask(request: AskRequest) -> AskOutcome:
+        raise AssertionError("soru sorulmaz")
+
+    services = ApiServices(repository=repository, ask=ask, storage_directory=tmp_path)
+    listed = TestClient(create_app(Settings(_env_file=None), services)).get("/api/documents")
+
+    titles = {document["doc_id"]: document["title"] for document in listed.json()}
+    assert titles["md"] == "Main Menu - Setup (part 1)"
+    assert titles["own"] == "Kullanıcının adı"
+
+
+def test_inventory_shows_readable_names(tmp_path: Path) -> None:
+    _, repository = _names(tmp_path)
+    inventory = Inventory(
+        documents=(InventoryDocument(doc_id="md", title="08_Setup_part1"),),
+        document_count=1,
+        code_count=0,
+    )
+
+    events = _events(
+        _client(tmp_path, AskOutcome(result=inventory, timings={}), repository)
+        .post("/api/ask", json={"question": "soru"})
+        .text
+    )
+
+    documents = events[-1]["result"]["documents"]  # type: ignore[index]
+    assert documents[0]["title"] == "Main Menu - Setup (part 1)"
+
+
+def test_suggested_documents_show_readable_names(tmp_path: Path) -> None:
+    _, repository = _names(tmp_path)
+    not_found = NotFound(
+        reason="E050 seçilen belgelerde geçmiyor.",
+        suggestions=(ClarifyChoice(doc_id="md", label="08_Setup_part1"),),
+    )
+
+    events = _events(
+        _client(tmp_path, AskOutcome(result=not_found, timings={}), repository)
+        .post("/api/ask", json={"question": "soru"})
+        .text
+    )
+
+    suggestions = events[-1]["result"]["suggestions"]  # type: ignore[index]
+    assert suggestions == [{"doc_id": "md", "label": "Main Menu - Setup (part 1)"}]

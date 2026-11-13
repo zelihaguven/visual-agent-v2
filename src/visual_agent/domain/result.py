@@ -36,6 +36,8 @@ class Answered(FrozenModel):
 
 
 class ClarifyChoice(FrozenModel):
+    """Kullanıcının tek tıkla o belgede yeniden sorabileceği belge."""
+
     doc_id: str
     label: str
 
@@ -47,7 +49,8 @@ class Clarify(FrozenModel):
 
 class NotFound(FrozenModel):
     reason: str = ""
-    suggested_doc_ids: tuple[str, ...] = ()
+    suggestions: tuple[ClarifyChoice, ...] = ()
+    """Sorulan kodu içeren, kapsam dışındaki belgeler; arayüz bunları düğme olarak gösterir."""
 
 
 class Failed(FrozenModel):

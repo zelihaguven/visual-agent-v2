@@ -1,4 +1,4 @@
-import type { AskResult, Citation, SpokenItem } from "../api";
+import type { AskResult, Citation, DocumentChoice, SpokenItem } from "../api";
 import type { Turn, TurnItem } from "../turn";
 
 const STAGE_LABELS: Record<string, string> = {
@@ -30,6 +30,8 @@ type Props = {
   onSpeak?: (items: SpokenItem[]) => void;
   onOpenSource: (citation: Citation) => void;
   onAskAgain: (question: string, docIds: string[] | null) => void;
+  /** Bir soru sürerken yeniden sorma düğmeleri kilitlenir; eski turlardakiler dahil. */
+  isBusy?: boolean;
 };
 
 const UNVERIFIED_TEXT = "Bu cümle kaynakla doğrulanamadığı için gösterilmiyor.";
@@ -239,7 +241,36 @@ function InventoryView({ result }: { result: Extract<AskResult, { kind: "invento
   );
 }
 
-function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: Props) {
+function DocumentChoices({
+  choices,
+  isBusy,
+  onChoose,
+}: {
+  choices: DocumentChoice[];
+  isBusy: boolean;
+  onChoose: (docId: string) => void;
+}) {
+  if (choices.length === 0) {
+    return null;
+  }
+  return (
+    <div className="choices">
+      {choices.map((choice) => (
+        <button
+          key={choice.doc_id}
+          type="button"
+          className="choice"
+          disabled={isBusy}
+          onClick={() => onChoose(choice.doc_id)}
+        >
+          {choice.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak, isBusy = false }: Props) {
   const { result } = turn;
   const fullQuestion = turn.resolvedQuestion ?? turn.question;
   if (result === null) {
@@ -259,18 +290,11 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: P
       return (
         <div className="clarify">
           <p>{result.question}</p>
-          <div className="choices">
-            {result.options.map((option) => (
-              <button
-                key={option.doc_id}
-                type="button"
-                className="choice"
-                onClick={() => onAskAgain(fullQuestion, [option.doc_id])}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <DocumentChoices
+            choices={result.options}
+            isBusy={isBusy}
+            onChoose={(docId) => onAskAgain(fullQuestion, [docId])}
+          />
         </div>
       );
     case "not_found":
@@ -284,9 +308,19 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: P
           ) : (
             <p className="muted">Soruyu başka sözcüklerle sorarsanız yeniden bakarım.</p>
           )}
+          <DocumentChoices
+            choices={result.suggestions}
+            isBusy={isBusy}
+            onChoose={(docId) => onAskAgain(fullQuestion, [docId])}
+          />
           {turn.scopeInherited && (
             <div className="choices">
-              <button type="button" className="choice" onClick={() => onAskAgain(fullQuestion, null)}>
+              <button
+                type="button"
+                className="choice"
+                disabled={isBusy}
+                onClick={() => onAskAgain(fullQuestion, null)}
+              >
                 Tüm belgelerde ara
               </button>
             </div>

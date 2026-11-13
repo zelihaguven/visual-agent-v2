@@ -17,6 +17,9 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Söylenen kodlar yazıya çevrilirken bozulabiliyor ("PNT-1162" yerine "NT1162"). Konuşma modunda soru otomatik gönderildiği için gerçek konuşmacıyla ölçülecek.
 - Tablet Safari'de otomatik ses çalma denenmedi.
 - Ağdaki tabletlerden mikrofon için HTTPS gerekiyor.
+- **Kural 1 riski, bir sonraki ses işinde önce ele alınacak:** Harf ya da çarpı işaretine bitişik sayı ("x1.500", "2,5x3,5") seste dönüştürülmüyor, olduğu gibi TTS'e gidiyor; TTS onu kendi yorumlayabilir ("1.500" → 1,5 ya da 1500). Sayının parçası okunmasın diye bilerek dokunulmadı (`deger-dogrulugu`).
+- Kozmetik: "-5 °C" "eksi beş °ce" okunuyor (derece işareti okunmuyor, "C" harf olarak okunuyor).
+- Kozmetik: "1.500 TL'dir" "… Türk lirasıdir" okunuyor; ek, birimin okunuşuna ünlü uyumu gözetilmeden ekleniyor.
 
 ## Cevap kalitesi
 
@@ -45,6 +48,7 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Aynı belgenin eski ve yeni sürümü birlikte yüklenebiliyor; ikisi de aramaya giriyor, aralarındaki sürüm ilişkisi bilinmiyor. Farklı değer verdiklerinde ne olduğu "Cevap kalitesi"ndeki maddede. Yüklemede aynı başlık uyarısı ya da sürüm yönetimi ayrı tasarım ister.
 - Yerel vektörleme yavaş: bu bilgisayarda parça başına ~0,9 sn (FastReact, 1847 parça, 1655 sn ≈ 27,6 dk). Daha büyük belge setlerinde ilk yükleme saatler sürebilir; ölçek için ayrıca ölçülmedi.
 - Markdown tablolarının her satırı ayrı parça olunca FastReact 1847 parçadan 3648 parçaya çıktı (967'si tablo satırı). Parça sayısı iki katına çıktığı için ilk yükleme ve yeniden işleme süresinin de yaklaşık iki katına çıkması bekleniyor (çıkarım): ölçüm indeksi 1655 sn'den 3468 sn'ye çıktı, ama bir kısmında uygulama da aynı anda vektörlüyordu, temiz süre ölçülmedi. Arama kalitesine etkisi tek koşuda olumlu görüldü: beklenen dosya 1. sırada 9/17 → 14/17 (aynı belgenin `_partN` bölümleri tek belge sayılınca 11/17 → 14/17). Gerçek belgelerdeki tablolarda parça sayısı ve süre ayrıca izlenecek.
+- Yüklemede `create_document` veritabanına yazıp sonra hata verirse (ör. zaman aşımı) kayıt kalıyor, dosya klasörü siliniyor; işçi dosyayı bulamaz ve belge "işlenemedi" olur. `arayuz-akis` #13'ün tersi, düşük olasılık.
 - Hazır bir belge yeniden işlenirken, işlem bitene kadar aramada görünmüyor; eski hali de kullanılamıyor. Pilot için kabul edildi. Eski sürümü işlem bitene kadar aramada tutmak ayrı bir tasarım ister (iki sürümün parçaları ve vektörleri bir süre birlikte durur).
 
 ## Yayına almadan önce
