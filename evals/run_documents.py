@@ -92,10 +92,11 @@ def question_row(
     seconds: float,
     counts: CacheCounts,
     usage: Usage,
+    offline: bool = False,
 ) -> dict[str, Any]:
     """Ham sonuç: cevap, getirilen parçalar, gösterilen kaynaklar, süre, token ve maliyet."""
     result = outcome.result
-    label = cache_label(counts)
+    label = cache_label(counts, offline)
     return {
         "id": question["id"],
         "question": question["question"],

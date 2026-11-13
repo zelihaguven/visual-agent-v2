@@ -1,7 +1,9 @@
 import argparse
 import asyncio
 import gzip
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import httpx
 import pytest
@@ -11,10 +13,12 @@ from evals.gold import GoldQuestion, GoldSet, Outcome, QuestionKind
 from evals.run_questions import (
     DEFAULT_CACHE_DIR,
     NO_CACHE_NOTE,
+    _full_run,
     cache_label,
     check_cache_arguments,
     select_questions,
 )
+from tests.test_ask_pipeline import FakeClient, make_deps
 
 URL = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -147,6 +151,12 @@ def test_question_is_live_only_without_any_cached_request() -> None:
     assert cache_label(CacheCounts(hits=1, misses=1)) == "partial"
 
 
+def test_offline_miss_is_never_counted_as_live() -> None:
+    assert cache_label(CacheCounts(hits=0, misses=2), offline=True) == "miss"
+    assert cache_label(CacheCounts(hits=3, misses=1), offline=True) == "miss"
+    assert cache_label(CacheCounts(hits=3, misses=0), offline=True) == "cached"
+
+
 def _gold_with_conversation() -> GoldSet:
     def question(question_id: str, conversation: str | None, turn: int | None) -> GoldQuestion:
         return GoldQuestion(
@@ -194,6 +204,7 @@ def _arguments(**overrides: object) -> argparse.Namespace:
         "refresh_cache": False,
         "no_cache": False,
         "cache_dir": None,
+        "offline": False,
     }
     return argparse.Namespace(**{**values, **overrides})
 
@@ -284,3 +295,53 @@ def test_usage_difference_is_taken_per_question() -> None:
     usage.add(Usage(1, 40, 4, 0.0005))
 
     assert usage.since(before) == Usage(1, 40, 4, 0.0005)
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [{"repeat": 3}, {"refresh_cache": True}, {"no_cache": True}],
+)
+def test_offline_run_reads_the_cache_only(overrides: dict[str, object]) -> None:
+    assert check_cache_arguments(_arguments(offline=True, **overrides)) is not None
+
+
+def test_offline_run_uses_the_default_cache() -> None:
+    arguments = _arguments(offline=True)
+
+    assert check_cache_arguments(arguments) is None
+    assert arguments.cache_dir == DEFAULT_CACHE_DIR
+
+
+def test_offline_misses_are_kept_out_of_the_score(tmp_path: Path) -> None:
+    """Iskalanan istek netleştirmeye düşebilir; o soru geçen sayısına girmemeli."""
+    counts = CacheCounts()
+
+    @dataclass
+    class MissingClient(FakeClient):
+        async def stream(self, messages: Any, callbacks: Any = None) -> Any:
+            counts.misses += 1
+            return await super().stream(messages, callbacks)
+
+    clarify = {
+        "tur": "netlestirme",
+        "cevap": [],
+        "celiski_var": False,
+        "netlestirme": {"soru": "Hangisi?", "secenekler": [{"kaynak_no": 1}]},
+    }
+    question = GoldQuestion(
+        question_id="netlestir",
+        text="iç paça kaç?",
+        kind=QuestionKind.CLARIFY,
+        domain="dikim",
+        outcome=Outcome.CLARIFY,
+    )
+    gold = GoldSet(seed=7, documents=(), questions=(question,), document_texts={})
+    deps = make_deps(MissingClient(clarify))
+
+    summary = asyncio.run(
+        _full_run([question], gold, deps, tmp_path / "answers.json", counts, offline=True)
+    )
+
+    assert summary["questions_missed_offline"] == ["netlestir"]
+    assert summary["total"] == 0
+    assert summary["passed"] == 0

@@ -128,8 +128,13 @@ def to_record(question_id: str, result: AskResult) -> AnswerRecord:
     )
 
 
-def cache_label(delta: CacheCounts) -> str:
-    """Önbellekten gelen istek varsa sorunun süresi ve maliyeti gerçek değildir."""
+def cache_label(delta: CacheCounts, offline: bool = False) -> str:
+    """Önbellekten gelen istek varsa sorunun süresi ve maliyeti gerçek değildir.
+
+    Çevrimdışı koşuda ıska ağa gitmez: soru "miss" olur, canlı sayılmaz; sonucu güvenilmezdir.
+    """
+    if offline and delta.misses:
+        return "miss"
     if delta.hits and delta.misses:
         return "partial"
     return "cached" if delta.hits else "live"
@@ -162,19 +167,31 @@ async def _full_run(
     deps: AskDeps,
     output: Path,
     counts: CacheCounts,
+    offline: bool = False,
 ) -> dict[str, object]:
     records: list[AnswerRecord] = []
     rows: list[dict[str, object]] = []
     contexts: dict[str, ConversationContext | None] = {}
     cost = 0.0
     labels: dict[str, int] = {"live": 0, "cached": 0, "partial": 0}
+    # Iskalanan soru güvenilmez: puana girmez. Sohbette ondan sonraki turlar da onun
+    # bağlamıyla sorulduğu için onlar da ıska sayılır.
+    missed: list[str] = []
+    missed_conversations: set[str] = set()
     for question in questions:
         conversation = question.conversation_id
         context = contexts.get(conversation) if conversation is not None else None
         before = counts.snapshot()
         outcome = await answer_question(AskRequest(question.text, context=context), deps)
-        label = cache_label(counts.since(before))
-        labels[label] += 1
+        label = cache_label(counts.since(before), offline)
+        if offline and conversation in missed_conversations:
+            label = "miss"
+        if label == "miss":
+            missed.append(question.question_id)
+            if conversation is not None:
+                missed_conversations.add(conversation)
+        else:
+            labels[label] += 1
         live = label == "live"
         if conversation is not None:
             contexts[conversation] = outcome.context
@@ -196,10 +213,11 @@ async def _full_run(
                 "provider": outcome.provider,
             }
         )
-    scores = [
-        score_question(q, r, gold.document_texts) for q, r in zip(questions, records, strict=True)
+    scored = [
+        (q, r) for q, r in zip(questions, records, strict=True) if q.question_id not in missed
     ]
-    summary = summarize(questions, scores).model_dump(mode="json")
+    scores = [score_question(q, r, gold.document_texts) for q, r in scored]
+    summary = summarize([q for q, _ in scored], scores).model_dump(mode="json")
     output.write_text(json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")
     return {
         **summary,
@@ -207,6 +225,7 @@ async def _full_run(
         "questions_live": labels["live"],
         "questions_from_cache": labels["cached"],
         "questions_partly_from_cache": labels["partial"],
+        "questions_missed_offline": missed,
     }
 
 
@@ -257,7 +276,10 @@ async def _measure(
     transport: httpx.AsyncBaseTransport = httpx.AsyncHTTPTransport()
     if not arguments.no_cache:
         transport = CachingTransport(
-            transport, arguments.cache_dir, refresh=arguments.refresh_cache
+            transport,
+            arguments.cache_dir,
+            refresh=arguments.refresh_cache,
+            offline=arguments.offline,
         )
         counts = transport.counts
     async with httpx.AsyncClient(transport=transport) as http:
@@ -265,7 +287,8 @@ async def _measure(
         deps = ask_deps(catalog, identifiers, retriever, clients)
         questions = select_questions(gold, arguments.questions)
         if arguments.repeat == 1:
-            return await _full_run(questions, gold, deps, arguments.work / "answers.json", counts)
+            output = arguments.work / "answers.json"
+            return await _full_run(questions, gold, deps, output, counts, arguments.offline)
         return await _repeated(arguments, questions, gold, deps, counts)
 
 
@@ -305,6 +328,10 @@ def check_cache_arguments(arguments: argparse.Namespace) -> str | None:
     """
     if arguments.repeat < 1:
         return "--repeat en az 1 olmalı"
+    if arguments.offline and (
+        arguments.repeat != 1 or arguments.refresh_cache or arguments.no_cache
+    ):
+        return "--offline yalnız önbellekten okur; --repeat, --refresh-cache, --no-cache olmaz"
     if arguments.repeat == 1:
         if arguments.cache_dir is None:
             arguments.cache_dir = DEFAULT_CACHE_DIR
@@ -339,6 +366,11 @@ def main() -> None:
     )
     parser.add_argument(
         "--repeat", type=int, default=1, help="aynı soruları kaç kez sor (önbelleksiz)"
+    )
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help='model isteği ağa gitmez; önbellekte olmayan soru "miss" olarak listelenir',
     )
     arguments = parser.parse_args()
     problem = check_cache_arguments(arguments)
