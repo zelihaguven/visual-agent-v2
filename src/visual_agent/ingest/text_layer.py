@@ -64,7 +64,8 @@ def _is_junk_upper(core: str) -> bool:
 
 def _is_junk_alpha(core: str) -> bool:
     if len(core) == 1:
-        return core not in "aAIoOeEyY"
+        # Tek büyük harf tablolarda etiket ya da sütun adıdır (beden S/M/L, seçenek A/B).
+        return core.islower() and core not in "aoey"
     if _ROMAN_RE.match(core):
         return False
     if _REPEATED_LETTER_RE.search(core.casefold()):

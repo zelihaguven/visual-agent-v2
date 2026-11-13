@@ -3,6 +3,7 @@ import pytest
 from visual_agent.ingest.pdf_tables import TableCell, group_table_rows
 from visual_agent.ingest.text_layer import PageKind, classify_page, junk_score, quality_score
 from visual_agent.ingest.two_reading import (
+    OCR_MIN_SCORE,
     LayerChoice,
     choose_layer,
     page_ranges,
@@ -43,9 +44,20 @@ def test_junk_score_detects_ocr_noise(junk: str) -> None:
     assert junk_score(junk) == 0.0
 
 
-@pytest.mark.parametrize("word", ["III", "lbs", "NSN", "12,5", "E050"])
+@pytest.mark.parametrize("word", ["III", "lbs", "NSN", "12,5", "E050", "S", "M", "L", "B"])
 def test_junk_score_accepts_real_tokens(word: str) -> None:
     assert junk_score(word) == 1.0
+
+
+def test_size_letters_do_not_drop_a_label_table_page() -> None:
+    page = "GML-6473 ölçü föyü Etiket kodları Beden Etiket kodu S ETK-3391 M ETK-3392 L ETK-3393"
+
+    assert junk_score(page) >= OCR_MIN_SCORE
+
+
+@pytest.mark.parametrize("letter", ["x", "q", "ğ"])
+def test_lone_lowercase_letters_still_count_as_noise(letter: str) -> None:
+    assert junk_score(letter) == 0.0
 
 
 @pytest.mark.parametrize(
