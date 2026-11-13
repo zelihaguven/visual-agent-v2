@@ -48,9 +48,9 @@ _MAGIC_LENGTH = 8
 
 RULES_VERSIONS: dict[InputFormat, int] = {
     # 2: tek büyük harf OCR çöpü sayılmaz, düşen sayfa için uyarı (Office dahil).
-    # PDF ve görsel 3: yeniden işlemede de OCR tur+eng (kayıtlı dile bağlı değil).
+    # 3 (PDF, görsel, Office): yeniden işlemede de OCR tur+eng (kayıtlı dile bağlı değil).
     InputFormat.PDF: 3,
-    InputFormat.OFFICE: 2,
+    InputFormat.OFFICE: 3,
     InputFormat.IMAGE: 3,
     InputFormat.SPREADSHEET: 3,
     InputFormat.LEGACY_SPREADSHEET: 3,
