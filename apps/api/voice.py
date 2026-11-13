@@ -160,7 +160,7 @@ def _answered_notice_key(result: Answered) -> str | None:
     if result.status is VerificationStatus.PARTIAL:
         if INCOMPLETE_MESSAGE in result.problems:
             return "incomplete"
-        if any(item.from_figure for item in result.items):
+        if any(item.from_ocr for item in result.items):
             return "from_ocr"
     hidden = [item for item in result.items if not item.verified]
     if hidden and all(item.source_quote for item in hidden):

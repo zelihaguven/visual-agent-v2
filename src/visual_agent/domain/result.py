@@ -21,7 +21,7 @@ class AnsweredItem(FrozenModel):
     text: str
     citations: tuple[Citation, ...]
     verified: bool
-    from_figure: bool = False
+    from_ocr: bool = False
     code: str | None = None
     problems: tuple[str, ...] = ()
     source_quote: str | None = None

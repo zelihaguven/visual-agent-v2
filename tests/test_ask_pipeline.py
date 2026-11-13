@@ -532,7 +532,7 @@ def test_answer_from_an_ocr_chunk_is_partial() -> None:
     assert isinstance(outcome.result, Answered)
     assert outcome.result.status.value == "partial"
     assert outcome.result.items[0].verified
-    assert outcome.result.items[0].from_figure
+    assert outcome.result.items[0].from_ocr
 
 
 def test_quoting_a_whole_command_shows_it_from_the_source() -> None:

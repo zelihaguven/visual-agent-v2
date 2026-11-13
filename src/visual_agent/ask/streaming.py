@@ -225,7 +225,7 @@ class StreamAssembler:
                         "index": index,
                         "text": item.text,
                         "source_numbers": list(check.source_numbers),
-                        "from_figure": check.from_figure,
+                        "from_ocr": check.from_ocr,
                         "has_code": code_source_number(item, self._sources) is not None,
                     }
                 )

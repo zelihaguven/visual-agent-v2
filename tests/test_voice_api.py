@@ -59,14 +59,14 @@ def verified(index: int, text: str, has_code: bool = False) -> dict[str, object]
         "index": index,
         "text": text,
         "source_numbers": [1],
-        "from_figure": False,
+        "from_ocr": False,
         "has_code": has_code,
     }
 
 
 UNVERIFIED = {"type": "item_unverified", "index": 1, "message": "yok", "source_numbers": []}
 ANSWERED = Answered(status=VerificationStatus.VERIFIED, items=())
-OCR_ITEM = AnsweredItem(text="Limit 386.", citations=(), verified=True, from_figure=True)
+OCR_ITEM = AnsweredItem(text="Limit 386.", citations=(), verified=True, from_ocr=True)
 
 
 def make_client(

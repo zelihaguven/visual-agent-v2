@@ -197,7 +197,7 @@ def verify_item(item: ModelItem, sources: Sources, language: str) -> ItemCheck:
     numbers = tuple(quote.source_no for quote in item.quotes)
     return ItemCheck(
         ok=not problems and bool(item.text.strip()),
-        from_figure=_rests_on_ocr(item, sources),
+        from_ocr=_rests_on_ocr(item, sources),
         problems=tuple(problems),
         source_numbers=numbers
         + ((item.code_source_no,) if item.code_source_no is not None else ()),
@@ -254,7 +254,7 @@ def _verify_clarification(answer: ModelAnswer, sources: Sources) -> AnswerVerifi
 def _final_status(checks: tuple[ItemCheck, ...], repeated: bool) -> VerificationStatus:
     if not checks or repeated or not all(check.ok for check in checks):
         return VerificationStatus.FAILED
-    if any(check.from_figure for check in checks):
+    if any(check.from_ocr for check in checks):
         return VerificationStatus.PARTIAL
     return VerificationStatus.VERIFIED
 

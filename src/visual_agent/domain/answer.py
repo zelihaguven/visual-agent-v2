@@ -82,7 +82,7 @@ class PromptSource(_Frozen):
 
 class ItemCheck(_Frozen):
     ok: bool
-    from_figure: bool
+    from_ocr: bool
     problems: tuple[str, ...]
     source_numbers: tuple[int, ...]
     quote: str | None = None

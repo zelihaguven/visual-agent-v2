@@ -301,7 +301,7 @@ def _answered_item(
         text=item.text,
         citations=tuple(_citation(hits[number - 1]) for number in dict.fromkeys(numbers)),
         verified=check.ok,
-        from_figure=check.from_figure,
+        from_ocr=check.from_ocr,
         code=code_hit.chunk.text if check.ok and code_hit is not None else None,
         problems=check.problems,
         source_quote=check.quote,

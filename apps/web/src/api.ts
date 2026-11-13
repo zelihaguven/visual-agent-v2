@@ -16,7 +16,7 @@ export type AnsweredItem = {
   text: string;
   citations: Citation[];
   verified: boolean;
-  from_figure: boolean;
+  from_ocr: boolean;
   code: string | null;
   problems: string[];
   source_quote?: string | null;
@@ -61,7 +61,7 @@ export type AskEvent =
       index: number;
       text: string;
       source_numbers: number[];
-      from_figure: boolean;
+      from_ocr: boolean;
       has_code: boolean;
     }
   | { type: "item_audio"; index: number; audio: string; mime: string }

@@ -243,7 +243,7 @@ def test_item_from_ocr_text_is_marked_and_makes_answer_partial() -> None:
     candidate = item("Bağlantı limiti 386.", quote="Bağlantı limiti: 386")
 
     assert verify_item(candidate, sources, "tr").ok
-    assert verify_item(candidate, sources, "tr").from_figure
+    assert verify_item(candidate, sources, "tr").from_ocr
     assert verify_answer(answer(candidate), sources, "tr").status is VerificationStatus.PARTIAL
 
 
@@ -265,7 +265,7 @@ def test_command_read_by_ocr_is_marked() -> None:
     sources = {1: PromptSource(number=1, text="DROP TABLE T;", is_code=True, from_ocr=True)}
     command = ModelItem(text="Tabloyu siler.", code_source_no=1)
 
-    assert verify_item(command, sources, "tr").from_figure
+    assert verify_item(command, sources, "tr").from_ocr
 
 
 def test_code_written_without_its_hyphen_matches_the_source() -> None:
