@@ -318,6 +318,7 @@ def test_existing_records_are_reduced_to_diagnosis_kinds(tmp_path: Path) -> None
     async def run() -> list[QuestionRecord]:
         await log.migrate()
         await log.add(old)
+        _set_user_version(database, 0)  # göçten önceki sürümün dosyası
         await log.migrate()
         await log.migrate()
         return await log.last(1)
@@ -328,6 +329,55 @@ def test_existing_records_are_reduced_to_diagnosis_kinds(tmp_path: Path) -> None
         "cümlede kaynakta olmayan teknik ad",
         "alıntı [n] kaynakta birebir değil",
     )
+
+
+def test_problem_reduction_runs_once_per_file(tmp_path: Path) -> None:
+    database = tmp_path / "va.db"
+    log = open_log(database)
+    later = _record(problems=("alıntı [2] kaynakta birebir değil",))
+
+    async def run() -> list[QuestionRecord]:
+        await log.migrate()
+        await log.add(later)
+        await log.migrate()
+        return await log.last(1)
+
+    assert asyncio.run(run())[0].problems == later.problems  # tablo yeniden taranmadı
+
+
+def test_command_does_not_migrate_the_log(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    database = tmp_path / "va.db"
+    log = open_log(database)
+    full = ("alıntı [2] kaynakta birebir değil",)
+
+    async def seed() -> None:
+        await log.migrate()
+        await log.add(_record(problems=full))
+
+    asyncio.run(seed())
+    _set_user_version(database, 0)  # göç bekleyen dosya
+    monkeypatch.setattr(sys, "argv", ["question_log", "--database", str(database)])
+
+    question_log.main()
+
+    assert asyncio.run(log.last(1))[0].problems == full
+    assert _user_version(database) == 0
+
+
+def _user_version(database: Path) -> int:
+    import sqlite3
+
+    with sqlite3.connect(database) as connection:
+        return int(connection.execute("PRAGMA user_version").fetchone()[0])
+
+
+def _set_user_version(database: Path, version: int) -> None:
+    import sqlite3
+
+    with sqlite3.connect(database) as connection:
+        connection.execute(f"PRAGMA user_version = {version}")
 
 
 def test_provider_attempts_and_wait_are_recorded() -> None:

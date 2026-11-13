@@ -212,8 +212,15 @@ def _add_missing_columns(connection: sqlite3.Connection) -> None:
             connection.execute(f"ALTER TABLE question_log ADD COLUMN {name} {definition}")
 
 
+# Veritabanı dosyası belge kataloğuyla ortaktır; `user_version` yalnız soru kaydının tek
+# seferlik göçlerini sayar (katalog kullanmaz).
+_LOG_VERSION = 1
+
+
 def _reduce_stored_problems(connection: sqlite3.Connection) -> int:
-    """Eski kayıtlardaki tam tanı metinleri türlerine indirilir; yeniden çalışması zararsızdır."""
+    """Eski kayıtlardaki tam tanı metinleri türlerine indirilir; dosya başına bir kez çalışır."""
+    if connection.execute("PRAGMA user_version").fetchone()[0] >= _LOG_VERSION:
+        return 0
     changed = 0
     for row_id, stored in connection.execute("SELECT id, problems FROM question_log").fetchall():
         reduced = json.dumps(list(problem_kinds(json.loads(stored))), ensure_ascii=False)
@@ -222,6 +229,7 @@ def _reduce_stored_problems(connection: sqlite3.Connection) -> int:
                 "UPDATE question_log SET problems = ? WHERE id = ?", (reduced, row_id)
             )
             changed += 1
+    connection.execute(f"PRAGMA user_version = {_LOG_VERSION}")
     return changed
 
 
@@ -318,9 +326,13 @@ def open_log(path: Path) -> QuestionLog:
 
 
 async def _read(path: Path, count: int) -> list[QuestionRecord]:
-    log = open_log(path)
-    await log.migrate()
-    return await log.last(count)
+    """Yalnız okur: açık uygulamanın tablosunu değiştirmez (göç uygulama açılırken yapılır)."""
+    if not path.exists():
+        return []
+    try:
+        return await open_log(path).last(count)
+    except sqlite3.OperationalError as error:
+        raise SystemExit(f"Soru kaydı okunamadı ({error}); uygulamayı bir kez açın.") from error
 
 
 def main() -> None:
