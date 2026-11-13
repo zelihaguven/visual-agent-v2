@@ -13,11 +13,12 @@ import {
 import "./App.css";
 import { ContextBar } from "./components/ContextBar";
 import { ConversationMode } from "./components/ConversationMode";
-import { DocumentsPanel } from "./components/DocumentsPanel";
+import { DocumentsPanel, type DocumentSummary } from "./components/DocumentsPanel";
 import { Drawer } from "./components/Drawer";
 import { MicButton } from "./components/MicButton";
 import { SourcePanel } from "./components/SourcePanel";
 import { TurnView, type SpeechStatus } from "./components/TurnView";
+import { LandingActions } from "./components/LandingActions";
 import { MAX_QUESTION_CHARS } from "./limits";
 import { canListen } from "./listening";
 import { AudioQueue } from "./speech";
@@ -46,8 +47,17 @@ export function App() {
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [hasVoiceService, setHasVoiceService] = useState(true);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-  const [documentCount, setDocumentCount] = useState<number | null>(null);
+  const [summary, setSummary] = useState<DocumentSummary | null>(null);
   const closeLibrary = useCallback(() => setIsLibraryOpen(false), []);
+  // Yoklama her turda yeni nesne getirir; sayılar değişmedikçe yeniden çizilmez.
+  const updateSummary = useCallback(
+    (next: DocumentSummary) =>
+      setSummary((current) =>
+        current !== null && JSON.stringify(current) === JSON.stringify(next) ? current : next,
+      ),
+    [],
+  );
+  const uploadInput = useRef<HTMLInputElement>(null);
   const nextId = useRef(0);
   const audio = useRef<AudioQueue | null>(null);
   const draftInput = useRef<HTMLInputElement>(null);
@@ -250,11 +260,11 @@ export function App() {
         <button
           type="button"
           className="library-button"
-          aria-label={documentCount === null ? "Belgeler" : `Belgeler (${documentCount})`}
+          aria-label={summary === null ? "Belgeler" : `Belgeler (${summary.total})`}
           aria-expanded={isLibraryOpen}
           onClick={() => setIsLibraryOpen(true)}
         >
-          Belgeler{documentCount !== null && <span className="count">{documentCount}</span>}
+          Belgeler{summary !== null && <span className="count">{summary.total}</span>}
         </button>
       </header>
       <main className="conversation">
@@ -332,6 +342,20 @@ export function App() {
               </button>
             )}
           </form>
+          {isLanding && (
+            <LandingActions
+              canTalk={canListen() && hasVoiceService}
+              summary={summary}
+              onWrite={() => draftInput.current?.focus()}
+              onTalk={openConversation}
+              onAddDocument={() => {
+                // Aynı tıklama içinde: tarayıcı dosya seçiciyi ancak kullanıcı hareketiyle açar.
+                setIsLibraryOpen(true);
+                uploadInput.current?.click();
+              }}
+              onOpenDocuments={() => setIsLibraryOpen(true)}
+            />
+          )}
         </div>
         {isTalking && (
           <ConversationMode
@@ -355,7 +379,7 @@ export function App() {
         )}
       </main>
       <Drawer isOpen={isLibraryOpen} side="left" label="Belgeler" onClose={closeLibrary}>
-        <DocumentsPanel onClose={closeLibrary} onCountChange={setDocumentCount} />
+        <DocumentsPanel onClose={closeLibrary} onSummary={updateSummary} uploadInput={uploadInput} />
       </Drawer>
       <Drawer isOpen={source !== null} side="right" label="Kaynak" onClose={() => setSource(null)}>
         {source !== null && <SourcePanel citation={source} onClose={() => setSource(null)} />}
