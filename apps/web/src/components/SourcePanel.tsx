@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { fetchSource, type Citation, type SourceView } from "../api";
+import { citationLocation } from "./TurnView";
 
 type LoadState =
   | { kind: "loading"; chunkId: string }
@@ -75,10 +76,14 @@ export function SourcePanel({
   }, [chunkId]);
 
   const current = state.chunkId === chunkId ? state : ({ kind: "loading", chunkId } as const);
+  const where = citationLocation(citation);
   return (
-    <aside className="source-panel" aria-label="Kaynak">
-      <header className="source-header">
-        <h2>{citation.title}</h2>
+    <div className="source-panel">
+      <header className="drawer-header">
+        <div>
+          <h2>{citation.title}</h2>
+          {where && <p className="muted source-location">{where}</p>}
+        </div>
         <button type="button" className="ghost" onClick={onClose}>
           Kapat
         </button>
@@ -90,6 +95,6 @@ export function SourcePanel({
         </p>
       )}
       {current.kind === "ready" && <SourceContent source={current.source} />}
-    </aside>
+    </div>
   );
 }

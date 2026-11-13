@@ -54,22 +54,35 @@ function hiddenText(quote: string | null | undefined, hasSources: boolean): stri
 
 const SECTION_SEPARATOR = " · ";
 
-/** Bölüm yolu belgenin adıyla başlıyorsa ad bir kez yazılır. */
-function sectionLabel(title: string, section: string): string {
-  const parts = section.split(SECTION_SEPARATOR);
-  const rest = parts[0] === title ? parts.slice(1) : parts;
-  return [title, ...rest].join(SECTION_SEPARATOR);
+/** Kaynağın belgedeki yeri; bölüm yolu belgenin adıyla başlıyorsa ad tekrarlanmaz. */
+export function citationLocation(citation: Citation): string {
+  const { title, location } = citation;
+  if (location.sheet !== null) {
+    return `${location.sheet} · satır ${location.row ?? "?"}`;
+  }
+  if (location.page !== null) {
+    return `Sayfa ${location.page}`;
+  }
+  const parts = location.section ? location.section.split(SECTION_SEPARATOR) : [];
+  return (parts[0] === title ? parts.slice(1) : parts).join(SECTION_SEPARATOR);
 }
 
+/** Cevabın altındaki kısa etiket: okunur ad (sunucudan) ve sayfa ya da satır. Ayrıntı panelde. */
 export function citationLabel(citation: Citation): string {
   const { title, location } = citation;
   if (location.sheet !== null) {
-    return `${title} · ${location.sheet} · satır ${location.row ?? "?"}`;
+    return `${title} · satır ${location.row ?? "?"}`;
   }
   if (location.page !== null) {
     return `${title} · s.${location.page}`;
   }
-  return location.section ? sectionLabel(title, location.section) : title;
+  return title;
+}
+
+/** Tam ad ve yer: ipucu metni ve kaynak paneli için. */
+export function citationDetail(citation: Citation): string {
+  const where = citationLocation(citation);
+  return where ? `${citation.title} · ${where}` : citation.title;
 }
 
 function MaskedText({ text }: { text: string }) {
@@ -100,9 +113,10 @@ function CitationButtons({
           key={citation.chunk_id}
           type="button"
           className="citation"
+          title={citationDetail(citation)}
           onClick={() => onOpenSource(citation)}
         >
-          {citationLabel(citation)}
+          <span className="citation-label">{citationLabel(citation)}</span>
         </button>
       ))}
     </span>
@@ -341,14 +355,18 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak, isB
   }
 }
 
+/** "Anlaşılan soru" yalnız yazılandan farklıysa gösterilir. */
+function isRephrased(turn: Turn): boolean {
+  const resolved = turn.resolvedQuestion?.trim();
+  return Boolean(resolved) && resolved !== turn.question.trim();
+}
+
 export function TurnView(props: Props) {
   const { turn } = props;
   return (
     <article className="turn">
       <p className="question">{turn.question}</p>
-      {turn.resolvedQuestion !== null && (
-        <p className="resolved">Anlaşılan soru: {turn.resolvedQuestion}</p>
-      )}
+      {isRephrased(turn) && <p className="resolved">Anlaşılan soru: {turn.resolvedQuestion}</p>}
       <div className="answer" aria-live="polite">
         {turn.stage !== null && (
           <p className="stage">{STAGE_LABELS[turn.stage] ?? "Hazırlanıyor"}</p>

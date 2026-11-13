@@ -19,6 +19,8 @@ _HEAD_BYTES = 4096
 _MAX_NAME_CHARS = 200
 _HEADING_RE = re.compile(r"^#[ \t]+(?P<text>.+?)[ \t]*#*[ \t]*$")
 _EMPHASIS_RE = re.compile(r"(\*\*|__|`)")
+# Yalnız iki harf arasındaki tire ayırıcıdır; "PNT-4417", "M8-1.25" gibi kodlarda kalır.
+_WORD_HYPHEN_RE = re.compile(r"(?<=[^\W\d_])-(?=[^\W\d_])")
 
 FindDocument = Callable[[str], Awaitable[StoredDocument | None]]
 Event = dict[str, Any]
@@ -44,10 +46,20 @@ def _read_head(path: Path) -> str:
         return ""
 
 
+def file_name_words(stem: str) -> str:
+    """Dosya adından okunur ad: alt çizgi ve harfler arasındaki tire boşluk olur.
+
+    Boşluk içeren ad zaten okunurdur, dokunulmaz. Nokta ve rakamlar (sürüm, ölçü) kalır.
+    """
+    if re.search(r"\s", stem):
+        return stem
+    return _WORD_HYPHEN_RE.sub(" ", stem.replace("_", " ")).strip() or stem
+
+
 def _readable(document: StoredDocument, head: str) -> str:
     if document.title != Path(document.filename).stem:
         return document.title
-    return markdown_title(head) or document.title
+    return markdown_title(head) or file_name_words(document.title)
 
 
 class DocumentNames:

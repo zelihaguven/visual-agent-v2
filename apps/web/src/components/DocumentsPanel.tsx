@@ -8,20 +8,28 @@ import {
   type DocumentInfo,
   type DocumentReport,
 } from "../api";
+import { groupDocuments, type DocumentGroup } from "../documentGroups";
 import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES, uploadLimitMessage } from "../limits";
 
 const POLL_MILLISECONDS = 3000;
 // Bekleyen belge yokken de seyrek bakılır: başka sekmeden ya da komutla yüklenen belge görünür.
 const IDLE_POLL_MILLISECONDS = 30000;
-const STATUS_LABELS: Record<DocumentInfo["status"], string> = {
-  queued: "Sırada",
+// Hazır belgede etiket yok; yalnız dikkat isteyen durumlar etiketlenir.
+const STATUS_LABELS: Record<DocumentInfo["status"], string | null> = {
+  queued: "Kuyrukta",
   processing: "İşleniyor",
-  ready: "Hazır",
-  failed: "İşlenemedi",
+  ready: null,
+  failed: "Hata",
 };
+// Bu kadar ya da daha az belgeli grup açık başlar; kalabalık grup başlığıyla gelir.
+const OPEN_GROUP_LIMIT = 10;
 
 function isPending(document: DocumentInfo): boolean {
   return document.status === "queued" || document.status === "processing";
+}
+
+function needsAttention(document: DocumentInfo): boolean {
+  return document.status !== "ready" || document.outdated === true;
 }
 
 function confirmDeletion(title: string): boolean {
@@ -49,16 +57,32 @@ function DocumentNotes({ title, report }: { title: string; report: DocumentRepor
   );
 }
 
-export function DocumentsPanel() {
+type Props = {
+  onClose: () => void;
+  onCountChange?: (count: number) => void;
+};
+
+export function DocumentsPanel({ onClose, onCountChange }: Props) {
   const [documents, setDocuments] = useState<DocumentInfo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [toggled, setToggled] = useState<Partial<Record<DocumentGroup, boolean>>>({});
+
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  useEffect(() => {
+    // Liste gelmeden sayı gösterilmez: "0 belge" yanlış izlenim verir.
+    if (hasLoaded) {
+      onCountChange?.(documents.length);
+    }
+  }, [documents.length, hasLoaded, onCountChange]);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     try {
       setDocuments(await listDocuments(signal));
+      setHasLoaded(true);
       setListError(null);
     } catch {
       if (!signal?.aborted) {
@@ -133,9 +157,18 @@ export function DocumentsPanel() {
     }
   }
 
+  function isOpen(group: DocumentGroup, members: DocumentInfo[]): boolean {
+    return toggled[group] ?? (members.length <= OPEN_GROUP_LIMIT || members.some(needsAttention));
+  }
+
   return (
-    <section className="documents" aria-labelledby="documents-heading">
-      <h2 id="documents-heading">Belgeler</h2>
+    <div className="documents">
+      <header className="drawer-header">
+        <h2>Belgeler</h2>
+        <button type="button" className="ghost" onClick={onClose}>
+          Kapat
+        </button>
+      </header>
       <label className={`upload ${isUploading ? "is-busy" : ""}`}>
         <span>{isUploading ? "Yükleniyor" : "Belge ekle"}</span>
         <input
@@ -154,47 +187,92 @@ export function DocumentsPanel() {
             </p>
           ),
       )}
-      <ul className="document-list" aria-label="Belgeler">
-        {documents.map((document) => (
-          <li key={document.doc_id} className="document">
-            <span className="document-title">{document.title}</span>
-            <span className={`status is-${document.status}`}>{STATUS_LABELS[document.status]}</span>
-            {document.error !== null && <span className="document-error">{document.error}</span>}
-            {document.report !== null && (
-              <DocumentNotes title={document.title} report={document.report} />
-            )}
-            {document.outdated === true && (
-              <span className="document-error">
-                Eski okuma kuralıyla işlendi; güncel kuralla okunması için yeniden işleyin.
-              </span>
-            )}
-            <div className="document-actions">
-              {!isPending(document) && (
-                <button
-                  type="button"
-                  aria-label={`${document.title} belgesini yeniden işle`}
-                  disabled={busyId !== null}
-                  onClick={() => void runAction(document, reprocessDocument)}
-                >
-                  Yeniden işle
-                </button>
-              )}
+      <ul className="document-groups" aria-label="Belgeler">
+        {groupDocuments(documents).map(({ group, documents: members }) => {
+          const open = isOpen(group, members);
+          return (
+            <li key={group} className="document-group">
               <button
                 type="button"
-                className="is-danger"
-                aria-label={`${document.title} belgesini sil`}
-                disabled={busyId !== null}
-                onClick={() => handleDelete(document)}
+                className="group-toggle"
+                aria-label={`${group} (${members.length})`}
+                aria-expanded={open}
+                onClick={() => setToggled((current) => ({ ...current, [group]: !open }))}
               >
-                Sil
+                <span>{group}</span>
+                <span className="group-count">{members.length}</span>
               </button>
-            </div>
-          </li>
-        ))}
+              <ul className="document-list" aria-label={group} hidden={!open}>
+                {members.map((document) => (
+                  <DocumentRow
+                    key={document.doc_id}
+                    document={document}
+                    isBusy={busyId !== null}
+                    onReprocess={() => void runAction(document, reprocessDocument)}
+                    onDelete={() => handleDelete(document)}
+                  />
+                ))}
+              </ul>
+            </li>
+          );
+        })}
       </ul>
       {documents.length === 0 && listError === null && (
         <p className="muted">Soru sormak için önce bir belge ekleyin.</p>
       )}
-    </section>
+    </div>
+  );
+}
+
+function DocumentRow({
+  document,
+  isBusy,
+  onReprocess,
+  onDelete,
+}: {
+  document: DocumentInfo;
+  isBusy: boolean;
+  onReprocess: () => void;
+  onDelete: () => void;
+}) {
+  const status = STATUS_LABELS[document.status];
+  return (
+    <li className="document">
+      <span className="document-title" title={document.filename}>
+        {document.title}
+      </span>
+      {status !== null && <span className={`status is-${document.status}`}>{status}</span>}
+      {document.outdated === true && <span className="status is-outdated">Eski kural</span>}
+      {document.error !== null && <span className="document-error">{document.error}</span>}
+      {document.report !== null && (
+        <DocumentNotes title={document.title} report={document.report} />
+      )}
+      {document.outdated === true && (
+        <span className="document-error">
+          Eski okuma kuralıyla işlendi; güncel kuralla okunması için yeniden işleyin.
+        </span>
+      )}
+      <div className="document-actions">
+        {!isPending(document) && (
+          <button
+            type="button"
+            aria-label={`${document.title} belgesini yeniden işle`}
+            disabled={isBusy}
+            onClick={onReprocess}
+          >
+            Yeniden işle
+          </button>
+        )}
+        <button
+          type="button"
+          className="is-danger"
+          aria-label={`${document.title} belgesini sil`}
+          disabled={isBusy}
+          onClick={onDelete}
+        >
+          Sil
+        </button>
+      </div>
+    </li>
   );
 }
