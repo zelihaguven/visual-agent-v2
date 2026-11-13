@@ -209,6 +209,28 @@ def test_oversized_upload_is_rejected(tmp_path: Path, monkeypatch: pytest.Monkey
     assert not any(tmp_path.iterdir())
 
 
+class BrokenRepository(FakeRepository):
+    async def create_document(self, document: StoredDocument) -> None:
+        raise OSError("veritabanı kilitli")
+
+
+def test_failed_registration_leaves_no_orphan_folder(tmp_path: Path) -> None:
+    client = TestClient(
+        create_app(
+            Settings(_env_file=None),
+            ApiServices(repository=BrokenRepository(), ask=None, storage_directory=tmp_path),  # type: ignore[arg-type]
+        ),
+        raise_server_exceptions=False,
+    )
+
+    response = client.post(
+        "/api/documents", files={"file": ("a.pdf", b"%PDF-1.7", "application/pdf")}
+    )
+
+    assert response.status_code == 500
+    assert not any(tmp_path.iterdir())
+
+
 def test_documents_are_listed(tmp_path: Path) -> None:
     body = make_client(tmp_path).get("/api/documents").json()
 

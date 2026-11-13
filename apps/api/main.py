@@ -281,22 +281,23 @@ async def _store_upload(file: UploadFile, title: str, services: ApiServices) -> 
     try:
         await _save_upload(file, target)
         detect_format(target)
-    except UnsupportedFormat as error:
+        document = StoredDocument(
+            doc_id=doc_id,
+            title=(title.strip() or Path(filename).stem)[:_MAX_TITLE_CHARS],
+            filename=filename,
+            status=DocumentStatus.QUEUED,
+            stored_path=str(target),
+            language=UNDETECTED_LANGUAGE,
+        )
+        await services.repository.create_document(document)
+    except BaseException as error:
+        # Kaydı olmayan klasörü silme işi (retry_deletions) hiç bulmaz; kopan bağlantı dahil
+        # her hatada burada silinir.
         shutil.rmtree(directory, ignore_errors=True)
-        reason = str(error).replace(target.name, filename)
-        raise HTTPException(status_code=415, detail=reason) from error
-    except HTTPException:
-        shutil.rmtree(directory, ignore_errors=True)
+        if isinstance(error, UnsupportedFormat):
+            reason = str(error).replace(target.name, filename)
+            raise HTTPException(status_code=415, detail=reason) from error
         raise
-    document = StoredDocument(
-        doc_id=doc_id,
-        title=(title.strip() or Path(filename).stem)[:_MAX_TITLE_CHARS],
-        filename=filename,
-        status=DocumentStatus.QUEUED,
-        stored_path=str(target),
-        language=UNDETECTED_LANGUAGE,
-    )
-    await services.repository.create_document(document)
     return document
 
 
