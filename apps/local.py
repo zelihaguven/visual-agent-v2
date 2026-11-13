@@ -22,7 +22,6 @@ from visual_agent.settings import Settings
 logger = logging.getLogger("visual_agent.local")
 
 LOCAL_HOST = "127.0.0.1"
-DEFAULT_PORT = 8080
 LOCAL_QDRANT_PATH = "data/qdrant"
 WEB_SOURCES = ("src", "index.html", "package.json", "package-lock.json", "vite.config.ts")
 _BROWSER_WAIT_SECONDS = 120.0
@@ -53,6 +52,16 @@ def use_embedded_qdrant(settings: Settings, environ: MutableMapping[str, str]) -
         return False
     environ["VA_QDRANT_PATH"] = LOCAL_QDRANT_PATH
     return True
+
+
+def local_url(settings: Settings) -> str:
+    return f"http://{LOCAL_HOST}:{settings.web_port}/"
+
+
+def api_key_missing(settings: Settings) -> bool:
+    """Boş ya da yalnız boşluk bırakılmış `VA_OPENROUTER_API_KEY=` satırı da anahtar yok sayılır."""
+    key = settings.openrouter_api_key
+    return key is None or not key.get_secret_value().strip()
 
 
 def tool_report(tools: ExternalTools) -> list[str]:
@@ -96,7 +105,7 @@ def _open_browser_when_ready(url: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Visual Agent'ı bu bilgisayarda başlatır.")
-    parser.add_argument("--port", type=int, default=int(os.environ.get("WEB_PORT", DEFAULT_PORT)))
+    parser.add_argument("--port", type=int, help="varsayılan: .env içindeki WEB_PORT ya da 8080")
     parser.add_argument("--no-browser", action="store_true", help="tarayıcıyı açma")
     arguments = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -104,19 +113,21 @@ def main() -> None:
     settings = Settings()
     if use_embedded_qdrant(settings, os.environ):
         settings = Settings()
-    if settings.openrouter_api_key is None:
+    if arguments.port is not None:
+        settings = Settings(web_port=arguments.port)  # doğrulanır: geçersiz port açılışta durur
+    if api_key_missing(settings):
         logger.warning(".env içinde VA_OPENROUTER_API_KEY yok; sorular cevaplanamaz.")
     for line in tool_report(locate_tools(settings.soffice_path, settings.tesseract_path)):
         logger.info(line)
     build_web(Path("apps/web"), shutil.which("npm"))
 
-    url = f"http://{LOCAL_HOST}:{arguments.port}/"
+    url = local_url(settings)
     logger.info("Arayüz: %s (kapatmak için Ctrl+C)", url)
     if not arguments.no_browser:
         threading.Thread(target=_open_browser_when_ready, args=(url,), daemon=True).start()
     import uvicorn
 
-    uvicorn.run("apps.api.main:create_app", factory=True, host=LOCAL_HOST, port=arguments.port)
+    uvicorn.run("apps.api.main:create_app", factory=True, host=LOCAL_HOST, port=settings.web_port)
 
 
 if __name__ == "__main__":

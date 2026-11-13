@@ -90,7 +90,7 @@ uv run ruff format --check .
 uv run mypy
 ```
 
-Web (`apps/web`; `npm run dev` API'yi `localhost:8000` adresinde bekler):
+Web (`apps/web`). `npm run dev` API'yi `apps.local`'in açtığı adreste bekler; önce kök klasörde `uv run python -m apps.local --no-browser` çalıştırın (port `.env`'deki `WEB_PORT`, yoksa 8080):
 
 ```bash
 npm ci
