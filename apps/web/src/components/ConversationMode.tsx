@@ -24,6 +24,7 @@ const STATUS: Record<Phase, string> = {
 };
 
 const NOT_HEARD = "Anlayamadım, tekrar söyler misiniz?";
+const VOICE_FAILED = "Ses servisine ulaşılamadı. Bitir'e basıp yazarak sorabilirsiniz.";
 const NO_MICROPHONE = "Mikrofona erişilemedi. Tarayıcı iznini kontrol edin.";
 
 /** Ekrandaki netleştirme ya da "Tüm belgelerde ara" seçimi: soru o belgelerde yeniden sorulur. */
@@ -44,14 +45,6 @@ type Props = {
   onOpenSource: (citation: Citation) => void;
   onClose: () => void;
 };
-
-async function transcribeSafely(audio: Blob): Promise<string> {
-  try {
-    return await transcribeAudio(audio);
-  } catch {
-    return "";
-  }
-}
 
 export function ConversationMode(props: Props) {
   const { audio, lastTurn, onOpenSource, onClose } = props;
@@ -94,7 +87,15 @@ export function ConversationMode(props: Props) {
         audio.stop();
         setPhase("listening");
       });
-      const text = await question();
+      let text: string;
+      try {
+        text = await question();
+      } catch (error) {
+        // Boş metin "duyulmadı"dır; servis hatası ayrı gösterilir ve döngü durur.
+        turnControl.current = null;
+        monitorEnd.abort();
+        throw error;
+      }
       if (!text && !control.signal.aborted && !session.signal.aborted) {
         setNotice(NOT_HEARD);
       }
@@ -171,12 +172,19 @@ export function ConversationMode(props: Props) {
         }
         if (recording !== null) {
           const heard = recording;
-          recording = await handleTurn(mic, () => transcribeSafely(heard), null);
+          recording = await handleTurn(mic, () => transcribeAudio(heard), null);
         }
       }
     }
 
-    void converse();
+    converse().catch(() => {
+      if (!session.signal.aborted) {
+        setError(VOICE_FAILED);
+      }
+      // Dinlemiyorken mikrofon açık görünmesin.
+      microphone?.close();
+      microphone = null;
+    });
     return () => {
       session.abort();
       turnControl.current?.abort();
@@ -196,7 +204,7 @@ export function ConversationMode(props: Props) {
     audio.stop();
   }
 
-  const canInterrupt = phase === "thinking" || phase === "speaking";
+  const canInterrupt = error === null && (phase === "thinking" || phase === "speaking");
   return (
     <section className="talk" aria-label="Konuşma modu">
       <div className="talk-stage">

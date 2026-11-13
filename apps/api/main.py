@@ -213,6 +213,8 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
         else None
     )
     clock = _AskClock(spoken.on_event if spoken is not None else queue.put_nowait)
+    if request.speak and services.voice is None:
+        queue.put_nowait({"type": "audio_unavailable"})  # cevap yalnız ekranda gelir
 
     async def run() -> None:
         """Önce cevap gider; kayıt ve ses ondan sonra, cevabı geri alamayacak biçimde çalışır."""

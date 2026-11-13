@@ -41,6 +41,7 @@ export function App() {
   const [isTalking, setIsTalking] = useState(false);
   const [speech, setSpeech] = useState<{ turnId: string; status: SpeechStatus } | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [hasVoiceService, setHasVoiceService] = useState(true);
   const nextId = useRef(0);
   const audio = useRef<AudioQueue | null>(null);
   const draftInput = useRef<HTMLInputElement>(null);
@@ -58,7 +59,11 @@ export function App() {
     const controller = new AbortController();
     fetchVoicePhrases(controller.signal)
       .then((ready) => {
-        phrases.current = ready;
+        if (ready === null) {
+          setHasVoiceService(false);
+        } else {
+          phrases.current = ready;
+        }
       })
       .catch(() => undefined);
     return () => controller.abort();
@@ -265,7 +270,7 @@ export function App() {
             }}
           />
           <MicButton isDisabled={isAsking} onTranscript={handleTranscript} onError={setVoiceError} />
-          {canListen() && (
+          {canListen() && hasVoiceService && (
             <button
               type="button"
               className="icon-button"

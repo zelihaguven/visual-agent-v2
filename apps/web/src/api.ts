@@ -230,8 +230,12 @@ export async function transcribeAudio(audio: Blob): Promise<string> {
   return ((await response.json()) as { text: string }).text;
 }
 
-export async function fetchVoicePhrases(signal: AbortSignal): Promise<VoicePhrases> {
+/** Sunucuda ses servisi yoksa (503) null; geçici hatalarda hata fırlatır. */
+export async function fetchVoicePhrases(signal: AbortSignal): Promise<VoicePhrases | null> {
   const response = await fetch("/api/voice/phrases", { signal });
+  if (response.status === 503) {
+    return null;
+  }
   if (!response.ok) {
     throw new Error(await readError(response));
   }

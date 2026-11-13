@@ -1097,6 +1097,52 @@ describe("App", () => {
       await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(3));
     });
 
+    it("shows a voice service failure instead of asking to repeat", async () => {
+      stubAudio();
+      hearInTurn("birinci", "ikinci");
+      const fetchMock = stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse(PHRASES),
+        "/api/transcribe": () => jsonResponse({ detail: "Ses servisi yapılandırılmamış." }, 503),
+      });
+
+      await open(fetchMock);
+
+      expect(await screen.findByRole("alert")).toHaveTextContent("Ses servisine ulaşılamadı");
+      expect(listening.close).toHaveBeenCalled();
+      expect(screen.queryByText("Anlayamadım, tekrar söyler misiniz?")).not.toBeInTheDocument();
+      expect(listening.listen).toHaveBeenCalledTimes(1);
+      expect(askBodiesOf(fetchMock)).toHaveLength(0);
+    });
+
+    it("hides conversation mode only when the server has no voice service", async () => {
+      stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => jsonResponse({ detail: "Ses servisi yapılandırılmamış." }, 503),
+      });
+      render(<App />);
+
+      await waitFor(() =>
+        expect(screen.queryByRole("button", { name: "Konuşma modu" })).not.toBeInTheDocument(),
+      );
+    });
+
+    it("keeps conversation mode when the phrases cannot be loaded for a passing reason", async () => {
+      const fetchMock = stubApi({
+        "/api/documents": () => jsonResponse([]),
+        "/api/voice/phrases": () => {
+          throw new TypeError("ağ hatası");
+        },
+      });
+      render(<App />);
+
+      await waitFor(() =>
+        expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/voice/phrases")).toBe(true),
+      );
+      await new Promise((resolve) => setTimeout(resolve));
+      expect(screen.getByRole("button", { name: "Konuşma modu" })).toBeInTheDocument();
+    });
+
     it("asks to repeat instead of sending an empty transcript", async () => {
       stubAudio();
       hearInTurn("gurultu");

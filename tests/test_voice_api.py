@@ -508,3 +508,12 @@ def test_voice_failure_after_done_keeps_the_answer(
 
     assert types.index("done") < types.index("audio_unavailable")
     assert "error" not in types
+
+
+def test_spoken_answer_without_voice_service_says_audio_is_unavailable(tmp_path: Path) -> None:
+    client = make_client(tmp_path, None, [verified(0, "Birinci.")], ANSWERED)
+
+    types = [event["type"] for event in ask_events(client)]
+
+    assert "audio_unavailable" in types
+    assert "done" in types
