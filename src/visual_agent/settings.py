@@ -30,8 +30,8 @@ class Settings(BaseSettings):
     answer_max_tokens: int = Field(default=1200, gt=0)
     answer_first_token_seconds: float = Field(default=2.5, gt=0)
     stream_runaway_limit: int = Field(default=40, gt=0)
-    translation_model: str = "google/gemma-4-26b-a4b-it"
-    translation_providers: tuple[str, ...] = ("nextbit", "venice")
+    helper_model: str = "google/gemma-4-26b-a4b-it"
+    helper_providers: tuple[str, ...] = ("nextbit", "venice")
     stt_model: str = "elevenlabs/scribe-v2"
     stt_language: str = "tr"
     tts_model: str = "google/gemini-3.8-flash-lite-tts"

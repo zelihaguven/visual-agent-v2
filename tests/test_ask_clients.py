@@ -25,8 +25,8 @@ def _settings(answer_model: str = ANSWER_MODEL) -> Settings:
         _env_file=None,
         answer_model=answer_model,
         answer_providers=("deepinfra", "venice", "parasail"),
-        translation_model=ANSWER_MODEL,
-        translation_providers=("venice",),
+        helper_model=ANSWER_MODEL,
+        helper_providers=("venice",),
     )
 
 
