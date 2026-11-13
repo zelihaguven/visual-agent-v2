@@ -8,7 +8,7 @@ describe("DocumentsPanel", () => {
   it("rejects a file over the upload limit without sending it", async () => {
     const fetchMock = vi.fn(async () => new Response("[]", { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
-    render(<DocumentsPanel />);
+    render(<DocumentsPanel onClose={() => undefined} />);
     const big = new File(["x"], "buyuk.pdf", { type: "application/pdf" });
     Object.defineProperty(big, "size", { value: MAX_UPLOAD_BYTES + 1 });
 

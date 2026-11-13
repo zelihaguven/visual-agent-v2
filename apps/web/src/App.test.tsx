@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 import { WAITING_DELAY_MS } from "./components/ConversationMode";
-import { citationLabel } from "./components/TurnView";
+import { citationDetail, citationLabel } from "./components/TurnView";
 import { applyEvent, newTurn } from "./turn";
 
 const listening = vi.hoisted(() => ({
@@ -100,6 +100,10 @@ const answered = {
 async function ask(question: string) {
   fireEvent.change(screen.getByLabelText("Sorunuz"), { target: { value: question } });
   fireEvent.click(screen.getByRole("button", { name: "Sor" }));
+}
+
+function openDocuments() {
+  fireEvent.click(screen.getByRole("button", { name: /^Belgeler/ }));
 }
 
 describe("applyEvent", () => {
@@ -228,7 +232,7 @@ describe("App", () => {
     render(<App />);
     await ask("soru");
 
-    fireEvent.click(await screen.findByRole("button", { name: /Ölçüler · satır 5/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "PNT-4417 ölçü föyü · satır 5" }));
 
     const row = (await screen.findByText("Beden: M")).closest("tr");
     expect(row).toHaveClass("is-highlighted");
@@ -428,6 +432,7 @@ describe("App", () => {
         ]),
     });
     render(<App />);
+    openDocuments();
 
     const list = await screen.findByRole("list", { name: "Belgeler" });
     expect(within(list).getByText("İşleniyor")).toBeInTheDocument();
@@ -462,6 +467,7 @@ describe("App", () => {
     stubDocumentActions(404);
     vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<App />);
+    openDocuments();
 
     fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
 
@@ -505,6 +511,7 @@ describe("App", () => {
     const fetchMock = stubDocumentActions();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<App />);
+    openDocuments();
 
     fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
 
@@ -517,6 +524,7 @@ describe("App", () => {
     const fetchMock = stubDocumentActions();
     vi.spyOn(window, "confirm").mockReturnValue(false);
     render(<App />);
+    openDocuments();
 
     fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
 
@@ -528,6 +536,7 @@ describe("App", () => {
     stubDocumentActions(404);
     vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<App />);
+    openDocuments();
 
     fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
 
@@ -537,10 +546,11 @@ describe("App", () => {
   it("queues a ready document for processing again", async () => {
     const fetchMock = stubDocumentActions();
     render(<App />);
+    openDocuments();
 
     fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini yeniden işle" }));
 
-    expect(await screen.findByText("Sırada")).toBeInTheDocument();
+    expect(await screen.findByText("Kuyrukta")).toBeInTheDocument();
     expect(methodCalls(fetchMock, "POST")).toEqual(["/api/documents/d1/reprocess"]);
     expect(
       screen.queryByRole("button", { name: "Föy belgesini yeniden işle" }),
@@ -563,6 +573,7 @@ describe("App", () => {
         ]),
     });
     render(<App />);
+    openDocuments();
 
     const notes = await screen.findByRole("list", { name: "Föy uyarıları" });
     expect(within(notes).getByText(warning)).toBeInTheDocument();
@@ -604,9 +615,11 @@ describe("App", () => {
         ]),
     });
     render(<App />);
+    openDocuments();
 
-    await screen.findByText("Hazır");
+    await screen.findByText("Föy");
     expect(screen.queryByRole("list", { name: "Föy uyarıları" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Hazır")).not.toBeInTheDocument(); // hazır belgede etiket yok
   });
 
   it("uploads a file and shows the server's rejection reason", async () => {
@@ -617,6 +630,7 @@ describe("App", () => {
           : jsonResponse([]),
     });
     render(<App />);
+    openDocuments();
 
     const input = await screen.findByLabelText("Belge yükle");
     fireEvent.change(input, { target: { files: [new File(["MZ"], "virus.exe")] } });
@@ -1310,23 +1324,186 @@ describe("App", () => {
 describe("citationLabel", () => {
   const pageless = { page: null, boxes: [], sheet: null, row: null };
 
-  it("shows the section path of a pageless source without repeating the title", () => {
+  it("is a short readable name with the page", () => {
+    const citation = { ...CITATION, title: "dikim-tarama.pdf" };
+
+    expect(citationLabel(citation)).toBe("dikim tarama · s.2");
+  });
+
+  it("keeps the hyphen of a code inside a name with spaces", () => {
+    expect(citationLabel(CITATION)).toBe("PNT-4417 ölçü föyü · s.2");
+  });
+
+  it("gives the row of a spreadsheet source", () => {
+    const location = { ...pageless, sheet: "Ölçüler", row: 5 };
+
+    expect(citationLabel({ ...CITATION, title: "08_Setup_part1", location })).toBe(
+      "08 Setup part1 · satır 5",
+    );
+  });
+
+  it("leaves the section path to the detail", () => {
     const citation = {
       ...CITATION,
       title: "Ayarlar",
       location: { ...pageless, section: "Ayarlar · Genel · Hafta numaraları" },
     };
 
-    expect(citationLabel(citation)).toBe("Ayarlar · Genel · Hafta numaraları");
+    expect(citationLabel(citation)).toBe("Ayarlar");
+    expect(citationDetail(citation)).toBe("Ayarlar · Genel · Hafta numaraları");
   });
 
-  it("keeps the section path when it starts with another name", () => {
+  it("keeps a section path that starts with another name in the detail", () => {
     const citation = { ...CITATION, title: "Kılavuz", location: { ...pageless, section: "Genel" } };
 
-    expect(citationLabel(citation)).toBe("Kılavuz · Genel");
+    expect(citationDetail(citation)).toBe("Kılavuz · Genel");
   });
 
   it("shows only the title when there is no location", () => {
     expect(citationLabel({ ...CITATION, title: "Notlar", location: pageless })).toBe("Notlar");
+    expect(citationDetail({ ...CITATION, title: "Notlar", location: pageless })).toBe("Notlar");
+  });
+});
+
+describe("layout", () => {
+  const DOCUMENTS = [
+    { doc_id: "p", title: "Föy", filename: "foy.pdf", status: "ready", error: null, report: null },
+    { doc_id: "w", title: "Notlar", filename: "notlar.docx", status: "ready", error: null, report: null },
+    { doc_id: "g", title: "Foto", filename: "foto.jpg", status: "queued", error: null, report: null },
+    ...Array.from({ length: 12 }, (_, index) => ({
+      doc_id: `m${index}`,
+      title: `Kılavuz ${index}`,
+      filename: `k${index}.md`,
+      status: "ready",
+      error: null,
+      report: null,
+    })),
+  ];
+
+  it("starts on the landing screen and moves to the conversation with the first question", async () => {
+    stubApi({ "/api/documents": () => jsonResponse([]), "/api/ask": () => sse([answered]) });
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: "Belgelerinize sorun." })).toBeInTheDocument();
+    await ask("PNT-4417 iç paça kaç?");
+
+    expect(await screen.findByText("İç paça 76,5 cm.")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Belgelerinize sorun." })).not.toBeInTheDocument();
+    expect(screen.getByText("PNT-4417 iç paça kaç?")).toBeInTheDocument();
+  });
+
+  it("keeps the documents drawer closed until asked, then closes it with Escape", async () => {
+    stubApi({ "/api/documents": () => jsonResponse(DOCUMENTS) });
+    render(<App />);
+    const opener = await screen.findByRole("button", { name: "Belgeler (15)" });
+
+    expect(screen.queryByRole("list", { name: "Belgeler" })).not.toBeInTheDocument();
+    opener.focus();
+    fireEvent.click(opener);
+    const drawer = screen.getByRole("complementary", { name: "Belgeler" });
+    expect(drawer).toHaveFocus();
+    expect(screen.getByRole("list", { name: "Belgeler" })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(screen.queryByRole("list", { name: "Belgeler" })).not.toBeInTheDocument();
+    expect(opener).toHaveFocus();
+  });
+
+  it("closes the documents drawer on a click outside it", async () => {
+    stubApi({ "/api/documents": () => jsonResponse(DOCUMENTS) });
+    render(<App />);
+    openDocuments();
+
+    fireEvent.click(screen.getByTestId("drawer-backdrop"));
+
+    expect(screen.queryByRole("list", { name: "Belgeler" })).not.toBeInTheDocument();
+  });
+
+  it("groups documents by file type and folds the crowded group", async () => {
+    stubApi({ "/api/documents": () => jsonResponse(DOCUMENTS) });
+    render(<App />);
+    openDocuments();
+
+    await screen.findByRole("button", { name: "PDF (1)" });
+    const list = screen.getByRole("list", { name: "Belgeler" });
+    const open = within(list).getAllByRole("button", { expanded: true });
+    expect(open.map((button) => button.getAttribute("aria-label"))).toEqual([
+      "PDF (1)",
+      "Word (1)",
+      "Görsel (1)",
+    ]);
+    const markdown = screen.getByRole("button", { name: "Markdown (12)" });
+    expect(markdown).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("list", { name: "Markdown" })).not.toBeInTheDocument();
+
+    fireEvent.click(markdown);
+
+    expect(within(screen.getByRole("list", { name: "Markdown" })).getAllByRole("listitem")).toHaveLength(12);
+  });
+
+  it("labels only documents that need attention", async () => {
+    stubApi({ "/api/documents": () => jsonResponse(DOCUMENTS) });
+    render(<App />);
+    openDocuments();
+
+    expect(await screen.findByText("Kuyrukta")).toBeInTheDocument();
+    expect(screen.queryByText("Hazır")).not.toBeInTheDocument();
+  });
+
+  it("stops a running question with the stop button", async () => {
+    let aborted = false;
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": (_url, init) =>
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              init?.signal?.addEventListener("abort", () => {
+                aborted = true;
+                controller.error(new DOMException("Durduruldu", "AbortError"));
+              });
+            },
+          }),
+          { headers: { "Content-Type": "text/event-stream" } },
+        ),
+    });
+    render(<App />);
+    await ask("uzun soru");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Durdur" }));
+
+    expect(await screen.findByText("Soru durduruldu.")).toBeInTheDocument();
+    expect(aborted).toBe(true);
+    expect(screen.getByRole("button", { name: "Sor" })).toBeInTheDocument();
+  });
+
+  it("shows how a question was understood only when it differs from what was typed", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([{ type: "resolved", question: "PNT-4417 iç paça kaç?" }, answered]),
+    });
+    render(<App />);
+    await ask("PNT-4417 iç paça kaç?");
+
+    await screen.findByText("İç paça 76,5 cm.");
+    expect(screen.queryByText(/Anlaşılan soru/)).not.toBeInTheDocument();
+  });
+
+  it("closes the source drawer with Escape", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([answered]),
+      "/api/chunks/d1%3A0/source": () =>
+        jsonResponse({ kind: "text", text: "Beden: M", section: null }),
+    });
+    render(<App />);
+    await ask("soru");
+    fireEvent.click(await screen.findByRole("button", { name: "PNT-4417 ölçü föyü · s.2" }));
+    expect(await screen.findByText("Beden: M")).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(screen.queryByText("Beden: M")).not.toBeInTheDocument();
   });
 });

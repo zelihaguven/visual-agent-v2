@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
 import {
   askQuestion,
@@ -14,6 +14,7 @@ import "./App.css";
 import { ContextBar } from "./components/ContextBar";
 import { ConversationMode } from "./components/ConversationMode";
 import { DocumentsPanel } from "./components/DocumentsPanel";
+import { Drawer } from "./components/Drawer";
 import { MicButton } from "./components/MicButton";
 import { SourcePanel } from "./components/SourcePanel";
 import { TurnView, type SpeechStatus } from "./components/TurnView";
@@ -23,6 +24,7 @@ import { AudioQueue } from "./speech";
 import { applyEvent, newTurn, type Turn } from "./turn";
 
 const ASK_FAILED = "Cevap alınamadı. Bağlantınızı kontrol edip yeniden deneyin.";
+const ASK_STOPPED = "Soru durduruldu.";
 
 type AskOptions = {
   context: ConversationContext | null;
@@ -43,6 +45,9 @@ export function App() {
   const [speech, setSpeech] = useState<{ turnId: string; status: SpeechStatus } | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [hasVoiceService, setHasVoiceService] = useState(true);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [documentCount, setDocumentCount] = useState<number | null>(null);
+  const closeLibrary = useCallback(() => setIsLibraryOpen(false), []);
   const nextId = useRef(0);
   const audio = useRef<AudioQueue | null>(null);
   const draftInput = useRef<HTMLInputElement>(null);
@@ -52,6 +57,7 @@ export function App() {
   const waitingTurn = useRef(0);
   const latestContext = useRef<ConversationContext | null>(null);
   const activeAsk = useRef<AbortController | null>(null);
+  const stoppedByUser = useRef<AbortController | null>(null);
   const speechToken = useRef(0);
   const turnList = useRef<HTMLDivElement>(null);
   const shownTurns = useRef(0);
@@ -141,11 +147,14 @@ export function App() {
         dictated,
       );
     } catch {
-      updateTurn((turn) =>
-        control.signal.aborted
+      updateTurn((turn) => {
+        if (stoppedByUser.current === control) {
+          return { ...turn, stage: null, notice: ASK_STOPPED };
+        }
+        return control.signal.aborted
           ? { ...turn, stage: null }
-          : applyEvent(turn, { type: "error", message: ASK_FAILED }),
-      );
+          : applyEvent(turn, { type: "error", message: ASK_FAILED });
+      });
     } finally {
       signal?.removeEventListener("abort", stop);
       if (activeAsk.current === control) {
@@ -165,6 +174,11 @@ export function App() {
       draftFromVoice.current = false;
       void ask(question, null, { context, dictated });
     }
+  }
+
+  function stopAsking() {
+    stoppedByUser.current = activeAsk.current;
+    activeAsk.current?.abort();
   }
 
   function takeGreeting(): PhraseAudio | null {
@@ -225,72 +239,97 @@ export function App() {
     draftInput.current?.focus();
   }
 
+  const isLanding = turns.length === 0;
   return (
-    <div className={`layout ${source ? "has-source" : ""}`}>
-      <DocumentsPanel />
+    <div className={`layout ${isLanding ? "is-landing" : "is-asking"}`}>
+      <header className="topbar">
+        <span className="brand">Visual Agent</span>
+        <button
+          type="button"
+          className="library-button"
+          aria-label={documentCount === null ? "Belgeler" : `Belgeler (${documentCount})`}
+          aria-expanded={isLibraryOpen}
+          onClick={() => setIsLibraryOpen(true)}
+        >
+          Belgeler{documentCount !== null && <span className="count">{documentCount}</span>}
+        </button>
+      </header>
       <main className="conversation">
-        <header className="masthead">
-          <h1>Visual Agent</h1>
-          <p>Belgelerinize sorun, cevabı kaynağıyla görün.</p>
-        </header>
-        <div className="turns" ref={turnList}>
-          {turns.map((turn) => (
-            <TurnView
-              key={turn.id}
-              turn={turn}
-              onOpenSource={setSource}
-              onAskAgain={(question, docIds) => void ask(question, docIds, { context: null })}
-              isBusy={isAsking}
-              speechStatus={speech?.turnId === turn.id ? speech.status : "idle"}
-              onSpeak={(items) => void speakAnswer(turn.id, items)}
-            />
-          ))}
-        </div>
-        {context !== null && <ContextBar context={context} onClear={() => updateContext(null)} />}
-        {voiceError !== null && (
-          <p className="notice is-bad composer-notice" role="alert">
-            {voiceError}
-          </p>
+        {isLanding ? (
+          <div className="hero">
+            <h1>Belgelerinize sorun.</h1>
+            <p>Cevap, kaynağıyla birlikte gelir.</p>
+          </div>
+        ) : (
+          <div className="turns" ref={turnList}>
+            {turns.map((turn) => (
+              <TurnView
+                key={turn.id}
+                turn={turn}
+                onOpenSource={setSource}
+                onAskAgain={(question, docIds) => void ask(question, docIds, { context: null })}
+                isBusy={isAsking}
+                speechStatus={speech?.turnId === turn.id ? speech.status : "idle"}
+                onSpeak={(items) => void speakAnswer(turn.id, items)}
+              />
+            ))}
+          </div>
         )}
-        <form className="composer" onSubmit={handleSubmit}>
-          <label htmlFor="question" className="visually-hidden">
-            Sorunuz
-          </label>
-          <input
-            id="question"
-            ref={draftInput}
-            value={draft}
-            maxLength={MAX_QUESTION_CHARS}
-            autoComplete="off"
-            placeholder="Sorunuzu yazın"
-            onChange={(event) => {
-              if (event.target.value === "") {
-                draftFromVoice.current = false;
-              }
-              setDraft(event.target.value);
-            }}
-          />
-          <MicButton isDisabled={isAsking} onTranscript={handleTranscript} onError={setVoiceError} />
-          {canListen() && hasVoiceService && (
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="Konuşma modu"
-              title="Konuşma modu"
-              onClick={openConversation}
-            >
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path
-                  fill="currentColor"
-                  d="M3 10h2v4H3v-4Zm4-4h2v12H7V6Zm4-3h2v18h-2V3Zm4 3h2v12h-2V6Zm4 4h2v4h-2v-4Z"
-                />
-              </svg>
-            </button>
+        <div className="composer-area">
+          {context !== null && (
+            <ContextBar context={context} onClear={() => updateContext(null)} />
           )}
-          <button type="submit" disabled={isAsking || draft.trim() === ""}>
-            Sor
-          </button>
-        </form>
+          {voiceError !== null && (
+            <p className="notice is-bad composer-notice" role="alert">
+              {voiceError}
+            </p>
+          )}
+          <form className="composer" onSubmit={handleSubmit}>
+            <label htmlFor="question" className="visually-hidden">
+              Sorunuz
+            </label>
+            <input
+              id="question"
+              ref={draftInput}
+              value={draft}
+              maxLength={MAX_QUESTION_CHARS}
+              autoComplete="off"
+              placeholder="Sorunuzu yazın"
+              onChange={(event) => {
+                if (event.target.value === "") {
+                  draftFromVoice.current = false;
+                }
+                setDraft(event.target.value);
+              }}
+            />
+            <MicButton isDisabled={isAsking} onTranscript={handleTranscript} onError={setVoiceError} />
+            {canListen() && hasVoiceService && (
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Konuşma modu"
+                title="Konuşma modu"
+                onClick={openConversation}
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M3 10h2v4H3v-4Zm4-4h2v12H7V6Zm4-3h2v18h-2V3Zm4 3h2v12h-2V6Zm4 4h2v4h-2v-4Z"
+                  />
+                </svg>
+              </button>
+            )}
+            {isAsking && !isTalking ? (
+              <button type="button" className="stop-button" onClick={stopAsking}>
+                Durdur
+              </button>
+            ) : (
+              <button type="submit" disabled={isAsking || draft.trim() === ""}>
+                Sor
+              </button>
+            )}
+          </form>
+        </div>
         {isTalking && (
           <ConversationMode
             audio={audioQueue()}
@@ -312,7 +351,12 @@ export function App() {
           />
         )}
       </main>
-      {source !== null && <SourcePanel citation={source} onClose={() => setSource(null)} />}
+      <Drawer isOpen={isLibraryOpen} side="left" label="Belgeler" onClose={closeLibrary}>
+        <DocumentsPanel onClose={closeLibrary} onCountChange={setDocumentCount} />
+      </Drawer>
+      <Drawer isOpen={source !== null} side="right" label="Kaynak" onClose={() => setSource(null)}>
+        {source !== null && <SourcePanel citation={source} onClose={() => setSource(null)} />}
+      </Drawer>
     </div>
   );
 }

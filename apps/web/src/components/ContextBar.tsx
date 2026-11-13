@@ -1,4 +1,5 @@
 import type { ConversationContext } from "../api";
+import { readableName } from "../documentGroups";
 
 type Props = {
   context: ConversationContext;
@@ -6,7 +7,7 @@ type Props = {
 };
 
 export function ContextBar({ context, onClear }: Props) {
-  const documents = context.titles.join(", ");
+  const documents = context.titles.map(readableName).join(", ");
   return (
     <div className="context-bar" role="status">
       <p>
