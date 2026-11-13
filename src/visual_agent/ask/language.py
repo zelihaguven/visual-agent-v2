@@ -7,6 +7,7 @@ from visual_agent.domain.document import Chunk
 
 _TURKISH_LETTERS_RE = re.compile(r"[çğıöşüÇĞİÖŞÜ]")
 _WORD_RE = re.compile(r"[a-z]+")
+_DOCUMENT_WORD_RE = re.compile(r"[^\W\d_]+")
 _TURKISH_HINTS = {
     "ne",
     "nedir",
@@ -49,6 +50,8 @@ _ENGLISH_HINTS = {
 }
 
 
+# Belgede "in" inç birimidir ("Bel (in): 32"), "on" Türkçe sayıdır ("on dakika"); sayılmaz.
+_DOCUMENT_ENGLISH_HINTS = _ENGLISH_HINTS - {"in", "on"}
 _LANGUAGE_SAMPLE_CHUNKS = 40
 _DEFAULT_LANGUAGE = "tr"
 
@@ -56,10 +59,20 @@ _DEFAULT_LANGUAGE = "tr"
 def document_language(chunks: Sequence[Chunk], fallback: str = _DEFAULT_LANGUAGE) -> str:
     """Belgenin dili ilk parçalarından okunur; uygulama ve ölçüm katalogu aynı kuralla kurar.
 
-    Parça yoksa verilen dil kalır; yüklemede dil bilinmiyorsa Türkçe sayılır.
+    Soru kısadır, tek Türkçe harf yeter; belgede ise sözcükler sayılır: Türkçe harf taşıyan ya da
+    Türkçe ipucu olan sözcükler, İngilizce ipucu sözcüklerine karşı. İngilizce kılavuzda geçen
+    bir Türk firma adı belgeyi Türkçe yapmaz. Eşitlikte ve parça yoksa Türkçe sayılır.
     """
     sample = " ".join(chunk.text for chunk in chunks[:_LANGUAGE_SAMPLE_CHUNKS])
-    return detect_language(sample) if sample else (fallback or _DEFAULT_LANGUAGE)
+    if not sample:
+        return fallback or _DEFAULT_LANGUAGE
+    # "İ".lower() birleşik nokta üretir ve sözcüğü böler ("DİKKAT" -> "di", "kkat").
+    words = _DOCUMENT_WORD_RE.findall(sample.replace("İ", "i").lower())
+    turkish = sum(
+        bool(_TURKISH_LETTERS_RE.search(word)) or word in _TURKISH_HINTS for word in words
+    )
+    english = sum(word in _DOCUMENT_ENGLISH_HINTS for word in words)
+    return "en" if english > turkish else "tr"
 
 
 def detect_language(text: str) -> str:

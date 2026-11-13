@@ -18,6 +18,8 @@ class IdentifierIndex:
     _postings: dict[str, tuple[Posting, ...]]
     _chunks: dict[str, Chunk]
     _aliases: dict[str, tuple[str, ...]]
+    _in_text: frozenset[tuple[str, str]]
+    """(parça, kod): kod parçanın kendi metninde geçiyor; başlıkta ya da bölüm adında değil."""
 
     def _postings_of(self, identifier: str) -> tuple[Posting, ...]:
         keys = self._aliases.get(compact_identifier(identifier), ())
@@ -30,8 +32,17 @@ class IdentifierIndex:
             if doc_ids is None or doc_id in doc_ids
         )
 
-    def chunks_for(self, identifier: str, doc_ids: Sequence[str] | None) -> tuple[Chunk, ...]:
-        return tuple(self._chunks[chunk_id] for chunk_id in self.lookup(identifier, doc_ids))
+    def chunks_naming(self, identifier: str, doc_ids: Sequence[str]) -> tuple[Chunk, ...]:
+        """Kodu kendi metninde taşıyan parçalar; yazım farkı (boşluk, tire, büyük harf) sayılmaz."""
+        keys = self._aliases.get(compact_identifier(identifier), ())
+        return tuple(
+            dict.fromkeys(
+                self._chunks[chunk_id]
+                for key in keys
+                for doc_id, chunk_id in self._postings[key]
+                if doc_id in doc_ids and (chunk_id, key) in self._in_text
+            )
+        )
 
     def documents_with(self, identifier: str) -> tuple[str, ...]:
         return tuple(dict.fromkeys(doc_id for doc_id, _ in self._postings_of(identifier)))
@@ -54,10 +65,15 @@ class IdentifierIndex:
 def build_identifier_index(chunks: Iterable[Chunk]) -> IdentifierIndex:
     postings: defaultdict[str, list[Posting]] = defaultdict(list)
     by_id: dict[str, Chunk] = {}
+    in_text: set[tuple[str, str]] = set()
     for chunk in chunks:
         by_id[chunk.chunk_id] = chunk
+        written = {compact_identifier(code) for code in identifiers_in(chunk.text)}
+        written |= {compact_identifier(m.group(0)) for m in _SPOKEN_CODE_RE.finditer(chunk.text)}
         for identifier in identifiers_in(chunk.embed_text):
             postings[identifier].append((chunk.doc_id, chunk.chunk_id))
+            if compact_identifier(identifier) in written:
+                in_text.add((chunk.chunk_id, identifier))
     aliases: defaultdict[str, list[str]] = defaultdict(list)
     for identifier in sorted(postings):
         aliases[compact_identifier(identifier)].append(identifier)
@@ -65,4 +81,5 @@ def build_identifier_index(chunks: Iterable[Chunk]) -> IdentifierIndex:
         {key: tuple(value) for key, value in postings.items()},
         by_id,
         {key: tuple(value) for key, value in aliases.items()},
+        frozenset(in_text),
     )

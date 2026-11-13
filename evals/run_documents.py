@@ -137,9 +137,13 @@ async def ask_all(
     deps: AskDeps,
     transport: CachingTransport,
     output: Path,
+    offline: bool = False,
 ) -> list[dict[str, Any]]:
-    """Sonuç dosyasında olan soru yeniden sorulmaz; her sorudan sonra dosya yazılır."""
-    rows = load_rows(output)
+    """Sonuç dosyasında olan soru yeniden sorulmaz; her sorudan sonra dosya yazılır.
+
+    Çevrimdışı koşuda ıskalanan soru "miss" olarak yazılır; sonraki koşu onu yeniden sorar.
+    """
+    rows = [row for row in load_rows(output) if row["cache"] != "miss"]
     done = {row["id"] for row in rows}
     for question in questions:
         if question["id"] in done:
@@ -155,6 +159,7 @@ async def ask_all(
                 seconds,
                 transport.counts.since(counts),
                 transport.usage.since(usage),
+                offline,
             )
         )
         output.write_text(json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -186,7 +191,9 @@ async def run(arguments: argparse.Namespace) -> dict[str, Any]:
     try:
         store = QdrantChunkStore(client, COLLECTION)
         index = await ensure_index(flat, dense, sparse, store, arguments.work)
-        transport = CachingTransport(httpx.AsyncHTTPTransport(), arguments.cache_dir)
+        transport = CachingTransport(
+            httpx.AsyncHTTPTransport(), arguments.cache_dir, offline=arguments.offline
+        )
         async with httpx.AsyncClient(transport=transport) as http:
             clients = await build_model_clients(http, settings, key.get_secret_value())
             deps = ask_deps(
@@ -195,13 +202,14 @@ async def run(arguments: argparse.Namespace) -> dict[str, Any]:
                 HybridRetriever(dense, sparse, store),
                 clients,
             )
-            rows = await ask_all(questions, deps, transport, arguments.output)
+            rows = await ask_all(questions, deps, transport, arguments.output, arguments.offline)
     finally:
         await client.close()
     return {
         "ingest": manifest,
         "index": index,
         "questions": len(rows),
+        "questions_missed_offline": [row["id"] for row in rows if row["cache"] == "miss"],
         "cost_usd": round(sum(row["cost_usd"] for row in rows), 6),
     }
 
@@ -212,6 +220,11 @@ def main() -> None:
     parser.add_argument("--questions", type=Path, required=True)
     parser.add_argument("--work", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help='model isteği ağa gitmez; önbellekte olmayan soru "miss" olarak yazılır',
+    )
     parser.add_argument("--cache-dir", type=Path, default=Path("evals/output/answer-cache"))
     arguments = parser.parse_args()
     json.dump(asyncio.run(run(arguments)), sys.stdout, ensure_ascii=False, indent=1)
