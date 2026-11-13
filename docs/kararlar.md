@@ -276,8 +276,9 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   - **İlk OCR `tur+eng` (değiştirildi, 2026-11-12, `ocr-tur-eng` dalı):**
     - Yüklemede belgenin dili "bilinmiyor" kaydediliyor (`UNDETECTED_LANGUAGE`). İlk OCR
       Türkçe ve İngilizce birlikte yapılıyor (`ingest/external.py`, `tesseract_language`).
-    - Belge işlenince dil parçalardan okunuyor. Yeniden işlemede tespit edilen dil (`tur` ya
-      da `eng`) kullanılıyor.
+    - Belge işlenince dil parçalardan okunuyor; bu dil katalog içindir. Yeniden işlemede de
+      OCR `tur+eng` ile yapılıyor, kayıtlı dile bağlı değil (2026-11-13, `yeniden-isleme-ocr`;
+      önce tespit edilen dil kullanılıyordu ve aynı dosya iki yolda farklı okunuyordu).
     - Önce yüklemedeki dil hep `tr` idi, ilk OCR her belgede yalnız Türkçeydi.
     - Mevcut indeks yeniden işlenmedi; değişiklik yeni yüklemelerde geçerli.
   - **Yeni kanıt (8 okumalık ölçüm, yerel, Tesseract 5.4.0):**
@@ -792,6 +793,23 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Neden:** Yeni tasarım tek temada sade kalsın; atölyede açık tema daha okunur.
 - **Geri eklemek için:** Yeni bir gerekçe gerekir (ör. gece vardiyasında ölçülmüş bir okuma
   sorunu).
+
+### İnternetsiz açılış: VA_MODELS_OFFLINE; BM25 önbelleği kalıcı klasörde
+- **Ne zaman:** 2026-11-13, `cevrimdisi-acilis` dalı; ürün sahibi isteği (fabrika ağında
+  internet olmayabilir).
+- **Ne:** Ayar açıkken `apps.local`, Hugging Face kütüphaneleri yüklenmeden önce
+  `HF_HUB_OFFLINE` ve `TRANSFORMERS_OFFLINE` koyar; bge-m3, BM25 ve Docling modellerinin
+  önbellekte olmadığını görürse ne eksik olduğunu söyleyip durur. Varsayılan kapalı: ilk
+  kurulum modelleri indirir.
+- **Kontrol neden klasör düzeyinde:** `snapshot_download(local_files_only=True)` yanlış
+  "eksik" dedi: fastembed modelin yalnız gereken dosyalarını indiriyor, Docling sabit bir
+  sürüm (`v2.3.0`) kullanıyor. Bedeli: Docling sabit sürümü değiştirirse açılış kontrolü
+  geçer, hata ilk belgede çıkar (Docling model adlarını kurulu sürümle eşleştiren test var).
+- **BM25 önbelleği:** `%TEMP%astembed_cache` yerine `data/models/fastembed`; geçici klasör
+  temizlenince model internetten yeniden inmek zorunda kalıyordu. Mevcut önbellek bu
+  bilgisayarda yeni yere kopyalandı.
+- **Sınırı:** Cevap modeli bulutta (OpenRouter); internetsiz ağda uygulama açılır ama soru
+  cevaplanamaz.
 
 ## Ses
 

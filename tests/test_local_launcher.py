@@ -8,6 +8,7 @@ from apps.local import (
     api_key_missing,
     build_web,
     local_url,
+    prepare_offline_models,
     tool_report,
     use_embedded_qdrant,
     web_is_stale,
@@ -134,3 +135,71 @@ def test_empty_api_key_line_counts_as_missing() -> None:
     assert api_key_missing(Settings(_env_file=None, openrouter_api_key="   "))
     assert api_key_missing(Settings(_env_file=None, openrouter_api_key=None))
     assert not api_key_missing(Settings(_env_file=None, openrouter_api_key="anahtar"))
+
+
+def test_offline_models_set_the_hub_variables_and_report_missing_models() -> None:
+    environ: dict[str, str] = {}
+    present = {
+        "BAAI/bge-m3",
+        "docling-project/docling-layout-heron",
+        "docling-project/docling-models",
+    }
+
+    missing = prepare_offline_models(environ, lambda repo_id, cache_dir: repo_id in present)
+
+    assert environ == {"HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1"}
+    assert missing == ["Qdrant/bm25"]
+
+
+def test_bm25_model_is_looked_up_in_its_own_cache_folder(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("FASTEMBED_CACHE_PATH", raising=False)
+    looked_up: dict[str, str | None] = {}
+
+    def cached(repo_id: str, cache_dir: str | None) -> bool:
+        looked_up[repo_id] = cache_dir
+        return True
+
+    assert prepare_offline_models({}, cached) == []
+    assert looked_up["Qdrant/bm25"] == "data/models/fastembed"
+    assert looked_up["BAAI/bge-m3"] is None  # Hugging Face'in kendi önbelleği
+
+
+def test_offline_models_are_off_by_default() -> None:
+    assert Settings(_env_file=None).models_offline is False
+
+
+def test_a_model_counts_as_cached_when_a_snapshot_folder_exists(tmp_path: Path) -> None:
+    from apps.local import _in_model_cache
+
+    snapshot = tmp_path / "models--Qdrant--bm25" / "snapshots" / "abc123"
+    assert not _in_model_cache("Qdrant/bm25", str(tmp_path))
+
+    snapshot.mkdir(parents=True)
+
+    assert _in_model_cache("Qdrant/bm25", str(tmp_path))
+
+
+def test_an_empty_snapshot_folder_is_not_a_cached_model(tmp_path: Path) -> None:
+    from apps.local import _in_model_cache
+
+    (tmp_path / "models--Qdrant--bm25" / "snapshots").mkdir(parents=True)
+
+    assert not _in_model_cache("Qdrant/bm25", str(tmp_path))
+
+
+def test_fastembed_cache_variable_wins_over_the_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    from visual_agent.retrieval.encoders import bm25_cache_directory
+
+    monkeypatch.setenv("FASTEMBED_CACHE_PATH", "/home/appuser/.cache/fastembed")
+
+    assert bm25_cache_directory() == "/home/appuser/.cache/fastembed"
+
+
+def test_docling_model_names_match_the_installed_docling() -> None:
+    specs = pytest.importorskip("docling.datamodel.stage_model_specs")
+    table = pytest.importorskip("docling.models.stages.table_structure.table_structure_model")
+    from apps.local import _DOCLING_MODELS
+
+    layout = specs.OBJECT_DETECTION_LAYOUT_HERON.model_spec.repo_id
+    tables = table.TableStructureModel._model_repo_folder.replace("--", "/")
+    assert set(_DOCLING_MODELS) == {layout, tables}

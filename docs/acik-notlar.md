@@ -76,6 +76,7 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 
 ## Kurulum
 
+- RapidOCR modelleri .venv içinde; paket yeniden kurulursa modelscope.cn'den yeniden iner (internet gerekir).
 - LibreOffice dönüştürmesinin 180 sn sınırı işlemci doluyken aşılabiliyor: iki vektörleme işi aynı anda çalışırken taban ölçümünde `sql-ekran.docx` ve `sql-notlar.docx` PDF'e çevrilemedi (`TimeoutExpired`). İşlemci boşken aynı belgeler sorunsuz çevrildi. Uygulamada belge yüklemesi büyük bir yeniden işlemeyle çakışırsa Office belgesi "işlenemedi" olabilir; sınırın yükle ilişkisi ölçülmedi.
 - Sunucu (Docker) kurulumundaki Docling model indirme komutu (`docling-tools models download`) önceki bilgisayarda takıldı ve hiç doğrulanmadı. Yerel kurulumda bu komut kullanılmıyor, modeller ilk belgede kendiliğinden iniyor. Sunucuya ilk kurulumda denenecek; takılırsa nedeni bulunacak.
 - Docker paketi (compose, imajlar) SQLite ve tek süreç değişikliğinden sonra bu bilgisayarda denenemedi; yalnız CI'daki `services` işi açılışı sınıyor. Sunucuya kurulurken API ve işçinin aynı SQLite birimini paylaşması uçtan uca denenecek.

@@ -1,15 +1,23 @@
 """CPU'da çalışan yerel kodlayıcılar. Modeller ilk kullanımda yüklenir."""
 
+import os
 from collections.abc import Sequence
 from typing import Any
 
 from visual_agent.retrieval.normalization import normalize_for_bm25
 
-_DENSE_MODEL = "BAAI/bge-m3"
+DENSE_MODEL = "BAAI/bge-m3"
 _DENSE_SIZE = 1024
 _MAX_SEQUENCE_LENGTH = 512
 _BATCH_SIZE = 16
-_BM25_MODEL = "Qdrant/bm25"
+BM25_MODEL = "Qdrant/bm25"
+# Kalıcı klasör: geçici klasör temizlenirse model internetten yeniden inmek zorunda kalırdı.
+# Docker FASTEMBED_CACHE_PATH ile kendi birimini verir.
+BM25_CACHE_DIRECTORY = "data/models/fastembed"
+
+
+def bm25_cache_directory() -> str:
+    return os.environ.get("FASTEMBED_CACHE_PATH") or BM25_CACHE_DIRECTORY
 
 
 class BgeM3Dense:
@@ -18,7 +26,7 @@ class BgeM3Dense:
     def __init__(self) -> None:
         from sentence_transformers import SentenceTransformer
 
-        self._model: Any = SentenceTransformer(_DENSE_MODEL, device="cpu")
+        self._model: Any = SentenceTransformer(DENSE_MODEL, device="cpu")
         self._model.max_seq_length = _MAX_SEQUENCE_LENGTH
 
     def _encode(self, texts: Sequence[str]) -> list[list[float]]:
@@ -45,7 +53,7 @@ class Bm25Sparse:
     def __init__(self) -> None:
         from fastembed.sparse.bm25 import Bm25
 
-        self._model: Any = Bm25(_BM25_MODEL)
+        self._model: Any = Bm25(BM25_MODEL, cache_dir=bm25_cache_directory())
 
     def encode_documents(self, texts: Sequence[str]) -> list[dict[int, float]]:
         normalized = [normalize_for_bm25(text) for text in texts]

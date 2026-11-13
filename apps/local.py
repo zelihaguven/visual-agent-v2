@@ -5,6 +5,7 @@ bilgisayardan erişilebilen adreste açılır.
 """
 
 import argparse
+import importlib.util
 import logging
 import os
 import shutil
@@ -17,6 +18,7 @@ from collections.abc import Callable, Iterable, MutableMapping
 from pathlib import Path
 
 from visual_agent.ingest.external import ExternalTools, locate_tools
+from visual_agent.retrieval.encoders import BM25_MODEL, DENSE_MODEL, bm25_cache_directory
 from visual_agent.settings import Settings
 
 logger = logging.getLogger("visual_agent.local")
@@ -52,6 +54,48 @@ def use_embedded_qdrant(settings: Settings, environ: MutableMapping[str, str]) -
         return False
     environ["VA_QDRANT_PATH"] = LOCAL_QDRANT_PATH
     return True
+
+
+_OFFLINE_VARIABLES = ("HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE")
+# Docling'in yerleşim ve tablo modelleri; yalnız belge işleme paketleri kuruluysa gerekir.
+_DOCLING_MODELS = ("docling-project/docling-layout-heron", "docling-project/docling-models")
+MODELS_MISSING = (
+    "VA_MODELS_OFFLINE açık, ama şu modeller bu bilgisayarın önbelleğinde yok: {}. "
+    "İlk kurulumu internetle yapın (VA_MODELS_OFFLINE=false), sonra yeniden açın."
+)
+
+Cached = Callable[[str, str | None], bool]
+
+
+def _in_model_cache(repo_id: str, cache_dir: str | None) -> bool:
+    """Modelin önbellekte en az bir indirilmiş sürümü var mı.
+
+    Kütüphaneler modelin yalnız gereken dosyalarını ya da sabit bir sürümünü indirir; bütün
+    depoyu aramak yanlış "eksik" der. Yüklemeyi asıl kütüphane yapar.
+    """
+    from huggingface_hub.constants import HF_HUB_CACHE
+
+    folder = Path(cache_dir or HF_HUB_CACHE) / f"models--{repo_id.replace('/', '--')}"
+    snapshots = folder / "snapshots"
+    return snapshots.is_dir() and any(snapshots.iterdir())
+
+
+def prepare_offline_models(
+    environ: MutableMapping[str, str], cached: Cached = _in_model_cache
+) -> list[str]:
+    """Modeller yalnız yerel önbellekten yüklensin; önbellekte olmayanlar döner.
+
+    Değişkenler Hugging Face kütüphaneleri yüklenmeden önce konmalı: değerleri yüklenirken okunur.
+    """
+    for name in _OFFLINE_VARIABLES:
+        environ[name] = "1"
+    wanted: list[tuple[str, str | None]] = [
+        (DENSE_MODEL, None),
+        (BM25_MODEL, bm25_cache_directory()),
+    ]
+    if importlib.util.find_spec("docling") is not None:
+        wanted += [(repo_id, None) for repo_id in _DOCLING_MODELS]
+    return [repo_id for repo_id, cache_dir in wanted if not cached(repo_id, cache_dir)]
 
 
 def local_url(settings: Settings) -> str:
@@ -115,6 +159,11 @@ def main() -> None:
         settings = Settings()
     if arguments.port is not None:
         settings = Settings(web_port=arguments.port)  # doğrulanır: geçersiz port açılışta durur
+    if settings.models_offline:
+        missing = prepare_offline_models(os.environ)
+        if missing:
+            raise SystemExit(MODELS_MISSING.format(", ".join(missing)))
+        logger.info("Modeller yalnız yerel önbellekten yüklenecek (VA_MODELS_OFFLINE).")
     if api_key_missing(settings):
         logger.warning(".env içinde VA_OPENROUTER_API_KEY yok; sorular cevaplanamaz.")
     for line in tool_report(locate_tools(settings.soffice_path, settings.tesseract_path)):
