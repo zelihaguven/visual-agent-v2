@@ -1,6 +1,7 @@
 import asyncio
 import json
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -293,3 +294,25 @@ def test_ingest_check_reads_documents_like_the_application(
         ("A belgesi", UNDETECTED_LANGUAGE),
         ("B belgesi", UNDETECTED_LANGUAGE),
     ]
+
+
+def test_offline_miss_is_labelled_and_asked_again_by_the_next_run(tmp_path: Path) -> None:
+    output = tmp_path / "sonuc.json"
+    transport = CachingTransport(httpx.AsyncHTTPTransport(), tmp_path / "cache", offline=True)
+
+    @dataclass
+    class MissingClient(FakeClient):
+        async def stream(self, messages: Any, callbacks: Any = None) -> Any:
+            transport.counts.misses += 1
+            return await super().stream(messages, callbacks)
+
+    client = MissingClient(answer_payload("76,5"))
+    deps = make_deps(client, FakeRetriever(hits=[CHUNKS[0]]))
+    questions = [{"id": "1", "question": "iç paça nedir"}]
+
+    offline = asyncio.run(ask_all(questions, deps, transport, output, offline=True))
+    again = asyncio.run(ask_all(questions, deps, transport, output))
+
+    assert offline[0]["cache"] == "miss"
+    assert len(client.calls) == 2
+    assert [row["id"] for row in again] == ["1"]
