@@ -17,6 +17,9 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Söylenen kodlar yazıya çevrilirken bozulabiliyor ("PNT-1162" yerine "NT1162"). Konuşma modunda soru otomatik gönderildiği için gerçek konuşmacıyla ölçülecek.
 - Tablet Safari'de otomatik ses çalma denenmedi.
 - Ağdaki tabletlerden mikrofon için HTTPS gerekiyor.
+- **Kural 1 riski, bir sonraki ses işinde önce ele alınacak:** Harf ya da çarpı işaretine bitişik sayı ("x1.500", "2,5x3,5") seste dönüştürülmüyor, olduğu gibi TTS'e gidiyor; TTS onu kendi yorumlayabilir ("1.500" → 1,5 ya da 1500). Sayının parçası okunmasın diye bilerek dokunulmadı (`deger-dogrulugu`).
+- Kozmetik: "-5 °C" "eksi beş °ce" okunuyor (derece işareti okunmuyor, "C" harf olarak okunuyor).
+- Kozmetik: "1.500 TL'dir" "… Türk lirasıdir" okunuyor; ek, birimin okunuşuna ünlü uyumu gözetilmeden ekleniyor.
 
 ## Cevap kalitesi
 
