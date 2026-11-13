@@ -206,20 +206,16 @@ def _old_report() -> dict[str, object]:
 
 
 @pytest.mark.parametrize(
-    ("filename", "outdated"),
-    [
-        ("kilavuz.md", True),
-        ("tablo.xlsx", True),
-        ("rapor.sql", True),
-        ("tarama.pdf", True),
-        ("foto.jpg", True),
-        ("belge.docx", True),
-    ],
+    "filename", ["kilavuz.md", "tablo.xlsx", "rapor.sql", "tarama.pdf", "foto.jpg", "belge.docx"]
 )
-def test_old_reports_are_outdated_only_where_the_rules_changed(
-    filename: str, outdated: bool
-) -> None:
-    assert is_outdated(_old_report(), filename) is outdated
+def test_reports_without_a_rules_version_are_outdated(filename: str) -> None:
+    assert is_outdated(_old_report(), filename)
+
+
+def test_word_report_from_the_first_ocr_rules_is_outdated() -> None:
+    report = {**_old_report(), "input_format": "office", "rules_version": 1}
+
+    assert is_outdated(report, "belge.docx")
 
 
 def test_unknown_file_type_is_never_outdated() -> None:
