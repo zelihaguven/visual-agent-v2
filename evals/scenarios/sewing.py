@@ -67,6 +67,7 @@ def _document(spec: Spec) -> ScenarioDocument:
         headers=(spec.measure_header, *SIZES, "Tolerans (cm)"),
         rows=measure_rows,
         group_header="Beden",
+        group_width=len(SIZES),
     )
     labels = TableBlock(
         title="Etiket kodları",

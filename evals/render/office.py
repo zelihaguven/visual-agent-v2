@@ -56,7 +56,7 @@ def _fill_sheet(sheet: Worksheet, title: str, block: TableBlock) -> None:
             start_row=_EXCEL_GROUP_ROW,
             start_column=2,
             end_row=_EXCEL_GROUP_ROW,
-            end_column=last_column - 1 if block.group_header else last_column,
+            end_column=last_column if block.group_width is None else 1 + block.group_width,
         )
     for column, header in enumerate(block.headers, start=1):
         sheet.cell(_EXCEL_HEADER_ROW, column, header)
