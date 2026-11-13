@@ -765,6 +765,34 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     farklı bayt).
   - Gömülü Qdrant klasörü (22 MB) 20 MB sınırını aşıyor.
 
+### Ölçüm indeksi n10: belgeler uygulamayla aynı yoldan işlenir (OCR tur+eng)
+- **Ne zaman:** 2026-11-13. `olcum-uygulama` dalı (inceleme listesi #3, #20, #21).
+- **Karar:**
+  - Ölçüm betikleri belgeyi uygulamadaki gibi dili bilinmeden (`UNDETECTED_LANGUAGE`)
+    işler; ilk OCR `tur+eng`. Katalog dili yine parçalardan okunur.
+  - Geçerli ölçüm klasörleri: `evals/output/n10/w7`, `n10/w11` (taban setleri), `n10/wfr`
+    (FastReact). Altın setler `run_questions --offline` ile önbellekten ölçülür; önbellekte
+    olmayan soru "miss" olur, canlı sayılmaz.
+  - Bu tarihten önceki ölçümlerin sayıları n10 ile doğrudan karşılaştırılamaz: taranmış
+    belge ve fotoğrafın parçaları farklı.
+- **Neden:** Kararlar'daki "Ölçüm uygulamanın kendi kodunu kullanır" maddesi OCR'da
+  tutmuyordu: `run_questions` dili altın metinden seçip tek dille, `run_documents` ve
+  `ingest_check` varsayılan "tr" ile OCR yapıyordu.
+- **Yeniden üretim:** Yalnız `dikim-tarama` ve `dikim-foto` parçaları değişti (iki sette de).
+  İşleme 3 dk 24 sn ve 3 dk 3 sn, vektörler 27 sn ve 22 sn. FastReact parçaları birebir aynı
+  (3648, hepsi `.md`, OCR yok); vektör yeniden üretilmedi.
+- **Ölçüm** (önce: n9, aynı kod; sonra: n10):
+  - Geçen soru seed 7'de 34 → 35, seed 11'de 35 → 37. Doğrulanmış yanlış 0 → 0. Seed
+    11'de `dikim-foto-olcu`'yu canlıda ilk sağlayıcı cevaplamadı, yedek sağlayıcı cevapladı;
+    çevrimdışı koşu önce ilk sağlayıcıyı denediği için bu soru "miss" sayılır ve özette
+    puana girmez (çevrimdışı özet 36/39). Canlı sonucu doğru.
+  - Değişen 3 soru, üçü de gizlenmişken doğru oldu: seed 7 `dikim-foto-olcu`, seed 11
+    `dikim-tarama-olcu` ve `dikim-foto-olcu`.
+  - Önbellekte olmayan 14 soru bir kez canlı soruldu (0,0026 $). FastReact'ta değişen
+    soru yok.
+- **Eski klasörler:** n3–n9, run7-taban, run11-taban ve fastreact karşılaştırma için
+  kalıyor. `evals/output/` `.gitignore`'da; repoda izlenen dosyası yok.
+
 ## Karar belgeleri 0001–0004
 
 Eskiden `docs/decisions/` altındaki dört belgenin tam metni. Yukarıdaki maddelerde "0001"–"0004" diye anılan belgeler bunlar.
