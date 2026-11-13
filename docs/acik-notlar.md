@@ -54,6 +54,16 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Yüklemede `create_document` veritabanına yazıp sonra hata verirse (ör. zaman aşımı) kayıt kalıyor, dosya klasörü siliniyor; işçi dosyayı bulamaz ve belge "işlenemedi" olur. `arayuz-akis` #13'ün tersi, düşük olasılık.
 - Hazır bir belge yeniden işlenirken, işlem bitene kadar aramada görünmüyor; eski hali de kullanılamıyor. Pilot için kabul edildi. Eski sürümü işlem bitene kadar aramada tutmak ayrı bir tasarım ister (iki sürümün parçaları ve vektörleri bir süre birlikte durur).
 
+## Ertelenen düzenlemeler (2026-11-13 inceleme listesi)
+
+- `apps/api/main.py` çok iş yapıyor: belge yükleme ve listeleme `documents.py`'ye, `/ask` akışı ayrı modüle taşınabilir; yalnız yer değişikliği.
+- Test yardımcıları test dosyalarına dağılmış (`conftest.py` yok); ortak sahte nesneler tek dosyada toplanabilir.
+- Kaynaklarda `parça="şekil"` etiketi var, istemde açıklaması yok; kaldırmak ya da tanımlamak istem değişikliği, bekleyen istem değişiklikleriyle aynı turda ele alınacak.
+- Bazı kullanıcı metinleri ("servis kullanılamıyor", "belgelerde geçmiyor", "doğrulanamadığı için gösterilmiyor") yalnız Türkçe; İngilizce soruda da Türkçe geliyor.
+- Türkçe I/İ katlaması birkaç biçimde yazılmış; BM25 normalleştirmesini birleştirmek yeniden indeksleme ister.
+- Süre sınırları (çeviri 1,2 sn, takip 4 sn, niyet 1,5 sn, durma 10 sn, LibreOffice 180 sn, `top_k` 8) kodda sabit; ölçümle değişecek olanlar `Settings`'e taşınabilir.
+- Erişilebilirlik ve istek kontrolü: panellerde odak yönetimi ve Escape yok, `aria-live` bütün turlarda açık, yazılı soruda "Durdur" düğmesi yok, `done`/`error` gelmeden biten akış turu askıda bırakıyor.
+
 ## Yayına almadan önce
 
 - Soru kaydının saklama süresi açık: her soru (kullanıcının yazdığı metin dahil) SQLite'ta süresiz kalıyor, silme ya da anonimleştirme yok. Yayına almadan önce saklama süresi ve kimin okuyabileceği kararlaştırılmalı; ses ve cevap metninin tamamı zaten kaydedilmiyor.
