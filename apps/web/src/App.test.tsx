@@ -400,6 +400,41 @@ describe("App", () => {
     expect(within(list).getByText("Belge işlenemedi.")).toBeInTheDocument();
   });
 
+  it("clears the list error once the list loads again and notices documents added elsewhere", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      let calls = 0;
+      stubApi({
+        "/api/documents": () => {
+          calls += 1;
+          return calls === 1
+            ? jsonResponse({ detail: "yok" }, 503)
+            : jsonResponse([{ doc_id: "a", title: "Yeni föy", filename: "a.pdf", status: "ready", error: null, report: null }]);
+        },
+      });
+      render(<App />);
+      expect(await screen.findByText("Belge listesi alınamadı.")).toBeInTheDocument();
+
+      await vi.advanceTimersByTimeAsync(30_000);
+
+      expect(await screen.findByText("Yeni föy")).toBeInTheDocument();
+      expect(screen.queryByText("Belge listesi alınamadı.")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps an action error after the list is refreshed", async () => {
+    stubDocumentActions(404);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
+
+    expect(await screen.findByText("Belge bulunamadı.")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("Belge bulunamadı.")).toBeInTheDocument());
+  });
+
   const READY_DOCUMENT = {
     doc_id: "d1",
     title: "Föy",
