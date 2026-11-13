@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from visual_agent.domain.answer import AnswerKind, ModelAnswer
+from visual_agent.domain.answer import MIN_CLARIFY_OPTIONS, AnswerKind, ModelAnswer
 from visual_agent.generation.parse import ParseFailure, ParseFailureReason, parse_answer
 
 VALID = {
@@ -92,3 +92,10 @@ def test_code_reference_can_replace_quotes() -> None:
     payload = {"tur": "cevap", "cevap": [{"alintilar": [], "kod_kaynak_no": 3, "metin": "Komut."}]}
 
     assert _parsed(json.dumps(payload)).items[0].code_source_no == 3
+
+
+def test_clarify_without_options_names_the_real_minimum() -> None:
+    with pytest.raises(ValueError, match=f"en az {MIN_CLARIFY_OPTIONS} seçenek"):
+        ModelAnswer.model_validate(
+            {"tur": "netlestirme", "netlestirme": {"soru": "Hangisi?", "secenekler": []}}
+        )

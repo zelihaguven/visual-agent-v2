@@ -65,7 +65,9 @@ class ModelAnswer(_Frozen):
         if self.kind is AnswerKind.CLARIFY:
             enough = self.clarify is not None and len(self.clarify.options) >= MIN_CLARIFY_OPTIONS
             if not enough or self.items:
-                raise ValueError("netleştirme en az iki seçenek ister ve cevap içeremez")
+                raise ValueError(
+                    f"netleştirme en az {MIN_CLARIFY_OPTIONS} seçenek ister ve cevap içeremez"
+                )
         return self
 
 
