@@ -65,6 +65,22 @@ SIZES = (
     ("Basen", "98", "100", "102"),
     ("İç paça", "76", "77", "78"),
 )
+# Model başına sayfa: kod yalnız sayfa adında, satırlarda kod yok. Değerler sayfalar arasında
+# farklı; yanlış sayfanın satırı yanlış değer verir.
+MODEL_SHEETS = (
+    (
+        "PNT-3101",
+        (("Bel", "70", "72", "74"), ("Basen", "94", "96", "98"), ("Boy", "102", "104", "106")),
+    ),
+    (
+        "PNT-3102",
+        (("Bel", "75", "77", "79"), ("Basen", "99", "101", "103"), ("Boy", "107", "109", "111")),
+    ),
+    (
+        "PNT-3103",
+        (("Bel", "80", "82", "84"), ("Basen", "104", "106", "108"), ("Boy", "112", "114", "116")),
+    ),
+)
 WASHING = (("Pamuk", "30", "60"), ("Polyester", "20", "40"), ("Yün", "20", "30"))
 MOTORS = (("Tork (Nm)", "12", "15"), ("Devir (dev/dk)", "1.400", "2.800"))
 RULES = (
@@ -161,6 +177,93 @@ def _column_and_negation_documents() -> tuple[ScenarioDocument, ...]:
         ),
         _document(
             "sinir-safety", "docx", Carrier.DOCX, "Safety Notes", (TextBlock("Rules", SAFETY),)
+        ),
+    )
+
+
+def _model_sheet_document() -> ScenarioDocument:
+    return _document(
+        "sinir-model-sayfa",
+        "xlsx",
+        Carrier.XLSX,
+        "Model Ölçü Tablosu",
+        tuple(
+            TableBlock(
+                title=code,
+                headers=("Ölçü noktası", "Beden S", "Beden M", "Beden L"),
+                rows=rows,
+                group_header="Bedenler",
+            )
+            for code, rows in MODEL_SHEETS
+        ),
+    )
+
+
+def _model_sheet_questions(document: ScenarioDocument) -> tuple[GoldQuestion, ...]:
+    """Kod yalnız sayfa adında: doğru satır, kod tam eşleşmesiyle değil aramayla bulunmalı.
+
+    Kanıt model kodunu da taşır: cevaptaki kod yabancı değer sayılmaz.
+    """
+
+    def ask(
+        question_id: str,
+        text: str,
+        value: str,
+        evidence: str,
+        sheet: int,
+        row: int,
+        kind: QuestionKind = QuestionKind.TABLE_LOOKUP,
+    ) -> GoldQuestion:
+        return make_question(
+            question_id=question_id,
+            text=text,
+            kind=kind,
+            expected_values=(value,),
+            evidence=evidence,
+            sources=(source_for(document, sheet, row),),
+        )
+
+    return (
+        ask(
+            "sinir-sayfa-3102-bel-m",
+            "PNT-3102 modelinde M beden bel kaç?",
+            "77",
+            "PNT-3102 · Beden M: 77",
+            1,
+            0,
+        ),
+        ask(
+            "sinir-sayfa-3103-basen-l",
+            "PNT-3103 L beden basen ölçüsü nedir?",
+            "108",
+            "PNT-3103 · Beden L: 108",
+            2,
+            1,
+        ),
+        ask(
+            "sinir-sayfa-3101-boy-s",
+            "PNT-3101 modelinin S beden boyu ne kadar?",
+            "102",
+            "PNT-3101 · Beden S: 102",
+            0,
+            2,
+        ),
+        ask(
+            "sinir-sayfa-3102-basen-m-teyit",
+            "PNT-3102 M beden basen 96 mı?",
+            "101",
+            "PNT-3102 · Beden M: 101",
+            1,
+            1,
+            QuestionKind.CONFIRM_WRONG,
+        ),
+        # Olmayan model: komşu sayfadan değer verilmemeli, kod belgelerde geçmiyor denmeli.
+        make_question(
+            question_id="sinir-sayfa-3104-yok",
+            text="PNT-3104 M beden bel kaç?",
+            kind=QuestionKind.NOT_IN_DOCUMENT,
+            outcome=Outcome.NOT_FOUND,
+            absent_term="PNT-3104",
         ),
     )
 
@@ -288,6 +391,7 @@ def _negation_questions(
 def build_boundary() -> Scenario:
     fees, storage, seams, steps, meters = _documents()
     sizes, washing, motors, rules, safety = _column_and_negation_documents()
+    model_sheets = _model_sheet_document()
 
     def ask(
         question_id: str, text: str, values: tuple[str, ...], evidence: str, source: GoldSource
@@ -408,10 +512,23 @@ def build_boundary() -> Scenario:
         ),
     )
     return Scenario(
-        documents=(fees, storage, seams, steps, meters, sizes, washing, motors, rules, safety),
+        documents=(
+            fees,
+            storage,
+            seams,
+            steps,
+            meters,
+            sizes,
+            washing,
+            motors,
+            rules,
+            safety,
+            model_sheets,
+        ),
         questions=(
             *questions,
             *_column_questions(sizes, washing, motors),
             *_negation_questions(rules, safety),
+            *_model_sheet_questions(model_sheets),
         ),
     )
