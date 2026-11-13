@@ -12,9 +12,8 @@ from qdrant_client import AsyncQdrantClient
 
 from evals.answer_cache import CacheCounts, CachingTransport
 from evals.gold import Badge, GoldQuestion, GoldSet, GoldSource, Outcome
-from evals.index_cache import ensure_index, load_or_ingest
-from evals.ingest_check import question_found
-from evals.scoring import AnswerItem, AnswerRecord, score_question, summarize
+from evals.index_cache import Documents, ensure_index, load_or_ingest
+from evals.scoring import AnswerItem, AnswerRecord, question_found, score_question, summarize
 from visual_agent.ask.clients import ask_deps, build_model_clients
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.language import detect_language, document_language
@@ -47,12 +46,15 @@ def _meta(gold: GoldSet, doc_id: str) -> DocumentMeta:
     )
 
 
-def load_chunks(gold: GoldSet, set_directory: Path, work: Path) -> dict[str, list[Chunk]]:
-    documents = [
+def gold_documents(gold: GoldSet, set_directory: Path) -> Documents:
+    return [
         (set_directory / document.filename, _meta(gold, document.doc_id))
         for document in gold.documents
     ]
-    chunks, manifest = load_or_ingest(documents, work, keep_partial=False)
+
+
+def load_chunks(gold: GoldSet, set_directory: Path, work: Path) -> dict[str, list[Chunk]]:
+    chunks, manifest = load_or_ingest(gold_documents(gold, set_directory), work, keep_partial=False)
     if manifest.get("errors"):
         raise SystemExit(f"belge işlenemedi: {manifest['errors']}")
     return chunks

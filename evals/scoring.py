@@ -7,6 +7,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict
 
 from evals.gold import Badge, GoldQuestion, GoldSource, Outcome
+from visual_agent.domain.document import Chunk
 
 _IDENTIFIER = re.compile(
     r"(?<![\w-])(?:"
@@ -184,3 +185,26 @@ def summarize(questions: Sequence[GoldQuestion], scores: Sequence[QuestionScore]
         by_kind=by_kind,
         skipped_clarifications=sum(score.skipped_clarification for score in scores),
     )
+
+
+def source_matches(chunk: Chunk, source: GoldSource) -> bool:
+    if chunk.doc_id != source.doc_id:
+        return False
+    location = chunk.location
+    return (
+        (source.page is None or location.page == source.page)
+        and (source.sheet is None or location.sheet == source.sheet)
+        and (source.row is None or location.row == source.row)
+    )
+
+
+def question_found(question: GoldQuestion, chunks: Sequence[Chunk]) -> bool:
+    """Her beklenen değer, doğru konumdaki parçalardan birinde bulunmalıdır."""
+    expected = frozenset().union(*(extract_tokens(value) for value in question.expected_values))
+    candidates = [c for c in chunks if any(source_matches(c, s) for s in question.sources)]
+    available = (
+        frozenset().union(*(extract_tokens(chunk.text) for chunk in candidates))
+        if candidates
+        else frozenset()
+    )
+    return expected <= available

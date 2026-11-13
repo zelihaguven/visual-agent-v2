@@ -33,7 +33,11 @@ def chunks_fingerprint(chunks: Sequence[Chunk]) -> str:
     return digest.hexdigest()
 
 
-def _ingest_all(documents: Documents) -> tuple[dict[str, list[Chunk]], dict[str, str], float]:
+def _ingest_all(documents: Documents) -> tuple[dict[str, list[Chunk]], dict[str, Any]]:
+    """Belgeler uygulamanın işleme koduyla işlenir; tek belgedeki hata ötekileri durdurmaz.
+
+    Manifest: belge ve parça sayısı, toplam süre, hatalar ve belge başına süre ile rapor.
+    """
     from visual_agent.ingest.external import locate_tools
     from visual_agent.ingest.pipeline import ingest_document
     from visual_agent.ingest.tools import default_tools
@@ -42,14 +46,30 @@ def _ingest_all(documents: Documents) -> tuple[dict[str, list[Chunk]], dict[str,
     tools = default_tools(locate_tools(settings.soffice_path, settings.tesseract_path))
     chunks: dict[str, list[Chunk]] = {}
     errors: dict[str, str] = {}
+    per_document: dict[str, dict[str, Any]] = {}
     started = time.perf_counter()
     for path, meta in documents:
+        begun = time.perf_counter()
         try:
             with tempfile.TemporaryDirectory() as work:
-                chunks[meta.doc_id] = list(ingest_document(path, meta, tools, Path(work)).chunks)
+                result = ingest_document(path, meta, tools, Path(work))
         except Exception as error:
             errors[meta.doc_id] = f"{type(error).__name__}: {error}"
-    return chunks, errors, time.perf_counter() - started
+            continue
+        chunks[meta.doc_id] = list(result.chunks)
+        per_document[meta.doc_id] = {
+            "seconds": round(time.perf_counter() - begun, 1),
+            "report": result.report.model_dump(mode="json"),
+        }
+    manifest = {
+        "files": len(chunks) + len(errors),
+        "documents": len(chunks),
+        "chunks": sum(len(items) for items in chunks.values()),
+        "ingest_seconds": round(time.perf_counter() - started, 1),
+        "errors": errors,
+        "per_document": per_document,
+    }
+    return chunks, manifest
 
 
 def read_chunks(work: Path) -> dict[str, list[Chunk]] | None:
@@ -75,15 +95,8 @@ def load_or_ingest(
             json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
         )
         return cached, manifest
-    chunks, errors, seconds = _ingest_all(documents)
-    manifest = {
-        "files": len(chunks) + len(errors),
-        "documents": len(chunks),
-        "chunks": sum(len(items) for items in chunks.values()),
-        "ingest_seconds": round(seconds, 1),
-        "errors": errors,
-    }
-    if errors and not keep_partial:
+    chunks, manifest = _ingest_all(documents)
+    if manifest["errors"] and not keep_partial:
         return chunks, manifest
     payload = {doc: [c.model_dump(mode="json") for c in items] for doc, items in chunks.items()}
     (work / _CHUNKS_FILE).write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
