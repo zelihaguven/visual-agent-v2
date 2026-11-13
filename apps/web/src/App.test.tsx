@@ -141,6 +141,15 @@ describe("applyEvent", () => {
     expect(applyEvent(turn, { type: "reset" }).items).toEqual({});
   });
 
+  it("keeps a received answer when an error arrives after it", () => {
+    let turn = applyEvent(newTurn("1", "soru"), answered as never);
+    turn = applyEvent(turn, { type: "error", message: "Bağlantı koptu." });
+
+    expect(turn.result).not.toBeNull();
+    expect(turn.error).toBeNull();
+    expect(turn.notice).toBe("Bağlantı koptu.");
+  });
+
   it("does not mutate the previous turn", () => {
     const turn = newTurn("1", "soru");
     applyEvent(turn, { type: "item_stream", index: 0, text: "Metin" });

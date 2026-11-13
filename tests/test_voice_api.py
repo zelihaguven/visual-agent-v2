@@ -464,3 +464,47 @@ def test_client_wraps_pcm_so_browsers_can_play_it() -> None:
 
     assert speech.mime == "audio/wav"
     assert speech.audio.startswith(b"RIFF")
+
+
+class _NullLog:
+    async def record(self, record: object) -> None:
+        return None
+
+
+def test_failed_question_record_does_not_replace_the_answer(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def broken(*args: object, **kwargs: object) -> None:
+        raise ValueError("kayıt kurulamadı")
+
+    async def ask(request: AskRequest) -> AskOutcome:
+        return AskOutcome(result=ANSWERED, timings={})
+
+    monkeypatch.setattr("apps.api.main.record_for", broken)
+    services = ApiServices(
+        repository=FakeRepository(),
+        ask=ask,
+        storage_directory=tmp_path,
+        question_log=_NullLog(),
+    )
+    client = TestClient(create_app(Settings(_env_file=None), services))
+
+    types = [event["type"] for event in ask_events(client, speak=False)]
+
+    assert "done" in types
+    assert "error" not in types
+
+
+def test_voice_failure_after_done_keeps_the_answer(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def broken(self: object, result: object) -> None:
+        raise RuntimeError("bildirim kurulamadı")
+
+    monkeypatch.setattr("apps.api.voice.SpokenAnswer.announce", broken)
+    client = make_client(tmp_path, FakeVoice(), [], ANSWERED)
+
+    types = [event["type"] for event in ask_events(client)]
+
+    assert types.index("done") < types.index("audio_unavailable")
+    assert "error" not in types

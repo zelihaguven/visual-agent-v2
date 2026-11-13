@@ -212,37 +212,45 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
     clock = _AskClock(spoken.on_event if spoken is not None else queue.put_nowait)
 
     async def run() -> None:
+        """Önce cevap gider; kayıt ve ses ondan sonra, cevabı geri alamayacak biçimde çalışır."""
         outcome: AskOutcome | None = None
         try:
-            outcome = await services.ask(
-                AskRequest(
-                    question=request.question,
-                    doc_ids=request.doc_ids,
-                    context=request.context,
-                    on_event=clock,
+            try:
+                outcome = await services.ask(
+                    AskRequest(
+                        question=request.question,
+                        doc_ids=request.doc_ids,
+                        context=request.context,
+                        on_event=clock,
+                    )
                 )
-            )
-            _record_question(request, services, outcome, clock)
-            queue.put_nowait(
-                {
-                    "type": "done",
-                    "result": _result_payload(outcome.result),
-                    "timings": outcome.timings,
-                    "question": outcome.question,
-                    "scope_inherited": outcome.scope_inherited,
-                    "context": outcome.context.model_dump(mode="json")
-                    if outcome.context is not None
-                    else None,
-                }
-            )
-            if spoken is not None:
-                spoken.announce(outcome.result)
-                await spoken.finish()
-        except Exception:
-            logger.exception("Soru cevaplanamadı")
-            if outcome is None:
-                _record_question(request, services, None, clock)
-            queue.put_nowait({"type": "error", "message": _GENERIC_ERROR})
+                queue.put_nowait(
+                    {
+                        "type": "done",
+                        "result": _result_payload(outcome.result),
+                        "timings": outcome.timings,
+                        "question": outcome.question,
+                        "scope_inherited": outcome.scope_inherited,
+                        "context": outcome.context.model_dump(mode="json")
+                        if outcome.context is not None
+                        else None,
+                    }
+                )
+            except Exception:
+                logger.exception("Soru cevaplanamadı")
+                outcome = None
+                queue.put_nowait({"type": "error", "message": _GENERIC_ERROR})
+            try:
+                _record_question(request, services, outcome, clock)
+            except Exception:
+                logger.warning("Soru kaydı kurulamadı", exc_info=True)
+            if spoken is not None and outcome is not None:
+                try:
+                    spoken.announce(outcome.result)
+                    await spoken.finish()
+                except Exception:
+                    logger.warning("Cevap seslendirilemedi", exc_info=True)
+                    queue.put_nowait({"type": "audio_unavailable"})
         finally:
             queue.put_nowait(_END_OF_STREAM)
 
