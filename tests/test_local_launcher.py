@@ -4,7 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from apps.local import build_web, tool_report, use_embedded_qdrant, web_is_stale
+from apps.local import (
+    api_key_missing,
+    build_web,
+    local_url,
+    tool_report,
+    use_embedded_qdrant,
+    web_is_stale,
+)
 from visual_agent.ingest.external import ExternalTools
 from visual_agent.settings import Settings
 
@@ -110,3 +117,20 @@ def test_tool_report_names_found_tools_and_problems() -> None:
 
     assert report[:2] == ["LibreOffice: yok", "Tesseract: C:/T/tesseract.exe (eng, tur)"]
     assert any("LibreOffice kurulu değil" in line for line in report[2:])
+
+
+def test_web_port_is_read_from_the_env_file(tmp_path: Path) -> None:
+    env = tmp_path / ".env"
+    env.write_text("WEB_PORT=9090\n", encoding="utf-8")
+
+    settings = Settings(_env_file=env)
+
+    assert settings.web_port == 9090
+    assert local_url(settings) == "http://127.0.0.1:9090/"
+
+
+def test_empty_api_key_line_counts_as_missing() -> None:
+    assert api_key_missing(Settings(_env_file=None, openrouter_api_key=""))
+    assert api_key_missing(Settings(_env_file=None, openrouter_api_key="   "))
+    assert api_key_missing(Settings(_env_file=None, openrouter_api_key=None))
+    assert not api_key_missing(Settings(_env_file=None, openrouter_api_key="anahtar"))

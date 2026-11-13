@@ -100,6 +100,8 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
     - Karşılaştırılan iki hat ("varsayılan yol" ve "ikili yol") yalnız çeviriyle
       ayrılmıyor. Farkın tamamı çeviriye bağlanamaz (`docs/MIMARI.md` A4.13).
   - Çeviri modeli Gemma 4, NextBit üzerinde. p95 1,04 sn, %2'si sınırı aşıyor.
+    Aynı model (ayar: `VA_HELPER_MODEL` / `VA_HELPER_PROVIDERS`; eski adı
+    `VA_TRANSLATION_*`) takip sorusunu tamamlama ve niyet sınıflandırmasını da yapar.
     Gemma 3 ile DeepInfra'da %96'sı aşıyordu
     (`b4/asama4_ceviri_karsilastirma_2026-11-05`).
   - Yoğun arama özgün soruyla yapılır. Çeviri yalnız soru dili belge dilinden farklıysa

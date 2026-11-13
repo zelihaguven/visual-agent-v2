@@ -247,9 +247,19 @@ def turkish_tens(text: str, language: str) -> set[tuple[str, str]]:
     }
 
 
+_TURKISH_UPPER_I = str.maketrans({"I": "ı", "İ": "i"})
+
+
+def turkish_lower(text: str, *, merge_dotless_i: bool = False) -> str:
+    """Türkçe küçük harf (I → ı, İ → i). merge_dotless_i: ı ile i ayrılmaz ("KILIF", "kilif",
+    "kılıf" aynı); büyük harfle ya da Türkçe klavyesiz yazılmış ad ve kodları eşleştirmek için."""
+    lowered = text.translate(_TURKISH_UPPER_I).casefold()
+    return lowered.replace("ı", "i") if merge_dotless_i else lowered
+
+
 def _word_value(word: str) -> int | None:
-    """Büyük harfli Türkçe yazımlar ("İki", "ALTI") da okunur; tanınmayan sözcük atlanır."""
-    for candidate in (word.replace("İ", "i").casefold(), word.replace("I", "ı").casefold()):
+    """Büyük harfli yazımlar ("İki", "ALTI", "SIX") da okunur; tanınmayan sözcük atlanır."""
+    for candidate in (turkish_lower(word), turkish_lower(word, merge_dotless_i=True)):
         if candidate in _WORD_NUMBERS:
             return _WORD_NUMBERS[candidate]
     return None
@@ -299,7 +309,7 @@ def prefixed_codes_in(text: str) -> set[str]:
 
 
 def fold_identifier(value: str) -> str:
-    return value.replace("İ", "i").casefold()
+    return turkish_lower(value, merge_dotless_i=True)
 
 
 def contains_token(text: str, token: str) -> bool:

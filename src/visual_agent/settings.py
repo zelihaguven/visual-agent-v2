@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import AnyHttpUrl, Field, SecretStr, field_validator
+from pydantic import AliasChoices, AnyHttpUrl, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     database_path: str = "data/visual_agent.db"
     worker_poll_seconds: float = Field(default=5.0, gt=0)
     worker_in_process: bool = True
+    # Yerel arayüzün portu; Docker'daki nginx eşlemesiyle aynı ad (önek yok).
+    web_port: int = Field(
+        default=8080, gt=0, le=65535, validation_alias=AliasChoices("WEB_PORT", "web_port")
+    )
     storage_directory: str = "data/documents"
     web_directory: str | None = "apps/web/dist"
     soffice_path: str | None = None
@@ -30,8 +34,8 @@ class Settings(BaseSettings):
     answer_max_tokens: int = Field(default=1200, gt=0)
     answer_first_token_seconds: float = Field(default=2.5, gt=0)
     stream_runaway_limit: int = Field(default=40, gt=0)
-    translation_model: str = "google/gemma-4-26b-a4b-it"
-    translation_providers: tuple[str, ...] = ("nextbit", "venice")
+    helper_model: str = "google/gemma-4-26b-a4b-it"
+    helper_providers: tuple[str, ...] = ("nextbit", "venice")
     stt_model: str = "elevenlabs/scribe-v2"
     stt_language: str = "tr"
     tts_model: str = "google/gemini-3.8-flash-lite-tts"

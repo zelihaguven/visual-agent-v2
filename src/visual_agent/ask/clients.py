@@ -51,12 +51,11 @@ async def build_model_clients(
             runaway_whitespace_limit=settings.stream_runaway_limit,
         ),
     )
-    translation, translation_ignored = select_providers(
-        settings.translation_model, settings.translation_providers, index
+    # Tek yardımcı model üç işi yapar: BM25 çevirisi, takip sorusunu tamamlama, niyet.
+    helper, helper_ignored = select_providers(
+        settings.helper_model, settings.helper_providers, index
     )
-    helper_model = JsonModel(
-        http, url, api_key, settings.translation_model, translation, translation_ignored
-    )
+    helper_model = JsonModel(http, url, api_key, settings.helper_model, helper, helper_ignored)
     return ModelClients(
         answer=answer,
         translator=make_translator(helper_model),

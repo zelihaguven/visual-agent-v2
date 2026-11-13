@@ -2,7 +2,14 @@
 
 import re
 
-from visual_agent.verification.text import MINUS_SIGNS, NUMBER, UNITS, UPPER, identifiers_in
+from visual_agent.verification.text import (
+    MINUS_SIGNS,
+    NUMBER,
+    UNITS,
+    UPPER,
+    identifiers_in,
+    turkish_lower,
+)
 
 CODE_ON_SCREEN = "Komut ekranda gösteriliyor."
 
@@ -124,7 +131,7 @@ def _code_words(code: str) -> str:
     """Kod harf harf okunur; yalnız harften oluşan uzun adlar sözcük gibi okunur."""
     parts = re.split(r"[-_]", code)
     if all(part.isalpha() and len(part) > _MAX_SPELLED_LETTERS for part in parts):
-        return " ".join(part.replace("I", "ı").replace("İ", "i").lower() for part in parts)
+        return " ".join(turkish_lower(part) for part in parts)
     return " ".join(_spell(part) for part in parts)
 
 

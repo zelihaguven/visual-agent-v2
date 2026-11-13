@@ -19,8 +19,10 @@ from pathlib import Path
 
 import httpx
 
+from apps.local import local_url
+from visual_agent.settings import Settings
+
 DEFAULT_FOLDER = Path("ornek-belgeler")
-DEFAULT_URL = "http://127.0.0.1:8080"
 _TIMEOUT_SECONDS = 120.0
 _FAILED = "failed"
 
@@ -99,18 +101,17 @@ def summary(report: UploadReport) -> list[str]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Örnek belgeleri açık uygulamaya yükler.")
     parser.add_argument("--folder", type=Path, default=DEFAULT_FOLDER)
-    parser.add_argument("--url", default=DEFAULT_URL, help=f"uygulama adresi ({DEFAULT_URL})")
+    parser.add_argument("--url", help="uygulama adresi (varsayılan: WEB_PORT ya da 8080)")
     arguments = parser.parse_args(argv)
+    url = arguments.url or local_url(Settings())
     if not arguments.folder.is_dir():
         print(f"Klasör bulunamadı: {arguments.folder}", file=sys.stderr)
         return 1
     try:
-        with httpx.Client(base_url=arguments.url, timeout=_TIMEOUT_SECONDS) as client:
+        with httpx.Client(base_url=url, timeout=_TIMEOUT_SECONDS) as client:
             report = upload_samples(sample_files(arguments.folder), client)
     except httpx.TransportError:
-        print(
-            f"Uygulamaya ulaşılamadı ({arguments.url}). Önce baslat.bat ile açın.", file=sys.stderr
-        )
+        print(f"Uygulamaya ulaşılamadı ({url}). Önce baslat.bat ile açın.", file=sys.stderr)
         return 1
     for line in summary(report):
         print(line)

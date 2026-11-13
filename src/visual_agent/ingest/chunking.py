@@ -4,11 +4,10 @@ import re
 from collections.abc import Iterable, Sequence
 
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
-from visual_agent.ingest.elements import Element, ElementKind
+from visual_agent.ingest.elements import SECTION_SEPARATOR, Element, ElementKind
 from visual_agent.verification.text import contains_token
 
 CHUNK_MAX_CHARS = 900
-_SECTION_SEPARATOR = " · "
 _SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?:;])\s+")
 _STANDALONE_KINDS = {
     ElementKind.TABLE_ROW: ChunkKind.TABLE_ROW,
@@ -108,7 +107,7 @@ def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str]]:
         if element.kind is ElementKind.HEADING:
             flush()
             path = _next_path(path, element)
-            section = _SECTION_SEPARATOR.join(text for _, text in path)
+            section = SECTION_SEPARATOR.join(text for _, text in path)
         elif element.kind is ElementKind.TEXT:
             for piece in _split_element(element):
                 if not _can_merge(group, piece):

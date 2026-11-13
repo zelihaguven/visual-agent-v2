@@ -3,7 +3,6 @@
 import asyncio
 import logging
 import signal
-import threading
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 
@@ -20,29 +19,10 @@ EMBEDDED_QDRANT_REFUSED = (
 )
 
 
-def run_worker(
-    stop: threading.Event,
-    poll_seconds: float,
-    process_next: Callable[[], bool] = lambda: False,
-) -> int:
-    """İş varsa beklemeden sürer, yoksa bekler; tamamlanan bekleme sayısını döndürür."""
-    polls = 0
-    while not stop.is_set():
-        try:
-            if process_next():
-                continue
-        except Exception:
-            logger.warning("İş alınamadı; bir sonraki turda yeniden denenecek", exc_info=True)
-        if stop.wait(poll_seconds):
-            break
-        polls += 1
-    return polls
-
-
 async def process_until_stopped(
     process_next: Callable[[], Awaitable[bool]], stop: asyncio.Event, poll_seconds: float
 ) -> int:
-    """API içindeki işçi: run_worker ile aynı kural, olay döngüsünü bloklamadan."""
+    """İş varsa beklemeden sürer, yoksa bekler; tamamlanan bekleme sayısını döndürür."""
     polls = 0
     while not stop.is_set():
         try:
@@ -88,28 +68,28 @@ async def _open_processor(settings: Settings) -> DocumentProcessor:
     )
 
 
+async def _run(settings: Settings) -> None:
+    stop = asyncio.Event()
+    loop = asyncio.get_running_loop()
+
+    def request_stop(signum: int, _frame: object) -> None:
+        logger.info("Durdurma sinyali alındı: %s", signal.Signals(signum).name)
+        loop.call_soon_threadsafe(stop.set)
+
+    signal.signal(signal.SIGTERM, request_stop)
+    signal.signal(signal.SIGINT, request_stop)
+    logger.info("İşçi başladı")
+    processor = await _open_processor(settings)
+    await process_until_stopped(processor.process_next, stop, settings.worker_poll_seconds)
+    logger.info("İşçi durdu")
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
     settings = Settings()
     if settings.qdrant_path is not None:
         raise SystemExit(EMBEDDED_QDRANT_REFUSED)
-    stop = threading.Event()
-
-    def request_stop(signum: int, _frame: object) -> None:
-        logger.info("Durdurma sinyali alındı: %s", signal.Signals(signum).name)
-        stop.set()
-
-    signal.signal(signal.SIGTERM, request_stop)
-    signal.signal(signal.SIGINT, request_stop)
-    logger.info("İşçi başladı")
-    loop = asyncio.new_event_loop()
-    processor = loop.run_until_complete(_open_processor(settings))
-    run_worker(
-        stop,
-        settings.worker_poll_seconds,
-        lambda: loop.run_until_complete(processor.process_next()),
-    )
-    logger.info("İşçi durdu")
+    asyncio.run(_run(settings))
 
 
 if __name__ == "__main__":
