@@ -30,6 +30,8 @@ type Props = {
   onSpeak?: (items: SpokenItem[]) => void;
   onOpenSource: (citation: Citation) => void;
   onAskAgain: (question: string, docIds: string[] | null) => void;
+  /** Bir soru sürerken yeniden sorma düğmeleri kilitlenir; eski turlardakiler dahil. */
+  isBusy?: boolean;
 };
 
 const UNVERIFIED_TEXT = "Bu cümle kaynakla doğrulanamadığı için gösterilmiyor.";
@@ -241,9 +243,11 @@ function InventoryView({ result }: { result: Extract<AskResult, { kind: "invento
 
 function DocumentChoices({
   choices,
+  isBusy,
   onChoose,
 }: {
   choices: DocumentChoice[];
+  isBusy: boolean;
   onChoose: (docId: string) => void;
 }) {
   if (choices.length === 0) {
@@ -252,7 +256,13 @@ function DocumentChoices({
   return (
     <div className="choices">
       {choices.map((choice) => (
-        <button key={choice.doc_id} type="button" className="choice" onClick={() => onChoose(choice.doc_id)}>
+        <button
+          key={choice.doc_id}
+          type="button"
+          className="choice"
+          disabled={isBusy}
+          onClick={() => onChoose(choice.doc_id)}
+        >
           {choice.label}
         </button>
       ))}
@@ -260,7 +270,7 @@ function DocumentChoices({
   );
 }
 
-function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: Props) {
+function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak, isBusy = false }: Props) {
   const { result } = turn;
   const fullQuestion = turn.resolvedQuestion ?? turn.question;
   if (result === null) {
@@ -282,6 +292,7 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: P
           <p>{result.question}</p>
           <DocumentChoices
             choices={result.options}
+            isBusy={isBusy}
             onChoose={(docId) => onAskAgain(fullQuestion, [docId])}
           />
         </div>
@@ -299,11 +310,17 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak }: P
           )}
           <DocumentChoices
             choices={result.suggestions}
+            isBusy={isBusy}
             onChoose={(docId) => onAskAgain(fullQuestion, [docId])}
           />
           {turn.scopeInherited && (
             <div className="choices">
-              <button type="button" className="choice" onClick={() => onAskAgain(fullQuestion, null)}>
+              <button
+                type="button"
+                className="choice"
+                disabled={isBusy}
+                onClick={() => onAskAgain(fullQuestion, null)}
+              >
                 Tüm belgelerde ara
               </button>
             </div>

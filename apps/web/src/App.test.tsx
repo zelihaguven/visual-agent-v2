@@ -268,6 +268,40 @@ describe("App", () => {
     });
   });
 
+  it("locks the choices of earlier turns while another question is being answered", async () => {
+    let asks = 0;
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => {
+        asks += 1;
+        if (asks === 1) {
+          return sse([
+            {
+              type: "done",
+              timings: {},
+              question: "soru",
+              scope_inherited: false,
+              context: null,
+              result: { kind: "clarify", question: "Hangi model?", options: [{ doc_id: "a", label: "Model A" }] },
+            },
+          ]);
+        }
+        // İkinci cevap akmaya devam ediyor: akış kapanmıyor.
+        return new Response(new ReadableStream({ start() {} }), {
+          headers: { "Content-Type": "text/event-stream" },
+        });
+      },
+    });
+    render(<App />);
+    await ask("iç paça kaç");
+    const choice = await screen.findByRole("button", { name: "Model A" });
+    expect(choice).toBeEnabled();
+
+    await ask("başka soru");
+
+    await waitFor(() => expect(choice).toBeDisabled());
+  });
+
   it("scrolls each new question to the top of the conversation", async () => {
     const scrolled: Element[] = [];
     const scrollIntoView = vi.fn(function (this: Element) {

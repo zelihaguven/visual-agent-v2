@@ -1,3 +1,4 @@
+import asyncio
 import json
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -326,3 +327,60 @@ def test_services_missing_returns_unavailable() -> None:
     client = TestClient(create_app(Settings(_env_file=None)))
 
     assert client.get("/api/documents").status_code == 503
+
+
+def test_closed_connection_stops_the_answer(tmp_path: Path) -> None:
+    """Kullanıcı yeni soru sorunca istemci isteği iptal eder; sunucu cevap üretmeyi bırakır."""
+
+    async def scenario() -> bool:
+        stopped = asyncio.Event()
+
+        async def ask(request: AskRequest) -> AskOutcome:
+            assert request.on_event is not None
+            request.on_event({"type": "status", "stage": "generate"})
+            try:
+                await asyncio.sleep(3600)  # model akışı sürüyor
+            except asyncio.CancelledError:
+                stopped.set()
+                raise
+            raise AssertionError("akış bitmemeliydi")
+
+        app = create_app(
+            Settings(_env_file=None),
+            ApiServices(repository=FakeRepository(), ask=ask, storage_directory=tmp_path),
+        )
+        body = json.dumps({"question": "soru"}).encode()
+        first_event = asyncio.Event()
+        requested = False
+
+        async def receive() -> dict[str, object]:
+            nonlocal requested
+            if not requested:
+                requested = True
+                return {"type": "http.request", "body": body, "more_body": False}
+            await first_event.wait()
+            return {"type": "http.disconnect"}
+
+        async def send(message: dict[str, object]) -> None:
+            if message["type"] == "http.response.body" and message.get("body"):
+                first_event.set()
+
+        scope = {
+            "type": "http",
+            "asgi": {"version": "3.0"},
+            "http_version": "1.1",
+            "method": "POST",
+            "scheme": "http",
+            "path": "/api/ask",
+            "raw_path": b"/api/ask",
+            "query_string": b"",
+            "root_path": "",
+            "headers": [(b"content-type", b"application/json")],
+            "client": ("test", 1),
+            "server": ("test", 80),
+        }
+        await asyncio.wait_for(app(scope, receive, send), timeout=5)  # type: ignore[arg-type]
+        await asyncio.wait_for(stopped.wait(), timeout=1)
+        return stopped.is_set()
+
+    assert asyncio.run(scenario())

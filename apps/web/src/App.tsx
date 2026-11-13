@@ -49,6 +49,7 @@ export function App() {
   const hasGreeted = useRef(false);
   const waitingTurn = useRef(0);
   const latestContext = useRef<ConversationContext | null>(null);
+  const activeAsk = useRef<AbortController | null>(null);
   const speechToken = useRef(0);
   const turnList = useRef<HTMLDivElement>(null);
   const shownTurns = useRef(0);
@@ -100,6 +101,15 @@ export function App() {
     const id = String(nextId.current);
     const updateTurn = (change: (turn: Turn) => Turn) =>
       setTurns((current) => current.map((turn) => (turn.id === id ? change(turn) : turn)));
+    // Aynı anda tek soru: yenisi öncekini iptal eder, sunucu da onu cevaplamayı bırakır.
+    activeAsk.current?.abort();
+    const control = new AbortController();
+    activeAsk.current = control;
+    const stop = () => control.abort();
+    if (signal?.aborted) {
+      control.abort();
+    }
+    signal?.addEventListener("abort", stop);
     setTurns((current) => [...current, newTurn(id, question, docIds)]);
     setIsAsking(true);
     try {
@@ -117,21 +127,25 @@ export function App() {
             audioQueue().enqueue(event.audio, event.mime);
             onAudio?.();
           }
-          if (event.type === "done") {
+          if (event.type === "done" && activeAsk.current === control) {
             updateContext(event.context);
           }
         },
-        signal,
+        control.signal,
         dictated,
       );
     } catch {
       updateTurn((turn) =>
-        signal?.aborted
+        control.signal.aborted
           ? { ...turn, stage: null }
           : applyEvent(turn, { type: "error", message: ASK_FAILED }),
       );
     } finally {
-      setIsAsking(false);
+      signal?.removeEventListener("abort", stop);
+      if (activeAsk.current === control) {
+        activeAsk.current = null;
+        setIsAsking(false);
+      }
     }
   }
 
@@ -220,6 +234,7 @@ export function App() {
               turn={turn}
               onOpenSource={setSource}
               onAskAgain={(question, docIds) => void ask(question, docIds, { context: null })}
+              isBusy={isAsking}
               speechStatus={speech?.turnId === turn.id ? speech.status : "idle"}
               onSpeak={(items) => void speakAnswer(turn.id, items)}
             />
