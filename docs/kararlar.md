@@ -294,6 +294,16 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   - Uyuşmayan değer gizlenir; uyuşan değer "Kısmen doğrulandı" olur.
 - **Bilinmeyen:** Küçük görsel eşiğinin (kısa kenar 50 pt, alan %2) nedeni bilinmiyor.
 - **Yeniden düşünülür:** Gerçek fotoğraf ve taramalarla (açık notlar).
+- **Düzeltme (2026-11-13, `ocr-sayfa-kaybi`):**
+  - Sorun: Kalite puanı tek büyük harfi (beden S, M, L) çöp sayıyordu. set7 `dikim-tarama`
+    s.3 doğru okunduğu hâlde 0,786 aldı, eşik 0,85; sayfa uyarısız yalnız görüntü kaldı ve
+    etiket satırları indekse girmedi. set11'de OCR "S"yi "Ss" okuduğu için 0,857 ile geçiyordu.
+  - Değişiklik: Tek büyük harf çöp sayılmıyor. Metni indekse girmeyen sayfa belge raporunda
+    uyarı oluyor. PDF ve görsel kural sürümü 2.
+  - Ölçüm (n10, set7 ve set11'in PDF ve görüntüleri yeniden işlendi): Katmanı değişen tek
+    sayfa set7 `dikim-tarama` s.3 (image_only → new); çöp metinli sayfa indekse girmedi.
+    Taban 7 35 → 36/40 (`dikim-tarama-etiket` doğru), taban 11 37/40 ve sınır 32/32
+    değişmedi; doğrulanmış yanlış 0; canlı 0,00063 $.
 
 ### SQL komutları kod bloğu olur; komut aynen gösterilir
 - **Ne zaman:** 0001, `#1475acb`, `#cae391f`.
