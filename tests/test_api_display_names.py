@@ -20,6 +20,8 @@ from visual_agent.domain.result import (
     Citation,
     Clarify,
     ClarifyChoice,
+    Inventory,
+    InventoryDocument,
 )
 from visual_agent.settings import Settings
 
@@ -188,3 +190,35 @@ def test_text_source_panel_shows_the_readable_name(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(_env_file=None), services))
 
     assert client.get("/api/chunks/md:0/source").json()["title"] == "Main Menu - Setup (part 1)"
+
+
+def test_document_list_shows_readable_names(tmp_path: Path) -> None:
+    _, repository = _names(tmp_path)
+
+    async def ask(request: AskRequest) -> AskOutcome:
+        raise AssertionError("soru sorulmaz")
+
+    services = ApiServices(repository=repository, ask=ask, storage_directory=tmp_path)
+    listed = TestClient(create_app(Settings(_env_file=None), services)).get("/api/documents")
+
+    titles = {document["doc_id"]: document["title"] for document in listed.json()}
+    assert titles["md"] == "Main Menu - Setup (part 1)"
+    assert titles["own"] == "Kullanıcının adı"
+
+
+def test_inventory_shows_readable_names(tmp_path: Path) -> None:
+    _, repository = _names(tmp_path)
+    inventory = Inventory(
+        documents=(InventoryDocument(doc_id="md", title="08_Setup_part1"),),
+        document_count=1,
+        code_count=0,
+    )
+
+    events = _events(
+        _client(tmp_path, AskOutcome(result=inventory, timings={}), repository)
+        .post("/api/ask", json={"question": "soru"})
+        .text
+    )
+
+    documents = events[-1]["result"]["documents"]  # type: ignore[index]
+    assert documents[0]["title"] == "Main Menu - Setup (part 1)"

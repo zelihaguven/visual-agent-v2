@@ -127,10 +127,13 @@ class DocumentResponse(BaseModel):
     """Belge, biçiminin bugünkü parçalama kuralından eski bir kuralla işlendi."""
 
 
-def _document_response(document: StoredDocument) -> DocumentResponse:
+async def _document_response(document: StoredDocument, names: DocumentNames) -> DocumentResponse:
+    async def itself(_: str) -> StoredDocument:
+        return document
+
     return DocumentResponse(
         doc_id=document.doc_id,
-        title=document.title,
+        title=await names.name(document.doc_id, document.title, itself),
         filename=document.filename,
         status=document.status,
         error=document.error,
@@ -386,13 +389,18 @@ def _library_router(app: FastAPI) -> APIRouter:
 
     @router.get("/documents", response_model=list[DocumentResponse])
     async def documents(services: ServicesDep) -> list[DocumentResponse]:
-        return [_document_response(d) for d in await services.repository.list_documents()]
+        names = services.document_names
+        return [
+            await _document_response(d, names) for d in await services.repository.list_documents()
+        ]
 
     @router.post("/documents", response_model=DocumentResponse, status_code=201)
     async def upload(
         file: UploadFile, services: ServicesDep, title: Annotated[str, Form()] = ""
     ) -> DocumentResponse:
-        return _document_response(await _store_upload(file, title, services))
+        return await _document_response(
+            await _store_upload(file, title, services), services.document_names
+        )
 
     @router.delete("/documents/{doc_id}", status_code=204)
     async def delete(doc_id: str, services: ServicesDep) -> Response:
@@ -407,7 +415,7 @@ def _library_router(app: FastAPI) -> APIRouter:
     async def reprocess(doc_id: str, services: ServicesDep) -> DocumentResponse:
         document = await services.repository.reprocess(doc_id)
         if document is not None:
-            return _document_response(document)
+            return await _document_response(document, services.document_names)
         if await services.repository.get_document(doc_id) is None:
             raise HTTPException(status_code=404, detail="Belge bulunamadı.")
         raise HTTPException(status_code=409, detail="Belge zaten sırada ya da işleniyor.")
