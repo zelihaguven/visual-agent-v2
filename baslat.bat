@@ -22,11 +22,12 @@ if not exist ".env" (
     exit /b 1
 )
 
-uv sync --frozen --extra retrieval --extra ingest
+rem Gelistirme paketleri (pytest, mypy, ruff...) kurulmaz; uv run ortami yeniden esitlemez.
+uv sync --frozen --no-dev --extra retrieval --extra ingest
 if errorlevel 1 (
     echo Python paketleri kurulamadi.
     pause
     exit /b 1
 )
-uv run python -m apps.local %*
+uv run --no-sync python -m apps.local %*
 pause
