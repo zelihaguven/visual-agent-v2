@@ -4,13 +4,12 @@ import re
 from pathlib import Path
 
 from visual_agent.domain.document import SourceLocation
-from visual_agent.ingest.elements import Element, ElementKind
+from visual_agent.ingest.elements import SECTION_SEPARATOR, Element, ElementKind
 from visual_agent.ingest.formats import InputFormat
 from visual_agent.ingest.markdown import parse_markdown
 
 _COMMENT_PREFIX = "--"
 _BLANK_LINES_RE = re.compile(r"\n\s*\n")
-_SECTION_SEPARATOR = " · "
 
 
 def _read_text(path: Path) -> str:
@@ -22,7 +21,7 @@ def _read_text(path: Path) -> str:
 
 
 def _heading(comments: list[str]) -> Element:
-    text = _SECTION_SEPARATOR.join(dict.fromkeys(comments))
+    text = SECTION_SEPARATOR.join(dict.fromkeys(comments))
     return Element(ElementKind.HEADING, text, SourceLocation())
 
 

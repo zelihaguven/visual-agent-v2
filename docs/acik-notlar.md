@@ -60,7 +60,7 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - Test yardımcıları test dosyalarına dağılmış (`conftest.py` yok); ortak sahte nesneler tek dosyada toplanabilir.
 - Kaynaklarda `parça="şekil"` etiketi var, istemde açıklaması yok; kaldırmak ya da tanımlamak istem değişikliği, bekleyen istem değişiklikleriyle aynı turda ele alınacak.
 - Bazı kullanıcı metinleri ("servis kullanılamıyor", "belgelerde geçmiyor", "doğrulanamadığı için gösterilmiyor") yalnız Türkçe; İngilizce soruda da Türkçe geliyor.
-- Türkçe I/İ katlaması birkaç biçimde yazılmış; BM25 normalleştirmesini birleştirmek yeniden indeksleme ister.
+- BM25 normalleştirmesi I/İ katlamasını kendi tablosuyla yapıyor (öteki modüller `turkish_lower` kullanıyor); birleştirmek yeniden indeksleme ister.
 - Süre sınırları (çeviri 1,2 sn, takip 4 sn, niyet 1,5 sn, durma 10 sn, LibreOffice 180 sn, `top_k` 8) kodda sabit; ölçümle değişecek olanlar `Settings`'e taşınabilir.
 - Ekranda OCR işareti yok: ses OCR'dan gelen cümlede "kaynağı ekrandan kontrol edin" diyor, ama ekranda hangi cümlenin taramadan okunduğu görünmüyor. Akış ve sonuç `from_ocr` alanını taşıyor; cümlenin yanında bir işaret gösterilebilir.
 - Erişilebilirlik ve istek kontrolü: panellerde odak yönetimi ve Escape yok, `aria-live` bütün turlarda açık, yazılı soruda "Durdur" düğmesi yok, `done`/`error` gelmeden biten akış turu askıda bırakıyor.

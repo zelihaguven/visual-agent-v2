@@ -4,16 +4,15 @@ import re
 from collections.abc import Iterable
 
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, DocumentMeta
-from visual_agent.verification.text import identifiers_in
+from visual_agent.verification.text import identifiers_in, turkish_lower
 
 _MIN_TITLE_WORDS_FOR_MATCH = 2
 _SQUASH_RE = re.compile(r"[\s\-_.]+")
-_TURKISH_FOLD = str.maketrans({"I": "ı", "İ": "i"})
 
 
 def squash(text: str) -> str:
     """Boşluk, tire ve nokta farklarını yok sayan karşılaştırma biçimi."""
-    return _SQUASH_RE.sub("", text.translate(_TURKISH_FOLD).lower()).replace("ı", "i")
+    return _SQUASH_RE.sub("", turkish_lower(text, merge_dotless_i=True))
 
 
 class DocumentCatalog:

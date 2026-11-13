@@ -1,12 +1,12 @@
 """Tablo hücrelerini "Başlık: değer | Başlık: değer" biçiminde satırlara çevirir."""
 
-import re
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 
+from visual_agent.ingest.elements import NUMERIC_TEXT_RE
+
 COLUMN_JOIN = " & "
 _EDGE_ARTIFACTS = " |_"
-_NUMERIC_RE = re.compile(r"^[\d.,\s%±/-]+$")
 BoundingBox = tuple[float, float, float, float]
 
 
@@ -81,7 +81,7 @@ def _with_label_first_row(cells: Sequence[TableCell]) -> list[TableCell]:
     first_row = min(cell.row_start for cell in cells)
     first = [cell for cell in cells if cell.row_start == first_row and cell.text]
     has_body = any(cell.row_start > first_row for cell in cells)
-    labels = [cell for cell in first if not _NUMERIC_RE.match(cell.text)]
+    labels = [cell for cell in first if not NUMERIC_TEXT_RE.match(cell.text)]
     if not has_body or len(labels) * 2 <= len(first):
         return list(cells)
     return [replace(cell, header=cell.row_start == first_row) for cell in cells]

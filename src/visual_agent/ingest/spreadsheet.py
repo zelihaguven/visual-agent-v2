@@ -10,11 +10,15 @@ from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
 from visual_agent.domain.document import SourceLocation
-from visual_agent.ingest.elements import Element, ElementKind, labeled_row
+from visual_agent.ingest.elements import (
+    NUMERIC_TEXT_RE,
+    SECTION_SEPARATOR,
+    Element,
+    ElementKind,
+    labeled_row,
+)
 
-_NUMERIC_TEXT_RE = re.compile(r"^[\d.,\s%±/-]+$")
 _HEADER_SEARCH_ROWS = 15
-_SECTION_SEPARATOR = " · "
 _DECIMAL = ","
 _THOUSANDS = "."
 """Excel sayıyı açan bilgisayarın bölge ayarıyla gösterir; dosyada bölge yazmaz. Belgeler Türkçe
@@ -128,7 +132,7 @@ def _read_grid(sheet: Worksheet) -> Grid:
 
 
 def _label_score(row: list[str]) -> int:
-    return len({cell for cell in row if cell and not _NUMERIC_TEXT_RE.match(cell)})
+    return len({cell for cell in row if cell and not NUMERIC_TEXT_RE.match(cell)})
 
 
 def _find_header(grid: Grid) -> int:
@@ -161,7 +165,7 @@ def _parse_sheet(sheet: Worksheet) -> list[Element]:
         return []
     header_index = _find_header(grid)
     labels = _labels(grid, header_index)
-    section = _SECTION_SEPARATOR.join([sheet.title, *_title_rows(grid, header_index)])
+    section = SECTION_SEPARATOR.join([sheet.title, *_title_rows(grid, header_index)])
     # Her sayfa en üst düzey başlıktır: önceki sayfanın adı bu sayfanın bölüm yoluna girmez.
     heading = Element(ElementKind.HEADING, section, SourceLocation(sheet=sheet.title), level=1)
     elements = [heading]

@@ -5,6 +5,7 @@ from visual_agent.verification.text import (
     identifiers_in,
     normalize,
     numbers_in,
+    turkish_lower,
     turkish_tens,
     word_numbers,
 )
@@ -90,8 +91,8 @@ def test_word_numbers_read_capitalised_turkish_and_english(text: str, expected: 
 @pytest.mark.parametrize(
     ("text", "language", "expected"),
     [
-        ("Bekleme on dakikadır.", "tr", {("10", "dakikadır")}),
-        ("On dakika bekleyin, on iki adım.", "tr", {("10", "dakika"), ("12", "adım")}),
+        ("Bekleme on dakikadır.", "tr", {("10", "dakikadir")}),
+        ("On dakika bekleyin, on iki adım.", "tr", {("10", "dakika"), ("12", "adim")}),
         ("Süre on.", "tr", {("10", "")}),
         ("Anahtarı ON konumuna getirin.", "tr", set()),
         ("Turn on the switch.", "en", set()),
@@ -103,3 +104,21 @@ def test_turkish_ten_counts_only_in_turkish_text(
     text: str, language: str, expected: set[tuple[str, str]]
 ) -> None:
     assert turkish_tens(text, language) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "merged", "turkish"),
+    [
+        ("KILIF", "kilif", "kılıf"),
+        ("İKİ", "iki", "iki"),
+        ("kılıf", "kilif", "kılıf"),
+        ("PNT-1162", "pnt-1162", "pnt-1162"),
+    ],
+)
+def test_turkish_lower_keeps_or_merges_the_dotless_i(text: str, merged: str, turkish: str) -> None:
+    assert turkish_lower(text, merge_dotless_i=True) == merged
+    assert turkish_lower(text) == turkish
+
+
+def test_identifiers_match_whatever_the_dotted_or_dotless_i() -> None:
+    assert identifiers_in("KIL-12 kodu") == identifiers_in("`kıl-12` kodu") == {"kil-12"}
