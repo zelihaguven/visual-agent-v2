@@ -86,6 +86,7 @@ Python:
 uv sync
 uv run pytest
 uv run ruff check .
+uv run ruff format --check .
 uv run mypy
 ```
 
@@ -94,6 +95,7 @@ Web (`apps/web`; `npm run dev` API'yi `localhost:8000` adresinde bekler):
 ```bash
 npm ci
 npm test
+npm run build
 npm run dev
 ```
 
@@ -116,6 +118,21 @@ Belge işleme kapsamını ölçmek için (`--work` o setin parça önbelleği; �
 ```bash
 uv run python -m evals.ingest_check --set evals/output/set7 --work evals/output/n10/w7
 ```
+
+Diğer ölçüm araçları:
+
+| Komut | Ne yapar |
+| --- | --- |
+| `evals.generate --kind sinir --seed 7 --output evals/output/sinir7` | Sınır setini üretir (yanlış sütun, olumsuzlama, model başına sayfa) |
+| `evals.run_questions … --offline` | Ağa gitmeden yalnız önbellekten ölçer; önbellekte olmayan sorular "miss" olarak listelenir |
+| `evals.run_questions … --questions a,b` | Yalnız bu soruları sorar (takip sorularının önceki turları dahil) |
+| `evals.run_questions … --repeat 10` | Aynı soruları önbelleksiz tekrar sorar (kararlılık ölçümü) |
+| `evals.run_questions … --retrieval-only` | Yalnız aramayı ölçer, modele gitmez |
+| `evals.run_documents --documents ornek-belgeler/FastReact_Knowledge --questions … --work … --output …` | Bir belge klasörünü (FastReact) kendi soru listesiyle ölçer; `--offline` aynı anlamda |
+| `evals.replay --rows … --work … --cache-dir … --output …` | Kayıtlı `run_documents` ölçümünü önbellekten yeniden değerlendirir |
+| `evals.rescore --set … --answers …` | Kayıtlı cevapları ağa gitmeden yeniden puanlar |
+
+Hepsi `uv run python -m` ile çalışır.
 
 ## Yapı
 
