@@ -136,7 +136,7 @@ class TopicsSpy:
         return True
 
 
-def test_worker_names_new_documents_and_old_ones_when_idle(tmp_path: Path) -> None:
+def test_worker_names_new_documents_right_after_processing(tmp_path: Path) -> None:
     from tests.test_worker_jobs import document, make_processor
 
     repository = FakeRepository(queued=[document(tmp_path)])
@@ -146,5 +146,6 @@ def test_worker_names_new_documents_and_old_ones_when_idle(tmp_path: Path) -> No
 
     assert asyncio.run(processor.process_next()) is True
     assert spy.ready == ["d"]
-    assert asyncio.run(processor.process_next()) is True  # kuyruk boş: eski belge adlandırıldı
-    assert spy.missing_calls == 1
+    # Eski belgeler ayrı döngüde adlandırılır; belge kuyruğu onları beklemez.
+    assert asyncio.run(processor.process_next()) is False
+    assert spy.missing_calls == 0

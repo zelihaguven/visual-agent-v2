@@ -126,7 +126,9 @@ def _fake_tools(calls: list[str], page_kind: PageKind = PageKind.TEXT) -> Ingest
         calls.append(f"ocr:{language}")
         return OcrOutcome(pdf_path=path, ocr_pages={1: ("99",)})
 
-    def parse(path: Path, ocr_pages: Mapping[int, tuple[str, ...]]) -> list[Element]:
+    def parse(
+        path: Path, ocr_pages: Mapping[int, tuple[str, ...]], original: Path
+    ) -> list[Element]:
         calls.append(f"parse:{path.name}")
         return [
             Element(ElementKind.HEADING, "Başlık", SourceLocation(page=1)),

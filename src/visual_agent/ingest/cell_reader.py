@@ -47,7 +47,8 @@ PROMPT = (
     "minus sign if printed. If you cannot read it with certainty, answer ?"
 )
 _REQUEST_SECONDS = 60.0
-_MAX_ANSWER_TOKENS = 40
+_MAX_ANSWER_TOKENS = 200
+"""Uzun açıklama hücresi de kesilmeden okunur."""
 
 
 def canonical(text: str | None) -> str:
@@ -77,6 +78,24 @@ def single_value(text: str) -> bool:
     return len(numeric) <= 1 or bool(_WHOLE_AND_FRACTION_RE.match(" ".join(numeric)))
 
 
+_TOKEN_EDGES = ".,;:()[]{}\"'|"
+
+
+def _token(token: str) -> str:
+    return token.strip(_TOKEN_EDGES)
+
+
+def unconfirmed_numbers(text: str, other: str) -> list[str]:
+    """Metindeki, öteki okumada aynen geçmeyen sayı içeren parçalar (karıştırma tablosu yok:
+    "3/8" ile "318" ayrı okumadır)."""
+    known = {_token(token) for token in other.split()}
+    return [
+        _token(token)
+        for token in text.split()
+        if _DIGIT_RE.search(token) and _token(token) not in known
+    ]
+
+
 def same_reading(first: str | None, second: str | None) -> bool:
     a, b = canonical(first), canonical(second)
     return bool(a) and a.replace(" ", "") == b.replace(" ", "")
@@ -87,6 +106,10 @@ class CellRead:
     text: str
     """Kesinleşen değer; kesinleşmediyse boş."""
     confirmed: bool
+    seen: str = ""
+    """Kesinleşmese de okunan metin: iki okumadan uzun olanı (model bazen ilk satırları atlar)."""
+    second: str = ""
+    """Öteki okuma; uzun metinde iki okumada da aynen geçen sayı kesin sayılır."""
 
 
 @dataclass(frozen=True)
@@ -99,9 +122,11 @@ class CellReader:
     max_cells: int
     workers: int = 8
 
-    def read(self, images: Sequence[Image.Image]) -> list[CellRead | None]:
-        """Sınırı aşan hücreler okunmaz (None); çağıran onları kesinleşmemiş sayar."""
-        allowed = list(images[: self.max_cells])
+    def read(
+        self, images: Sequence[Image.Image], limit: int | None = None
+    ) -> list[CellRead | None]:
+        """limit (yoksa max_cells) aşan hücreler okunmaz (None); çağıran kesinleşmemiş sayar."""
+        allowed = list(images[: self.max_cells if limit is None else max(limit, 0)])
         if len(images) > len(allowed):
             logger.warning(
                 "Hücre okuma sınırı aşıldı: %d hücrenin %d tanesi okunmadı",
@@ -121,7 +146,9 @@ class CellReader:
         for reading in (primary, local):
             if _agreed(reading, referee):
                 return CellRead(canonical(reading), confirmed=True)
-        return CellRead("", confirmed=False)
+        model, ocr = canonical(primary), canonical(local)
+        seen, second = (ocr, model) if len(ocr) > len(model) else (model, ocr)
+        return CellRead("", confirmed=False, seen=seen, second=second)
 
 
 def _agreed(reading: str | None, other: str | None) -> bool:

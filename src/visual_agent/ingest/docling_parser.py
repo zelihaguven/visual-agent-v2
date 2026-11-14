@@ -24,6 +24,8 @@ _LIST_NUMBER_RE = re.compile(r"^\s*(?:\d+|[a-zA-Z])[.)]\s+")
 
 ReadCells = Callable[[int, Sequence[BoundingBox]], list[CellRead | None]]
 """Sayfa numarası ve hücre kutuları (nokta, sol-üst köşe) → okumalar; okunmayan hücre None."""
+ReadGrid = Callable[[int, Box], tuple[list[TableCell], list[str]] | None]
+"""Sayfa ve tablo kutusu → çizgilerden okunan hücreler ve belirsiz değerler; çizgi yoksa None."""
 
 
 def carries_value(heading: str) -> bool:
@@ -122,7 +124,9 @@ def reread_cells(
     updated, unsure = list(cells), []
     for index, cell in enumerate(cells):
         if index not in reads:
-            unsure += [token for token in page_uncertain if contains_token(cell.text, token)]
+            # Başlık bir değer değil, etikettir ("3XL"); satırlardaki aynı etiketi belirsiz yapmaz.
+            if not cell.header:
+                unsure += [token for token in page_uncertain if contains_token(cell.text, token)]
             continue
         read = reads[index]
         if read is not None and read.confirmed:
@@ -137,14 +141,19 @@ def _table_elements(
     table_box: Box,
     read_cells: ReadCells | None = None,
     page_uncertain: Sequence[str] = (),
+    read_grid: ReadGrid | None = None,
 ) -> list[Element]:
     data = getattr(item, "data", None)
     if data is None or not data.table_cells:
         return []
-    cells = _table_cells(item, table_box.page_height)
+    grid = read_grid(table_box.page, table_box) if read_grid is not None else None
     unsure: list[str] = []
-    if read_cells is not None:
-        cells, unsure = reread_cells(cells, table_box.page, read_cells, page_uncertain)
+    if grid is not None:
+        cells, unsure = grid
+    else:
+        cells = _table_cells(item, table_box.page_height)
+        if read_cells is not None:
+            cells, unsure = reread_cells(cells, table_box.page, read_cells, page_uncertain)
     elements = []
     for row in group_table_rows(cells):
         box = table_box
@@ -174,6 +183,7 @@ def _item_elements(
     item: Any,
     read_cells: ReadCells | None,
     ocr_pages: Mapping[int, Sequence[str]],
+    read_grid: ReadGrid | None = None,
 ) -> list[Element]:
     provenance = getattr(item, "prov", None) or []
     if not provenance:
@@ -184,7 +194,7 @@ def _item_elements(
         page = boxes[0].page
         if page not in ocr_pages:
             return _table_elements(item, boxes[0])
-        return _table_elements(item, boxes[0], read_cells, ocr_pages[page])
+        return _table_elements(item, boxes[0], read_cells, ocr_pages[page], read_grid)
     text = (getattr(item, "text", "") or "").strip()
     if not text:
         return []
@@ -208,6 +218,7 @@ def parse_with_docling(
     path: Path,
     read_cells: ReadCells | None = None,
     ocr_pages: Mapping[int, Sequence[str]] | None = None,
+    read_grid: ReadGrid | None = None,
 ) -> list[Element]:
     """read_cells verilirse OCR'lı sayfalardaki tablo hücreleri yeniden okunur.
 
@@ -218,5 +229,5 @@ def parse_with_docling(
     return [
         element
         for item, _level in document.iterate_items()
-        for element in _item_elements(document, item, read_cells, pages)
+        for element in _item_elements(document, item, read_cells, pages, read_grid)
     ]

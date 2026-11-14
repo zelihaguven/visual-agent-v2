@@ -53,8 +53,9 @@ class IngestTools:
     image_to_pdf: Callable[[Path, Path], Path]
     inspect_pdf: Callable[[Path], list[PageInfo]]
     run_ocr: Callable[[Path, list[PageInfo], str, Path], OcrOutcome]
-    parse_pdf: Callable[[Path, Mapping[int, tuple[str, ...]]], list[Element]]
-    """Belge ve OCR'lı sayfalar (sayfa → belirsiz değerler); tablo hücreleri yeniden okunabilir."""
+    parse_pdf: Callable[[Path, Mapping[int, tuple[str, ...]], Path], list[Element]]
+    """OCR'lı belge, OCR'lı sayfalar (sayfa → belirsiz değerler) ve OCR'dan önceki PDF
+    (tablo görüntüleri ondan kesilir)."""
     read_embedded_images: Callable[[Path, list[PageInfo], str], list[Element]]
     recover_page_text: Callable[[Path, int], list[Element]]
     skipped_image_warnings: Callable[[list[PageInfo]], list[str]]
@@ -129,7 +130,7 @@ def _elements_from_pdf(
     pages = tools.inspect_pdf(pdf_path)
     outcome = tools.run_ocr(pdf_path, pages, meta.language, work)
     parsed = annotate_ocr_pages(
-        promote_code_elements(tools.parse_pdf(outcome.pdf_path, outcome.ocr_pages)),
+        promote_code_elements(tools.parse_pdf(outcome.pdf_path, outcome.ocr_pages, pdf_path)),
         outcome.ocr_pages,
     )
     recovered = annotate_ocr_pages(

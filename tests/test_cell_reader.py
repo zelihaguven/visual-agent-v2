@@ -12,6 +12,7 @@ from visual_agent.ingest.cell_reader import (
     VisionModelReader,
     canonical,
     same_reading,
+    unconfirmed_numbers,
 )
 from visual_agent.ingest.docling_parser import reread_cells
 from visual_agent.ingest.pdf_tables import BoundingBox, TableCell
@@ -85,7 +86,7 @@ def test_local_ocr_and_referee_agree_when_the_model_misreads() -> None:
 def test_value_stays_unconfirmed_when_no_two_readings_agree() -> None:
     cell_reader, _ = reader("318", "3/8", "-3/8")
 
-    assert cell_reader.read([image()]) == [CellRead("", confirmed=False)]
+    assert cell_reader.read([image()]) == [CellRead("", confirmed=False, seen="3/8", second="318")]
 
 
 @pytest.mark.parametrize("text", ["1 1", "24 25", "-1/2 1", "1/2 3/8"])
@@ -93,7 +94,7 @@ def test_two_values_in_one_cell_are_never_confirmed(text: str) -> None:
     """Komşu iki hücre tek hücre sanıldıysa iki okuyucu da iki değeri okur."""
     cell_reader, _ = reader(text, text, text)
 
-    assert cell_reader.read([image()]) == [CellRead("", confirmed=False)]
+    assert cell_reader.read([image()]) == [CellRead("", confirmed=False, seen=text, second=text)]
 
 
 def test_whole_number_with_fraction_is_one_value() -> None:
@@ -210,3 +211,20 @@ def test_failed_model_request_is_not_cached(tmp_path: Path) -> None:
     assert read(image()) is None
     assert len(calls) == 2
     assert not any(tmp_path.rglob("*.txt"))
+
+
+def test_longer_reading_is_kept_when_the_model_drops_lines() -> None:
+    """Model çok satırlı hücrenin ilk satırını atlayabiliyor; içerik kaybolmasın."""
+    full = 'KNT-222890/PacMan Fleece - Complete/325.0g/98% Cotton, 2% Elastane/49.0"'
+    cell_reader, _ = reader(full, 'Complete/325.0g/98% Cotton, 2% Elastane/49.0"', "x")
+
+    [read] = cell_reader.read([image()])
+
+    assert read is not None and not read.confirmed and read.seen == full
+
+
+def test_numbers_in_long_text_are_confirmed_one_by_one() -> None:
+    text = "Development Complete/230.0g/80% Cotton, 20% Polyester/58.6 3/8"
+    other = "Development Complete/230.0g/80% Cotton 20% Polyester/58.6 318"
+
+    assert unconfirmed_numbers(text, other) == ["3/8"]

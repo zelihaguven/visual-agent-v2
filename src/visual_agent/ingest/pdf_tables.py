@@ -42,6 +42,51 @@ def _column_headers(cells: Sequence[TableCell]) -> dict[int, str]:
     return headers
 
 
+@dataclass(frozen=True)
+class _HeaderSpan:
+    left: float
+    right: float
+    name: str
+
+
+def _header_spans(cells: Sequence[TableCell]) -> list[_HeaderSpan]:
+    """En alttaki başlık satırının yatay aralıkları: komşu başlıkların ortası sınırdır.
+
+    Tablo yapısı çıkarılırken sütun numarası kayabiliyor (taranmış sayfa); hücrenin sayfadaki
+    yeri kaymaz. Başlık kutusu eksikse boş döner, sütun numarası kullanılır.
+    """
+    headers = [cell for cell in cells if cell.header and cell.text.strip()]
+    if not headers:
+        return []
+    lowest = max(cell.row_start for cell in headers)
+    row = sorted(
+        (cell for cell in headers if cell.row_start == lowest),
+        key=lambda cell: cell.column_start,
+    )
+    if any(cell.bbox is None for cell in row) or len(row) < 2:
+        return []
+    centers = [(cell.bbox[0] + cell.bbox[2]) / 2 for cell in row if cell.bbox is not None]
+    if centers != sorted(centers):
+        return []
+    bounds = [
+        float("-inf"),
+        *((a + b) / 2 for a, b in zip(centers, centers[1:], strict=False)),
+        float("inf"),
+    ]
+    return [
+        _HeaderSpan(bounds[index], bounds[index + 1], cell.text.strip())
+        for index, cell in enumerate(row)
+    ]
+
+
+def _placed_name(cell: TableCell, spans: Sequence[_HeaderSpan]) -> str | None:
+    """Tek sütunluk hücrenin, sayfada altına düştüğü başlık."""
+    if not spans or cell.bbox is None or cell.column_end - cell.column_start != 1:
+        return None
+    center = (cell.bbox[0] + cell.bbox[2]) / 2
+    return next((span.name for span in spans if span.left <= center < span.right), None)
+
+
 def _covers(cell: TableCell, row: int) -> bool:
     return cell.row_start <= row < cell.row_end
 
@@ -60,9 +105,14 @@ def _row_groups(body: Sequence[TableCell]) -> list[list[int]]:
     return [group for _, group in groups]
 
 
-def _cell_part(cell: TableCell, headers: dict[int, str]) -> str:
+def _cell_part(cell: TableCell, headers: dict[int, str], spans: Sequence[_HeaderSpan] = ()) -> str:
     covered = range(cell.column_start, cell.column_end)
-    names = list(dict.fromkeys(headers[column] for column in covered if column in headers))
+    placed = _placed_name(cell, spans)
+    names = (
+        [placed]
+        if placed is not None
+        else list(dict.fromkeys(headers[column] for column in covered if column in headers))
+    )
     single_column = cell.column_end - cell.column_start == 1
     label = COLUMN_JOIN.join(names) if cell.column_start > 0 or single_column else ""
     text = cell.text.strip()
@@ -97,6 +147,7 @@ def group_table_rows(raw_cells: Sequence[TableCell]) -> list[TableRow]:
     cleaned = [replace(cell, text=cell.text.strip(_EDGE_ARTIFACTS)) for cell in raw_cells]
     cells = _with_label_first_row(cleaned)
     headers = _column_headers(cells)
+    spans = _header_spans(cells)
     body = [cell for cell in cells if not cell.header and cell.text.strip()]
     width = max((cell.column_end for cell in cells), default=0) - min(
         (cell.column_start for cell in cells), default=0
@@ -110,7 +161,9 @@ def group_table_rows(raw_cells: Sequence[TableCell]) -> list[TableRow]:
         )
         label = _spans_table(row_cells, width)
         # Etiket ve not satırı bir sütunun değeri değildir; sütun başlığı almaz.
-        parts = (cell.text.strip() if label else _cell_part(cell, headers) for cell in row_cells)
+        parts = (
+            cell.text.strip() if label else _cell_part(cell, headers, spans) for cell in row_cells
+        )
         text = " | ".join(parts)
         rows.append(TableRow(text, _union([c.bbox for c in row_cells if c.bbox is not None])))
         labels.append(label)

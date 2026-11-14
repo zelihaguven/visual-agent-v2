@@ -70,8 +70,7 @@ class DocumentProcessor:
             self._interrupted = None
         document = await self._repository.claim_next()
         if document is None:
-            # Kuyruk boşken konusu olmayan eski belgeler birer birer adlandırılır.
-            return await self._topics.assign_next_missing() if self._topics else False
+            return False
         try:
             await self._process_and_record(document)
         except Exception:

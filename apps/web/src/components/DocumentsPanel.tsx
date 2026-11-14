@@ -249,6 +249,8 @@ function DocumentRow({
   onDelete: () => void;
 }) {
   const status = STATUS_LABELS[document.status];
+  // Sırada bekleyen ya da işlenen belgenin eski raporu yakında yenilenir; uyarı gösterilmez.
+  const outdated = document.outdated === true && !isPending(document);
   const pending = isPending(document);
   return (
     <li className="document">
@@ -257,7 +259,7 @@ function DocumentRow({
       </span>
       <span className="document-badges">
         {status !== null && <span className={`status is-${document.status}`}>{status}</span>}
-        {document.outdated === true && <span className="status is-outdated">Eski kural</span>}
+        {outdated && <span className="status is-outdated">Eski kural</span>}
       </span>
       {/* Düğmeler hep başlığın hemen altında ve aynı sırada durur; durum değişince yer değiştirmez.
           Kullanılamayan düğme gizlenmez, pasif görünür: yanlış düğmeye basılmasın. */}
@@ -285,7 +287,7 @@ function DocumentRow({
       {document.report !== null && (
         <DocumentNotes title={document.title} report={document.report} />
       )}
-      {document.outdated === true && (
+      {outdated && (
         <span className="document-error">
           Eski okuma kuralıyla işlendi; güncel kuralla okunması için yeniden işleyin.
         </span>
