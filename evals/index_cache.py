@@ -40,10 +40,13 @@ def _ingest_all(documents: Documents) -> tuple[dict[str, list[Chunk]], dict[str,
     """
     from visual_agent.ingest.external import locate_tools
     from visual_agent.ingest.pipeline import ingest_document
-    from visual_agent.ingest.tools import default_tools
+    from visual_agent.ingest.tools import cell_reader_from_settings, default_tools
 
     settings = Settings()
-    tools = default_tools(locate_tools(settings.soffice_path, settings.tesseract_path))
+    tools = default_tools(
+        locate_tools(settings.soffice_path, settings.tesseract_path),
+        cell_reader_from_settings(settings),
+    )
     chunks: dict[str, list[Chunk]] = {}
     errors: dict[str, str] = {}
     per_document: dict[str, dict[str, Any]] = {}

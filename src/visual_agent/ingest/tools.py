@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping, Sequence
 from functools import partial
 from pathlib import Path
 from typing import Any
@@ -17,6 +17,7 @@ import pypdfium2.raw as pdfium_c
 from PIL import Image, ImageOps
 
 from visual_agent.domain.document import Box, SourceLocation
+from visual_agent.ingest.cell_reader import CellRead, CellReader, VisionModelReader, locked
 from visual_agent.ingest.docling_parser import parse_with_docling
 from visual_agent.ingest.elements import Element, ElementKind
 from visual_agent.ingest.external import ExternalTools, locate_tools, tesseract_language
@@ -27,6 +28,7 @@ from visual_agent.ingest.images import (
     lines_to_elements,
     with_uncertain_tokens,
 )
+from visual_agent.ingest.pdf_tables import BoundingBox
 from visual_agent.ingest.pipeline import IngestTools, OcrOutcome, PageInfo
 from visual_agent.ingest.text_layer import (
     PageKind,
@@ -40,6 +42,7 @@ from visual_agent.ingest.two_reading import (
     page_ranges,
     unconfirmed_tokens,
 )
+from visual_agent.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +59,8 @@ _MIN_IMAGE_AREA_RATIO = 0.02
 _MIN_IMAGE_SIDE_POINTS = 50.0
 _IMAGE_PAGE_DPI = 150
 _TESSERACT_PAGE_MODES = ("6", "11")
+_CELL_MARGIN_POINTS = (3.0, 2.0)
+"""Hücre kutusunun çevresinde bırakılan pay (yatay, dikey): kesrin küçük rakamları kesilmesin."""
 
 
 def _soffice(path: Path, work: Path, target: str, executable: str) -> Path:
@@ -265,8 +270,62 @@ def _merge_pages(source: Path, chosen: dict[int, Path], target: Path) -> None:
                 document.close()
 
 
-def parse_pdf(path: Path) -> list[Element]:
-    return parse_with_docling(path)
+def _rapid_text(engine: Any, image: Image.Image) -> str:
+    segments = sorted(_rapid_segments(engine, image), key=lambda segment: segment[1][0])
+    return " ".join(text for text, _ in segments)
+
+
+def _cell_images(
+    document: Any, page_number: int, boxes: Sequence[BoundingBox]
+) -> list[Image.Image]:
+    page = _render_page(document, page_number).convert("L")
+    scale = _RENDER_DPI / _POINTS_PER_INCH
+    across, down = _CELL_MARGIN_POINTS
+    crops = []
+    for left, top, right, bottom in boxes:
+        crop_box = (
+            max(0, round((left - across) * scale)),
+            max(0, round((top - down) * scale)),
+            min(page.width, round((right + across) * scale)),
+            min(page.height, round((bottom + down) * scale)),
+        )
+        crops.append(page.crop(crop_box))
+    return crops
+
+
+def parse_pdf(
+    path: Path,
+    ocr_pages: Mapping[int, Sequence[str]] | None = None,
+    cell_reader: CellReader | None = None,
+) -> list[Element]:
+    """Hücre okuyucu varsa OCR'lı sayfalardaki tablo hücreleri iki okumayla doğrulanır."""
+    if cell_reader is None or not ocr_pages:
+        return parse_with_docling(path)
+    document = pypdfium2.PdfDocument(path)
+
+    def read_cells(page_number: int, boxes: Sequence[BoundingBox]) -> list[CellRead | None]:
+        return cell_reader.read(_cell_images(document, page_number, boxes)) if boxes else []
+
+    try:
+        return parse_with_docling(path, read_cells, ocr_pages)
+    finally:
+        document.close()
+
+
+def build_cell_reader(
+    models: Sequence[str], api_key: str, base_url: str, cache_directory: Path, max_cells: int
+) -> CellReader:
+    """İlk model her hücreyi okur, ikincisi yalnız yerel okumayla ayrıldığında hakemdir."""
+    primary, referee = (
+        VisionModelReader(model, api_key, base_url, cache_directory) for model in models[:2]
+    )
+    engine = _rapid_engine()
+    return CellReader(
+        local=locked(partial(_rapid_text, engine)),
+        primary=primary,
+        referee=referee,
+        max_cells=max_cells,
+    )
 
 
 def _skip_reason(box: Box) -> str | None:
@@ -381,8 +440,26 @@ def recover_page_text(path: Path, page: int) -> list[Element]:
     return [Element(ElementKind.TEXT, " ".join(text.split()), SourceLocation(page=page))]
 
 
-def default_tools(external: ExternalTools | None = None) -> IngestTools:
-    """Araç yolları verilmezse PATH'te aranır."""
+def cell_reader_from_settings(settings: Settings) -> CellReader | None:
+    """Anahtar yoksa ya da sınır 0 ise tablo hücreleri yalnız OCR'la okunur (eski davranış)."""
+    key = settings.openrouter_api_key
+    api_key = key.get_secret_value().strip() if key is not None else ""
+    if not api_key or settings.cell_reader_max_cells == 0:
+        logger.info("Tablo hücreleri görüntü modeliyle doğrulanmıyor; yalnız OCR kullanılıyor.")
+        return None
+    return build_cell_reader(
+        settings.cell_reader_models,
+        api_key,
+        str(settings.openrouter_url),
+        Path(settings.cell_reader_cache),
+        settings.cell_reader_max_cells,
+    )
+
+
+def default_tools(
+    external: ExternalTools | None = None, cell_reader: CellReader | None = None
+) -> IngestTools:
+    """Araç yolları verilmezse PATH'te aranır. Hücre okuyucu yoksa tablolar OCR'da kalır."""
     found = external if external is not None else locate_tools(None, None)
     return IngestTools(
         office_to_pdf=partial(office_to_pdf, external=found),
@@ -390,7 +467,7 @@ def default_tools(external: ExternalTools | None = None) -> IngestTools:
         image_to_pdf=image_to_pdf,
         inspect_pdf=inspect_pdf,
         run_ocr=partial(run_ocr, external=found),
-        parse_pdf=parse_pdf,
+        parse_pdf=partial(parse_pdf, cell_reader=cell_reader),
         read_embedded_images=partial(read_embedded_images, external=found),
         recover_page_text=recover_page_text,
         skipped_image_warnings=skipped_image_warnings,

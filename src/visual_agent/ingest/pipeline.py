@@ -53,7 +53,8 @@ class IngestTools:
     image_to_pdf: Callable[[Path, Path], Path]
     inspect_pdf: Callable[[Path], list[PageInfo]]
     run_ocr: Callable[[Path, list[PageInfo], str, Path], OcrOutcome]
-    parse_pdf: Callable[[Path], list[Element]]
+    parse_pdf: Callable[[Path, Mapping[int, tuple[str, ...]]], list[Element]]
+    """Belge ve OCR'lı sayfalar (sayfa → belirsiz değerler); tablo hücreleri yeniden okunabilir."""
     read_embedded_images: Callable[[Path, list[PageInfo], str], list[Element]]
     recover_page_text: Callable[[Path, int], list[Element]]
     skipped_image_warnings: Callable[[list[PageInfo]], list[str]]
@@ -85,7 +86,7 @@ def annotate_ocr_pages(
     annotated = []
     for element in elements:
         page = element.location.page
-        if page is None or page not in ocr_pages:
+        if page is None or page not in ocr_pages or element.ocr_checked:
             annotated.append(element)
             continue
         uncertain = tuple(t for t in ocr_pages[page] if contains_token(element.text, t))
@@ -128,7 +129,8 @@ def _elements_from_pdf(
     pages = tools.inspect_pdf(pdf_path)
     outcome = tools.run_ocr(pdf_path, pages, meta.language, work)
     parsed = annotate_ocr_pages(
-        promote_code_elements(tools.parse_pdf(outcome.pdf_path)), outcome.ocr_pages
+        promote_code_elements(tools.parse_pdf(outcome.pdf_path, outcome.ocr_pages)),
+        outcome.ocr_pages,
     )
     recovered = annotate_ocr_pages(
         [

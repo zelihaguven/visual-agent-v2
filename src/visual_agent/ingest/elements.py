@@ -28,6 +28,8 @@ class Element:
     location: SourceLocation
     from_ocr: bool = False
     ocr_uncertain: tuple[str, ...] = ()
+    ocr_checked: bool = False
+    """Belirsiz değerler hücre düzeyinde belirlendi; sayfa düzeyi karşılaştırma uygulanmaz."""
     level: int | None = None
     """Başlığın düzeyi (1 en üst); biçim düzeyi bildirmiyorsa None."""
 
