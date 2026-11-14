@@ -552,9 +552,7 @@ describe("App", () => {
 
     expect(await screen.findByText("Kuyrukta")).toBeInTheDocument();
     expect(methodCalls(fetchMock, "POST")).toEqual(["/api/documents/d1/reprocess"]);
-    expect(
-      screen.queryByRole("button", { name: "Föy belgesini yeniden işle" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Föy belgesini yeniden işle" })).toBeDisabled();
   });
 
   it("shows skipped images and uncertain OCR values of a document", async () => {
