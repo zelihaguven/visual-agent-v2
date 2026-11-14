@@ -252,11 +252,42 @@ export function App() {
     draftInput.current?.focus();
   }
 
+  /** Sohbeti bırakıp açılış ekranına döner: süren soru iptal edilir, ses ve bağlam temizlenir. */
+  function goHome() {
+    // Süren soru bırakılır; iptal edilen istek geç dönse de yeni ekranı etkilemez.
+    activeAsk.current?.abort();
+    activeAsk.current = null;
+    setIsAsking(false);
+    stopAnswerSpeech();
+    closeConversation();
+    setTurns([]);
+    updateContext(null);
+    setSource(null);
+    setVoiceError(null);
+    setDraft("");
+    draftFromVoice.current = false;
+  }
+
   const isLanding = turns.length === 0;
   return (
     <div className={`layout ${isLanding ? "is-landing" : "is-asking"}`}>
       <header className="topbar">
-        <span className="brand">Visual Agent</span>
+        {isLanding ? (
+          <span className="brand">Visual Agent</span>
+        ) : (
+          <button
+            type="button"
+            className="home-button"
+            aria-label="Ana sayfaya dön"
+            title="Ana sayfaya dön"
+            onClick={goHome}
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path fill="currentColor" d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3L12 3Z" />
+            </svg>
+            Ana sayfa
+          </button>
+        )}
         <button
           type="button"
           className="library-button"

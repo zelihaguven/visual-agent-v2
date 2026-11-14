@@ -721,6 +721,48 @@ describe("App", () => {
     expect(askBodies(fetchMock)[1]).toEqual({ question: "ikinci soru" });
   });
 
+  it("returns to the start screen and forgets the conversation", async () => {
+    const fetchMock = stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([{ ...answered, context: CONTEXT }]),
+    });
+    render(<App />);
+    expect(screen.queryByRole("button", { name: "Ana sayfaya dön" })).not.toBeInTheDocument();
+    await ask("ilk soru");
+    expect(await screen.findByText("İç paça 76,5 cm.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Ana sayfaya dön" }));
+
+    expect(screen.getByRole("heading", { name: "Belgelerinize sorun." })).toBeInTheDocument();
+    expect(screen.queryByText("İç paça 76,5 cm.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Bağlam")).not.toBeInTheDocument();
+    await ask("ikinci soru");
+    await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
+    expect(askBodies(fetchMock)[1]).toEqual({ question: "ikinci soru" });
+  });
+
+  it("stops a running answer when going back to the start screen", async () => {
+    let askSignal: AbortSignal | undefined;
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": (_url, init) => {
+        askSignal = init?.signal ?? undefined;
+        return new Response(new ReadableStream({ start() {} }), {
+          headers: { "Content-Type": "text/event-stream" },
+        });
+      },
+    });
+    render(<App />);
+    await ask("soru");
+    expect(await screen.findByRole("button", { name: "Durdur" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Ana sayfaya dön" }));
+
+    expect(askSignal?.aborted).toBe(true);
+    expect(screen.getByRole("heading", { name: "Belgelerinize sorun." })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Sor" })).toBeInTheDocument());
+  });
+
   it("offers a wider search when a follow-up is not in the active document", async () => {
     const fetchMock = stubApi({
       "/api/documents": () => jsonResponse([]),
