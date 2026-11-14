@@ -9,14 +9,12 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 
 ## Tech pack (taranmış ölçü föyü) ölçümünden kalanlar
 
-Tablo hücrelerinin iki okumayla doğrulanması (`tablo-hucre-okuma`) kesirleri ve O/0 karışan kodları çözdü. Aşağıdakiler ondan bağımsız:
+Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, tablo satırı kodu ve değer taşıyan başlık düzeltmeleri (`tablo-baglami-dogrulama`) kesirleri, O/0 karışan kodları, "Tall" bölümünü, s.5'teki crossover satırını ve `&quot;` alıntısını çözdü. Kalanlar:
 
-- **Kural 1 riski — değer ve fark sayfası karışıyor:** Tech pack'te aynı ölçü tablosu bir kez değerlerle ("Grade Rule Display: Absolute"), bir kez bedenler arası farklarla ("Increment") geliyor. Parçalar hangi sayfadan geldiğini taşımıyor; "XL önden boy" sorusuna fark sayfasındaki "1" değer gibi verilebiliyor (NK041'de görüldü). Tablo alt bilgisinin satırlara bağlam olarak eklenmesi parçalama değişikliği; ekip kararı ve yeniden işleme gerektirir.
-- **Kod alıntıda geçmezse doğru cevap gizleniyor:** "LG beden göğüs genişliği (BW005)" sorusunda model yalnız "LG: 25" alıntılıyor; doğrulama kodun alıntıda olmasını istediği için doğru değer gizleniyor. İstem değişikliği; ekip kararı.
+- **Kural 1 riski — fark sayfası değer gibi sunuluyor:** Fark ("Increment") sayfasındaki satırların bölümünde artık "Grade Rule Display: Increment" yazıyor, ama model yine de oradaki sayıyı değer ya da tolerans diye veriyor ("Diğer bir kaynağa göre 4XL için 1"; "MD için -3/8 tolerans"). Alıntı kaynakta birebir olduğu için doğrulama anlamı yakalayamıyor. Çözüm cevap isteminde: bölüm adının değerin anlamını belirlediği ve satır/sütun adının söylemediği anlamın verilmeyeceği kuralı. İstem değişikliği; ekip onayı bekliyor.
+- **Kapak sayfası form düzeni:** İki sütunlu formda OCR okuma sırası etiketle değeri kaydırıyor ("Sample Status" değeri "Main Material #" satırına düşüyor); ana kumaş ve numune durumu soruları cevapsız ya da "belirtilmemiş" dönüyor. Etiket-değer eşlemesi konuma göre yapılmalı.
 - **Docling bazı hücreleri kaçırıyor:** SL055 ve NK005'te Tol(+), NK015'te XXL hücresi tablo yapısında yok; değer parçada eksik kalıyor (yanlış değil).
-- **Form düzeni:** s.1'deki kapak sayfasında etiket ve değerler OCR'da ayrılıyor ("Main Material #" ile "KNT-222888" farklı parçalarda); ana kumaş ve numune durumu soruları cevapsız.
-- **Satır kaybı:** s.5'te "1. Hood crossover should be 7/8"" satırı OCR'da kayboluyor (kural 3).
-- **Sunucuya taşıma:** Hücre okuma önbelleği (`VA_CELL_READER_CACHE`, varsayılan `data/cell-reads`) kalıcı bir birimde tutulmalı; yoksa yeniden işlemede aynı hücreler yeniden ücretlendirilir.
+- **Sunucuya taşıma:** Hücre okuma önbelleği (`VA_CELL_READER_CACHE`, varsayılan `data/cell-reads`) kalıcı bir birimde tutulmalı.
 
 ## Markdown belgeler
 

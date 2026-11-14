@@ -32,6 +32,8 @@ class Element:
     """Belirsiz değerler hücre düzeyinde belirlendi; sayfa düzeyi karşılaştırma uygulanmaz."""
     level: int | None = None
     """Başlığın düzeyi (1 en üst); biçim düzeyi bildirmiyorsa None."""
+    context: str = ""
+    """Bölüme eklenen öğeye özgü bağlam (tablo satırının bölüm etiketi ve tablo notu)."""
 
 
 def labeled_row(labels: Sequence[str], values: Sequence[str]) -> str:

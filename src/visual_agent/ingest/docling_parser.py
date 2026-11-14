@@ -20,9 +20,16 @@ _PAGE_HEADER_LABEL = "page_header"
 _MAX_REREAD_CHARS = 16
 """Yeniden okunan hücre kısadır (ölçü, tolerans, kod); uzun metin hücreleri olduğu gibi kalır."""
 _DIGIT_RE = re.compile(r"\d")
+_LIST_NUMBER_RE = re.compile(r"^\s*(?:\d+|[a-zA-Z])[.)]\s+")
 
 ReadCells = Callable[[int, Sequence[BoundingBox]], list[CellRead | None]]
 """Sayfa numarası ve hücre kutuları (nokta, sol-üst köşe) → okumalar; okunmayan hücre None."""
+
+
+def carries_value(heading: str) -> bool:
+    """Liste numarası dışında sayı taşıyan başlık: "1. Hood crossover should be 7/8"" evet,
+    "3. Kurulum" hayır."""
+    return bool(_DIGIT_RE.search(_LIST_NUMBER_RE.sub("", heading, count=1)))
 
 
 def page_header_identifies(text: str) -> bool:
@@ -156,6 +163,7 @@ def _table_elements(
                     dict.fromkeys(token for token in unsure if contains_token(row.text, token))
                 ),
                 ocr_checked=read_cells is not None,
+                context=row.context,
             )
         )
     return elements
@@ -180,7 +188,14 @@ def _item_elements(
     text = (getattr(item, "text", "") or "").strip()
     if not text:
         return []
-    if label in _HEADING_LABELS or (label == _PAGE_HEADER_LABEL and page_header_identifies(text)):
+    if label in _HEADING_LABELS:
+        heading = Element(ElementKind.HEADING, text, _location(boxes))
+        # Numaralı madde başlık sanılabiliyor ("1. Hood crossover should be 7/8""); değer taşıyan
+        # başlık metin olarak da kalır, yoksa yalnız bölüm adı olur, aranamaz ve alıntılanamaz.
+        if carries_value(text):
+            return [heading, Element(ElementKind.TEXT, text, _location(boxes))]
+        return [heading]
+    if label == _PAGE_HEADER_LABEL and page_header_identifies(text):
         return [Element(ElementKind.HEADING, text, _location(boxes))]
     if label in _CODE_LABELS:
         return [Element(ElementKind.CODE, text, _location(boxes))]

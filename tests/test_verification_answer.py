@@ -467,3 +467,34 @@ def test_gr_is_grams_only_in_a_turkish_document() -> None:
 )
 def test_turkish_unit_abbreviations_are_units(source: str, text: str, ok: bool) -> None:
     assert _single(source, text) is ok
+
+
+TABLE_SOURCES = {
+    1: PromptSource(
+        number=1,
+        text="Dim: BW005 | Description: Chest Width | LG: 25 | XL: 26 1/2",
+        context="Tech pack · POMs",
+        is_table_row=True,
+    ),
+    2: PromptSource(number=2, text="Dim: BW005 Chest Width LG 25 ve AB030 Across Shoulder"),
+}
+
+
+def test_code_of_the_quoted_table_row_may_appear_in_the_sentence() -> None:
+    """Model değeri ("LG: 25") alıntılar, satırın kodunu cümleye yazar; aynı satırdır."""
+    check = verify_item(item("LG beden BW005 25.", quote="LG: 25"), TABLE_SOURCES, "tr")
+
+    assert check.ok, check.problems
+
+
+def test_code_of_another_row_is_still_rejected() -> None:
+    check = verify_item(item("LG beden AB030 25.", quote="LG: 25"), TABLE_SOURCES, "tr")
+
+    assert not check.ok
+    assert any("ab030" in problem for problem in check.problems)
+
+
+def test_code_outside_the_quote_of_a_text_source_is_still_rejected() -> None:
+    check = verify_item(item("LG beden AB030 25.", quote="LG 25", source_no=2), TABLE_SOURCES, "tr")
+
+    assert not check.ok

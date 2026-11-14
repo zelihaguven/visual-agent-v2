@@ -7,6 +7,7 @@
 İkisi de tutmazsa alıntı reddedilir.
 """
 
+import html
 from collections.abc import Callable
 
 from visual_agent.verification.text import (
@@ -151,5 +152,10 @@ def _matches(quote: str, source: str, form: Form, language: str) -> bool:
 
 
 def quote_matches(quote: str, source: str, language: str) -> bool:
-    """language: kaynağın (belgenin) dili."""
-    return any(_matches(quote, source, form, language) for form in _FORMS)
+    """language: kaynağın (belgenin) dili.
+
+    Model JSON'da tırnağı bazen HTML varlığı yazar (`58.6&quot;`); alıntı çözülmüş hâliyle de
+    denenir. Kaynakla birebir eşleşme şartı değişmez.
+    """
+    quotes = dict.fromkeys((quote, html.unescape(quote)))
+    return any(_matches(text, source, form, language) for text in quotes for form in _FORMS)

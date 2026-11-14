@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 
 from visual_agent.domain.document import Box, ChunkKind, DocumentMeta, SourceLocation
-from visual_agent.ingest.docling_parser import page_header_identifies
+from visual_agent.ingest.chunking import build_chunks
+from visual_agent.ingest.docling_parser import carries_value, page_header_identifies
 from visual_agent.ingest.elements import Element, ElementKind
 from visual_agent.ingest.images import (
     OcrSegment,
@@ -320,3 +321,32 @@ def test_sql_statement_in_text_becomes_code() -> None:
 def test_page_header_with_a_code_is_kept_as_identifying_context() -> None:
     assert page_header_identifies("MNT-8598 ölçü föyü")
     assert not page_header_identifies("Şirket Gizli Belgesi")
+
+
+def test_table_row_context_is_added_to_its_chunk_section() -> None:
+    meta = DocumentMeta(doc_id="d", title="Föy", language="en")
+    elements = [
+        Element(ElementKind.HEADING, "POMs", SourceLocation(page=1)),
+        Element(
+            ElementKind.TABLE_ROW, "Dim: SL095 | MD: 10 3/4", SourceLocation(page=1), context="Tall"
+        ),
+        Element(ElementKind.TABLE_ROW, "Dim: SL100 | MD: 7 1/4", SourceLocation(page=1)),
+    ]
+
+    sections = [chunk.section for chunk in build_chunks(elements, meta)]
+
+    assert sections == ["POMs · Tall", "POMs"]
+
+
+@pytest.mark.parametrize(
+    ("heading", "expected"),
+    [
+        ('1. Hood crossover should be 7/8"', True),
+        ("PNT-1162 ölçü föyü", True),
+        ("3. Kurulum ve bakım", False),
+        ("a) Genel", False),
+        ("CONSTRUCTION/WORKMANSHIP:", False),
+    ],
+)
+def test_headings_carrying_a_value_are_kept_as_text_too(heading: str, expected: bool) -> None:
+    assert carries_value(heading) is expected

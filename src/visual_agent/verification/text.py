@@ -160,9 +160,16 @@ _UNESCAPED_UNDERSCORE_RE = re.compile(r"(?<!\\)_")
 _PLAIN_TOKENS = {"text", "text_special", "code_inline"}
 
 
+_CELL_SEPARATOR_RE = re.compile(r"\s*\|\s*")
+
+
 def quote_form(text: str) -> str:
-    """Birebir yol: yalnız tırnak türü ve boşluk tek biçime iner."""
-    return normalize(text.translate(_QUOTE_MARKS))
+    """Birebir yol: yalnız tırnak türü ve boşluk tek biçime iner.
+
+    Tablo hücreleri "a | b" diye bizim ayırıcımızla birleşir; ayırıcının çevresindeki boşluk
+    biçimdir ("33|" ile "33 |" aynı alıntıdır).
+    """
+    return normalize(_CELL_SEPARATOR_RE.sub(" | ", text.translate(_QUOTE_MARKS)))
 
 
 def _escape_content_marks(text: str) -> str:

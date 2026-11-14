@@ -1,7 +1,7 @@
 """OCR'lı tablo hücrelerini iki bağımsız okumayla yeniden okur.
 
 Hücre yerel OCR ve bir görüntü modeliyle okunur; ikisi aynı okursa değer kesinleşir. Ayrılırlarsa
-ikinci bir görüntü modeli hakemdir: birinci modelle aynı okursa değer kesinleşir. Kesinleşmeyen
+ikinci bir görüntü modeli hakemdir: ikisinden biriyle aynı okursa değer kesinleşir. Kesinleşmeyen
 hücrenin sayıları cevapta gizlenir. Buluta yalnız hücrenin küçük görüntüsü gider (ZDR); okumalar
 görüntünün özetiyle saklanır, yeniden işlemede aynı hücre için yeniden istek atılmaz.
 """
@@ -113,17 +113,21 @@ class CellReader:
         return [*reads, *[None] * (len(images) - len(allowed))]
 
     def _read_one(self, image: Image.Image) -> CellRead:
-        primary = self.primary(image)
-        if (
-            canonical(primary)
-            and single_value(canonical(primary))
-            and (
-                same_reading(self.local(image), primary)
-                or same_reading(self.referee(image), primary)
-            )
-        ):
+        """Üç okumadan ikisi aynıysa değer kesinleşir; hakem yalnız ilk ikisi ayrılınca sorulur."""
+        local, primary = self.local(image), self.primary(image)
+        if _agreed(primary, local):
             return CellRead(canonical(primary), confirmed=True)
+        referee = self.referee(image)
+        for reading in (primary, local):
+            if _agreed(reading, referee):
+                return CellRead(canonical(reading), confirmed=True)
         return CellRead("", confirmed=False)
+
+
+def _agreed(reading: str | None, other: str | None) -> bool:
+    """İki okuma aynı ve tek değer; okunamayan ("?") okuma hiçbir şeyi kesinleştirmez."""
+    text = canonical(reading)
+    return bool(text) and single_value(text) and same_reading(text, other)
 
 
 def locked(read: ReadImage) -> ReadImage:
