@@ -73,9 +73,12 @@ def _in_model_cache(repo_id: str, cache_dir: str | None) -> bool:
     Kütüphaneler modelin yalnız gereken dosyalarını ya da sabit bir sürümünü indirir; bütün
     depoyu aramak yanlış "eksik" der. Yüklemeyi asıl kütüphane yapar.
     """
-    from huggingface_hub.constants import HF_HUB_CACHE
+    if cache_dir is None:
+        # Varsayılan yol yalnız gerektiğinde okunur; arama paketleri kurulu değilken de çalışır.
+        from huggingface_hub.constants import HF_HUB_CACHE
 
-    folder = Path(cache_dir or HF_HUB_CACHE) / f"models--{repo_id.replace('/', '--')}"
+        cache_dir = HF_HUB_CACHE
+    folder = Path(cache_dir) / f"models--{repo_id.replace('/', '--')}"
     snapshots = folder / "snapshots"
     return snapshots.is_dir() and any(snapshots.iterdir())
 
