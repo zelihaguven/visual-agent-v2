@@ -110,7 +110,8 @@ h2 {
   color: var(--color-muted);
 }
 
-.library-button {
+.library-button,
+.home-button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -124,8 +125,19 @@ h2 {
   cursor: pointer;
 }
 
-.library-button:hover {
+.library-button:hover,
+.home-button:hover,
+.home-button:focus-visible {
   border-color: var(--color-accent);
+}
+
+.home-button {
+  color: var(--color-muted);
+}
+
+.home-button:hover,
+.home-button:focus-visible {
+  color: var(--color-accent);
 }
 
 .library-button .count {
