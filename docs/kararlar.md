@@ -887,7 +887,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Eski klasörler:** n3–n9, run7-taban, run11-taban ve fastreact karşılaştırma için
   kalıyor. `evals/output/` `.gitignore`'da; repoda izlenen dosyası yok.
 
-## Karar belgeleri 0001–0005
+## Karar belgeleri 0001–0006
 
 Eskiden `docs/decisions/` altındaki dört belgenin tam metni. Yukarıdaki maddelerde "0001"–"0004" diye anılan belgeler bunlar.
 
@@ -1065,3 +1065,20 @@ Tarih: 2026-11-14. Dal: `tablo-hucre-okuma`. Kural sürümü PDF, Office ve gör
 **Geliştirme seti (`--seed 7`).** 37/40, doğrulanmış yanlış değer 0, gereksiz ret 0 (taban 37/40, 1 gereksiz ret). `direct` 9/9 ve `in_image` 3/3 (taban 8/9, 2/3). `dikim-pdf-olcu` ve `dikim-pdf-yanlis-onay` bu koşuda geçmedi: kaynak metin katmanlı `dikim-pdf` (bu değişiklik dokunmuyor); model cümleye alıntıda olmayan "cm" ekledi, birim kuralı gizledi. Tekrar ölçülmedi.
 
 **Açık kalanlar** [açık notlarda](acik-notlar.md): değer/fark sayfası bağlamı, kodun alıntıda geçmemesi, docling'in kaçırdığı hücreler, kapak sayfası form düzeni, s.5 satır kaybı.
+
+<a id="karar-0006"></a>
+
+### 0006: Taranmış çizgili tablolar çizgilerinden okunur; fark tabloları değer kaynağı değildir
+
+Tarih: 2026-11-15. Dal: `tablo-hizalama`. Kural sürümü PDF, Office ve görsel için 6.
+
+**Sorun.** Docling taranmış tablolarda sütunları kaydırıyordu: 17 tech pack'teki 653 ölçü satırının 72'sinde değer yanlış bedenin altındaydı (kural 1). OCR metin katmanı komşu sütunların yazısını da birleştiriyordu.
+
+**Karar.**
+- OCR'lı sayfadaki çizgili tablo, çizgilerinden okunur: kesintisiz ince çizgiler ve gri zeminin kenarları sınırdır; satırda dikey çizgi yoksa hücreler birleşir; ilk dolu satır başlıktır; çoğu boş satır bölüm etiketi ya da nottur. Her hücre iki okumayla (RapidOCR + Qwen, ayrılırlarsa Gemini hakem) okunur. Uzun metinde iki okumada da aynen geçen sayı kesindir; kısa hücre bütün olarak kesinleşmelidir. Kesinleşmeyen hücrede iki okumadan uzun olanı tutulur (model çok satırlı hücrenin ilk satırını atlayabiliyor).
+- Yazıyı kesen ızgara (yazı hücre kenarına değiyor) ya da çizgi bulunamayan tablo docling'in yapısıyla okunur. Docling kutusundan kesitler OCR'lı görüntüden alınır (OCR eğikliği düzeltir), ızgara özgün görüntüden.
+- Bölümünde (tablo notu dahil) fark ifadesi ("Increment", "Delta", "fark") geçen parça, soru farkı sormuyorsa cevap kaynağı olmaz. Ekip kararı (2026-11-15): model fark değerini ölçü diye veriyordu ve alıntı birebir olduğu için doğrulama yakalayamıyordu.
+
+**Ölçüm.** 6013448: belirsiz değer 397 → 16; doğrulanmış yanlış değer 0 (çizgi okuması fark sayfasını temiz okuyunca iki yanlış doğrulama görülmüştü, fark kuralıyla kalktı). 6026411 s.14 kaymasız. Geliştirme seti 38/40, doğrulanmış yanlış 0. İlk işlemede tech pack başına hücre okuma ~0,2 $.
+
+**Açık.** Satırlar artık eksiksiz olduğu için uzun; istemdeki 150 karakterlik alıntı sınırı yüzünden bazı doğru cevaplar (BW005 LG 25, SL055 MD 25 ½) gizleniyor. Sınırı yükseltmek istem değişikliği; onay bekliyor.

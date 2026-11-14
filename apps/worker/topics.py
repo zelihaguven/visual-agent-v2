@@ -15,13 +15,20 @@ import httpx
 from visual_agent.catalog.repository import StoredDocument
 from visual_agent.generation.json_model import JsonModel
 from visual_agent.generation.openrouter import fetch_zdr_index, select_providers
-from visual_agent.generation.topic import TopicNamer, make_topic_namer
+from visual_agent.generation.topic import (
+    TopicMerger,
+    TopicNamer,
+    make_topic_merger,
+    make_topic_namer,
+)
 from visual_agent.settings import Settings
 
 logger = logging.getLogger(__name__)
 
 _EXCERPT_CHARS = 1500
 _NAME_SECONDS = 20.0
+_MERGE_SECONDS = 60.0
+_MIN_TOPICS_TO_MERGE = 3
 
 
 class TopicRepository(Protocol):
@@ -35,13 +42,22 @@ class TopicRepository(Protocol):
 
     async def get_document(self, doc_id: str) -> StoredDocument | None: ...
 
+    async def topic_counts(self) -> list[tuple[str, int]]: ...
+
+    async def rename_topic(self, old: str, new: str) -> None: ...
+
 
 class TopicAssigner:
-    def __init__(self, repository: TopicRepository, namer: TopicNamer) -> None:
+    def __init__(
+        self, repository: TopicRepository, namer: TopicNamer, merger: TopicMerger | None = None
+    ) -> None:
         self._repository = repository
         self._namer = namer
+        self._merger = merger
         self._failed: set[str] = set()
         """Bu çalışmada adlandırılamayan belgeler; her turda yeniden sorulmaz."""
+        self._merged = False
+        """Benzer konular bu çalışmada bir kez birleştirilir (eksik konu kalmayınca)."""
 
     async def assign(self, document: StoredDocument) -> bool:
         """Belgeye konu verildiyse True. Hata işçiyi durdurmaz."""
@@ -70,8 +86,29 @@ class TopicAssigner:
         """Konusu olmayan bir eski belgeyi adlandırır; iş yapıldıysa True."""
         document = await self._repository.without_topic(skip=tuple(self._failed))
         if document is None:
+            if not self._merged:
+                self._merged = True
+                await self.merge_similar()
             return False
         return await self.assign(document)
+
+    async def merge_similar(self) -> int:
+        """Aynı türden belgeleri anlatan konu adlarını birleştirir; değişen ad sayısı döner."""
+        if self._merger is None:
+            return 0
+        try:
+            counts = await self._repository.topic_counts()
+            if len(counts) < _MIN_TOPICS_TO_MERGE:
+                return 0
+            mapping = await asyncio.wait_for(self._merger(counts), _MERGE_SECONDS)
+        except Exception:
+            logger.warning("Benzer konular birleştirilemedi", exc_info=True)
+            return 0
+        for old, new in mapping.items():
+            await self._repository.rename_topic(old, new)
+        if mapping:
+            logger.info("Konular birleştirildi: %s", mapping)
+        return len(mapping)
 
 
 async def open_topic_assigner(
@@ -84,7 +121,7 @@ async def open_topic_assigner(
         logger.info("Belgelere konu verilmiyor: API anahtarı yok; dosya türüne göre gruplanır.")
         return None
     url = str(settings.openrouter_url).rstrip("/")
-    http = httpx.AsyncClient(timeout=_NAME_SECONDS)
+    http = httpx.AsyncClient(timeout=_MERGE_SECONDS)
     try:
         index = await fetch_zdr_index(http, url, api_key)
         providers, ignored = select_providers(
@@ -95,4 +132,4 @@ async def open_topic_assigner(
         await http.aclose()
         return None
     model = JsonModel(http, url, api_key, settings.helper_model, providers, ignored)
-    return TopicAssigner(repository, make_topic_namer(model))
+    return TopicAssigner(repository, make_topic_namer(model), make_topic_merger(model))

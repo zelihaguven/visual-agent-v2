@@ -22,7 +22,7 @@ def test_termination_signal_stops_the_worker(monkeypatch: pytest.MonkeyPatch) ->
             async def process_next(self) -> bool:
                 return False
 
-        return Processor()
+        return Processor(), None
 
     original = signal.getsignal(signal.SIGTERM), signal.getsignal(signal.SIGINT)
     monkeypatch.setattr(worker_main, "process_until_stopped", fake_loop)

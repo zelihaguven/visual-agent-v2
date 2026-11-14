@@ -5,11 +5,15 @@ import logging
 import signal
 from collections.abc import Awaitable, Callable
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from apps.worker.jobs import DocumentProcessor, Ingest
 from visual_agent.domain.document import DocumentMeta
 from visual_agent.ingest.pipeline import IngestResult
 from visual_agent.settings import Settings
+
+if TYPE_CHECKING:
+    from apps.worker.topics import TopicAssigner
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +59,9 @@ def default_ingest(settings: Settings) -> Ingest:
     return ingest
 
 
-async def _open_processor(settings: Settings) -> DocumentProcessor:
+async def _open_processor(
+    settings: Settings,
+) -> "tuple[DocumentProcessor, TopicAssigner | None]":
     from apps.worker.indexing import LazyIndexer, SharedEncoders
     from visual_agent.catalog.repository import open_repository
     from visual_agent.retrieval.qdrant_store import COLLECTION, QdrantChunkStore, open_client
@@ -66,12 +72,11 @@ async def _open_processor(settings: Settings) -> DocumentProcessor:
     store = QdrantChunkStore(open_client(str(settings.qdrant_url), None), COLLECTION)
     from apps.worker.topics import open_topic_assigner
 
-    return DocumentProcessor(
-        repository,
-        LazyIndexer(store, SharedEncoders()),
-        default_ingest(settings),
-        await open_topic_assigner(settings, repository),
+    topics = await open_topic_assigner(settings, repository)
+    processor = DocumentProcessor(
+        repository, LazyIndexer(store, SharedEncoders()), default_ingest(settings), topics
     )
+    return processor, topics
 
 
 async def _run(settings: Settings) -> None:
@@ -85,8 +90,14 @@ async def _run(settings: Settings) -> None:
     signal.signal(signal.SIGTERM, request_stop)
     signal.signal(signal.SIGINT, request_stop)
     logger.info("İşçi başladı")
-    processor = await _open_processor(settings)
-    await process_until_stopped(processor.process_next, stop, settings.worker_poll_seconds)
+    processor, topics = await _open_processor(settings)
+    # Konu verme belge işlemeyi beklemez: uzun bir taramayı işlerken eski belgeler adlandırılır.
+    loops = [process_until_stopped(processor.process_next, stop, settings.worker_poll_seconds)]
+    if topics is not None:
+        loops.append(
+            process_until_stopped(topics.assign_next_missing, stop, settings.worker_poll_seconds)
+        )
+    await asyncio.gather(*loops)
     logger.info("İşçi durdu")
 
 

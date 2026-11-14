@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import re
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
@@ -205,6 +206,23 @@ def _with_exact_chunks(state: AskState, found: Sequence[Hit], top_k: int) -> tup
     return tuple([*exact, *(hit for hit in found if hit.chunk.chunk_id not in known)][:top_k])
 
 
+_RELATIVE_RE = re.compile(
+    r"\b(increments?|incremental|delta|deltas|differences?|fark(?:lar|ı|i)?|artış(?:lar|ı)?)\b",
+    re.IGNORECASE,
+)
+"""Tablo notu değerlerin bir başka değere göre fark olduğunu söylüyor ("Grade Rule Display:
+Increment"). Bu satırların sayısı ölçü değil, bedenler arası farktır."""
+
+
+def _without_relative_tables(question: str, hits: Sequence[Hit]) -> tuple[Hit, ...]:
+    """Fark tablosunun satırları, soru farkı sormuyorsa kaynak olmaz: model farkı değer diye
+    verebiliyor ve alıntı kaynakta birebir olduğu için doğrulama bunu yakalayamıyor (karar
+    0006)."""
+    if _RELATIVE_RE.search(question):
+        return tuple(hits)
+    return tuple(hit for hit in hits if not _RELATIVE_RE.search(hit.chunk.section))
+
+
 async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     """Arama daima kapsamla sınırlıdır: katalogda yalnız hazır belgeler vardır."""
     domain = _search_domain(state)
@@ -213,7 +231,7 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     bm25_query, translate_seconds = await _bm25_query(state, deps)
     state = replace(state, translate_seconds=translate_seconds)
     found = await deps.retriever.search(state.question, bm25_query, domain, deps.top_k)
-    hits = _with_exact_chunks(state, found, deps.top_k)
+    hits = _without_relative_tables(state.question, _with_exact_chunks(state, found, deps.top_k))
     if not hits:
         return replace(state, result=NotFound())
     if state.request.on_event is not None:

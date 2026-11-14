@@ -186,6 +186,22 @@ class DocumentRepository:
         text = " ".join(_to_chunk(row["payload"]).text for row in rows)
         return " ".join(text.split())[:max_chars]
 
+    async def topic_counts(self) -> list[tuple[str, int]]:
+        rows = await self._db.run(
+            lambda connection: connection.execute(
+                f"SELECT topic, COUNT(*) AS n FROM documents WHERE topic IS NOT NULL"  # noqa: S608
+                f" AND {_VISIBLE} GROUP BY topic ORDER BY n DESC, topic"
+            ).fetchall()
+        )
+        return [(row["topic"], row["n"]) for row in rows]
+
+    async def rename_topic(self, old: str, new: str) -> None:
+        await self._db.run(
+            lambda connection: connection.execute(
+                "UPDATE documents SET topic = ? WHERE topic = ?", (new, old)
+            )
+        )
+
     async def set_topic(self, doc_id: str, topic: str) -> None:
         await self._db.run(
             lambda connection: connection.execute(

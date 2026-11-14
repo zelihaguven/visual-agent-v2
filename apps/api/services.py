@@ -131,7 +131,13 @@ async def _process_documents(
     topics = await open_topic_assigner(settings, repository)
     processor = DocumentProcessor(repository, LazyIndexer(store, encoders), ingest, topics)
     logger.info("Belge işçisi API sürecinde başladı")
-    await process_until_stopped(processor.process_next, stop, settings.worker_poll_seconds)
+    # Konu verme belge işlemeyi beklemez: uzun bir taramayı işlerken eski belgeler adlandırılır.
+    loops = [process_until_stopped(processor.process_next, stop, settings.worker_poll_seconds)]
+    if topics is not None:
+        loops.append(
+            process_until_stopped(topics.assign_next_missing, stop, settings.worker_poll_seconds)
+        )
+    await asyncio.gather(*loops)
 
 
 async def _retry_deletions(
