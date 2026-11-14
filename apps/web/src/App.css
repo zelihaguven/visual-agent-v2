@@ -861,6 +861,14 @@ button.status-card {
   overflow-wrap: anywhere;
 }
 
+.document-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-self: start;
+  justify-content: end;
+}
+
 .status {
   align-self: start;
   padding: 1px 8px;
@@ -919,21 +927,21 @@ button.status-card {
   cursor: pointer;
 }
 
-.document-actions button:hover,
-.document-actions button:focus-visible {
+.document-actions button:not(:disabled):hover,
+.document-actions button:not(:disabled):focus-visible {
   border-color: var(--color-accent);
   color: var(--color-accent);
 }
 
-.document-actions button.is-danger:hover,
-.document-actions button.is-danger:focus-visible {
+.document-actions button.is-danger:not(:disabled):hover,
+.document-actions button.is-danger:not(:disabled):focus-visible {
   border-color: var(--color-bad);
   color: var(--color-bad);
 }
 
 .document-actions button:disabled {
   opacity: 0.5;
-  cursor: progress;
+  cursor: not-allowed;
 }
 
 /* Kaynak paneli */

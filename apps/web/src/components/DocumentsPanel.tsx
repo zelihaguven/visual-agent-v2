@@ -249,33 +249,28 @@ function DocumentRow({
   onDelete: () => void;
 }) {
   const status = STATUS_LABELS[document.status];
+  const pending = isPending(document);
   return (
     <li className="document">
       <span className="document-title" title={document.filename}>
         {document.title}
       </span>
-      {status !== null && <span className={`status is-${document.status}`}>{status}</span>}
-      {document.outdated === true && <span className="status is-outdated">Eski kural</span>}
-      {document.error !== null && <span className="document-error">{document.error}</span>}
-      {document.report !== null && (
-        <DocumentNotes title={document.title} report={document.report} />
-      )}
-      {document.outdated === true && (
-        <span className="document-error">
-          Eski okuma kuralıyla işlendi; güncel kuralla okunması için yeniden işleyin.
-        </span>
-      )}
+      <span className="document-badges">
+        {status !== null && <span className={`status is-${document.status}`}>{status}</span>}
+        {document.outdated === true && <span className="status is-outdated">Eski kural</span>}
+      </span>
+      {/* Düğmeler hep başlığın hemen altında ve aynı sırada durur; durum değişince yer değiştirmez.
+          Kullanılamayan düğme gizlenmez, pasif görünür: yanlış düğmeye basılmasın. */}
       <div className="document-actions">
-        {!isPending(document) && (
-          <button
-            type="button"
-            aria-label={`${document.title} belgesini yeniden işle`}
-            disabled={isBusy}
-            onClick={onReprocess}
-          >
-            Yeniden işle
-          </button>
-        )}
+        <button
+          type="button"
+          aria-label={`${document.title} belgesini yeniden işle`}
+          disabled={isBusy || pending}
+          title={pending ? "Belge işlenirken yeniden işlenemez." : undefined}
+          onClick={onReprocess}
+        >
+          Yeniden işle
+        </button>
         <button
           type="button"
           className="is-danger"
@@ -286,6 +281,15 @@ function DocumentRow({
           Sil
         </button>
       </div>
+      {document.error !== null && <span className="document-error">{document.error}</span>}
+      {document.report !== null && (
+        <DocumentNotes title={document.title} report={document.report} />
+      )}
+      {document.outdated === true && (
+        <span className="document-error">
+          Eski okuma kuralıyla işlendi; güncel kuralla okunması için yeniden işleyin.
+        </span>
+      )}
     </li>
   );
 }
