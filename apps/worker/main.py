@@ -39,9 +39,10 @@ async def process_until_stopped(
 
 def default_ingest(settings: Settings) -> Ingest:
     """Belge işleme araçları ağırdır; yalnız işçi açılırken yüklenir. Eksik araç bildirilir."""
+    from visual_agent.ingest.cell_reader import cell_reader_from_settings
     from visual_agent.ingest.external import locate_tools
     from visual_agent.ingest.pipeline import ingest_document
-    from visual_agent.ingest.tools import cell_reader_from_settings, default_tools
+    from visual_agent.ingest.tools import default_tools
 
     external = locate_tools(settings.soffice_path, settings.tesseract_path)
     for problem in external.problems():

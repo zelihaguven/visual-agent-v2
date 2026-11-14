@@ -38,9 +38,10 @@ def _ingest_all(documents: Documents) -> tuple[dict[str, list[Chunk]], dict[str,
 
     Manifest: belge ve parça sayısı, toplam süre, hatalar ve belge başına süre ile rapor.
     """
+    from visual_agent.ingest.cell_reader import cell_reader_from_settings
     from visual_agent.ingest.external import locate_tools
     from visual_agent.ingest.pipeline import ingest_document
-    from visual_agent.ingest.tools import cell_reader_from_settings, default_tools
+    from visual_agent.ingest.tools import default_tools
 
     settings = Settings()
     tools = default_tools(

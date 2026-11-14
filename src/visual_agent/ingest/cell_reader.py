@@ -20,6 +20,8 @@ from pathlib import Path
 import httpx
 from PIL import Image
 
+from visual_agent.settings import Settings
+
 logger = logging.getLogger(__name__)
 
 ReadImage = Callable[[Image.Image], str | None]
@@ -201,3 +203,24 @@ class VisionModelReader:
             logger.warning("Hücre görüntü modeliyle okunamadı (%s): %s", self._model, error)
             return None
         return re.sub(r"\s+", " ", str(content)).strip()
+
+
+def cell_reader_from_settings(settings: Settings) -> CellReader | None:
+    """Anahtar yoksa ya da sınır 0 ise tablo hücreleri yalnız OCR'la okunur (eski davranış).
+
+    Yerel OCR motoru belge işleme paketleriyle gelir; yalnız okuyucu kurulacaksa yüklenir.
+    """
+    key = settings.openrouter_api_key
+    api_key = key.get_secret_value().strip() if key is not None else ""
+    if not api_key or settings.cell_reader_max_cells == 0:
+        logger.info("Tablo hücreleri görüntü modeliyle doğrulanmıyor; yalnız OCR kullanılıyor.")
+        return None
+    from visual_agent.ingest.tools import build_cell_reader
+
+    return build_cell_reader(
+        settings.cell_reader_models,
+        api_key,
+        str(settings.openrouter_url),
+        Path(settings.cell_reader_cache),
+        settings.cell_reader_max_cells,
+    )

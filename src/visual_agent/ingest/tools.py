@@ -42,7 +42,6 @@ from visual_agent.ingest.two_reading import (
     page_ranges,
     unconfirmed_tokens,
 )
-from visual_agent.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -438,22 +437,6 @@ def recover_page_text(path: Path, page: int) -> list[Element]:
     if not text:
         return []
     return [Element(ElementKind.TEXT, " ".join(text.split()), SourceLocation(page=page))]
-
-
-def cell_reader_from_settings(settings: Settings) -> CellReader | None:
-    """Anahtar yoksa ya da sınır 0 ise tablo hücreleri yalnız OCR'la okunur (eski davranış)."""
-    key = settings.openrouter_api_key
-    api_key = key.get_secret_value().strip() if key is not None else ""
-    if not api_key or settings.cell_reader_max_cells == 0:
-        logger.info("Tablo hücreleri görüntü modeliyle doğrulanmıyor; yalnız OCR kullanılıyor.")
-        return None
-    return build_cell_reader(
-        settings.cell_reader_models,
-        api_key,
-        str(settings.openrouter_url),
-        Path(settings.cell_reader_cache),
-        settings.cell_reader_max_cells,
-    )
 
 
 def default_tools(

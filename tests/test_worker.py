@@ -4,7 +4,7 @@ import signal
 import pytest
 
 from apps.worker import main as worker_main
-from visual_agent.ingest.tools import cell_reader_from_settings
+from visual_agent.ingest.cell_reader import cell_reader_from_settings
 from visual_agent.settings import Settings
 
 
