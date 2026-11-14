@@ -95,6 +95,8 @@ export type DocumentInfo = {
   error: string | null;
   report: DocumentReport | null;
   outdated?: boolean;
+  /** Sunucunun verdiği konu adı; belgeler bu ada göre gruplanır. */
+  topic?: string | null;
 };
 
 export type SourceView =

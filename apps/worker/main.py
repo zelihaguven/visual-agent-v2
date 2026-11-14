@@ -64,8 +64,13 @@ async def _open_processor(settings: Settings) -> DocumentProcessor:
     await repository.migrate()
     await repository.requeue_interrupted()
     store = QdrantChunkStore(open_client(str(settings.qdrant_url), None), COLLECTION)
+    from apps.worker.topics import open_topic_assigner
+
     return DocumentProcessor(
-        repository, LazyIndexer(store, SharedEncoders()), default_ingest(settings)
+        repository,
+        LazyIndexer(store, SharedEncoders()),
+        default_ingest(settings),
+        await open_topic_assigner(settings, repository),
     )
 
 

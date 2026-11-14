@@ -8,7 +8,7 @@ import {
   type DocumentInfo,
   type DocumentReport,
 } from "../api";
-import { groupDocuments, type DocumentGroup } from "../documentGroups";
+import { groupDocuments } from "../documentGroups";
 import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES, uploadLimitMessage } from "../limits";
 
 const POLL_MILLISECONDS = 3000;
@@ -80,7 +80,7 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [toggled, setToggled] = useState<Partial<Record<DocumentGroup, boolean>>>({});
+  const [toggled, setToggled] = useState<Record<string, boolean>>({});
 
   const [hasLoaded, setHasLoaded] = useState(false);
 
@@ -169,7 +169,7 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
     }
   }
 
-  function isOpen(group: DocumentGroup, members: DocumentInfo[]): boolean {
+  function isOpen(group: string, members: DocumentInfo[]): boolean {
     return toggled[group] ?? (members.length <= OPEN_GROUP_LIMIT || members.some(needsAttention));
   }
 

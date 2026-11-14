@@ -126,6 +126,8 @@ class DocumentResponse(BaseModel):
     report: dict[str, object] | None
     outdated: bool
     """Belge, biçiminin bugünkü parçalama kuralından eski bir kuralla işlendi."""
+    topic: str | None = None
+    """Arayüzün belgeyi gruplamak için kullandığı konu adı; henüz verilmediyse None."""
 
 
 async def _document_response(document: StoredDocument, names: DocumentNames) -> DocumentResponse:
@@ -140,6 +142,7 @@ async def _document_response(document: StoredDocument, names: DocumentNames) -> 
         error=document.error,
         report=document.report,
         outdated=document.report is not None and is_outdated(document.report, document.filename),
+        topic=document.topic,
     )
 
 
