@@ -115,7 +115,9 @@ def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str]]:
                 group.append(piece)
         else:
             flush()
-            output.append((element, section))
+            output.append(
+                (element, SECTION_SEPARATOR.join(p for p in (section, element.context) if p))
+            )
     flush()
     return output
 

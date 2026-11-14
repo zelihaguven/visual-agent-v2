@@ -241,3 +241,18 @@ def test_cut_quote_cannot_add_a_number_word_in_its_unchecked_tail() -> None:
 @pytest.mark.parametrize("tail", [" İki kez yapılır.", " ALTI kez yapılır.", " **İki** kez."])
 def test_cut_quote_cannot_add_a_capitalized_number_word_in_its_tail(tail: str) -> None:
     assert not quote_matches(CUT_HEAD + tail, CUT_SOURCE, "tr")
+
+
+def test_html_escaped_quote_mark_from_the_model_matches_the_source() -> None:
+    """Model JSON'da tırnağı `&quot;` yazabiliyor; değer ve kelimeler yine birebir aranır."""
+    source = 'Material Details: KNT-222888/PacMan - Fleece/58.6" | Qty: 1.5454'
+
+    assert quote_matches("Fleece/58.6&quot; | Qty: 1.5454", source, "en")
+    assert not quote_matches("Fleece/58.6&quot; | Qty: 1.5455", source, "en")
+
+
+def test_spacing_around_the_table_cell_separator_is_format() -> None:
+    source = "XL: 30 | XXL: 31 | 3XL: 32 | 4XL: 33 | 5XL: 34"
+
+    assert quote_matches("XL: 30 | XXL: 31 | 3XL: 32 | 4XL: 33|", source, "en")
+    assert not quote_matches("XL: 30 | XXL: 31 | 3XL: 32 | 4XL: 38|", source, "en")

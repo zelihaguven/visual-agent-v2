@@ -172,3 +172,53 @@ def test_decimal_comma_and_point_are_the_same_reading() -> None:
 
 def test_missing_decimal_separator_stays_uncertain() -> None:
     assert unconfirmed_tokens("Tolerans 10", "Tolerans 1,0") == ["10"]
+
+
+def test_full_width_rows_become_the_context_of_the_rows_they_label() -> None:
+    """ "Tall" altındaki satır o bölüme, tablo sonundaki not bütün satırlara bağlanır."""
+    cells = [
+        cell(0, 0, "Dim", header=True),
+        cell(0, 1, "MD", header=True),
+        cell(0, 2, "LG", header=True),
+        cell(1, 0, "SL095"),
+        cell(1, 1, "11 1/4"),
+        cell(1, 2, "11 1/4"),
+        cell(2, 0, "Tall", span=3),
+        cell(3, 0, "SL095"),
+        cell(3, 1, "10 3/4"),
+        cell(3, 2, "10 3/4"),
+        cell(4, 0, "Grade Rule Display: Increment", span=3),
+    ]
+
+    rows = group_table_rows(cells)
+
+    assert [(row.text, row.context) for row in rows] == [
+        ("Dim: SL095 | MD: 11 1/4 | LG: 11 1/4", "Grade Rule Display: Increment"),
+        ("Dim: SL095 | MD: 10 3/4 | LG: 10 3/4", "Tall · Grade Rule Display: Increment"),
+    ]
+
+
+def test_table_without_value_rows_keeps_its_rows() -> None:
+    cells = [cell(0, 0, "Başlık", header=True, span=2), cell(1, 0, "Yalnız not", span=2)]
+
+    assert [row.text for row in group_table_rows(cells)] == ["Yalnız not"]
+
+
+def test_note_split_over_two_wide_cells_is_still_the_table_note() -> None:
+    cells = [
+        cell(0, 0, "Dim", header=True),
+        cell(0, 1, "XS", header=True),
+        cell(0, 2, "SM", header=True),
+        cell(0, 3, "MD", header=True),
+        cell(1, 0, "BL005"),
+        cell(1, 1, "-1/2"),
+        cell(1, 2, "0"),
+        cell(1, 3, "1"),
+        cell(2, 0, "Displaying 1 - 16 of 38 results", span=2),
+        cell(2, 2, "Grade Rule Display: Increment", span=2),
+    ]
+
+    rows = group_table_rows(cells)
+
+    assert len(rows) == 1
+    assert rows[0].context == "Displaying 1 - 16 of 38 results | Grade Rule Display: Increment"

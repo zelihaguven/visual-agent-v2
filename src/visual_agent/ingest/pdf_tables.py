@@ -25,6 +25,12 @@ class TableCell:
 class TableRow:
     text: str
     bbox: BoundingBox | None
+    context: str = ""
+    """Satırın bağlı olduğu tablo notları: üstündeki bölüm etiketi ve tablonun alt bilgisi."""
+
+
+_MIN_LABEL_SPAN = 0.8
+"""Tablonun bu kadarını tek hücreyle kaplayan satır değer değil, etiket ya da nottur."""
 
 
 def _column_headers(cells: Sequence[TableCell]) -> dict[int, str]:
@@ -92,12 +98,56 @@ def group_table_rows(raw_cells: Sequence[TableCell]) -> list[TableRow]:
     cells = _with_label_first_row(cleaned)
     headers = _column_headers(cells)
     body = [cell for cell in cells if not cell.header and cell.text.strip()]
-    rows = []
+    width = max((cell.column_end for cell in cells), default=0) - min(
+        (cell.column_start for cell in cells), default=0
+    )
+    rows: list[TableRow] = []
+    labels: list[bool] = []
     for group in _row_groups(body):
         row_cells = sorted(
             (cell for cell in body if any(_covers(cell, row) for row in group)),
             key=lambda cell: (cell.column_start, cell.row_start),
         )
-        text = " | ".join(_cell_part(cell, headers) for cell in row_cells)
+        label = _spans_table(row_cells, width)
+        # Etiket ve not satırı bir sütunun değeri değildir; sütun başlığı almaz.
+        parts = (cell.text.strip() if label else _cell_part(cell, headers) for cell in row_cells)
+        text = " | ".join(parts)
         rows.append(TableRow(text, _union([c.bbox for c in row_cells if c.bbox is not None])))
-    return rows
+        labels.append(label)
+    return _with_table_context(rows, labels)
+
+
+_MAX_LABEL_CELLS = 2
+
+
+def _spans_table(row_cells: Sequence[TableCell], width: int) -> bool:
+    """Tabloyu en çok iki geniş hücreyle kaplayan satır: bölüm etiketi ya da tablo notu."""
+    spans = [cell.column_end - cell.column_start for cell in row_cells]
+    return (
+        width > 1
+        and len(row_cells) <= _MAX_LABEL_CELLS
+        and (len(spans) == 1 or min(spans) > 1)
+        and sum(spans) >= _MIN_LABEL_SPAN * width
+    )
+
+
+def _with_table_context(rows: Sequence[TableRow], labels: Sequence[bool]) -> list[TableRow]:
+    """Tabloyu kaplayan satırlar değer satırı değildir: ortadaki, altındaki satırların bölüm
+    etiketidir ("Tall"); sondakiler bütün tablonun notudur ("Grade Rule Display: Increment").
+    Etiket satırları ayrı satır olarak kalmaz, bağlandıkları satırların bağlamına girer.
+    """
+    if not any(labels) or all(labels):
+        return list(rows)
+    last_value = max(index for index, label in enumerate(labels) if not label)
+    note = " ".join(
+        row.text
+        for row, label in zip(rows[last_value + 1 :], labels[last_value + 1 :], strict=True)
+    )
+    result, section = [], ""
+    for row, label in zip(rows[: last_value + 1], labels[: last_value + 1], strict=True):
+        if label:
+            section = row.text
+            continue
+        context = " · ".join(part for part in (section, note) if part)
+        result.append(replace(row, context=context))
+    return result

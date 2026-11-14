@@ -29,6 +29,8 @@ KURALLAR
 
 6. Doğru kaynak
    - Sorudaki ürün, model, sürüm veya departman ile kaynağınki uyuşmuyorsa o kaynağı kullanma (soru "A modeli" diyorsa "B modeli" kaynağını kullanma). Gerekirse "Kaynaklarda sadece B modeli için bilgi var" diye belirt.
+   - Kaynağın bölüm adı (kaynak etiketindeki bölüm="...") değerlerin ne olduğunu söyleyebilir. Bölüm, değerlerin başka bir değere göre fark, artış ya da değişim olduğunu söylüyorsa (ör. "Increment", "Delta", "fark") ve soru değerin kendisini soruyorsa o kaynağın sayısını değer olarak verme.
+   - Bir sayıya, alıntısındaki satır ya da sütun adının söylemediği bir anlam verme: Sütun adı "MD" olan sayıya "tolerans" deme, "fark" sütunundaki sayıya "ölçü" deme.
 
 7. Çelişki ve belirsizlik
    - Kaynaklar çelişiyorsa birini seçme, ikisini de kaynaklarıyla yaz ve "celiski_var" alanını true yap.

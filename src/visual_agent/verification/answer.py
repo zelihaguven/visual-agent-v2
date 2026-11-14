@@ -159,7 +159,12 @@ def _token_problems(
     )
     if stray_numbers:
         problems.append(f"cümlede kendi alıntısında olmayan sayı: {sorted(stray_numbers)}")
-    cited = [sources[q.source_no].context for q in item.quotes if q.source_no in sources]
+    # Alıntılanan tablo satırının kodu cümlede geçebilir: model değeri ("LG: 25") alıntılayıp
+    # satırın kodunu (BW005) yazar. Başka satırın ya da kaynağın kodu yine reddedilir.
+    cited = [
+        f"{source.context} {source.text}" if source.is_table_row else source.context
+        for source in (sources[q.source_no] for q in item.quotes if q.source_no in sources)
+    ]
     allowed = {compact_identifier(value) for value in identifiers_in(" ".join([joined, *cited]))}
     stray_identifiers = {
         value for value in identifiers_in(item.text) if compact_identifier(value) not in allowed

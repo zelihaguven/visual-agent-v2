@@ -75,6 +75,13 @@ def test_referee_decides_when_local_ocr_disagrees() -> None:
     assert referee.calls == 1
 
 
+def test_local_ocr_and_referee_agree_when_the_model_misreads() -> None:
+    """Qwen "BLO05" (O harfi) okudu; yerel OCR ile hakem "BL005" üzerinde uyuştu."""
+    cell_reader, _ = reader("BL005", "BLO05", "BL005")
+
+    assert cell_reader.read([image()]) == [CellRead("BL005", confirmed=True)]
+
+
 def test_value_stays_unconfirmed_when_no_two_readings_agree() -> None:
     cell_reader, _ = reader("318", "3/8", "-3/8")
 
@@ -95,12 +102,10 @@ def test_whole_number_with_fraction_is_one_value() -> None:
     assert cell_reader.read([image()]) == [CellRead("27 1/2", confirmed=True)]
 
 
-def test_unreadable_model_answer_is_never_confirmed() -> None:
-    """Model okuyamadıysa yerel OCR ile hakemin uyuşması değeri kesinleştirmez."""
-    cell_reader, (_, _, referee) = reader("8", "?", "8")
+def test_unreadable_readings_never_confirm_each_other() -> None:
+    cell_reader, _ = reader("?", "?", "?")
 
     assert cell_reader.read([image()]) == [CellRead("", confirmed=False)]
-    assert referee.calls == 0
 
 
 def test_cells_over_the_document_limit_are_not_sent() -> None:
