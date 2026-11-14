@@ -113,6 +113,7 @@ export type VoicePhrases = { greeting: PhraseAudio; waiting: PhraseAudio[] };
 
 const EVENT_SEPARATOR = "\n\n";
 const DATA_PREFIX = "data: ";
+const INCOMPLETE_STREAM = "Cevap akışı sonuç gelmeden kapandı.";
 
 function parseEvent(block: string): AskEvent | null {
   return block.startsWith(DATA_PREFIX)
@@ -146,20 +147,28 @@ export async function askQuestion(
   }
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";
+  let finished = false;
+  const deliver = (block: string) => {
+    const event = parseEvent(block);
+    if (event !== null) {
+      finished ||= event.type === "done" || event.type === "error";
+      onEvent(event);
+    }
+  };
   for (;;) {
     const { done, value } = await reader.read();
     if (done) {
-      return;
+      break;
     }
     buffer += value;
     const blocks = buffer.split(EVENT_SEPARATOR);
     buffer = blocks.pop() ?? "";
-    for (const block of blocks) {
-      const event = parseEvent(block);
-      if (event !== null) {
-        onEvent(event);
-      }
-    }
+    blocks.forEach(deliver);
+  }
+  deliver(buffer);
+  // Sonuç ya da hata gelmeden kapanan akış sessiz kalmaz: çağıran hata gösterir.
+  if (!finished) {
+    throw new Error(INCOMPLETE_STREAM);
   }
 }
 

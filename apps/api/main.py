@@ -1,6 +1,7 @@
 """HTTP API giriş noktası."""
 
 import asyncio
+import copy
 import json
 import logging
 import shutil
@@ -204,6 +205,17 @@ def _record_question(
     task.add_done_callback(_record_finished)
 
 
+async def _readable_names(event: Event, services: ApiServices) -> Event:
+    """Ad düzeltme yalnız gösterimdir; başarısız olursa olay kayıtlı adla gider, akış kesilmez."""
+    try:
+        return await services.document_names.rename(
+            copy.deepcopy(event), services.repository.get_document
+        )
+    except Exception:
+        logger.warning("Belge adı okunur yapılamadı; kayıtlı ad gösteriliyor", exc_info=True)
+        return event
+
+
 async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterator[str]:
     """Soru hattının olaylarını üretildikleri anda istemciye taşır."""
     queue: asyncio.Queue[Event] = asyncio.Queue()
@@ -260,9 +272,7 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
     task = asyncio.create_task(run())
     try:
         while (event := await queue.get()) is not _END_OF_STREAM:
-            yield _sse(
-                await services.document_names.rename(event, services.repository.get_document)
-            )
+            yield _sse(await _readable_names(event, services))
     finally:
         task.cancel()
         if spoken is not None:

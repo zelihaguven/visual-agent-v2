@@ -155,6 +155,27 @@ def test_client_context_without_titles_does_not_break_the_answer(tmp_path: Path)
     assert done["context"]["titles"] == ["Main Menu - Setup (part 1)"]  # type: ignore[index]
 
 
+def test_answer_still_arrives_when_a_name_cannot_be_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Ad düzeltme yalnız gösterimdir; hata verirse akış sonuçsuz kapanmaz, kayıtlı ad gider."""
+    _, repository = _names(tmp_path)
+
+    async def broken(*_: object) -> str:
+        raise OSError("okunamadı")
+
+    monkeypatch.setattr(DocumentNames, "name", broken)
+    outcome = AskOutcome(result=NotFound(reason="Yok."), timings={})
+
+    events = _events(
+        _client(tmp_path, outcome, repository).post("/api/ask", json={"question": "soru"}).text
+    )
+
+    assert events[0]["sources"][0]["title"] == "ham"  # type: ignore[index]
+    assert events[-1]["type"] == "done"
+    assert events[-1]["result"]["kind"] == "not_found"  # type: ignore[index]
+
+
 def test_clarify_buttons_show_readable_names(tmp_path: Path) -> None:
     _, repository = _names(tmp_path)
     clarify = Clarify(
