@@ -44,14 +44,14 @@ export function unverifiedText(hasSources: boolean): string {
 export const SOURCE_LINE_SPOKEN = "Kaynaktaki satır ekranda gösteriliyor.";
 
 /** Cümle yalnız kaynakta yazmayan birim yüzünden gizlendiyse kaynağın kendi yazdığı gösterilir. */
-export function sourceQuoteText(quote: string): string {
-  return `Kaynakta yazan: "${quote}"`;
-}
+export const SOURCE_QUOTE_LABEL = "Kaynaktaki metin";
 
 /** Kaynak alıntısı nötr metin; gizleme mesajı uyarı rengiyle ayrılır. */
 function HiddenText({ quote, hasSources }: { quote?: string | null; hasSources: boolean }) {
   return quote ? (
-    <span className="source-quote">{sourceQuoteText(quote)}</span>
+    <span className="source-quote">
+      <span className="quote-label">{SOURCE_QUOTE_LABEL}</span> <q>{quote}</q>
+    </span>
   ) : (
     <span className="hidden-note">{unverifiedText(hasSources)}</span>
   );
