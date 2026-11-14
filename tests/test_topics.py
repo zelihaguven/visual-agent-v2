@@ -149,3 +149,30 @@ def test_worker_names_new_documents_right_after_processing(tmp_path: Path) -> No
     # Eski belgeler ayrı döngüde adlandırılır; belge kuyruğu onları beklemez.
     assert asyncio.run(processor.process_next()) is False
     assert spy.missing_calls == 0
+
+
+def test_similar_topics_are_merged_once_when_naming_is_done(tmp_path: Path) -> None:
+    repository = _repository(tmp_path)
+    for doc_id, topic in (
+        ("a", "Yazılım yardım dökümanları"),
+        ("b", "Yazılım kullanım kılavuzları"),
+        ("c", "İK belgeleri"),
+    ):
+        _ready(repository, doc_id)
+        asyncio.run(repository.set_topic(doc_id, topic))
+    calls: list[list[tuple[str, int]]] = []
+
+    async def merger(topics: Sequence[tuple[str, int]]) -> dict[str, str]:
+        calls.append(list(topics))
+        return {"Yazılım kullanım kılavuzları": "Yazılım yardım dökümanları"}
+
+    assigner = TopicAssigner(repository, Namer({}), merger)
+
+    assert asyncio.run(assigner.assign_next_missing()) is False
+    assert asyncio.run(assigner.assign_next_missing()) is False
+
+    assert len(calls) == 1
+    assert dict(asyncio.run(repository.topic_counts())) == {
+        "Yazılım yardım dökümanları": 2,
+        "İK belgeleri": 1,
+    }

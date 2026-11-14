@@ -732,3 +732,29 @@ def test_code_written_differently_in_the_text_is_still_an_exact_match(written: s
     outcome = ask(deps, "PNT-1162 tork kaç?")
 
     assert [hit.chunk.chunk_id for hit in outcome.hits][:1] == ["t:1"]
+
+
+def _relative_row() -> Chunk:
+    row = chunk("a:2", "a", "Dim: SL055 | MD: -3/8 | LG: 25 7/8", title="PNT-4417 ölçü föyü")
+    return row.model_copy(update={"section": "POMs · Grade Rule Display: Increment"})
+
+
+def test_rows_of_a_difference_table_are_not_value_sources() -> None:
+    """Fark tablosundaki "-3/8" ölçü değil, bedenler arası farktır (karar 0006)."""
+    client = FakeClient(answer_payload("MD için -3/8.", quote="MD: -3/8"))
+    retriever = FakeRetriever(hits=[_relative_row(), CHUNKS[0]])
+
+    outcome = ask(make_deps(client, retriever), "MD beden kol boyu kaç?")
+
+    prompt = client.calls[0][1]["content"]
+    assert "MD: -3/8" not in prompt
+    assert not (isinstance(outcome.result, Answered) and outcome.result.items[0].verified)
+
+
+def test_difference_rows_are_used_when_the_question_asks_for_the_difference() -> None:
+    client = FakeClient(answer_payload("MD farkı -3/8.", quote="MD: -3/8"))
+    retriever = FakeRetriever(hits=[_relative_row()])
+
+    ask(make_deps(client, retriever), "MD beden kol boyu farkı (increment) kaç?")
+
+    assert "MD: -3/8" in client.calls[0][1]["content"]

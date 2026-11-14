@@ -37,7 +37,13 @@ from visual_agent.ingest.images import (
 )
 from visual_agent.ingest.pdf_tables import BoundingBox, TableCell
 from visual_agent.ingest.pipeline import IngestTools, OcrOutcome, PageInfo
-from visual_agent.ingest.ruled_table import find_grid, grid_cells, has_text, label_rows
+from visual_agent.ingest.ruled_table import (
+    cuts_text,
+    find_grid,
+    grid_cells,
+    has_text,
+    label_rows,
+)
 from visual_agent.ingest.text_layer import (
     PageKind,
     classify_page,
@@ -296,10 +302,7 @@ def _rapid_text(engine: Any, image: Image.Image) -> str:
     return " ".join(text for line in lines for text, _ in sorted(line, key=lambda s: s[1][0]))
 
 
-def _cell_images(
-    document: Any, page_number: int, boxes: Sequence[BoundingBox]
-) -> list[Image.Image]:
-    page = _render_page(document, page_number).convert("L")
+def _cell_crops(page: Image.Image, boxes: Sequence[BoundingBox]) -> list[Image.Image]:
     scale = _RENDER_DPI / _POINTS_PER_INCH
     across, down = _CELL_MARGIN_POINTS
     crops = []
@@ -338,6 +341,8 @@ def _grid_table(
     if columns < _MIN_GRID_COLUMNS:
         return None
     inked = [cell for cell in cells if has_text(region, cell)]
+    if any(cuts_text(region, cell) for cell in inked):
+        return None
     crops = [region.crop(cell.box) for cell in inked]
     reads = reader.read(crops, budget[0])
     budget[0] -= min(len(crops), budget[0])
@@ -422,31 +427,41 @@ def parse_pdf(
     """
     if cell_reader is None or not ocr_pages:
         return parse_with_docling(path)
-    document = pypdfium2.PdfDocument(original or path)
+    ocr_document = pypdfium2.PdfDocument(path)
+    source_document = pypdfium2.PdfDocument(original) if original else None
     budget = [cell_reader.max_cells]
     """Belge başına okunabilecek hücre: tablolar arasında paylaşılır."""
-    pages: dict[int, Image.Image] = {}
+    pages: dict[tuple[int, bool], Image.Image] = {}
 
-    def page_image(page_number: int) -> Image.Image:
-        if page_number not in pages:
-            pages.clear()  # bellekte tek sayfa
-            pages[page_number] = _render_page(document, page_number).convert("L")
-        return pages[page_number]
+    def page_image(page_number: int, source: bool) -> Image.Image:
+        """Docling'in kutuları OCR'lı sayfaya aittir (eğiklik düzeltilmiş olabilir): hücre
+        kutusundan kesitler OCR'lı görüntüden alınır. Izgara hücreleri görüntünün kendisinden
+        bulunur; çizgileri bozulmamış özgün görüntü kullanılır."""
+        document = source_document if source and source_document is not None else ocr_document
+        key = (page_number, document is source_document)
+        if key not in pages:
+            if len(pages) > 1:
+                pages.clear()  # bellekte en çok iki görüntü
+            pages[key] = _render_page(document, page_number).convert("L")
+        return pages[key]
 
     def read_cells(page_number: int, boxes: Sequence[BoundingBox]) -> list[CellRead | None]:
         if not boxes:
             return []
-        reads = cell_reader.read(_cell_images(document, page_number, boxes), budget[0])
+        crops = _cell_crops(page_image(page_number, source=False), boxes)
+        reads = cell_reader.read(crops, budget[0])
         budget[0] -= min(len(boxes), budget[0])
         return reads
 
     def read_grid(page_number: int, table: Box) -> tuple[list[TableCell], list[str]] | None:
-        return _grid_table(page_image(page_number), table, cell_reader, budget)
+        return _grid_table(page_image(page_number, source=True), table, cell_reader, budget)
 
     try:
         return parse_with_docling(path, read_cells, ocr_pages, read_grid)
     finally:
-        document.close()
+        ocr_document.close()
+        if source_document is not None:
+            source_document.close()
 
 
 def build_cell_reader(

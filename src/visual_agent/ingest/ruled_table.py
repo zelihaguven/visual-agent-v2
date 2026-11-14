@@ -61,14 +61,39 @@ def _boundaries(coverage: np.ndarray) -> list[int]:
     return merged
 
 
+_MIN_CONTINUOUS_SHARE = 0.5
+"""Çizgi kesintisizdir; alt alta dizilmiş yazı satır aralarında kesilir, çizgi sayılmaz."""
+
+
+def _longest_run(values: np.ndarray) -> int:
+    longest = current = 0
+    for value in values:
+        current = current + 1 if value else 0
+        longest = max(longest, current)
+    return longest
+
+
+def _continuous(line: np.ndarray, length: int) -> bool:
+    return length > 0 and _longest_run(line) >= _MIN_CONTINUOUS_SHARE * length
+
+
 def find_grid(image: Image.Image) -> tuple[list[int], list[int]] | None:
     """Yatay ve dikey sınırların piksel konumları; çizgili tablo değilse None."""
     pixels = np.asarray(image.convert("L"))
     ink = pixels < _INK
-    rows = _boundaries(ink.mean(axis=1))
+    rows = [
+        y
+        for y in _boundaries(ink.mean(axis=1))
+        if _continuous(ink[max(0, y - 1) : y + 2].any(axis=0), ink.shape[1])
+    ]
     if len(rows) < _MIN_LINES:
         return None
-    columns = _boundaries(ink[rows[0] : rows[-1]].mean(axis=0))
+    body = ink[rows[0] : rows[-1]]
+    columns = [
+        x
+        for x in _boundaries(body.mean(axis=0))
+        if _continuous(body[:, max(0, x - 1) : x + 2].any(axis=1), body.shape[0])
+    ]
     if len(columns) < _MIN_LINES:
         return None
     return rows, columns
@@ -114,3 +139,17 @@ def label_rows(texts: dict[tuple[int, int], str], columns: int) -> set[int]:
     return {
         row for row in rows if row > 0 and 0 < filled[row] <= columns * (1 - _LABEL_EMPTY_SHARE)
     }
+
+
+_EDGE_PIXELS = 2
+_MAX_EDGE_INK = 3
+
+
+def cuts_text(image: Image.Image, cell: GridCell) -> bool:
+    """Yazı hücrenin sol ya da sağ kenarına değiyor: sınır yazının üstüne düşmüş (eğik fotoğraf,
+    bulanık tarama), kesit karakter keser. Böyle ızgaraya güvenilmez."""
+    crop = np.asarray(image.convert("L").crop(cell.box)) < _TEXT
+    if crop.shape[1] <= 2 * _EDGE_PIXELS:
+        return True
+    edges = (crop[:, :_EDGE_PIXELS], crop[:, -_EDGE_PIXELS:])
+    return any(int(edge.sum()) > _MAX_EDGE_INK for edge in edges)
