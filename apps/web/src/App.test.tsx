@@ -423,6 +423,40 @@ describe("App", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Cevap alınamadı");
   });
 
+  it("shows an error when the stream closes before the answer arrives", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          { type: "status", stage: "generate" },
+          { type: "sources", sources: [CITATION] },
+        ]),
+    });
+    render(<App />);
+    await ask("soru");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Cevap alınamadı");
+    expect(screen.queryByText("Cevap yazılıyor")).not.toBeInTheDocument();
+  });
+
+  it("reads the final event even without a trailing separator", async () => {
+    const done = {
+      type: "done",
+      result: { kind: "not_found", reason: "", suggestions: [] },
+      scope_inherited: false,
+      context: null,
+    };
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => new Response(`data: ${JSON.stringify(done)}`),
+    });
+    render(<App />);
+    await ask("soru");
+
+    expect(await screen.findByText("Bu bilgi belgelerde bulunamadı.")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("lists documents with their processing state", async () => {
     stubApi({
       "/api/documents": () =>
