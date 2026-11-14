@@ -119,6 +119,7 @@ async def _process_documents(
     try:
         from apps.worker.jobs import DocumentProcessor
         from apps.worker.main import default_ingest, process_until_stopped
+        from apps.worker.topics import open_topic_assigner
 
         ingest = await asyncio.to_thread(default_ingest, settings)
     except ImportError:
@@ -127,7 +128,8 @@ async def _process_documents(
             " Kurulum: uv sync --extra ingest --extra retrieval"
         )
         return
-    processor = DocumentProcessor(repository, LazyIndexer(store, encoders), ingest)
+    topics = await open_topic_assigner(settings, repository)
+    processor = DocumentProcessor(repository, LazyIndexer(store, encoders), ingest, topics)
     logger.info("Belge işçisi API sürecinde başladı")
     await process_until_stopped(processor.process_next, stop, settings.worker_poll_seconds)
 

@@ -35,6 +35,8 @@ class StoredDocument(FrozenModel):
     display_pdf: str | None = None
     report: dict[str, Any] | None = None
     error: str | None = None
+    topic: str | None = None
+    """Arayüzün belgeyi gruplamak için kullandığı konu adı; henüz verilmediyse None."""
 
 
 _SCHEMA = f"""
@@ -60,7 +62,12 @@ CREATE TABLE IF NOT EXISTS chunks (
 );
 CREATE INDEX IF NOT EXISTS chunks_doc_idx ON chunks (doc_id, position);
 """
-_COLUMNS = "doc_id, title, filename, status, stored_path, language, display_pdf, report, error"
+_COLUMNS = (
+    "doc_id, title, filename, status, stored_path, language, display_pdf, report, error, topic"
+)
+_ADDED_COLUMNS = {"topic": "TEXT"}
+"""Sonradan eklenen sütunlar: var olan veritabanına açılışta eklenir."""
+_EXCERPT_CHUNKS = 8
 _VISIBLE = "status != 'deleting'"
 
 
@@ -76,7 +83,15 @@ def _to_document(row: sqlite3.Row) -> StoredDocument:
         display_pdf=row["display_pdf"],
         report=json.loads(report) if report else None,
         error=row["error"],
+        topic=row["topic"],
     )
+
+
+def _add_missing_columns(connection: sqlite3.Connection) -> None:
+    present = {row["name"] for row in connection.execute("PRAGMA table_info(documents)")}
+    for name, kind in _ADDED_COLUMNS.items():
+        if name not in present:
+            connection.execute(f"ALTER TABLE documents ADD COLUMN {name} {kind}")
 
 
 def _to_chunk(payload: str) -> Chunk:
@@ -135,6 +150,48 @@ class DocumentRepository:
 
     async def migrate(self) -> None:
         await self._db.migrate(_SCHEMA)
+        await self._db.run(_add_missing_columns)
+
+    async def topics(self) -> list[str]:
+        """Verilmiş konular, çok kullanılandan aza."""
+        rows = await self._db.run(
+            lambda connection: connection.execute(
+                f"SELECT topic FROM documents WHERE topic IS NOT NULL AND {_VISIBLE}"  # noqa: S608
+                " GROUP BY topic ORDER BY COUNT(*) DESC, topic"
+            ).fetchall()
+        )
+        return [row["topic"] for row in rows]
+
+    async def without_topic(self, skip: Sequence[str] = ()) -> StoredDocument | None:
+        """Konusu olmayan en eski hazır belge; skip'tekiler atlanır."""
+        marks = ", ".join("?" * len(skip))
+        excluded = f" AND doc_id NOT IN ({marks})" if skip else ""
+        row = await self._db.run(
+            lambda connection: connection.execute(
+                f"SELECT {_COLUMNS} FROM documents WHERE status = 'ready'"  # noqa: S608
+                f" AND topic IS NULL{excluded} ORDER BY created_at, rowid LIMIT 1",
+                tuple(skip),
+            ).fetchone()
+        )
+        return _to_document(row) if row else None
+
+    async def excerpt(self, doc_id: str, max_chars: int) -> str:
+        """Belgenin ilk parçalarından kısa alıntı (konu adı için); buluta yalnız bu gider."""
+        rows = await self._db.run(
+            lambda connection: connection.execute(
+                "SELECT payload FROM chunks WHERE doc_id = ? ORDER BY position LIMIT ?",
+                (doc_id, _EXCERPT_CHUNKS),
+            ).fetchall()
+        )
+        text = " ".join(_to_chunk(row["payload"]).text for row in rows)
+        return " ".join(text.split())[:max_chars]
+
+    async def set_topic(self, doc_id: str, topic: str) -> None:
+        await self._db.run(
+            lambda connection: connection.execute(
+                "UPDATE documents SET topic = ? WHERE doc_id = ?", (topic, doc_id)
+            )
+        )
 
     async def ping(self) -> None:
         await self._db.run(lambda connection: connection.execute("SELECT 1").fetchone())

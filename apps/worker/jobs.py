@@ -8,6 +8,7 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Protocol
 
+from apps.worker.topics import TopicAssigner
 from visual_agent.ask.language import document_language
 from visual_agent.catalog.repository import StoredDocument
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk, DocumentMeta
@@ -49,10 +50,17 @@ class Indexer(Protocol):
 
 
 class DocumentProcessor:
-    def __init__(self, repository: JobRepository, indexer: Indexer, ingest: Ingest) -> None:
+    def __init__(
+        self,
+        repository: JobRepository,
+        indexer: Indexer,
+        ingest: Ingest,
+        topics: TopicAssigner | None = None,
+    ) -> None:
         self._repository = repository
         self._indexer = indexer
         self._ingest = ingest
+        self._topics = topics
         self._interrupted: str | None = None
 
     async def process_next(self) -> bool:
@@ -62,7 +70,8 @@ class DocumentProcessor:
             self._interrupted = None
         document = await self._repository.claim_next()
         if document is None:
-            return False
+            # Kuyruk boşken konusu olmayan eski belgeler birer birer adlandırılır.
+            return await self._topics.assign_next_missing() if self._topics else False
         try:
             await self._process_and_record(document)
         except Exception:
@@ -110,6 +119,8 @@ class DocumentProcessor:
             raise
         if not ready:
             await self._discard_deleted(document)
+        elif self._topics is not None:
+            await self._topics.assign_ready(document.doc_id)
 
     async def _discard_vectors(self, doc_id: str) -> bool:
         """Temizlik başarısız olsa da belge hazır sayılmadığı için aramaya girmez."""
