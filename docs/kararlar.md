@@ -887,7 +887,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Eski klasörler:** n3–n9, run7-taban, run11-taban ve fastreact karşılaştırma için
   kalıyor. `evals/output/` `.gitignore`'da; repoda izlenen dosyası yok.
 
-## Karar belgeleri 0001–0004
+## Karar belgeleri 0001–0005
 
 Eskiden `docs/decisions/` altındaki dört belgenin tam metni. Yukarıdaki maddelerde "0001"–"0004" diye anılan belgeler bunlar.
 
@@ -1038,3 +1038,30 @@ Netleştirme beklenen soruda rozetli cevap, altın verideki farklı değerlerin 
 | --- | --- | --- | --- |
 | `dikim-revizyon-netlestir` | 5/5 | 1/5 | Geçmeyen 4 tekrarın hepsi atlanan netleştirme; doğrulanmış yanlış değer yok |
 | `dikim-sohbet-1-t4` | 0/5 | 0/5 | Takip sorusu tamamlanırken beden her seferinde düşüyor |
+
+<a id="karar-0005"></a>
+
+### 0005: Taranmış tablo hücreleri iki okumayla doğrulanır (görüntü modeli)
+
+Tarih: 2026-11-14. Dal: `tablo-hucre-okuma`. Kural sürümü PDF, Office ve görsel için 3 → 4.
+
+**Sorun.** Taranmış ölçü föylerinde (tech pack) üst üste dizilmiş kesirler (½, ¼, ⅞) Tesseract'ta hiç okunmuyor ("27 ½" → "27 a", "26 ½" → "2%"), kodlarda 0 harf O okunuyor ("BW005" → "BWOO5"). Kesirli değerler gizleniyor, kodlar "belgelerde geçmiyor" deniyor; bazı yanlış okumalar ("17" → "7") işaretlenmeden geçiyordu.
+
+**Ölçüm (tek seferlik betikler scratchpad'de).** Doğru değerler sayfa görüntüsüyle tek tek kontrol edildi.
+
+| Okuyucu | 627 hücrede doğru | 424 kesirli hücrede doğru | Hücre başına |
+| --- | --- | --- | --- |
+| Tesseract (s.24, 121 hücre) | 41/121 | 0/78 | – |
+| RapidOCR (yerel) | 393 | 190 | ücretsiz |
+| `qwen/qwen3-vl-30b-a3b-instruct` (ZDR) | 627 | 424 | ~0,00003 $ |
+| `google/gemini-3.1-flash-lite` (ZDR) | 625 | 424 | ~0,0003 $ |
+
+İki okuyucunun uyuştuğu hücrelerde yanlış değer: RapidOCR + Qwen 396 hücrede 0, Qwen + Gemini 625 hücrede 0. Sayfalar: 6013448 s.24, 25, 28 (fark sayfası) ve 6026418 s.11. Tika incelendi: OCR için Tesseract'ı ya da dışarıdaki bir VLM'i çağırıyor, ek kazanç yok.
+
+**Karar.** OCR'lı sayfalardaki kısa, tek sütunluk gövde hücreleri docling'in hücre kutusundan yeniden okunur. RapidOCR ile Qwen uyuşursa değer kesinleşir; uyuşmazsa Gemini hakemdir, Qwen'le uyuşursa kesinleşir. Kesinleşmeyen hücrenin sayıları belirsiz sayılır (cevapta gizlenir). Birden çok değer içeren okuma ("1 1") ve birleşik hücre kesinleşmez. Yeniden okunmayan hücrelerde sayfanın iki okuma karşılaştırması sürer. Buluta yalnız hücre görüntüsü gider (ZDR, `data_collection: deny`). Okumalar görüntü özetiyle `VA_CELL_READER_CACHE`'te saklanır; yeniden işleme aynı hücre için istek atmaz. Belge başına sınır `VA_CELL_READER_MAX_CELLS` (3000; 0 kapatır). API anahtarı yoksa eski davranış.
+
+**Sonuç (6013448, ayrı ölçüm indeksi).** Belirsiz değer 397 → 44. 11 tech pack sorusunda: XL göğüs (26 ½) ve SL055 MD (25 ½) artık doğru ve gösteriliyor; Sepia etiket rengi doğru ("White: Black" yerine "Black"); BW005, BL005, SL055, SL095 artık bulunuyor. Doğrulanmış yanlış değer 0. İşleme süresi 97 sn → ilk işlemede 420 sn (hücre okuma), önbellekle ~200 sn. Hücre okuma maliyeti bu belge (29 sayfa) için ~0,15 $.
+
+**Geliştirme seti (`--seed 7`).** 37/40, doğrulanmış yanlış değer 0, gereksiz ret 0 (taban 37/40, 1 gereksiz ret). `direct` 9/9 ve `in_image` 3/3 (taban 8/9, 2/3). `dikim-pdf-olcu` ve `dikim-pdf-yanlis-onay` bu koşuda geçmedi: kaynak metin katmanlı `dikim-pdf` (bu değişiklik dokunmuyor); model cümleye alıntıda olmayan "cm" ekledi, birim kuralı gizledi. Tekrar ölçülmedi.
+
+**Açık kalanlar** [açık notlarda](acik-notlar.md): değer/fark sayfası bağlamı, kodun alıntıda geçmemesi, docling'in kaçırdığı hücreler, kapak sayfası form düzeni, s.5 satır kaybı.

@@ -7,6 +7,17 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 - **Kod türleri ve biçimleri:** Kodlar belge işlenirken metinden otomatik çıkarılıyor, ama gerçek belgelerde kodların biçimi ve sırası aynı olmayabilir. Harf ve rakam içeren her şey "kod" sayılıyor: etiket kodu ile ürün kodu ayrılmıyor, `A4` gibi ifadeler fazladan sayılabilir, `1162/A` gibi biçimler kaçabilir. Gerçek dosyalar gelince ölçülecek; gerekirse belge işlerken kodları türüne ayıran bir adım eklenecek.
 - **Tablo düzenleri:** Üretilmiş tablolar düzenli. Farklı sütun sırası ve başlıklarda bedene göre netleştirme yeniden denenecek.
 
+## Tech pack (taranmış ölçü föyü) ölçümünden kalanlar
+
+Tablo hücrelerinin iki okumayla doğrulanması (`tablo-hucre-okuma`) kesirleri ve O/0 karışan kodları çözdü. Aşağıdakiler ondan bağımsız:
+
+- **Kural 1 riski — değer ve fark sayfası karışıyor:** Tech pack'te aynı ölçü tablosu bir kez değerlerle ("Grade Rule Display: Absolute"), bir kez bedenler arası farklarla ("Increment") geliyor. Parçalar hangi sayfadan geldiğini taşımıyor; "XL önden boy" sorusuna fark sayfasındaki "1" değer gibi verilebiliyor (NK041'de görüldü). Tablo alt bilgisinin satırlara bağlam olarak eklenmesi parçalama değişikliği; ekip kararı ve yeniden işleme gerektirir.
+- **Kod alıntıda geçmezse doğru cevap gizleniyor:** "LG beden göğüs genişliği (BW005)" sorusunda model yalnız "LG: 25" alıntılıyor; doğrulama kodun alıntıda olmasını istediği için doğru değer gizleniyor. İstem değişikliği; ekip kararı.
+- **Docling bazı hücreleri kaçırıyor:** SL055 ve NK005'te Tol(+), NK015'te XXL hücresi tablo yapısında yok; değer parçada eksik kalıyor (yanlış değil).
+- **Form düzeni:** s.1'deki kapak sayfasında etiket ve değerler OCR'da ayrılıyor ("Main Material #" ile "KNT-222888" farklı parçalarda); ana kumaş ve numune durumu soruları cevapsız.
+- **Satır kaybı:** s.5'te "1. Hood crossover should be 7/8"" satırı OCR'da kayboluyor (kural 3).
+- **Sunucuya taşıma:** Hücre okuma önbelleği (`VA_CELL_READER_CACHE`, varsayılan `data/cell-reads`) kalıcı bir birimde tutulmalı; yoksa yeniden işlemede aynı hücreler yeniden ücretlendirilir.
+
 ## Markdown belgeler
 
 - Hazır gelen markdown'da OCR kökenli metin işaretlenmiyor: FastReact sürüm notları OCR'dan çıkarılmış ("Text extracted by OCR" notuyla), ama `.md` metni OCR'dan gelmemiş sayılıyor; OCR değerlerine uygulanan "Kısmen doğrulandı" kuralı bu metinde çalışmıyor.

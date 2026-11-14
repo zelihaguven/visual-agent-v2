@@ -4,6 +4,7 @@ import signal
 import pytest
 
 from apps.worker import main as worker_main
+from visual_agent.ingest.cell_reader import cell_reader_from_settings
 from visual_agent.settings import Settings
 
 
@@ -46,3 +47,16 @@ def test_separate_worker_refuses_the_embedded_qdrant_folder(
 
     with pytest.raises(SystemExit, match="tek sürece kilitlenir"):
         worker_main.main()
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [{"openrouter_api_key": None}, {"openrouter_api_key": "  "}, {"cell_reader_max_cells": 0}],
+)
+def test_table_cells_stay_ocr_only_without_a_key_or_when_disabled(
+    overrides: dict[str, object],
+) -> None:
+    """Anahtar yoksa ya da sınır 0 ise buluta hiçbir hücre gitmez (eski davranış)."""
+    settings = Settings(_env_file=None, **{"openrouter_api_key": "anahtar", **overrides})  # type: ignore[arg-type]
+
+    assert cell_reader_from_settings(settings) is None

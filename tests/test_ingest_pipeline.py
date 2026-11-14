@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
 
@@ -79,6 +80,20 @@ def test_ocr_page_elements_are_marked_and_uncertain_tokens_attached() -> None:
     assert not marked[1].from_ocr
 
 
+def test_cell_checked_table_rows_keep_their_own_uncertain_values() -> None:
+    """Hücre düzeyinde doğrulanan satıra sayfanın iki okuma karşılaştırması eklenmez."""
+    location = SourceLocation(page=2)
+    elements = [
+        Element(ElementKind.TABLE_ROW, "XS: 27 1/2 | SM: 28", location, ocr_checked=True),
+        Element(ElementKind.TABLE_ROW, "XS: 30", location, ocr_uncertain=("30",), ocr_checked=True),
+    ]
+
+    marked = annotate_ocr_pages(elements, {2: ("28", "27")})
+
+    assert marked[0].ocr_uncertain == ()
+    assert marked[1].ocr_uncertain == ("30",)
+
+
 def test_missed_page_detection_compares_parsed_text_with_text_layer() -> None:
     pages = [
         PageInfo(page=1, kind=PageKind.TEXT, chars=1000, image_boxes=()),
@@ -110,7 +125,7 @@ def _fake_tools(calls: list[str], page_kind: PageKind = PageKind.TEXT) -> Ingest
         calls.append(f"ocr:{language}")
         return OcrOutcome(pdf_path=path, ocr_pages={1: ("99",)})
 
-    def parse(path: Path) -> list[Element]:
+    def parse(path: Path, ocr_pages: Mapping[int, tuple[str, ...]]) -> list[Element]:
         calls.append(f"parse:{path.name}")
         return [
             Element(ElementKind.HEADING, "Başlık", SourceLocation(page=1)),
