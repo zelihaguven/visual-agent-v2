@@ -432,9 +432,9 @@ def parse_pdf(
     pages: dict[tuple[int, bool], Image.Image] = {}
 
     def page_image(page_number: int, source: bool) -> Image.Image:
-        """Docling'in kutuları OCR'lı sayfaya aittir (eğiklik düzeltilmiş olabilir): hücre
-        kutusundan kesitler OCR'lı görüntüden alınır. Izgara hücreleri görüntünün kendisinden
-        bulunur; çizgileri bozulmamış özgün görüntü kullanılır."""
+        """Docling'in kutuları OCR'lı sayfaya aittir (döndürülmüş ya da yeniden çizilmiş
+        olabilir): hücre kutusundan kesitler OCR'lı görüntüden alınır. Izgara hücreleri
+        görüntünün kendisinden bulunur; çizgileri bozulmamış özgün görüntü kullanılır."""
         document = source_document if source and source_document is not None else ocr_document
         key = (page_number, document is source_document)
         if key not in pages:

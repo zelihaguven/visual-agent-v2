@@ -1084,14 +1084,14 @@ Tarih: 2026-11-15. Dal: `tablo-hizalama`. Kural sürümü PDF, Office ve görsel
 **Açık.** Bazı doğru cevaplar (BW005 LG 25, SL055 MD 25 ½) gizleniyor. Kayıtlı sonuçtaki nedenler: BW005 "cümlede kendi alıntısında olmayan sayı: 25", SL055 "alıntı kaynakta birebir değil". Nedenin istemdeki 150 karakterlik alıntı sınırı olduğu **doğrulanmadı** (modelin alıntısı sonuç dosyasında saklanmıyor).
 
 ### 0007: OCR'da eğiklik düzeltme (--deskew) kaldırıldı
-Tarih: 2026-11-15. Dal: `deskew-kaldir`. Kural sürümü değişmedi (ayrı karar bekliyor).
+Tarih: 2026-11-15. Dal: `deskew-kaldir`. Kural sürümü PDF, Office ve görsel için 7 (bu karar ve #58'in tablo notu alanı). OCR'sız belgelerin çıktısı değişmiyor (11 belgede kuru çalıştırma, veritabanıyla aynı); yeniden işlenmeleri bulut çağrısı gerektirmez.
 
 **Sorun.** Sistemden basılmış görüntü PDF'lerde (tech pack) "4XL" "AXL", "4XLT" "AXLI" okunuyordu. Rakam harfe döndüğü için iki okuma karşılaştırması (yalnız rakamlı parçalara bakar) bunu yakalamıyordu (kural 1).
 
-**Neden.** Kapak sayfasında ayarlar tek tek değiştirildi (tur+eng): `--skip-text` → "4XL" doğru; `--skip-text --deskew` → "AXL". Sayfa düz (ölçülen eğiklik 248 tech pack sayfasının hepsinde 0,0°), düzeltme adımı görüntüyü yeniden örnekleyip harfleri bozuyor. Yalnız `tur` ile okumada hata düzeltmesiz de çıkıyor; uygulama `tur+eng` kullanıyor.
+**Neden.** Kapak sayfasında ayarlar tek tek değiştirildi (tur+eng): `--skip-text` → "4XL" doğru; `--skip-text --deskew` → "AXL". Sayfa düz (ölçülen eğiklik 248 tech pack sayfasının hepsinde 0,0°), düzeltme adımı görüntüyü yeniden örnekleyip harfleri bozuyor. Eğiklik düzeltme yalnız metin katmanı olmayan sayfalarda (`--skip-text`) uygulanıyordu; zayıf metinli sayfalar (`--force-ocr`) zaten düzeltmesizdi. Yalnız `tur` ile okumada hata düzeltmesiz de çıkıyor; uygulama `tur+eng` kullanıyor.
 
 **Ölçüm (yerel, ücretsiz kuru çalıştırma, tur+eng).**
-- 17 tech pack, 248 sayfa: "AXL/AXLI" 5 → 0; iki okumanın uyuşmadığı değer 1.662 → 1.549; süre 337 → 317 sn.
+- 17 tech pack, 248 sayfa: "AXL/AXLI" 4 → 0 (ilk raporda 5 yazıyordu: "AXLI" iki kez sayılmıştı); iki okumanın uyuşmadığı değer 1.662 → 1.549; süre 337 → 317 sn.
 - 6 sentetik taranmış/fotoğraf belge (eğiklik 0,4–2,6°): 93/93 → 93/93 doğru, gösterilen yanlış değer 0 → 0. Düzeltmenin bu belgelerde ölçülebilir yararı yoktu.
 - 5–12° döndürülmüş fotoğraf denemesi sonuç vermedi (iki ayarda da okunmadı; döndürme görüntüyü bulanıklaştırdı). Güçlü eğiklik için gerçek fotoğrafla ölçüm gerekir.
 
@@ -1102,4 +1102,4 @@ Tarih: 2026-11-15. Dal: `deskew-kaldir`. Kural sürümü değişmedi (ayrı kara
 
 **Test.** OCR komutunu kuran `tools.py`, CI'da kurulmayan belge işleme paketlerini yüklüyor; birim testi eklenmedi. Davranış yukarıdaki kuru çalıştırmayla ölçüldü.
 
-**Gerekenler.** Uygulamadaki OCR'lı 19 belge bu kodla yeniden işlenmeli (hücre okumaları büyük ölçüde önbellekte).
+**Gerekenler.** Birleştikten sonra uygulamadaki 28 PDF/Office/görsel belgesi bir kez yeniden işlenmeli: 19 OCR'lı (hücre okumaları büyük ölçüde önbellekte) ve 9 OCR'sız (bulut çağrısı yok).
