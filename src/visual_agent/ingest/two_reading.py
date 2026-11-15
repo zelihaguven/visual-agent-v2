@@ -10,7 +10,6 @@ OCR_MIN_SCORE = 0.85
 _SCORE_TOLERANCE = 0.02
 _CONFUSABLE = str.maketrans(
     {
-        "/": "1",
         "l": "1",
         "I": "1",
         "i": "1",
@@ -23,11 +22,13 @@ _CONFUSABLE = str.maketrans(
         "o": "0",
         "B": "8",
         "Z": "2",
-        "≥": "~",
-        "±": "~",
-        "+": "~",
     }
 )
+_FRACTION_BAR_RE = re.compile(r"(?<=\d)/(?=\d)")
+_LOOSE_SLASH = str.maketrans({"/": "1"})
+"""Sayıya yapışık eğik çizgi ("/12") çoğu zaman "1" ya da tablo çizgisidir; iki rakam
+arasındaki eğik çizgi kesir çizgisidir: "3/8" ile "318" farklı değerdir. "±", "+" ve "≥" de
+farklı anlam taşır, birbirinin okuması sayılmaz."""
 _STRIP_CHARACTERS = ".,;:()[]{}\"'”“’‘«»|_"
 
 
@@ -59,14 +60,18 @@ def page_ranges(pages: Iterable[int]) -> str:
     return ",".join(ranges)
 
 
+def _confusable_key(text: str) -> str:
+    return _FRACTION_BAR_RE.sub("÷", text).translate(_LOOSE_SLASH).translate(_CONFUSABLE)
+
+
 def _token_key(token: str) -> str:
-    return token.strip(_STRIP_CHARACTERS).replace(",", ".").translate(_CONFUSABLE)
+    return _confusable_key(token.strip(_STRIP_CHARACTERS).replace(",", "."))
 
 
 def unconfirmed_tokens(primary: str, second: str) -> list[str]:
     """Birinci okumadaki, ikinci okumada eşi olmayan sayı içeren diziler."""
     keys = {_token_key(token) for token in second.split()}
-    joined = "".join(second.split()).translate(_CONFUSABLE)
+    joined = _confusable_key("".join(second.split()))
     unconfirmed = []
     for token in primary.split():
         if not re.search(r"\d", token):

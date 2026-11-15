@@ -142,6 +142,7 @@ def build_chunks(elements: Iterable[Element], meta: DocumentMeta) -> list[Chunk]
             location=_location(element, section),
             ocr_uncertain=element.ocr_uncertain,
             from_ocr=element.from_ocr,
+            table_note=element.context,
         )
         for index, (element, section) in enumerate(_sectioned_chunks(elements))
     ]

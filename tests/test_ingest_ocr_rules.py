@@ -83,6 +83,9 @@ def test_page_ranges_compacts_pages() -> None:
     [
         ("Değer 12,5 cm", "Değer 12,5 cm", []),
         ("Değer 112 cm", "Değer /12 cm", []),
+        ("Kol 318 ölçü", "Kol 3/8 ölçü", ["318"]),  # kesir çizgisi "1" okuması değildir
+        ("Kol 3/8 ölçü", "Kol 318 ölçü", ["3/8"]),
+        ("Tolerans ±1/2", "Tolerans +1/2", ["±1/2"]),
         ("40lbs yük", "40 lbs yük", []),
         ("43-3/8 ölçü", "43.3/8 ölçü", ["43-3/8"]),
         ("Değer 299.999%", "Değer", ["299.999%"]),
