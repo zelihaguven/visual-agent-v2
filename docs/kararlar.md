@@ -887,7 +887,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Eski klasörler:** n3–n9, run7-taban, run11-taban ve fastreact karşılaştırma için
   kalıyor. `evals/output/` `.gitignore`'da; repoda izlenen dosyası yok.
 
-## Karar belgeleri 0001–0006
+## Karar belgeleri 0001–0007
 
 Eskiden `docs/decisions/` altındaki dört belgenin tam metni. Yukarıdaki maddelerde "0001"–"0004" diye anılan belgeler bunlar.
 
@@ -1076,9 +1076,30 @@ Tarih: 2026-11-15. Dal: `tablo-hizalama`. Kural sürümü PDF, Office ve görsel
 
 **Karar.**
 - OCR'lı sayfadaki çizgili tablo, çizgilerinden okunur: kesintisiz ince çizgiler ve gri zeminin kenarları sınırdır; satırda dikey çizgi yoksa hücreler birleşir; ilk dolu satır başlıktır; çoğu boş satır bölüm etiketi ya da nottur. Her hücre iki okumayla (RapidOCR + Qwen, ayrılırlarsa Gemini hakem) okunur. Uzun metinde iki okumada da aynen geçen sayı kesindir; kısa hücre bütün olarak kesinleşmelidir. Kesinleşmeyen hücrede iki okumadan uzun olanı tutulur (model çok satırlı hücrenin ilk satırını atlayabiliyor).
-- Yazıyı kesen ızgara (yazı hücre kenarına değiyor) ya da çizgi bulunamayan tablo docling'in yapısıyla okunur. Docling kutusundan kesitler OCR'lı görüntüden alınır (OCR eğikliği düzeltir), ızgara özgün görüntüden.
+- Yazıyı kesen ızgara (yazı hücre kenarına değiyor) ya da çizgi bulunamayan tablo docling'in yapısıyla okunur. Docling kutusundan kesitler OCR'lı görüntüden alınır, ızgara özgün görüntüden (0007'den önce OCR eğikliği düzeltiyordu; ayrım korunur).
 - Tablo notunda fark ifadesi ("Increment", "Delta", "fark") geçen tablo satırı, soru farkı sormuyorsa cevap kaynağı olmaz. Yalnız tablo notuna bakılır (parçada ayrı alan): "Incremental Updates" gibi bir başlığın altındaki metin fark değildir (2026-11-15 düzeltmesi; ilk sürüm bölüm adının tamamına bakıyordu ve yazılım belgelerinde 11 parçayı gizleyebiliyordu). Ekip kararı (2026-11-15): model fark değerini ölçü diye veriyordu ve alıntı birebir olduğu için doğrulama yakalayamıyordu.
 
 **Ölçüm.** 6013448: belirsiz değer 397 → 16 (ayrı ölçüm indeksi, `evals.run_documents`; kayıt: `evals/output/techpack-6013448/ingest.json` ve `evals/output/techpack-6013448-izgara/ingest.json`, `uncertain_values`; klasör repoda değil); doğrulanmış yanlış değer 0 (çizgi okuması fark sayfasını temiz okuyunca iki yanlış doğrulama görülmüştü, fark kuralıyla kalktı). 6026411 s.14 kaymasız. Geliştirme seti 38/40, doğrulanmış yanlış 0. İlk işlemede tech pack başına hücre okuma ~0,2 $.
 
 **Açık.** Bazı doğru cevaplar (BW005 LG 25, SL055 MD 25 ½) gizleniyor. Kayıtlı sonuçtaki nedenler: BW005 "cümlede kendi alıntısında olmayan sayı: 25", SL055 "alıntı kaynakta birebir değil". Nedenin istemdeki 150 karakterlik alıntı sınırı olduğu **doğrulanmadı** (modelin alıntısı sonuç dosyasında saklanmıyor).
+
+### 0007: OCR'da eğiklik düzeltme (--deskew) kaldırıldı
+Tarih: 2026-11-15. Dal: `deskew-kaldir`. Kural sürümü değişmedi (ayrı karar bekliyor).
+
+**Sorun.** Sistemden basılmış görüntü PDF'lerde (tech pack) "4XL" "AXL", "4XLT" "AXLI" okunuyordu. Rakam harfe döndüğü için iki okuma karşılaştırması (yalnız rakamlı parçalara bakar) bunu yakalamıyordu (kural 1).
+
+**Neden.** Kapak sayfasında ayarlar tek tek değiştirildi (tur+eng): `--skip-text` → "4XL" doğru; `--skip-text --deskew` → "AXL". Sayfa düz (ölçülen eğiklik 248 tech pack sayfasının hepsinde 0,0°), düzeltme adımı görüntüyü yeniden örnekleyip harfleri bozuyor. Yalnız `tur` ile okumada hata düzeltmesiz de çıkıyor; uygulama `tur+eng` kullanıyor.
+
+**Ölçüm (yerel, ücretsiz kuru çalıştırma, tur+eng).**
+- 17 tech pack, 248 sayfa: "AXL/AXLI" 5 → 0; iki okumanın uyuşmadığı değer 1.662 → 1.549; süre 337 → 317 sn.
+- 6 sentetik taranmış/fotoğraf belge (eğiklik 0,4–2,6°): 93/93 → 93/93 doğru, gösterilen yanlış değer 0 → 0. Düzeltmenin bu belgelerde ölçülebilir yararı yoktu.
+- 5–12° döndürülmüş fotoğraf denemesi sonuç vermedi (iki ayarda da okunmadı; döndürme görüntüyü bulanıklaştırdı). Güçlü eğiklik için gerçek fotoğrafla ölçüm gerekir.
+
+**Ölçüm (ayrı ölçüm indeksi).**
+- Geliştirme seti 38/40 → 38/40, doğrulanmış yanlış 0 → 0. Belirsiz: dikim-tarama 3 → 0, dikim-foto 1 → 2.
+- Tech pack 6013448: belirsiz 16 → 14; parçalarda "AXL" 2 → 0. Parça metni değiştiği için sorular yeniden soruldu; cevaplar model değişkenliğiyle karıştı: BW005 LG 25 ve SL055 MD 25 ½ artık doğrulanmış, crossover 7/8 ("inch" birimi eklendi) ve NK041 28 (alıntıda sayı yok) gizlendi. Doğrulanmış yanlış sayı yok; ama "numune durumu belgede belirtilmemiştir" cümlesi doğrulandı (kapak formunda "Fit Approved, Hold Sampling" yazıyor: form eşleşmesi sorunu, açık).
+- Maliyet 0,042 $ (yeni hücre okumaları ve yeniden sorulan cevaplar).
+
+**Test.** OCR komutunu kuran `tools.py`, CI'da kurulmayan belge işleme paketlerini yüklüyor; birim testi eklenmedi. Davranış yukarıdaki kuru çalıştırmayla ölçüldü.
+
+**Gerekenler.** Uygulamadaki OCR'lı 19 belge bu kodla yeniden işlenmeli (hücre okumaları büyük ölçüde önbellekte).

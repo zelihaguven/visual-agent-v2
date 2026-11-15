@@ -158,7 +158,6 @@ def inspect_pdf(path: Path) -> list[PageInfo]:
 def _run_ocrmypdf(
     source: Path, target: Path, flag: str, language: str, pages: list[int], env: dict[str, str]
 ) -> None:
-    deskew = ["--deskew"] if flag == "--skip-text" else []
     command = [
         sys.executable,
         "-m",
@@ -166,7 +165,6 @@ def _run_ocrmypdf(
         "-l",
         language,
         flag,
-        *deskew,
         "--pages",
         page_ranges(pages),
         "--rotate-pages",
