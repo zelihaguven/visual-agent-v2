@@ -58,6 +58,8 @@ class Chunk(FrozenModel):
     location: SourceLocation
     ocr_uncertain: tuple[str, ...] = ()
     from_ocr: bool = False
+    table_note: str = ""
+    """Tablo satırının bağlı olduğu tablo notu ve bölüm etiketi (bölüm adında da geçer)."""
 
     @property
     def embed_text(self) -> str:

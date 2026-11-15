@@ -211,7 +211,8 @@ _RELATIVE_RE = re.compile(
     re.IGNORECASE,
 )
 """Tablo notu değerlerin bir başka değere göre fark olduğunu söylüyor ("Grade Rule Display:
-Increment"). Bu satırların sayısı ölçü değil, bedenler arası farktır."""
+Increment"). Bu satırların sayısı ölçü değil, bedenler arası farktır. Yalnız tablo notuna bakılır:
+"Incremental Updates" gibi bir başlığın altındaki metin fark değildir."""
 
 
 def _without_relative_tables(question: str, hits: Sequence[Hit]) -> tuple[Hit, ...]:
@@ -220,7 +221,7 @@ def _without_relative_tables(question: str, hits: Sequence[Hit]) -> tuple[Hit, .
     0006)."""
     if _RELATIVE_RE.search(question):
         return tuple(hits)
-    return tuple(hit for hit in hits if not _RELATIVE_RE.search(hit.chunk.section))
+    return tuple(hit for hit in hits if not _RELATIVE_RE.search(hit.chunk.table_note))
 
 
 async def retrieve(state: AskState, deps: AskDeps) -> AskState:

@@ -335,9 +335,11 @@ def test_table_row_context_is_added_to_its_chunk_section() -> None:
         Element(ElementKind.TABLE_ROW, "Dim: SL100 | MD: 7 1/4", SourceLocation(page=1)),
     ]
 
-    sections = [chunk.section for chunk in build_chunks(elements, meta)]
+    chunks = build_chunks(elements, meta)
 
-    assert sections == ["POMs · Tall", "POMs"]
+    assert [chunk.section for chunk in chunks] == ["POMs · Tall", "POMs"]
+    # Tablo notu ayrıca saklanır: başlık (POMs) not değildir.
+    assert [chunk.table_note for chunk in chunks] == ["Tall", ""]
 
 
 @pytest.mark.parametrize(

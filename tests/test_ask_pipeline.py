@@ -736,7 +736,8 @@ def test_code_written_differently_in_the_text_is_still_an_exact_match(written: s
 
 def _relative_row() -> Chunk:
     row = chunk("a:2", "a", "Dim: SL055 | MD: -3/8 | LG: 25 7/8", title="PNT-4417 ölçü föyü")
-    return row.model_copy(update={"section": "POMs · Grade Rule Display: Increment"})
+    note = "Grade Rule Display: Increment"
+    return row.model_copy(update={"section": f"POMs · {note}", "table_note": note})
 
 
 def test_rows_of_a_difference_table_are_not_value_sources() -> None:
@@ -749,6 +750,17 @@ def test_rows_of_a_difference_table_are_not_value_sources() -> None:
     prompt = client.calls[0][1]["content"]
     assert "MD: -3/8" not in prompt
     assert not (isinstance(outcome.result, Answered) and outcome.result.items[0].verified)
+
+
+def test_text_under_a_difference_heading_stays_a_source() -> None:
+    """Yazılım belgesindeki "Incremental Updates" başlığı tablo notu değildir."""
+    text = chunk("a:3", "a", "Güncelleme her gece 02:00'de çalışır.", title="Güncelleme")
+    text = text.model_copy(update={"section": "Update Progress · Incremental Updates"})
+    client = FakeClient(answer_payload("Her gece 02:00'de.", quote="her gece 02:00"))
+
+    ask(make_deps(client, FakeRetriever(hits=[text])), "Güncelleme ne zaman çalışır?")
+
+    assert "02:00" in client.calls[0][1]["content"]
 
 
 def test_difference_rows_are_used_when_the_question_asks_for_the_difference() -> None:
