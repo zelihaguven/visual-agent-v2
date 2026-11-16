@@ -263,3 +263,44 @@ def test_group_header_spans_every_size_column(
     # Sınır: S, M, L üçü de grup başlığının altında. Dikim: son sütun (tolerans) dışarıda.
     assert _group_ranges(output / model_sheets.filename) == {"B2:D2"}
     assert "B2:D2" in _group_ranges(main_output / sewing.filename)
+
+
+def test_synthetic_tech_packs_match_their_text_layer_and_are_reproducible(tmp_path: Path) -> None:
+    """Doğru cevaptaki her değer dijital PDF'te kendi kutusunda okunur; aynı tohum aynı dosya."""
+    from evals.ocr_truth import TruthDocument, ValueKind
+    from evals.render.techpack_pdf import generate_set
+
+    first = generate_set(3, 2, tmp_path / "a", "T")  # uyuşmazlıkta hata verir
+    second = generate_set(3, 2, tmp_path / "b", "T")
+
+    assert first == second
+    truth = TruthDocument.model_validate_json((tmp_path / "a" / "syn1.json").read_text())
+    assert [page.page_type for page in truth.pages][0] == "kapak"
+    assert len(truth.pages) == 6
+    kinds = {value.kind for page in truth.pages for value in page.values}
+    assert kinds == {ValueKind.CELL, ValueKind.PAIR, ValueKind.TEXT}
+    assert all(value.box is not None for page in truth.pages for value in page.values)
+
+
+FROZEN_TECHPACK_SEED = 20261116
+FROZEN_TECHPACK_SET_A = [
+    ("syn1.pdf", "682d60dfc2efaf62e9b109817244062b240a673e150986d10002cc4935d5f62b"),
+    ("syn2.pdf", "dbd1d9c935b568546142a12cca8cc550a6a2eb5a0e15d3fae4a652bfc65cdd1b"),
+    ("syn3.pdf", "fd7bd0c4183efcbee716f8507f4b658e6a17fad8055361bd17d735b5ba0bb98b"),
+    ("syn4.pdf", "6b78a4abb6dfe22b7f39722962de664e6924b95b71adfd5c3956007e79348540"),
+    ("syn5.pdf", "dc6d8161a2e6962d34bd54dd3ccdf5e7c322a9f2e80a5f3844dac0fc9ea61c6a"),
+    ("syn1.json", "9a06013b66bcfa6d280c7b86a1c6dbc63e195a613427e78a6b0da7ba33955812"),
+    ("syn2.json", "660baddaa5eeb87424cb0bf7e90c1c25fc09b78d449566872a890d4aae120262"),
+    ("syn3.json", "b48b5d3067ac25e43ca8eb5c7e1f7d80e44341b2912719ce030d8fa2ac24f169"),
+    ("syn4.json", "a1bdba76db5a0f9cb0d5fdffe4b7f5890287fe474b2ebaaf9e8e70c132aec93a"),
+    ("syn5.json", "d024099e7a85e7408a8d0caec816e8a068aae792b651423fa495ae464a29e24e"),
+]
+"""Kilitli set A (2026-11-16): hiçbir okuyucu çalıştırılmadan donduruldu. Üretici, yazı tipi ya da
+reportlab değişip dosyalar değişirse bu test kırılır; set A'nın sonuçları o zaman geçersizdir ve
+yeni bir tohumla yeni set üretilir (sonuçlara bakıp üretici değiştirilmez)."""
+
+
+def test_locked_synthetic_set_a_is_unchanged(tmp_path: Path) -> None:
+    from evals.render.techpack_pdf import generate_set
+
+    assert generate_set(FROZEN_TECHPACK_SEED, 5, tmp_path, "A") == FROZEN_TECHPACK_SET_A
