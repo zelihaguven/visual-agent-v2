@@ -16,12 +16,15 @@ Sonuç türleri (her doğru cevap değeri için bir tane):
 import argparse
 import json
 import re
+import subprocess
+import tempfile
 from collections import Counter
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from difflib import SequenceMatcher
 from enum import StrEnum
 from html.parser import HTMLParser
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict
 
@@ -37,6 +40,9 @@ from evals.ocr_truth import (
 from visual_agent.domain.document import Chunk, ChunkKind
 from visual_agent.ingest.elements import SECTION_SEPARATOR
 from visual_agent.verification.text import contains_token
+
+if TYPE_CHECKING:
+    from PIL import Image
 
 _SIMILAR = 0.75
 """Satır anahtarı ya da etiket bu kadar benzerse bulunmuş sayılır: karakter hatası bağı
@@ -433,13 +439,85 @@ def paddle_vl_page(
         tokens = (uncertain or {}).get(int(block.get("block_id", -1)), ())
 
         def cell(text: str, tokens: Sequence[str] = tokens) -> ReadCell:
-            return ReadCell(text=text, uncertain=any(contains_token(text, t) for t in tokens))
+            return ReadCell(text=text, uncertain=bool(set(value_tokens(text)) & set(tokens)))
 
         if block.get("block_label") == "table":
             rows += [ReadRow(cells=tuple(cell(t) for t in r)) for r in html_rows(content)]
         else:
             rows += [ReadRow(cells=(cell(line),)) for line in content.splitlines() if line.strip()]
     return ReadPage(page=page, rows=tuple(rows))
+
+
+_TOKEN_EDGES = ".,;:()[]{}|\"'"
+_CODE_RE = re.compile(r"^[A-ZÇĞİÖŞÜ]{2,}(?:-[A-Z0-9ÇĞİÖŞÜ]+)*$")
+"""Rakamsız kod: en az iki büyük harf, tireyle parçalar ("AXL", "XS-AXL")."""
+
+
+def value_tokens(text: str) -> list[str]:
+    """Karşılaştırılan sayı ve kod parçaları (eşdeğerlik kurallarına göre yazılmış): rakam
+    içeren her parça ve rakamsız kodlar. "27 1/2" iki parçadır: "27" ve "1/2"."""
+    tokens = []
+    for raw in canonical(text).split():
+        token = raw.strip(_TOKEN_EDGES)
+        if token and (any(ch.isdigit() for ch in token) or _CODE_RE.match(token)):
+            tokens.append(token)
+    return tokens
+
+
+def count_mismatches(primary: str, second: str) -> list[str]:
+    """Birinci okumanın sayı ve kod parçalarından, iki okumada geçiş sayısı farklı olanlar.
+    Bilinen zayıflık: aynı bloktaki iki hata birbirini dengelerse (bir "1/4" → "1/2", bir
+    "1/2" → "1/4") sayılar tutar ve geçer."""
+    first, other = Counter(value_tokens(primary)), Counter(value_tokens(second))
+    return sorted(token for token, count in first.items() if other[token] != count)
+
+
+Tesseract = Callable[["Image.Image"], str]
+
+
+def tesseract_reader(executable: str = "tesseract", language: str = "tur+eng") -> Tesseract:
+    """İkinci okuma: Tesseract, eğiklik düzeltmesiz. Seyrek kip (psm 11): sayım için sıra
+    gerekmez, tablodaki dağınık hücreler de okunur."""
+
+    def read(image: "Image.Image") -> str:
+        with tempfile.TemporaryDirectory() as work:
+            source = Path(work) / "blok.png"
+            image.save(source)
+            command = [executable, str(source), "stdout", "-l", language, "--psm", "11"]
+            return subprocess.run(command, capture_output=True, text=True, check=True).stdout
+
+    return read
+
+
+_BLOCK_PAD = 4
+
+
+def second_reading_marks(
+    result: Path, image: "Image.Image", read: Tesseract
+) -> dict[int, list[str]]:
+    """PaddleOCR-VL'nin her bloğu için ikinci okumayla geçiş sayısı tutmayan parçalar
+    ({blok numarası: [parça]}). Blok kutusu PaddleOCR-VL'ye verilen görüntünün pikselidir."""
+    data = json.loads(result.read_text(encoding="utf-8"))
+    scale_x = image.width / float(data.get("width") or image.width)
+    scale_y = image.height / float(data.get("height") or image.height)
+    marks: dict[int, list[str]] = {}
+    for block in data["parsing_res_list"]:
+        content = str(block.get("block_content") or "")
+        if block.get("block_label") == "table":
+            content = " ".join(text for row in html_rows(content) for text in row)
+        if not value_tokens(content):
+            continue
+        left, top, right, bottom = block["block_bbox"]
+        box = (
+            max(0, int(left * scale_x) - _BLOCK_PAD),
+            max(0, int(top * scale_y) - _BLOCK_PAD),
+            min(image.width, int(right * scale_x) + _BLOCK_PAD),
+            min(image.height, int(bottom * scale_y) + _BLOCK_PAD),
+        )
+        mismatched = count_mismatches(content, read(image.crop(box)))
+        if mismatched:
+            marks[int(block["block_id"])] = mismatched
+    return marks
 
 
 def pipeline_pages(chunks: Sequence[Chunk]) -> list[ReadPage]:

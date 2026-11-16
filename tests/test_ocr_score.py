@@ -8,12 +8,15 @@ from evals.ocr_score import (
     ReadCell,
     ReadPage,
     ReadRow,
+    count_mismatches,
     html_rows,
     paddle_vl_page,
     pipeline_pages,
     score_document,
     score_page,
+    second_reading_marks,
     text_layer_pages,
+    value_tokens,
 )
 from evals.ocr_truth import TruthDocument, TruthPage, TruthValue, ValueKind
 
@@ -245,11 +248,77 @@ def test_second_reading_marks_hidden_cells_by_block(tmp_path: Path) -> None:
     assert [c.uncertain for c in page.rows[1].cells] == [False, True]
 
 
+def test_value_tokens_are_numbers_and_codes_in_one_writing() -> None:
+    assert value_tokens("BL005 Front Length $ -3\\frac{1}{8} $ 27½ XS-AXL Fic") == [
+        "BL005",
+        "-3",
+        "1/8",
+        "27",
+        "1/2",
+        "XS-AXL",
+    ]
+
+
+def test_one_missing_occurrence_makes_the_value_uncertain() -> None:
+    primary = " ".join(["1/2"] * 13 + ["3/4"])
+    second = " ".join(["1/2"] * 12 + ["3/4"])
+
+    assert count_mismatches(primary, second) == ["1/2"]
+
+
+def test_equal_counts_agree() -> None:
+    primary = "27 1/2 28 1/2 ⅜ -3/8"
+    second = "27½ 28 1/2 3/8 −3/8"
+
+    assert count_mismatches(primary, second) == []
+
+
+def test_codes_without_digits_are_counted_too() -> None:
+    assert count_mismatches("XS-AXL SMT-4XLT", "XS-4XL SMT-4XLT") == ["XS-AXL"]
+
+
+def test_known_weakness_balancing_errors_pass() -> None:
+    """Bilinen zayıflık: "1/4" → "1/2" ve "1/2" → "1/4" aynı blokta birbirini dengeler."""
+    assert count_mismatches("1/4 1/2", "1/2 1/4") == []
+
+
+def test_second_reading_marks_cells_of_mismatched_values_in_each_block(tmp_path: Path) -> None:
+    from PIL import Image
+
+    result = tmp_path / "s1_res.json"
+    table = (
+        "<table>" + "".join(f"<tr><td>R{i}</td><td>1/2</td></tr>" for i in range(13)) + "</table>"
+    )
+    blocks = [
+        {
+            "block_id": 1,
+            "block_label": "table",
+            "block_content": table,
+            "block_bbox": [0, 0, 50, 50],
+        },
+        {
+            "block_id": 2,
+            "block_label": "text",
+            "block_content": "Units 3/4",
+            "block_bbox": [0, 60, 50, 90],
+        },
+    ]
+    result.write_text(json.dumps({"width": 100, "height": 100, "parsing_res_list": blocks}))
+    readings = iter(["R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 " + "1/2 " * 12, "Units 3/4"])
+
+    marks = second_reading_marks(result, Image.new("L", (100, 100), 255), lambda _: next(readings))
+
+    assert marks == {1: ["1/2"]}
+    page = paddle_vl_page(result, 1, marks)
+    assert sum(cell.uncertain for row in page.rows for cell in row.cells) == 13
+
+
 FROZEN_SCORING = {
-    "evals/ocr_score.py": "72b88b001c0bb37d77d10f14e5b8452ee2e31c0ce8682ae5f2fd29b2a8687f24",
+    "evals/ocr_score.py": "a806a7f4a6d5b521e065dfb6a95e48f39b2f262f1d9f18f7be82b4d7aeafcf8d",
     "evals/ocr_truth.py": "9533f39742831eb1eff642efbabd5ba233c04b4ce114b76211bf5d5603137744",
 }
-"""Puanlama, eşdeğerlik kuralları ve dönüştürücüler ölçümden önce donduruldu (2026-11-16).
+"""Puanlama, eşdeğerlik kuralları, dönüştürücüler ve ikinci okumanın sayarak karşılaştırması
+ölçümden önce donduruldu (2026-11-16, ikinci sabitleme: Tesseract ikinci okuması eklendi).
 Ölçümden sonra değişirse bu test kırılır: değişiklik yeni bir ölçüm turu ve karar notu ister;
 sonuçlara bakıp puanlama değiştirilmez."""
 
