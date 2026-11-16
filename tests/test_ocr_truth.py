@@ -11,6 +11,7 @@ from evals.ocr_truth import (
     canonical,
     layer_mismatches,
     same_value,
+    separator_only,
 )
 
 
@@ -27,7 +28,6 @@ from evals.ocr_truth import (
         ("-3/8", "- 3/8"),
         ("-3/8", "$ -\\frac{3}{8} $"),
         ("27 1/2", "$ 27\\frac{1}{2} $"),
-        ("1.0", "1,0"),
         ("80%", "80 %"),
         ('7/8"', "7/8″"),
         ("Fit Approved, Hold Sampling", "Fit  Approved,\r\nHold Sampling"),
@@ -47,6 +47,8 @@ def test_same_value_ignores_only_how_a_value_is_written(a: str, b: str) -> None:
         ("Flc", "Fic"),
         ("Flc", "flc"),  # harf büyüklüğü korunur
         ("1.500", "1.5"),
+        ("1.0", "1,0"),  # ayraç farkı ayrı raporlanır
+        ("1.500", "1,500"),
     ],
 )
 def test_different_values_stay_different(a: str, b: str) -> None:
@@ -55,6 +57,21 @@ def test_different_values_stay_different(a: str, b: str) -> None:
 
 def test_comma_between_words_is_not_a_decimal_separator() -> None:
     assert canonical("Fleece, Solid") == "Fleece, Solid"
+
+
+@pytest.mark.parametrize(
+    ("a", "b", "expected"),
+    [
+        ("1,0", "1.0", True),
+        ("2,4931", "2.4931", True),
+        ("1.500", "1,500", True),
+        ("1.0", "1.0", False),  # aynı değer ayraç farkı değil
+        ("1,0", "1.5", False),
+        ("Fleece, Solid", "Fleece. Solid", False),
+    ],
+)
+def test_separator_difference_is_reported_separately(a: str, b: str, expected: bool) -> None:
+    assert separator_only(a, b) is expected
 
 
 def test_text_layer_check_reads_each_value_in_its_box(tmp_path: Path) -> None:

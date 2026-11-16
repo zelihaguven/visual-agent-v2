@@ -300,7 +300,21 @@ reportlab değişip dosyalar değişirse bu test kırılır; set A'nın sonuçla
 yeni bir tohumla yeni set üretilir (sonuçlara bakıp üretici değiştirilmez)."""
 
 
-def test_locked_synthetic_set_a_is_unchanged(tmp_path: Path) -> None:
+FROZEN_TECHPACK_DIR = Path(__file__).parent.parent / "evals" / "assets" / "techpack_set_a"
+"""Basılıp taranan dosyalar bunlardır; kütüphane sürümü değişince yeniden üretilemeyebilirler."""
+
+
+def test_committed_set_a_files_are_the_frozen_ones() -> None:
+    import hashlib
+
+    committed = [
+        (name, hashlib.sha256((FROZEN_TECHPACK_DIR / name).read_bytes()).hexdigest())
+        for name, _ in FROZEN_TECHPACK_SET_A
+    ]
+    assert committed == FROZEN_TECHPACK_SET_A
+
+
+def test_generator_still_reproduces_set_a(tmp_path: Path) -> None:
     from evals.render.techpack_pdf import generate_set
 
     assert generate_set(FROZEN_TECHPACK_SEED, 5, tmp_path, "A") == FROZEN_TECHPACK_SET_A

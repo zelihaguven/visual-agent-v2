@@ -10,7 +10,9 @@ tahmin etmez, bir rakamı başka rakama çevirmez:
 1. Kesir yazımı: "⅜", "³⁄₈", "3⁄8", "3 / 8" ve LaTeX "\\frac{3}{8}" aynıdır: "3/8". Tam sayıya
    yapışık kesir karakteri ("27⅜", "27³⁄₈") "27 3/8" sayılır. "271/2" ile "27 1/2" farklıdır.
 2. Eksi işareti: "-", "−", "–" ve "‑" aynıdır; işaretle sayı arasındaki boşluk yok sayılır.
-3. Ondalık ayırıcı: rakamlar arasındaki virgül ile nokta aynıdır ("1,0" = "1.0").
+3. Ondalık ayırıcı eşdeğer sayılmaz: "1.500" ile "1,500" farklı değerler olabilir. Yalnız
+   rakamlar arasındaki virgül–nokta farkıyla ayrılan değer "ayraç farkı" olarak ayrı raporlanır
+   (`separator_only`); doğru da yanlış karakter de sayılmaz (2026-11-16 düzeltmesi).
 4. Boşluk: art arda boşluklar ve satır sonları tek boşluktur; baştaki ve sondaki boşluk yok
    sayılır; "%" ve kesir çizgisinden önceki ve sonraki boşluk yok sayılır.
 5. Tırnaklar: inç işareti ″ ve kıvrık tırnaklar düz tırnaktır; LaTeX "$" işaretleri yok sayılır.
@@ -41,7 +43,7 @@ _SCRIPT_FRACTION_RE = re.compile(r"(\d?)([⁰¹²³⁴⁵⁶⁷⁸⁹]+)[⁄/∕
 _LATEX_FRACTION_RE = re.compile(r"(\d?)\s*\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}")
 _MINUS_RE = re.compile(r"[−–‑]")
 _SIGN_SPACE_RE = re.compile(r"(?<![\w)])- +(?=\d)")
-_DECIMAL_COMMA_RE = re.compile(r"(?<=\d),(?=\d)")
+_SEPARATOR_RE = re.compile(r"(?<=\d)[.,](?=\d)")
 _SLASH_SPACE_RE = re.compile(r"(?<=\d) */ *(?=\d)")
 _QUOTES = str.maketrans({"″": '"', "“": '"', "”": '"', "’": "'", "‘": "'", "$": None})
 
@@ -62,7 +64,6 @@ def canonical(text: str) -> str:
     text = _SCRIPT_FRACTION_RE.sub(_script_fraction, text)
     text = text.replace("⁄", "/").replace("∕", "/").translate(_QUOTES)
     text = _MINUS_RE.sub("-", text)
-    text = _DECIMAL_COMMA_RE.sub(".", text)
     text = " ".join(text.split())
     text = _SIGN_SPACE_RE.sub("-", text)
     text = _SLASH_SPACE_RE.sub("/", text)
@@ -71,6 +72,12 @@ def canonical(text: str) -> str:
 
 def same_value(a: str, b: str) -> bool:
     return canonical(a) == canonical(b)
+
+
+def separator_only(a: str, b: str) -> bool:
+    """İki değer yalnız rakamlar arasındaki virgül–nokta farkıyla ayrılıyor ("ayraç farkı")."""
+    left, right = canonical(a), canonical(b)
+    return left != right and _SEPARATOR_RE.sub("·", left) == _SEPARATOR_RE.sub("·", right)
 
 
 class ValueKind(StrEnum):

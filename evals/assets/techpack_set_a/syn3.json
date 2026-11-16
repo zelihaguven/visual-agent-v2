@@ -1,0 +1,6736 @@
+{
+ "doc_id": "syn3",
+ "source": "synthetic",
+ "seed": 20261116,
+ "pdf_sha256": "fd7bd0c4183efcbee716f8507f4b658e6a17fad8055361bd17d735b5ba0bb98b",
+ "pages": [
+  {
+   "page": 1,
+   "page_type": "kapak",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Tasvi Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      84.6875,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "13.02.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      467.39688188976385,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "HL-0BI8",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      56.47500000000001,
+      72.2945,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vefe Hoodie",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      56.47500000000001,
+      473.88238188976385,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Kapak bilgileri",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      82.42500000000001,
+      124.325,
+      95.55000000000001
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "HL-0BI8",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Model no",
+     "box": [
+      115.56750000000001,
+      102.30000000000001,
+      147.315,
+      111.22500000000001
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "İY26",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Sezon",
+     "box": [
+      115.56750000000001,
+      119.775,
+      133.0945,
+      128.7
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Giro Lentuzel",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Hazırlayan",
+     "box": [
+      115.56750000000001,
+      137.25,
+      167.0095,
+      146.175
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Regular",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Kalıp",
+     "box": [
+      115.56750000000001,
+      154.72500000000002,
+      144.72250000000003,
+      163.65000000000003
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "S-48",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Beden aralığı",
+     "box": [
+      372.19742125984254,
+      102.30000000000001,
+      389.4269212598425,
+      111.22500000000001
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Vefe Hoodie",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Model adı",
+     "box": [
+      372.19742125984254,
+      119.775,
+      418.67542125984255,
+      128.7
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Danlen - Label",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Kumaş açıklaması",
+     "box": [
+      372.19742125984254,
+      154.72500000000002,
+      427.60892125984253,
+      163.65000000000003
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "%71 Pamuk",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Bileşim",
+     "box": [
+      628.8273425196851,
+      102.30000000000001,
+      672.7723425196851,
+      111.22500000000001
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Beklemede",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Numune durumu",
+     "box": [
+      628.8273425196851,
+      119.775,
+      670.1543425196851,
+      128.7
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "US",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Bölge",
+     "box": [
+      628.8273425196851,
+      137.25,
+      639.0953425196851,
+      146.175
+     ]
+    }
+   ]
+  },
+  {
+   "page": 2,
+   "page_type": "degerlendirme",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Tasvi Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      84.6875,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "13.02.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      467.39688188976385,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "HL-0BI8",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      56.47500000000001,
+      72.2945,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vefe Hoodie",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      56.47500000000001,
+      473.88238188976385,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Numune değerlendirme",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      82.42500000000001,
+      178.26250000000002,
+      95.55000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "5C955-5",
+     "table": 1,
+     "row_key": "5C955-5",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      119.775,
+      70.739,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Göğüs genişliği",
+     "table": 1,
+     "row_key": "5C955-5",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.757,
+      119.775,
+      140.744,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "5C955-5",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.744,
+      119.775,
+      162.3415,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "5C955-5",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      178.4735,
+      119.775,
+      190.45850000000002,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "10 1/4",
+     "table": 1,
+     "row_key": "5C955-5",
+     "column": "Hedef",
+     "label": null,
+     "box": [
+      211.4865,
+      119.775,
+      234.598,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "10 1/2",
+     "table": 1,
+     "row_key": "5C955-5",
+     "column": "Numune",
+     "label": null,
+     "box": [
+      241.40550000000002,
+      119.775,
+      264.517,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "DC-01018",
+     "table": 1,
+     "row_key": "DC-01018",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      137.25,
+      76.757,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "İç paça",
+     "table": 1,
+     "row_key": "DC-01018",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.757,
+      137.25,
+      109.13250000000001,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/4",
+     "table": 1,
+     "row_key": "DC-01018",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.744,
+      137.25,
+      162.3415,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "DC-01018",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      178.4735,
+      137.25,
+      190.45850000000002,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29 3/4",
+     "table": 1,
+     "row_key": "DC-01018",
+     "column": "Hedef",
+     "label": null,
+     "box": [
+      211.4865,
+      137.25,
+      234.598,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29 7/8",
+     "table": 1,
+     "row_key": "DC-01018",
+     "column": "Numune",
+     "label": null,
+     "box": [
+      241.40550000000002,
+      137.25,
+      264.517,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29 3/4",
+     "table": 1,
+     "row_key": "DC-01018",
+     "column": "Düzeltilmiş",
+     "label": null,
+     "box": [
+      282.31500000000005,
+      137.25,
+      305.42650000000003,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "VK-24I9",
+     "table": 1,
+     "row_key": "VK-24I9",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      154.725,
+      70.501,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ağ yüksekliği",
+     "table": 1,
+     "row_key": "VK-24I9",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.757,
+      154.725,
+      133.145,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "VK-24I9",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.744,
+      154.725,
+      162.3415,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "VK-24I9",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      178.4735,
+      154.725,
+      190.45850000000002,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "19 3/4",
+     "table": 1,
+     "row_key": "VK-24I9",
+     "column": "Hedef",
+     "label": null,
+     "box": [
+      211.4865,
+      154.725,
+      234.598,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "19 5/8",
+     "table": 1,
+     "row_key": "VK-24I9",
+     "column": "Numune",
+     "label": null,
+     "box": [
+      241.40550000000002,
+      154.725,
+      264.517,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "HE-I031",
+     "table": 1,
+     "row_key": "HE-I031",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      172.2,
+      70.331,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Bel genişliği",
+     "table": 1,
+     "row_key": "HE-I031",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.757,
+      172.2,
+      129.22650000000002,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/4",
+     "table": 1,
+     "row_key": "HE-I031",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.744,
+      172.2,
+      162.3415,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "HE-I031",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      178.4735,
+      172.2,
+      190.45850000000002,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "17 3/4",
+     "table": 1,
+     "row_key": "HE-I031",
+     "column": "Hedef",
+     "label": null,
+     "box": [
+      211.4865,
+      172.2,
+      234.598,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "17 7/8",
+     "table": 1,
+     "row_key": "HE-I031",
+     "column": "Numune",
+     "label": null,
+     "box": [
+      241.40550000000002,
+      172.2,
+      264.517,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "8N-0B13",
+     "table": 1,
+     "row_key": "8N-0B13",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      189.67499999999998,
+      72.184,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Etek genişliği",
+     "table": 1,
+     "row_key": "8N-0B13",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.757,
+      189.67499999999998,
+      133.92700000000002,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "8N-0B13",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.744,
+      189.67499999999998,
+      162.3415,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "8N-0B13",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      178.4735,
+      189.67499999999998,
+      190.45850000000002,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 1/2",
+     "table": 1,
+     "row_key": "8N-0B13",
+     "column": "Hedef",
+     "label": null,
+     "box": [
+      211.4865,
+      189.67499999999998,
+      234.598,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 3/8",
+     "table": 1,
+     "row_key": "8N-0B13",
+     "column": "Numune",
+     "label": null,
+     "box": [
+      241.40550000000002,
+      189.67499999999998,
+      264.517,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 1/2",
+     "table": 1,
+     "row_key": "8N-0B13",
+     "column": "Düzeltilmiş",
+     "label": null,
+     "box": [
+      282.31500000000005,
+      189.67499999999998,
+      305.42650000000003,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "PR-1I9",
+     "table": 1,
+     "row_key": "PR-1I9",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      207.14999999999998,
+      65.146,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Dış paça",
+     "table": 1,
+     "row_key": "PR-1I9",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.757,
+      207.14999999999998,
+      114.59800000000001,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "PR-1I9",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.744,
+      207.14999999999998,
+      162.3415,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "PR-1I9",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      178.4735,
+      207.14999999999998,
+      190.45850000000002,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "18 1/8",
+     "table": 1,
+     "row_key": "PR-1I9",
+     "column": "Hedef",
+     "label": null,
+     "box": [
+      211.4865,
+      207.14999999999998,
+      234.598,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "18 1/8",
+     "table": 1,
+     "row_key": "PR-1I9",
+     "column": "Numune",
+     "label": null,
+     "box": [
+      241.40550000000002,
+      207.14999999999998,
+      264.517,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "18 1/8",
+     "table": 1,
+     "row_key": "PR-1I9",
+     "column": "Düzeltilmiş",
+     "label": null,
+     "box": [
+      282.31500000000005,
+      207.14999999999998,
+      305.42650000000003,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "D5-114",
+     "table": 1,
+     "row_key": "D5-114",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      224.62499999999997,
+      66.7525,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Arka boy",
+     "table": 1,
+     "row_key": "D5-114",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.757,
+      224.62499999999997,
+      116.196,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/4",
+     "table": 1,
+     "row_key": "D5-114",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.744,
+      224.62499999999997,
+      162.3415,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "D5-114",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      178.4735,
+      224.62499999999997,
+      190.45850000000002,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "19 1/4",
+     "table": 1,
+     "row_key": "D5-114",
+     "column": "Hedef",
+     "label": null,
+     "box": [
+      211.4865,
+      224.62499999999997,
+      234.598,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "19 1/2",
+     "table": 1,
+     "row_key": "D5-114",
+     "column": "Numune",
+     "label": null,
+     "box": [
+      241.40550000000002,
+      224.62499999999997,
+      264.517,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "19 1/4",
+     "table": 1,
+     "row_key": "D5-114",
+     "column": "Düzeltilmiş",
+     "label": null,
+     "box": [
+      282.31500000000005,
+      224.62499999999997,
+      305.42650000000003,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "GCA2AI6",
+     "table": 1,
+     "row_key": "GCA2AI6",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      242.09999999999997,
+      73.986,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Omuz",
+     "table": 1,
+     "row_key": "GCA2AI6",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.757,
+      242.09999999999997,
+      105.40950000000001,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "GCA2AI6",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.744,
+      242.09999999999997,
+      162.3415,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "GCA2AI6",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      178.4735,
+      242.09999999999997,
+      190.45850000000002,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 1/4",
+     "table": 1,
+     "row_key": "GCA2AI6",
+     "column": "Hedef",
+     "label": null,
+     "box": [
+      211.4865,
+      242.09999999999997,
+      234.598,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 1/8",
+     "table": 1,
+     "row_key": "GCA2AI6",
+     "column": "Numune",
+     "label": null,
+     "box": [
+      241.40550000000002,
+      242.09999999999997,
+      264.517,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 1/4",
+     "table": 1,
+     "row_key": "GCA2AI6",
+     "column": "Düzeltilmiş",
+     "label": null,
+     "box": [
+      282.31500000000005,
+      242.09999999999997,
+      305.42650000000003,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "5P-Z0I9",
+     "table": 1,
+     "row_key": "5P-Z0I9",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      259.575,
+      69.447,
+      268.5
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Cep genişliği",
+     "table": 1,
+     "row_key": "5P-Z0I9",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.757,
+      259.575,
+      131.7255,
+      268.5
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/4",
+     "table": 1,
+     "row_key": "5P-Z0I9",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.744,
+      259.575,
+      162.3415,
+      268.5
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "5P-Z0I9",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      178.4735,
+      259.575,
+      190.45850000000002,
+      268.5
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25 1/8",
+     "table": 1,
+     "row_key": "5P-Z0I9",
+     "column": "Hedef",
+     "label": null,
+     "box": [
+      211.4865,
+      259.575,
+      234.598,
+      268.5
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25 3/8",
+     "table": 1,
+     "row_key": "5P-Z0I9",
+     "column": "Numune",
+     "label": null,
+     "box": [
+      241.40550000000002,
+      259.575,
+      264.517,
+      268.5
+     ]
+    }
+   ]
+  },
+  {
+   "page": 3,
+   "page_type": "fark",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Tasvi Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      84.6875,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "13.02.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      467.39688188976385,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "HL-0BI8",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      56.47500000000001,
+      72.2945,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vefe Hoodie",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      56.47500000000001,
+      473.88238188976385,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Ölçü tablosu",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      82.42500000000001,
+      111.075,
+      95.55000000000001
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "XS",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Taban beden",
+     "box": [
+      104.968,
+      102.30000000000001,
+      115.21900000000001,
+      111.22500000000001
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "LENTU 2",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Tolerans",
+     "box": [
+      361.59792125984256,
+      102.30000000000001,
+      395.00292125984254,
+      111.22500000000001
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Kafe - 2025",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Büyütme kuralı",
+     "box": [
+      618.227842519685,
+      102.30000000000001,
+      661.0593425196851,
+      111.22500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "EO97Z",
+     "table": 1,
+     "row_key": "EO97Z",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      148.725,
+      64.483,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kalça genişliği",
+     "table": 1,
+     "row_key": "EO97Z",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      80.479,
+      148.725,
+      135.48250000000002,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/4",
+     "table": 1,
+     "row_key": "EO97Z",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      154.5725,
+      148.725,
+      170.17,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "EO97Z",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      186.30200000000002,
+      148.725,
+      198.28700000000003,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "EO97Z",
+     "column": "XS",
+     "label": null,
+     "box": [
+      219.315,
+      148.725,
+      223.8455,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "EO97Z",
+     "column": "S",
+     "label": null,
+     "box": [
+      236.246,
+      148.725,
+      248.23100000000002,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "EO97Z",
+     "column": "M",
+     "label": null,
+     "box": [
+      254.23100000000002,
+      148.725,
+      266.216,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "EO97Z",
+     "column": "L",
+     "label": null,
+     "box": [
+      272.216,
+      148.725,
+      284.201,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "EO97Z",
+     "column": "XL",
+     "label": null,
+     "box": [
+      290.201,
+      148.725,
+      302.18600000000004,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "AZ9BI9",
+     "table": 1,
+     "row_key": "AZ9BI9",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      166.2,
+      67.271,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ağ yüksekliği",
+     "table": 1,
+     "row_key": "AZ9BI9",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      80.479,
+      166.2,
+      130.86700000000002,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "AZ9BI9",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      154.5725,
+      166.2,
+      170.17,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "AZ9BI9",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      186.30200000000002,
+      166.2,
+      198.28700000000003,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "AZ9BI9",
+     "column": "XS",
+     "label": null,
+     "box": [
+      219.315,
+      166.2,
+      223.8455,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "AZ9BI9",
+     "column": "S",
+     "label": null,
+     "box": [
+      236.246,
+      166.2,
+      248.23100000000002,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "AZ9BI9",
+     "column": "M",
+     "label": null,
+     "box": [
+      254.23100000000002,
+      166.2,
+      266.216,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "AZ9BI9",
+     "column": "L",
+     "label": null,
+     "box": [
+      272.216,
+      166.2,
+      284.201,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "AZ9BI9",
+     "column": "XL",
+     "label": null,
+     "box": [
+      290.201,
+      166.2,
+      302.18600000000004,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "5O234",
+     "table": 1,
+     "row_key": "5O234",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      183.67499999999998,
+      63.412000000000006,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Cep genişliği",
+     "table": 1,
+     "row_key": "5O234",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      80.479,
+      183.67499999999998,
+      129.4475,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "5O234",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      154.5725,
+      183.67499999999998,
+      170.17,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "5O234",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      186.30200000000002,
+      183.67499999999998,
+      198.28700000000003,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "5O234",
+     "column": "XS",
+     "label": null,
+     "box": [
+      219.315,
+      183.67499999999998,
+      223.8455,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "5O234",
+     "column": "S",
+     "label": null,
+     "box": [
+      236.246,
+      183.67499999999998,
+      248.23100000000002,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "5O234",
+     "column": "M",
+     "label": null,
+     "box": [
+      254.23100000000002,
+      183.67499999999998,
+      266.216,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "5O234",
+     "column": "L",
+     "label": null,
+     "box": [
+      272.216,
+      183.67499999999998,
+      284.201,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "5O234",
+     "column": "XL",
+     "label": null,
+     "box": [
+      290.201,
+      183.67499999999998,
+      302.18600000000004,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "H52A1-H",
+     "table": 1,
+     "row_key": "H52A1-H",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      201.14999999999998,
+      74.38550000000001,
+      210.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kol ağzı",
+     "table": 1,
+     "row_key": "H52A1-H",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      80.479,
+      201.14999999999998,
+      110.7645,
+      210.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "H52A1-H",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      154.5725,
+      201.14999999999998,
+      170.17,
+      210.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "H52A1-H",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      186.30200000000002,
+      201.14999999999998,
+      198.28700000000003,
+      210.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "H52A1-H",
+     "column": "XS",
+     "label": null,
+     "box": [
+      219.315,
+      201.14999999999998,
+      223.8455,
+      210.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "H52A1-H",
+     "column": "S",
+     "label": null,
+     "box": [
+      236.246,
+      201.14999999999998,
+      248.23100000000002,
+      210.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "H52A1-H",
+     "column": "M",
+     "label": null,
+     "box": [
+      254.23100000000002,
+      201.14999999999998,
+      266.216,
+      210.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "H52A1-H",
+     "column": "L",
+     "label": null,
+     "box": [
+      272.216,
+      201.14999999999998,
+      284.201,
+      210.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "H52A1-H",
+     "column": "XL",
+     "label": null,
+     "box": [
+      290.201,
+      201.14999999999998,
+      302.18600000000004,
+      210.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "GG83B-G",
+     "table": 1,
+     "row_key": "GG83B-G",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      218.62499999999997,
+      74.445,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Dış paça",
+     "table": 1,
+     "row_key": "GG83B-G",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      80.479,
+      218.62499999999997,
+      112.32,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "GG83B-G",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      154.5725,
+      218.62499999999997,
+      170.17,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "GG83B-G",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      186.30200000000002,
+      218.62499999999997,
+      198.28700000000003,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "GG83B-G",
+     "column": "XS",
+     "label": null,
+     "box": [
+      219.315,
+      218.62499999999997,
+      223.8455,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "GG83B-G",
+     "column": "S",
+     "label": null,
+     "box": [
+      236.246,
+      218.62499999999997,
+      248.23100000000002,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "GG83B-G",
+     "column": "M",
+     "label": null,
+     "box": [
+      254.23100000000002,
+      218.62499999999997,
+      266.216,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "GG83B-G",
+     "column": "L",
+     "label": null,
+     "box": [
+      272.216,
+      218.62499999999997,
+      284.201,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "GG83B-G",
+     "column": "XL",
+     "label": null,
+     "box": [
+      290.201,
+      218.62499999999997,
+      302.18600000000004,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "GN-02Z0",
+     "table": 1,
+     "row_key": "GN-02Z0",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      236.09999999999997,
+      73.459,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Etek genişliği",
+     "table": 1,
+     "row_key": "GN-02Z0",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      80.479,
+      236.09999999999997,
+      131.649,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "GN-02Z0",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      154.5725,
+      236.09999999999997,
+      170.17,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "GN-02Z0",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      186.30200000000002,
+      236.09999999999997,
+      198.28700000000003,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "GN-02Z0",
+     "column": "XS",
+     "label": null,
+     "box": [
+      219.315,
+      236.09999999999997,
+      223.8455,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "GN-02Z0",
+     "column": "S",
+     "label": null,
+     "box": [
+      236.246,
+      236.09999999999997,
+      240.7765,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "GN-02Z0",
+     "column": "M",
+     "label": null,
+     "box": [
+      254.23100000000002,
+      236.09999999999997,
+      258.7615,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "GN-02Z0",
+     "column": "L",
+     "label": null,
+     "box": [
+      272.216,
+      236.09999999999997,
+      276.7465,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "GN-02Z0",
+     "column": "XL",
+     "label": null,
+     "box": [
+      290.201,
+      236.09999999999997,
+      294.73150000000004,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Uzun boy",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      253.57499999999993,
+      77.0545,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "4S871-4",
+     "table": 1,
+     "row_key": "4S871-4",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      271.04999999999995,
+      69.821,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Göğüs genişliği",
+     "table": 1,
+     "row_key": "4S871-4",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      80.479,
+      271.04999999999995,
+      138.466,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "4S871-4",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      154.5725,
+      271.04999999999995,
+      170.17,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "4S871-4",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      186.30200000000002,
+      271.04999999999995,
+      198.28700000000003,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "4S871-4",
+     "column": "XS",
+     "label": null,
+     "box": [
+      219.315,
+      271.04999999999995,
+      223.8455,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "4S871-4",
+     "column": "S",
+     "label": null,
+     "box": [
+      236.246,
+      271.04999999999995,
+      248.23100000000002,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "4S871-4",
+     "column": "M",
+     "label": null,
+     "box": [
+      254.23100000000002,
+      271.04999999999995,
+      266.216,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "4S871-4",
+     "column": "L",
+     "label": null,
+     "box": [
+      272.216,
+      271.04999999999995,
+      284.201,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "4S871-4",
+     "column": "XL",
+     "label": null,
+     "box": [
+      290.201,
+      271.04999999999995,
+      302.18600000000004,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "N4-Z5B1",
+     "table": 1,
+     "row_key": "N4-Z5B1",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      288.525,
+      72.83850000000001,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Arka boy",
+     "table": 1,
+     "row_key": "N4-Z5B1",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      80.479,
+      288.525,
+      113.918,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "N4-Z5B1",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      154.5725,
+      288.525,
+      170.17,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "N4-Z5B1",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      186.30200000000002,
+      288.525,
+      198.28700000000003,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "N4-Z5B1",
+     "column": "XS",
+     "label": null,
+     "box": [
+      219.315,
+      288.525,
+      223.8455,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "N4-Z5B1",
+     "column": "S",
+     "label": null,
+     "box": [
+      236.246,
+      288.525,
+      248.23100000000002,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "N4-Z5B1",
+     "column": "M",
+     "label": null,
+     "box": [
+      254.23100000000002,
+      288.525,
+      266.216,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "N4-Z5B1",
+     "column": "L",
+     "label": null,
+     "box": [
+      272.216,
+      288.525,
+      284.201,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/4",
+     "table": 1,
+     "row_key": "N4-Z5B1",
+     "column": "XL",
+     "label": null,
+     "box": [
+      290.201,
+      288.525,
+      302.18600000000004,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "C4-I105B",
+     "table": 1,
+     "row_key": "C4-I105B",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      306.0,
+      74.428,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ön boy",
+     "table": 1,
+     "row_key": "C4-I105B",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      80.479,
+      306.0,
+      107.509,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "C4-I105B",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      154.5725,
+      306.0,
+      170.17,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "C4-I105B",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      186.30200000000002,
+      306.0,
+      198.28700000000003,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "C4-I105B",
+     "column": "XS",
+     "label": null,
+     "box": [
+      219.315,
+      306.0,
+      223.8455,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "C4-I105B",
+     "column": "S",
+     "label": null,
+     "box": [
+      236.246,
+      306.0,
+      248.23100000000002,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "C4-I105B",
+     "column": "M",
+     "label": null,
+     "box": [
+      254.23100000000002,
+      306.0,
+      266.216,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "C4-I105B",
+     "column": "L",
+     "label": null,
+     "box": [
+      272.216,
+      306.0,
+      284.201,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "C4-I105B",
+     "column": "XL",
+     "label": null,
+     "box": [
+      290.201,
+      306.0,
+      302.18600000000004,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "2T39120",
+     "table": 1,
+     "row_key": "2T39120",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      323.475,
+      71.4445,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Manşet yüksekliği",
+     "table": 1,
+     "row_key": "2T39120",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      80.479,
+      323.475,
+      148.5725,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/4",
+     "table": 1,
+     "row_key": "2T39120",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      154.5725,
+      323.475,
+      170.17,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "2T39120",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      186.30200000000002,
+      323.475,
+      198.28700000000003,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "2T39120",
+     "column": "XS",
+     "label": null,
+     "box": [
+      219.315,
+      323.475,
+      223.8455,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "2T39120",
+     "column": "S",
+     "label": null,
+     "box": [
+      236.246,
+      323.475,
+      248.23100000000002,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "2T39120",
+     "column": "M",
+     "label": null,
+     "box": [
+      254.23100000000002,
+      323.475,
+      266.216,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "2T39120",
+     "column": "L",
+     "label": null,
+     "box": [
+      272.216,
+      323.475,
+      284.201,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "2T39120",
+     "column": "XL",
+     "label": null,
+     "box": [
+      290.201,
+      323.475,
+      302.18600000000004,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Birim: inç kesir · Gösterim: Fark",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      349.42500000000007,
+      155.986,
+      358.3500000000001
+     ]
+    }
+   ]
+  },
+  {
+   "page": 4,
+   "page_type": "bom",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Tasvi Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      84.6875,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "13.02.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      467.39688188976385,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "HL-0BI8",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      56.47500000000001,
+      72.2945,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vefe Hoodie",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      56.47500000000001,
+      473.88238188976385,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Malzeme listesi",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      82.42500000000001,
+      128.9875,
+      95.55000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "BZ1AI3",
+     "table": 1,
+     "row_key": "BZ1AI3",
+     "column": "Malzeme",
+     "label": null,
+     "box": [
+      39.0,
+      119.775,
+      67.271,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Drawcord - Katu - 315 gsm - Morharhar",
+     "table": 1,
+     "row_key": "BZ1AI3",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.0855,
+      119.775,
+      231.10750000000002,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "2.38",
+     "table": 1,
+     "row_key": "BZ1AI3",
+     "column": "Miktar",
+     "label": null,
+     "box": [
+      351.934,
+      119.775,
+      367.89700000000005,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "ad.",
+     "table": 1,
+     "row_key": "BZ1AI3",
+     "column": "Birim",
+     "label": null,
+     "box": [
+      385.406,
+      119.775,
+      396.7875,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kum",
+     "table": 1,
+     "row_key": "BZ1AI3",
+     "column": "459 Mürdüm",
+     "label": null,
+     "box": [
+      414.084,
+      119.775,
+      431.7895,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kömür",
+     "table": 1,
+     "row_key": "BZ1AI3",
+     "column": "167 Kum",
+     "label": null,
+     "box": [
+      471.8745,
+      119.775,
+      497.5445,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kum",
+     "table": 1,
+     "row_key": "BZ1AI3",
+     "column": "681 Fjord",
+     "label": null,
+     "box": [
+      513.7529999999999,
+      119.775,
+      531.4585,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ochre",
+     "table": 1,
+     "row_key": "BZ1AI3",
+     "column": "643 Moss",
+     "label": null,
+     "box": [
+      557.867,
+      119.775,
+      580.6469999999999,
+      128.7
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "SL3AZ-S",
+     "table": 1,
+     "row_key": "SL3AZ-S",
+     "column": "Malzeme",
+     "label": null,
+     "box": [
+      39.0,
+      137.25,
+      71.912,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Rib trim - Katu - 389 gsm - Zelpiro - İplik",
+     "table": 1,
+     "row_key": "SL3AZ-S",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.0855,
+      137.25,
+      237.661,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1.5184",
+     "table": 1,
+     "row_key": "SL3AZ-S",
+     "column": "Miktar",
+     "label": null,
+     "box": [
+      351.934,
+      137.25,
+      376.958,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "ad.",
+     "table": 1,
+     "row_key": "SL3AZ-S",
+     "column": "Birim",
+     "label": null,
+     "box": [
+      385.406,
+      137.25,
+      396.7875,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kum",
+     "table": 1,
+     "row_key": "SL3AZ-S",
+     "column": "459 Mürdüm",
+     "label": null,
+     "box": [
+      414.084,
+      137.25,
+      431.7895,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Slate",
+     "table": 1,
+     "row_key": "SL3AZ-S",
+     "column": "167 Kum",
+     "label": null,
+     "box": [
+      471.8745,
+      137.25,
+      490.7105,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Fildişi",
+     "table": 1,
+     "row_key": "SL3AZ-S",
+     "column": "681 Fjord",
+     "label": null,
+     "box": [
+      513.7529999999999,
+      137.25,
+      537.1705,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Fildişi",
+     "table": 1,
+     "row_key": "SL3AZ-S",
+     "column": "643 Moss",
+     "label": null,
+     "box": [
+      557.867,
+      137.25,
+      581.2845,
+      146.175
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "NR820",
+     "table": 1,
+     "row_key": "NR820",
+     "column": "Malzeme",
+     "label": null,
+     "box": [
+      39.0,
+      154.725,
+      64.22800000000001,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Button - Fevi - 190 gsm - Yanisve - Button",
+     "table": 1,
+     "row_key": "NR820",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.0855,
+      154.725,
+      241.9365,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0.61",
+     "table": 1,
+     "row_key": "NR820",
+     "column": "Miktar",
+     "label": null,
+     "box": [
+      351.934,
+      154.725,
+      367.89700000000005,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "yd",
+     "table": 1,
+     "row_key": "NR820",
+     "column": "Birim",
+     "label": null,
+     "box": [
+      385.406,
+      154.725,
+      394.416,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ember",
+     "table": 1,
+     "row_key": "NR820",
+     "column": "459 Mürdüm",
+     "label": null,
+     "box": [
+      414.084,
+      154.725,
+      438.5385,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Bulut",
+     "table": 1,
+     "row_key": "NR820",
+     "column": "167 Kum",
+     "label": null,
+     "box": [
+      471.8745,
+      154.725,
+      492.572,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Fjord",
+     "table": 1,
+     "row_key": "NR820",
+     "column": "681 Fjord",
+     "label": null,
+     "box": [
+      513.7529999999999,
+      154.725,
+      533.507,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Moss",
+     "table": 1,
+     "row_key": "NR820",
+     "column": "643 Moss",
+     "label": null,
+     "box": [
+      557.867,
+      154.725,
+      577.298,
+      163.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "B8-AAISS",
+     "table": 1,
+     "row_key": "B8-AAISS",
+     "column": "Malzeme",
+     "label": null,
+     "box": [
+      39.0,
+      172.2,
+      76.0855,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Button - Mormi - 247 gsm - Vivegi - Örme kumaş - %40 Raktu - L4115",
+     "table": 1,
+     "row_key": "B8-AAISS",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.0855,
+      172.2,
+      345.93399999999997,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0.6648",
+     "table": 1,
+     "row_key": "B8-AAISS",
+     "column": "Miktar",
+     "label": null,
+     "box": [
+      351.934,
+      172.2,
+      376.958,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "yd",
+     "table": 1,
+     "row_key": "B8-AAISS",
+     "column": "Birim",
+     "label": null,
+     "box": [
+      385.406,
+      172.2,
+      394.416,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ember",
+     "table": 1,
+     "row_key": "B8-AAISS",
+     "column": "459 Mürdüm",
+     "label": null,
+     "box": [
+      414.084,
+      172.2,
+      438.5385,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kömür",
+     "table": 1,
+     "row_key": "B8-AAISS",
+     "column": "167 Kum",
+     "label": null,
+     "box": [
+      471.8745,
+      172.2,
+      497.5445,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ochre",
+     "table": 1,
+     "row_key": "B8-AAISS",
+     "column": "681 Fjord",
+     "label": null,
+     "box": [
+      513.7529999999999,
+      172.2,
+      536.5329999999999,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Gece",
+     "table": 1,
+     "row_key": "B8-AAISS",
+     "column": "643 Moss",
+     "label": null,
+     "box": [
+      557.867,
+      172.2,
+      576.227,
+      181.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "4M-139Z",
+     "table": 1,
+     "row_key": "4M-139Z",
+     "column": "Malzeme",
+     "label": null,
+     "box": [
+      39.0,
+      189.67499999999998,
+      73.289,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Label - Serve - 232 gsm",
+     "table": 1,
+     "row_key": "4M-139Z",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.0855,
+      189.67499999999998,
+      169.8225,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0.08",
+     "table": 1,
+     "row_key": "4M-139Z",
+     "column": "Miktar",
+     "label": null,
+     "box": [
+      351.934,
+      189.67499999999998,
+      367.89700000000005,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "kg",
+     "table": 1,
+     "row_key": "4M-139Z",
+     "column": "Birim",
+     "label": null,
+     "box": [
+      385.406,
+      189.67499999999998,
+      394.26300000000003,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Moss",
+     "table": 1,
+     "row_key": "4M-139Z",
+     "column": "459 Mürdüm",
+     "label": null,
+     "box": [
+      414.084,
+      189.67499999999998,
+      433.515,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Mürdüm",
+     "table": 1,
+     "row_key": "4M-139Z",
+     "column": "167 Kum",
+     "label": null,
+     "box": [
+      471.8745,
+      189.67499999999998,
+      504.319,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kiremit",
+     "table": 1,
+     "row_key": "4M-139Z",
+     "column": "681 Fjord",
+     "label": null,
+     "box": [
+      513.7529999999999,
+      189.67499999999998,
+      542.3894999999999,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Gece",
+     "table": 1,
+     "row_key": "4M-139Z",
+     "column": "643 Moss",
+     "label": null,
+     "box": [
+      557.867,
+      189.67499999999998,
+      576.227,
+      198.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "ZN9S40",
+     "table": 1,
+     "row_key": "ZN9S40",
+     "column": "Malzeme",
+     "label": null,
+     "box": [
+      39.0,
+      207.14999999999998,
+      68.5545,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Thread - Harko - 254 gsm - Dandada - Thread - %51 Kami - 8R86AA9",
+     "table": 1,
+     "row_key": "ZN9S40",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.0855,
+      207.14999999999998,
+      342.313,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0.56",
+     "table": 1,
+     "row_key": "ZN9S40",
+     "column": "Miktar",
+     "label": null,
+     "box": [
+      351.934,
+      207.14999999999998,
+      367.89700000000005,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "kg",
+     "table": 1,
+     "row_key": "ZN9S40",
+     "column": "Birim",
+     "label": null,
+     "box": [
+      385.406,
+      207.14999999999998,
+      394.26300000000003,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Slate",
+     "table": 1,
+     "row_key": "ZN9S40",
+     "column": "459 Mürdüm",
+     "label": null,
+     "box": [
+      414.084,
+      207.14999999999998,
+      432.92,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Zeytin",
+     "table": 1,
+     "row_key": "ZN9S40",
+     "column": "167 Kum",
+     "label": null,
+     "box": [
+      471.8745,
+      207.14999999999998,
+      496.3885,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Fjord",
+     "table": 1,
+     "row_key": "ZN9S40",
+     "column": "681 Fjord",
+     "label": null,
+     "box": [
+      513.7529999999999,
+      207.14999999999998,
+      533.507,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Bulut",
+     "table": 1,
+     "row_key": "ZN9S40",
+     "column": "643 Moss",
+     "label": null,
+     "box": [
+      557.867,
+      207.14999999999998,
+      578.5645,
+      216.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "4S-S88",
+     "table": 1,
+     "row_key": "4S-S88",
+     "column": "Malzeme",
+     "label": null,
+     "box": [
+      39.0,
+      224.62499999999997,
+      65.316,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Etiket - Yave - 292 gsm - Lolorak - İplik - %89 Kolen - 8EA105",
+     "table": 1,
+     "row_key": "4S-S88",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.0855,
+      224.62499999999997,
+      315.32550000000003,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0.9004",
+     "table": 1,
+     "row_key": "4S-S88",
+     "column": "Miktar",
+     "label": null,
+     "box": [
+      351.934,
+      224.62499999999997,
+      376.958,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "m",
+     "table": 1,
+     "row_key": "4S-S88",
+     "column": "Birim",
+     "label": null,
+     "box": [
+      385.406,
+      224.62499999999997,
+      392.74150000000003,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Lilac",
+     "table": 1,
+     "row_key": "4S-S88",
+     "column": "459 Mürdüm",
+     "label": null,
+     "box": [
+      414.084,
+      224.62499999999997,
+      432.121,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ember",
+     "table": 1,
+     "row_key": "4S-S88",
+     "column": "167 Kum",
+     "label": null,
+     "box": [
+      471.8745,
+      224.62499999999997,
+      496.329,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kömür",
+     "table": 1,
+     "row_key": "4S-S88",
+     "column": "681 Fjord",
+     "label": null,
+     "box": [
+      513.7529999999999,
+      224.62499999999997,
+      539.4229999999999,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Gece",
+     "table": 1,
+     "row_key": "4S-S88",
+     "column": "643 Moss",
+     "label": null,
+     "box": [
+      557.867,
+      224.62499999999997,
+      576.227,
+      233.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "GFSAI15",
+     "table": 1,
+     "row_key": "GFSAI15",
+     "column": "Malzeme",
+     "label": null,
+     "box": [
+      39.0,
+      242.09999999999997,
+      71.88650000000001,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Düğme - Miro - 223 gsm - Pikoko - Rib trim",
+     "table": 1,
+     "row_key": "GFSAI15",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.0855,
+      242.09999999999997,
+      245.85500000000002,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0.4100",
+     "table": 1,
+     "row_key": "GFSAI15",
+     "column": "Miktar",
+     "label": null,
+     "box": [
+      351.934,
+      242.09999999999997,
+      376.958,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "ad.",
+     "table": 1,
+     "row_key": "GFSAI15",
+     "column": "Birim",
+     "label": null,
+     "box": [
+      385.406,
+      242.09999999999997,
+      396.7875,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Moss",
+     "table": 1,
+     "row_key": "GFSAI15",
+     "column": "459 Mürdüm",
+     "label": null,
+     "box": [
+      414.084,
+      242.09999999999997,
+      433.515,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Moss",
+     "table": 1,
+     "row_key": "GFSAI15",
+     "column": "167 Kum",
+     "label": null,
+     "box": [
+      471.8745,
+      242.09999999999997,
+      491.3055,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Gece",
+     "table": 1,
+     "row_key": "GFSAI15",
+     "column": "681 Fjord",
+     "label": null,
+     "box": [
+      513.7529999999999,
+      242.09999999999997,
+      532.1129999999999,
+      251.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Zeytin",
+     "table": 1,
+     "row_key": "GFSAI15",
+     "column": "643 Moss",
+     "label": null,
+     "box": [
+      557.867,
+      242.09999999999997,
+      582.381,
+      251.02499999999998
+     ]
+    }
+   ]
+  },
+  {
+   "page": 5,
+   "page_type": "olcu",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Tasvi Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      84.6875,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "13.02.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      467.39688188976385,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "HL-0BI8",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      56.47500000000001,
+      72.2945,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vefe Hoodie",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      56.47500000000001,
+      473.88238188976385,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Ölçü tablosu",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      82.42500000000001,
+      111.075,
+      95.55000000000001
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "4XL",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Taban beden",
+     "box": [
+      104.968,
+      102.30000000000001,
+      119.86,
+      111.22500000000001
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "NISGI 3",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Tolerans",
+     "box": [
+      361.59792125984256,
+      102.30000000000001,
+      390.8039212598426,
+      111.22500000000001
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Kavi - 2026",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Büyütme kuralı",
+     "box": [
+      618.227842519685,
+      102.30000000000001,
+      660.7448425196851,
+      111.22500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "KDZ687I",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      148.725,
+      72.2775,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Etek genişliği",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      148.725,
+      133.91000000000003,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      148.725,
+      177.514,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      148.725,
+      205.63100000000003,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "18 1/4",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      148.725,
+      249.77050000000003,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "19",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      148.725,
+      264.8315,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "19 3/4",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      148.725,
+      307.9935,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "20 1/2",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      148.725,
+      337.105,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "21 1/4",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      148.725,
+      366.2165,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      148.725,
+      381.27750000000003,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22 3/4",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      148.725,
+      424.4395,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23 1/2",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      148.725,
+      453.551,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "24 1/4",
+     "table": 1,
+     "row_key": "KDZ687I",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      148.725,
+      482.6625,
+      157.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "2E-61IA1",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      166.2,
+      74.479,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Cep genişliği",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      166.2,
+      131.70850000000002,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      166.2,
+      177.514,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      166.2,
+      205.63100000000003,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 1/4",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      166.2,
+      249.77050000000003,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 1/2",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      166.2,
+      278.882,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 3/4",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      166.2,
+      307.9935,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      166.2,
+      323.0545,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27 1/4",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      166.2,
+      366.2165,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27 1/2",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      166.2,
+      395.32800000000003,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27 3/4",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      166.2,
+      424.4395,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      166.2,
+      439.5005,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28 1/4",
+     "table": 1,
+     "row_key": "2E-61IA1",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      166.2,
+      482.6625,
+      175.125
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "VAZ6B",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      183.67499999999998,
+      65.5625,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Yaka açıklığı",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      183.67499999999998,
+      130.59500000000003,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/4",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      183.67499999999998,
+      177.514,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      183.67499999999998,
+      205.63100000000003,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "10 1/2",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      183.67499999999998,
+      249.77050000000003,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "10 3/4",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      183.67499999999998,
+      278.882,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      183.67499999999998,
+      293.943,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11 1/4",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      183.67499999999998,
+      337.105,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11 1/2",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      183.67499999999998,
+      366.2165,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11 3/4",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      183.67499999999998,
+      395.32800000000003,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      183.67499999999998,
+      410.389,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12 1/4",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      183.67499999999998,
+      453.551,
+      192.6
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12 1/2",
+     "table": 1,
+     "row_key": "VAZ6B",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      183.67499999999998,
+      482.6625,
+      192.6
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Uzun boy",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      201.14999999999998,
+      77.0545,
+      210.075
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "ZVZ12",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      218.62499999999997,
+      64.245,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Göğüs genişliği",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      218.62499999999997,
+      140.727,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      218.62499999999997,
+      177.514,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      218.62499999999997,
+      205.63100000000003,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3 1/2",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      218.62499999999997,
+      245.24,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "4 1/2",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      218.62499999999997,
+      274.35150000000004,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "5 1/2",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      218.62499999999997,
+      303.463,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "6 1/2",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      218.62499999999997,
+      332.57450000000006,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "7 1/2",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      218.62499999999997,
+      361.68600000000004,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "8 1/2",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      218.62499999999997,
+      390.79750000000007,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "9 1/2",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      218.62499999999997,
+      419.90900000000005,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "10 1/2",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      218.62499999999997,
+      453.551,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11 1/2",
+     "table": 1,
+     "row_key": "ZVZ12",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      218.62499999999997,
+      482.6625,
+      227.54999999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "OO5300",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      236.09999999999997,
+      69.702,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Dış paça",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      236.09999999999997,
+      114.58100000000002,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/4",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      236.09999999999997,
+      177.514,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      236.09999999999997,
+      205.63100000000003,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "2 1/4",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      236.09999999999997,
+      245.24,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      236.09999999999997,
+      260.30100000000004,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3 3/4",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      236.09999999999997,
+      303.463,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "4 1/2",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      236.09999999999997,
+      332.57450000000006,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "5 1/4",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      236.09999999999997,
+      361.68600000000004,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "6",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      236.09999999999997,
+      376.74700000000007,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "6 3/4",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      236.09999999999997,
+      419.90900000000005,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "7 1/2",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      236.09999999999997,
+      449.0205,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "8 1/4",
+     "table": 1,
+     "row_key": "OO5300",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      236.09999999999997,
+      478.13200000000006,
+      245.02499999999998
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "FG20S-F",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      253.57499999999993,
+      71.3255,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Arka boy",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      253.57499999999993,
+      116.179,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      253.57499999999993,
+      177.514,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      253.57499999999993,
+      205.63100000000003,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30 1/8",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      253.57499999999993,
+      249.77050000000003,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30 3/8",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      253.57499999999993,
+      278.882,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30 5/8",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      253.57499999999993,
+      307.9935,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30 7/8",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      253.57499999999993,
+      337.105,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "31 1/8",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      253.57499999999993,
+      366.2165,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "31 3/8",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      253.57499999999993,
+      395.32800000000003,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "31 5/8",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      253.57499999999993,
+      424.4395,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "31 7/8",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      253.57499999999993,
+      453.551,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "32 1/8",
+     "table": 1,
+     "row_key": "FG20S-F",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      253.57499999999993,
+      482.6625,
+      262.49999999999994
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "8M121B",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      271.04999999999995,
+      69.719,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ön boy",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      271.04999999999995,
+      109.77000000000001,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      271.04999999999995,
+      177.514,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      271.04999999999995,
+      205.63100000000003,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "8 1/4",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      271.04999999999995,
+      245.24,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "9 1/4",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      271.04999999999995,
+      274.35150000000004,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "10 1/4",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      271.04999999999995,
+      307.9935,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11 1/4",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      271.04999999999995,
+      337.105,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12 1/4",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      271.04999999999995,
+      366.2165,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "13 1/4",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      271.04999999999995,
+      395.32800000000003,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "14 1/4",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      271.04999999999995,
+      424.4395,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15 1/4",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      271.04999999999995,
+      453.551,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "16 1/4",
+     "table": 1,
+     "row_key": "8M121B",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      271.04999999999995,
+      482.6625,
+      279.97499999999997
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "EE720A",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      288.525,
+      68.291,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "İç paça",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      288.525,
+      109.11550000000001,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      288.525,
+      177.514,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      288.525,
+      205.63100000000003,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25 1/8",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      288.525,
+      249.77050000000003,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25 3/8",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      288.525,
+      278.882,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25 5/8",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      288.525,
+      307.9935,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25 7/8",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      288.525,
+      337.105,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 1/8",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      288.525,
+      366.2165,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 3/8",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      288.525,
+      395.32800000000003,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 5/8",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      288.525,
+      424.4395,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 7/8",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      288.525,
+      453.551,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27 1/8",
+     "table": 1,
+     "row_key": "EE720A",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      288.525,
+      482.6625,
+      297.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "EM-10Z",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      306.0,
+      69.175,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kalça genişliği",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      306.0,
+      137.7435,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      306.0,
+      177.514,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      306.0,
+      205.63100000000003,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25 3/8",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      306.0,
+      249.77050000000003,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25 7/8",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      306.0,
+      278.882,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 3/8",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      306.0,
+      307.9935,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 7/8",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      306.0,
+      337.105,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27 3/8",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      306.0,
+      366.2165,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27 7/8",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      306.0,
+      395.32800000000003,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28 3/8",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      306.0,
+      424.4395,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28 7/8",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      306.0,
+      453.551,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29 3/8",
+     "table": 1,
+     "row_key": "EM-10Z",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      306.0,
+      482.6625,
+      314.925
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "K2-686",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      323.475,
+      66.2255,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ağ yüksekliği",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      323.475,
+      133.12800000000001,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      323.475,
+      177.514,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      323.475,
+      205.63100000000003,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22 5/8",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      323.475,
+      249.77050000000003,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22 7/8",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      323.475,
+      278.882,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23 1/8",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      323.475,
+      307.9935,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23 3/8",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      323.475,
+      337.105,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23 5/8",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      323.475,
+      366.2165,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23 7/8",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      323.475,
+      395.32800000000003,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "24 1/8",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      323.475,
+      424.4395,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "24 3/8",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      323.475,
+      453.551,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "24 5/8",
+     "table": 1,
+     "row_key": "K2-686",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      323.475,
+      482.6625,
+      332.40000000000003
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "MH9738",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      340.95000000000005,
+      70.6795,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Omuz",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      340.95000000000005,
+      105.39250000000001,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      340.95000000000005,
+      177.514,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      340.95000000000005,
+      205.63100000000003,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 3/4",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      340.95000000000005,
+      249.77050000000003,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27 1/4",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      340.95000000000005,
+      278.882,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27 3/4",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      340.95000000000005,
+      307.9935,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28 1/4",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      340.95000000000005,
+      337.105,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28 3/4",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      340.95000000000005,
+      366.2165,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29 1/4",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      340.95000000000005,
+      395.32800000000003,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29 3/4",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      340.95000000000005,
+      424.4395,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30 1/4",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      340.95000000000005,
+      453.551,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30 3/4",
+     "table": 1,
+     "row_key": "MH9738",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      340.95000000000005,
+      482.6625,
+      349.87500000000006
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "GT010",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      358.42500000000007,
+      63.701,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kol ağzı",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      358.42500000000007,
+      113.02550000000001,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      358.42500000000007,
+      177.514,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      358.42500000000007,
+      205.63100000000003,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "20 5/8",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      358.42500000000007,
+      249.77050000000003,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "21 5/8",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      358.42500000000007,
+      278.882,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22 5/8",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      358.42500000000007,
+      307.9935,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23 5/8",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      358.42500000000007,
+      337.105,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "24 5/8",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      358.42500000000007,
+      366.2165,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25 5/8",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      358.42500000000007,
+      395.32800000000003,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26 5/8",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      358.42500000000007,
+      424.4395,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27 5/8",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      358.42500000000007,
+      453.551,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28 5/8",
+     "table": 1,
+     "row_key": "GT010",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      358.42500000000007,
+      482.6625,
+      367.3500000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "ZA-323",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      375.9000000000001,
+      67.1945,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kol boyu",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      375.9000000000001,
+      116.06,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      375.9000000000001,
+      177.514,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      375.9000000000001,
+      205.63100000000003,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27 7/8",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      375.9000000000001,
+      249.77050000000003,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28 7/8",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      375.9000000000001,
+      278.882,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29 7/8",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      375.9000000000001,
+      307.9935,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30 7/8",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      375.9000000000001,
+      337.105,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "31 7/8",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      375.9000000000001,
+      366.2165,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "32 7/8",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      375.9000000000001,
+      395.32800000000003,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "33 7/8",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      375.9000000000001,
+      424.4395,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "34 7/8",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      375.9000000000001,
+      453.551,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "35 7/8",
+     "table": 1,
+     "row_key": "ZA-323",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      375.9000000000001,
+      482.6625,
+      384.8250000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "8P-9554I",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      393.3750000000001,
+      73.32300000000001,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Bel genişliği",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      393.3750000000001,
+      129.20950000000002,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/2",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      393.3750000000001,
+      177.514,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/2",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      393.3750000000001,
+      205.63100000000003,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "21",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      393.3750000000001,
+      235.72000000000003,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      393.3750000000001,
+      264.8315,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      393.3750000000001,
+      293.943,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "24",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      393.3750000000001,
+      323.0545,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      393.3750000000001,
+      352.166,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      393.3750000000001,
+      381.27750000000003,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      393.3750000000001,
+      410.389,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      393.3750000000001,
+      439.5005,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29",
+     "table": 1,
+     "row_key": "8P-9554I",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      393.3750000000001,
+      468.612,
+      402.3000000000001
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "GV-5IZ0B",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      410.85000000000014,
+      76.74000000000001,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kapüşon yüksekliği",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      410.85000000000014,
+      155.9165,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1/4",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      410.85000000000014,
+      177.514,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1/4",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      410.85000000000014,
+      205.63100000000003,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28 1/2",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      410.85000000000014,
+      249.77050000000003,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      410.85000000000014,
+      264.8315,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29 1/2",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      410.85000000000014,
+      307.9935,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      410.85000000000014,
+      323.0545,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30 1/2",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      410.85000000000014,
+      366.2165,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "31",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      410.85000000000014,
+      381.27750000000003,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "31 1/2",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      410.85000000000014,
+      424.4395,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "32",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      410.85000000000014,
+      439.5005,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "32 1/2",
+     "table": 1,
+     "row_key": "GV-5IZ0B",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      410.85000000000014,
+      482.6625,
+      419.77500000000015
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "VF028Z1",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "Kod",
+     "label": null,
+     "box": [
+      39.0,
+      428.32500000000016,
+      72.745,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Manşet yüksekliği",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "Açıklama",
+     "label": null,
+     "box": [
+      82.74000000000001,
+      428.32500000000016,
+      150.83350000000002,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-3/8",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      161.9165,
+      428.32500000000016,
+      177.514,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "3/8",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      193.64600000000002,
+      428.32500000000016,
+      205.63100000000003,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "10 5/8",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "XS",
+     "label": null,
+     "box": [
+      226.65900000000002,
+      428.32500000000016,
+      249.77050000000003,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11 5/8",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "SM",
+     "label": null,
+     "box": [
+      255.77050000000003,
+      428.32500000000016,
+      278.882,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12 5/8",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "MD",
+     "label": null,
+     "box": [
+      284.882,
+      428.32500000000016,
+      307.9935,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "13 5/8",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "LG",
+     "label": null,
+     "box": [
+      313.99350000000004,
+      428.32500000000016,
+      337.105,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "14 5/8",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "XL",
+     "label": null,
+     "box": [
+      343.105,
+      428.32500000000016,
+      366.2165,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15 5/8",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "XXL",
+     "label": null,
+     "box": [
+      372.21650000000005,
+      428.32500000000016,
+      395.32800000000003,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "16 5/8",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      401.32800000000003,
+      428.32500000000016,
+      424.4395,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "17 5/8",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      430.4395,
+      428.32500000000016,
+      453.551,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "18 5/8",
+     "table": 1,
+     "row_key": "VF028Z1",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      459.55100000000004,
+      428.32500000000016,
+      482.6625,
+      437.25000000000017
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Birim: inç kesir · Gösterim: Mutlak",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      454.2750000000002,
+      166.0585,
+      463.2000000000002
+     ]
+    }
+   ]
+  },
+  {
+   "page": 6,
+   "page_type": "yorum",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Tasvi Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      84.6875,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "13.02.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      467.39688188976385,
+      47.925
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "HL-0BI8",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      56.47500000000001,
+      72.2945,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vefe Hoodie",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      56.47500000000001,
+      473.88238188976385,
+      65.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Yorumlar",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      82.42500000000001,
+      93.36250000000001,
+      95.55000000000001
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Zeldan Robelnu | 03.09.24",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      99.30000000000001,
+      133.7245,
+      108.22500000000001
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "1. Sleeve opening numunede 12 3/4\" ölçüldü, lütfen düzeltin.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      110.775,
+      266.52,
+      119.7
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "2. Outseam için tolerans 77.2 cm korunmalı.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      122.25000000000001,
+      202.95700000000002,
+      131.175
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vegi Raklenrak | 08.07.27",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      133.725,
+      131.17450000000002,
+      142.65
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "1. Cep genişliği numunede 7 3/8 ölçüldü, lütfen düzeltin.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      145.2,
+      250.4975,
+      154.125
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "2. Outseam numunede 28 ölçüldü, lütfen düzeltin.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      156.67499999999998,
+      225.9155,
+      165.6
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "3. Bel genişliği için tolerans 36.3 cm korunmalı.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      168.14999999999998,
+      215.52,
+      177.075
+     ]
+    }
+   ]
+  }
+ ]
+}
