@@ -1123,6 +1123,8 @@ Tarih: 2026-11-16. Dal: `sentetik-techpack` (PR #60). Hiçbir okuyucu set A'ya �
 - **Benimsenir:** PaddleOCR-VL + Tesseract'ın yanlış gösterileni mevcut hattınkinden fazla değil **ve** doğru gösterileni daha yüksek.
 - **Reddedilir:** Yanlış gösterileni mevcut hattınkinden fazla.
 - **Ara durum:** Yanlış gösterileni eşit ya da az, ama "gizlendi (doğruydu)" sayısı daha yüksek. Bu durumda tasarım değişirse yeni tasarım set A ile değil, yeni bir tohumla üretilen set B ile ölçülür.
+- **Öncelik:** Benimseme ve ara durum koşulları birlikte sağlanırsa (yanlış gösterilen eşit ya da az, doğru gösterilen ve "gizlendi (doğruydu)" ikisi de daha yüksek) aday **benimsenir**: daha çok doğru değer gösteriliyor.
+- **Kapsanmayan durum:** Yanlış gösterilen eşit ya da az, ama ne doğru gösterilen ne de "gizlendi (doğruydu)" daha yüksek (örneğin aday daha çok değeri atlıyor): **reddedilir**, mevcut hatta göre kazanç yok.
 - **Rapor kırılımı:** Her iki sayım ayrıca sayfa türüne (kapak, yorum, değerlendirme, BOM, ölçü, fark) ve kesir yazımına göre verilir. Kesir yazımı belgeye göre: syn1 ve syn4 tek karakter (⅜), syn3 düz (3/8), syn5 küçük rakamlı, syn2 küçük rakamlı ama santimetre (kesir az). Kırılım dondurulmuş puanlamanın sonuçlarından hesaplanır; puanlama kodu değişmez.
 
 **Kurallar.** `ocr_score.py` ve `ocr_truth.py` özetleri testte; ölçümden sonra değişmez. Her aday set A'nın taranmış ve fotoğraflanmış sayfalarında bir kez ölçülür; sonuçlara bakıp üretici, puanlama ya da dönüştürücü değiştirilmez. Raporda "doğrulanmış yanlış değer" yanında sayı içermeyen yanlış cümleler de ayrıca yazılır.
