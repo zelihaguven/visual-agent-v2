@@ -15,10 +15,12 @@ Sonuç türleri (her doğru cevap değeri için bir tane):
 
 import argparse
 import json
+import re
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from difflib import SequenceMatcher
 from enum import StrEnum
+from html.parser import HTMLParser
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
@@ -32,6 +34,9 @@ from evals.ocr_truth import (
     same_value,
     separator_only,
 )
+from visual_agent.domain.document import Chunk, ChunkKind
+from visual_agent.ingest.elements import SECTION_SEPARATOR
+from visual_agent.verification.text import contains_token
 
 _SIMILAR = 0.75
 """Satır anahtarı ya da etiket bu kadar benzerse bulunmuş sayılır: karakter hatası bağı
@@ -45,6 +50,10 @@ class Outcome(StrEnum):
     WRONG = "yanlış karakter"
     BROKEN = "bağ kopması"
     MISSING = "atlama"
+    HIDDEN_RIGHT = "gizlendi (doğruydu)"
+    """Okuyucu değeri belirsiz sayıp göstermedi; okuma doğruydu (gizlemenin bedeli)."""
+    HIDDEN_WRONG = "gizlendi (yanlıştı)"
+    """Okuyucu yanlış okuduğu değeri belirsiz sayıp göstermedi (kural 1 korundu)."""
 
 
 class _Model(BaseModel):
@@ -55,6 +64,8 @@ class ReadCell(_Model):
     text: str
     left: float | None = None
     right: float | None = None
+    uncertain: bool = False
+    """Okuyucu bu hücrenin bir değerini belirsiz sayıp kullanıcıya göstermiyor."""
 
 
 class ReadRow(_Model):
@@ -76,6 +87,17 @@ def _compare(read: str, value: str) -> Outcome:
     if separator_only(read, value):
         return Outcome.SEPARATOR
     return Outcome.MISSING if not read.strip() else Outcome.WRONG
+
+
+def _judge(read: str, value: str, uncertain: bool, misplaced: bool) -> Outcome:
+    """Doğru yerdeki okumanın sonucu. Değer başka yerde okunmuşsa bağ kopmuştur; okuyucu
+    gizlediyse kullanıcı görmez."""
+    outcome = _compare(read, value)
+    if outcome in (Outcome.WRONG, Outcome.MISSING) and misplaced:
+        return Outcome.BROKEN
+    if uncertain and outcome is not Outcome.MISSING:
+        return Outcome.HIDDEN_RIGHT if outcome is Outcome.CORRECT else Outcome.HIDDEN_WRONG
+    return outcome
 
 
 def _find_cell(rows: Sequence[ReadRow], text: str) -> tuple[int, int] | None:
@@ -124,7 +146,8 @@ def _score_cell(value: TruthValue, rows: Sequence[ReadRow], columns: Sequence[st
     if value.value == value.row_key:
         if found is None:
             return Outcome.MISSING
-        return _compare(rows[found[0]].cells[found[1]].text, value.value)
+        key = rows[found[0]].cells[found[1]]
+        return _judge(key.text, value.value, key.uncertain, misplaced=False)
     if found is None:
         return Outcome.BROKEN if _anywhere(rows, value.value) else Outcome.MISSING
     row = rows[found[0]]
@@ -138,53 +161,104 @@ def _score_cell(value: TruthValue, rows: Sequence[ReadRow], columns: Sequence[st
     if header is None or True not in names:
         return Outcome.BROKEN if in_row else Outcome.MISSING
     cell = _column_cell(rows[header], names.index(True), row)
-    outcome = _compare(cell.text if cell is not None else "", value.value)
-    if outcome in (Outcome.WRONG, Outcome.MISSING) and in_row:
-        return Outcome.BROKEN
-    return outcome
+    if cell is None:
+        return Outcome.BROKEN if in_row else Outcome.MISSING
+    return _judge(cell.text, value.value, cell.uncertain, misplaced=in_row)
 
 
-def _joined_pair(rows: Sequence[ReadRow], label: str) -> str | None:
-    """Etiket ile değer aynı hücreye okunmuşsa ("Grade rule Ronu - 2027") değer kısmı."""
-    prefix = canonical(label) + " "
-    for row in rows:
-        for cell in row.cells:
-            text = canonical(cell.text)
+def _strip_labels(text: str, labels: Sequence[str]) -> str:
+    """Hücrenin başındaki etiketler atılır: "Base size Grade rule XS" → "XS"."""
+    text = canonical(text)
+    stripped = True
+    while stripped:
+        stripped = False
+        for label in labels:
+            prefix = canonical(label) + " "
             if text.startswith(prefix):
-                return text[len(prefix) :]
-    return None
+                text, stripped = text[len(prefix) :], True
+    return text
 
 
-def _score_pair(value: TruthValue, rows: Sequence[ReadRow]) -> Outcome:
-    found = _find_cell(rows, value.label or "")
-    if found is None or not same_value(rows[found[0]].cells[found[1]].text, value.label or ""):
-        joined = _joined_pair(rows, value.label or "")
-        if joined is not None:
-            return _compare(joined, value.value)
-    if found is None:
-        return Outcome.BROKEN if _anywhere(rows, value.value) else Outcome.MISSING
-    row = rows[found[0]]
-    label = row.cells[found[1]]
-    after = [
-        cell
-        for c, cell in enumerate(row.cells)
-        if (c > found[1] if label.right is None or cell.left is None else cell.left >= label.right)
+def _neighbors(rows: Sequence[ReadRow], r: int, c: int) -> list[ReadCell]:
+    """Etiket hücresine bağlı sayılan hücreler: sağındaki ve (form tablo gibi okunduysa)
+    hemen altındaki."""
+    cell, row = rows[r].cells[c], rows[r].cells
+    right = [
+        other
+        for d, other in enumerate(row)
+        if (d > c if cell.right is None or other.left is None else other.left >= cell.right)
     ]
-    outcome = _compare(after[0].text if after else "", value.value)
-    if outcome in (Outcome.WRONG, Outcome.MISSING) and _anywhere(rows, value.value):
-        return Outcome.BROKEN
-    return outcome
+    found = [right[0] if right else ReadCell(text="")]
+    if r + 1 < len(rows):
+        below = rows[r + 1].cells
+        if cell.left is None and c < len(below):
+            found.append(below[c])
+        elif cell.left is not None:
+            found += [o for o in below if o.left is not None and abs(o.left - cell.left) < 2]
+    return found
+
+
+def _assigned(rows: Sequence[ReadRow], label: str) -> list[ReadCell]:
+    """Okumada etikete bağlanan değerler: etiketin sağındaki ya da altındaki hücre, ya da
+    etiketle aynı hücreye okunmuş kalan ("Grade rule Ronu - 2027")."""
+    found: list[ReadCell] = []
+    prefix = canonical(label) + " "
+    for r, row in enumerate(rows):
+        for c, cell in enumerate(row.cells):
+            text = canonical(cell.text)
+            if same_value(cell.text, label):
+                found += _neighbors(rows, r, c)
+            elif text.startswith(prefix):
+                found.append(ReadCell(text=text[len(prefix) :], uncertain=cell.uncertain))
+    return found
+
+
+def _score_pair(value: TruthValue, rows: Sequence[ReadRow], labels: Sequence[str]) -> Outcome:
+    label = value.label or ""
+    own = _assigned(rows, label)
+    if not own:
+        fuzzy = _find_cell(rows, label)
+        if fuzzy is not None:
+            own = _assigned(rows, rows[fuzzy[0]].cells[fuzzy[1]].text)
+    others = [cell for other in labels if other != label for cell in _assigned(rows, other)]
+    misplaced = any(
+        same_value(_strip_labels(cell.text, labels), value.value) for cell in others
+    ) or _anywhere(rows, value.value)
+    if not own:
+        return Outcome.BROKEN if misplaced else Outcome.MISSING
+    cell = next((c for c in own if same_value(c.text, value.value)), own[0])
+    if not same_value(cell.text, value.value) and _mixed(cell.text, value.value, label, labels):
+        return Outcome.BROKEN  # iki etiket karışık okunmuş: "Etiket A Etiket B DeğerA"
+    return _judge(cell.text, value.value, cell.uncertain, misplaced)
+
+
+def _contains(text: str, part: str) -> bool:
+    """Sözcük sınırlarıyla içerir: "XS" "XS FW27" içinde var, "XS-5XL" içinde yok."""
+    return (
+        re.search(rf"(?<![\w-]){re.escape(canonical(part))}(?![\w-])", canonical(text)) is not None
+    )
+
+
+def _mixed(read: str, value: str, label: str, labels: Sequence[str]) -> bool:
+    """Etikete bağlanan okumada başka bir etiket ve beklenen değer birlikte geçiyor."""
+    others = [other for other in labels if other != label and other]
+    return _contains(read, value) and any(_contains(read, other) for other in others)
 
 
 def _score_text(value: TruthValue, rows: Sequence[ReadRow]) -> Outcome:
-    lines = [" ".join(cell.text for cell in row.cells) for row in rows]
+    lines = [
+        (" ".join(c.text for c in row.cells), any(c.uncertain for c in row.cells)) for row in rows
+    ]
     target = canonical(value.value)
-    if any(target in canonical(line) for line in lines):
-        return Outcome.CORRECT
-    best = max(lines, key=lambda line: _similar(line, value.value), default="")
-    if _similar(best, value.value) < _TEXT_SIMILAR:
+    for line, uncertain in lines:
+        if target in canonical(line):
+            return Outcome.HIDDEN_RIGHT if uncertain else Outcome.CORRECT
+    best = max(lines, key=lambda line: _similar(line[0], value.value), default=("", False))
+    if _similar(best[0], value.value) < _TEXT_SIMILAR:
         return Outcome.MISSING
-    return Outcome.SEPARATOR if separator_only(best, value.value) else Outcome.WRONG
+    if best[1]:
+        return Outcome.HIDDEN_WRONG
+    return Outcome.SEPARATOR if separator_only(best[0], value.value) else Outcome.WRONG
 
 
 def score_page(truth: TruthPage, read: ReadPage | None) -> list[tuple[TruthValue, Outcome]]:
@@ -193,12 +267,13 @@ def score_page(truth: TruthPage, read: ReadPage | None) -> list[tuple[TruthValue
     for value in truth.values:
         if value.kind is ValueKind.CELL and value.column not in columns.get(value.table, []):
             columns.setdefault(value.table, []).append(value.column or "")
+    labels = [value.label or "" for value in truth.values if value.kind is ValueKind.PAIR]
     results = []
     for value in truth.values:
         if value.kind is ValueKind.CELL:
             outcome = _score_cell(value, rows, columns[value.table])
         elif value.kind is ValueKind.PAIR:
-            outcome = _score_pair(value, rows)
+            outcome = _score_pair(value, rows, labels)
         else:
             outcome = _score_text(value, rows)
         results.append((value, outcome))
@@ -310,6 +385,91 @@ def text_layer_pages(pdf: Path) -> list[ReadPage]:
         document.close()
 
 
+class _HtmlTable(HTMLParser):
+    """HTML tablonun satırları; birleşik hücre (colspan) kapladığı sütun kadar yer tutar."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.rows: list[list[str]] = []
+        self._cell: list[str] | None = None
+        self._span = 1
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag == "tr":
+            self.rows.append([])
+        elif tag in ("td", "th"):
+            self._cell, self._span = [], int(dict(attrs).get("colspan") or 1)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in ("td", "th") and self._cell is not None and self.rows:
+            # PaddleOCR-VL hücre içi satır sonunu "\\n" diye yazar: biçimdir, boşluk sayılır.
+            text = "".join(self._cell).replace("\\n", "\n")
+            self.rows[-1] += [" ".join(text.split())] + [""] * (self._span - 1)
+            self._cell = None
+
+    def handle_data(self, data: str) -> None:
+        if self._cell is not None:
+            self._cell.append(data)
+
+
+def html_rows(table: str) -> list[list[str]]:
+    parser = _HtmlTable()
+    parser.feed(table)
+    return parser.rows
+
+
+def paddle_vl_page(
+    result: Path, page: int, uncertain: Mapping[int, Sequence[str]] | None = None
+) -> ReadPage:
+    """PaddleOCR-VL'nin sayfa sonucu (`*_res.json`): bloklar okuma sırasıyla; tablo bloğu
+    satır ve hücreleriyle (konumsuz, sıra numarasıyla eşleşir), metin bloğu satır satır.
+
+    uncertain: ikinci okumanın uyuşmadığı parçalar, blok numarasına (block_id) göre; bu parçayı
+    taşıyan hücre gizlenmiş sayılır."""
+    data = json.loads(result.read_text(encoding="utf-8"))
+    rows: list[ReadRow] = []
+    for block in data["parsing_res_list"]:
+        content = str(block.get("block_content") or "")
+        tokens = (uncertain or {}).get(int(block.get("block_id", -1)), ())
+
+        def cell(text: str, tokens: Sequence[str] = tokens) -> ReadCell:
+            return ReadCell(text=text, uncertain=any(contains_token(text, t) for t in tokens))
+
+        if block.get("block_label") == "table":
+            rows += [ReadRow(cells=tuple(cell(t) for t in r)) for r in html_rows(content)]
+        else:
+            rows += [ReadRow(cells=(cell(line),)) for line in content.splitlines() if line.strip()]
+    return ReadPage(page=page, rows=tuple(rows))
+
+
+def pipeline_pages(chunks: Sequence[Chunk]) -> list[ReadPage]:
+    """Mevcut hattın parçaları. Tablo satırı ("Başlık: değer | Başlık: değer") bir başlık
+    satırı ve bir değer satırı olur: sütun sırası korunur. Bölüm adı ve tablo notu ayrı satırdır.
+    Hattın belirsiz saydığı (cevapta gizlediği) değerin hücresi işaretlenir."""
+    pages: dict[int, list[ReadRow]] = {}
+    seen: dict[int, set[str]] = {}
+    for chunk in chunks:
+        page = chunk.location.page or 1
+        rows, emitted = pages.setdefault(page, []), seen.setdefault(page, set())
+        for part in chunk.section.split(SECTION_SEPARATOR) if chunk.section else ():
+            if part not in emitted:
+                emitted.add(part)
+                rows.append(ReadRow(cells=(ReadCell(text=part),)))
+
+        def cell(text: str, chunk: Chunk = chunk) -> ReadCell:
+            hidden = any(contains_token(text, token) for token in chunk.ocr_uncertain)
+            return ReadCell(text=text, uncertain=hidden)
+
+        if chunk.kind is ChunkKind.TABLE_ROW:
+            parts = [part.partition(": ") for part in chunk.text.split(" | ")]
+            pairs = [(label, value) if sep else ("", label) for label, sep, value in parts]
+            rows.append(ReadRow(cells=tuple(ReadCell(text=label) for label, _ in pairs)))
+            rows.append(ReadRow(cells=tuple(cell(value) for _, value in pairs)))
+        else:
+            rows.append(ReadRow(cells=(cell(chunk.text),)))
+    return [ReadPage(page=page, rows=tuple(rows)) for page, rows in sorted(pages.items())]
+
+
 def summarize(results: Sequence[tuple[str, int, TruthValue, Outcome]]) -> dict[str, object]:
     counts = Counter((value.kind.value, outcome.value) for _, _, value, outcome in results)
     total = len(results)
@@ -332,15 +492,45 @@ def summarize(results: Sequence[tuple[str, int, TruthValue, Outcome]]) -> dict[s
     }
 
 
+def read_pages(reader: str, doc_id: str, pdf: Path, reading: Path | None) -> list[ReadPage]:
+    """Okuyucunun belge çıktısı:
+    - textlayer: dijital PDF'in metin katmanı (betiğin sınaması),
+    - paddle-vl: `<reading>/<doc_id>/s<sayfa>_res.json` (PaddleOCR-VL sayfa sonuçları) ve varsa
+      yanında `s<sayfa>_uncertain.json` (ikinci okuma: {blok numarası: [belirsiz parça]}),
+    - pipeline: `<reading>` mevcut hattın parça dosyası ({belge: [parça]}, evals çıktısı).
+    """
+    if reader == "textlayer":
+        return text_layer_pages(pdf)
+    if reading is None:
+        raise ValueError("--reading gerekli")
+    if reader == "paddle-vl":
+        pages = []
+        for result in sorted((reading / doc_id).glob("s*_res.json")):
+            number = int(result.name[1:].split("_")[0])
+            marks = result.with_name(f"s{number}_uncertain.json")
+            uncertain = (
+                {int(k): v for k, v in json.loads(marks.read_text(encoding="utf-8")).items()}
+                if marks.exists()
+                else None
+            )
+            pages.append(paddle_vl_page(result, number, uncertain))
+        return pages
+    data = json.loads(reading.read_text(encoding="utf-8"))
+    return pipeline_pages([Chunk.model_validate(c) for c in data.get(doc_id, [])])
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Okuyucu çıktısını doğru cevapla puanlar.")
     parser.add_argument("--set", type=Path, required=True, help="PDF ve doğru cevap JSON klasörü")
-    parser.add_argument("--reader", choices=("textlayer",), required=True)
+    parser.add_argument("--reader", choices=("textlayer", "paddle-vl", "pipeline"), required=True)
+    parser.add_argument("--reading", type=Path, help="okuyucu çıktısı (bkz. read_pages)")
     args = parser.parse_args()
     results = []
     for truth_file in sorted(args.set.glob("*.json")):
         truth = TruthDocument.model_validate_json(truth_file.read_text(encoding="utf-8"))
-        pages = text_layer_pages(args.set / f"{truth.doc_id}.pdf")
+        pages = read_pages(
+            args.reader, truth.doc_id, args.set / f"{truth.doc_id}.pdf", args.reading
+        )
         results += [(truth.doc_id, *item) for item in score_document(truth, pages)]
     print(json.dumps(summarize(results), ensure_ascii=False, indent=1))
 
