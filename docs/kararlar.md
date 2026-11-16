@@ -1156,6 +1156,8 @@ Tarih: 2026-11-16. Ölçüm: set A benzetimi (0009), 5 taranmış belge (30 sayf
 
 **Kırılım (doğru / yanlış gösterilen).** Tarama: mevcut hat 1.075 / 507, aday 1.035 / 32. Fotoğraf: 249 / 281, aday 290 / 55. Sayfa türü — ölçü 477/258 → 305/51; fark 212/234 → 253/6; BOM 253/179 → 424/14; değerlendirme 282/111 → 185/3; kapak 62/6 → 82/3; yorum 38/0 → 76/10. Kesir yazımı — tek karakter 657/423 → 446/59; düz 329/159 → 237/15; küçük rakamlı 279/161 → 233/10; küçük rakamlı (cm) 59/45 → 409/3.
 
+**Mevcut hat: 788 değer yanlış gösteriliyor.** Bugün uygulamada çalışan hat, bu benzetimde 788 değeri yanlış gösterdi: 507'si taranmış belgelerde (30 sayfa), 281'i telefon fotoğraflarında (12 sayfa). 693'ü bağ kopması (değer yanlış sütun ya da etikete bağlı), 95'i yanlış karakter. Hattın kendi iki okuması bunların yalnız 44'ünü gizledi. Bu, kural 1 açısından hattın bugünkü durumudur; benzetim gerçek taramaya göre iyimser olabileceği için gerçek sayı daha yüksek olabilir.
+
 **Gözlemler.**
 - Mevcut hattın bağ kopmaları gerçek: OCR sütun başlıklarını bozuk okuyor ("Tol (-)" → "Tol)", "Tol (+)" → "Tol 6)"), bazı satırlarda bir sütun kayboluyor; değer yanlış adlı sütuna bağlanıyor.
 - Adayın 50 yanlış karakterinin 26'sı tek bir ortak hatadan: fotoğraftaki ölçü tablosunda tek karakterli kesirler ("⅞") PaddleOCR-VL'de de Tesseract'ta da "%" okunuyor ("14⅞" → "14%"); iki okuma aynı yanlışta uyuştuğu için gizlenmiyor. Bu, bilinen zayıflıktan (dengelenen iki hata) farklı: iki okuyucunun aynı hatası. Dengelenen hataların sayısı ayrıca ölçülmedi.
@@ -1163,4 +1165,6 @@ Tarih: 2026-11-16. Ölçüm: set A benzetimi (0009), 5 taranmış belge (30 sayf
 
 **Sınırlar.** Benzetim, gerçek kâğıt ve kamera değil (0009); sonuçlar iyimser olabilir.
 
-**Açık karar (ekibin).** Adayı hatta almak yeni bağımlılık getirir (paddlepaddle, paddleocr, MLX sunucusu, ~2 GB model). "%" ortak hatası ve gizlenen değerlerin oranı, benimseme durumunda tasarımın ilk iş listesidir; tasarım değişirse set A ile değil set B ile ölçülür.
+**Ekip kararı (2026-11-16).** Uygulamaya geçilmiyor. "⅞" → "%" ortak hatası için düzeltme yapılmıyor; tasarım değişirse set A ile değil set B ile ölçülür. Set A'nın gerçek taramaları geldiğinde aynı iki aday, hiçbir şey değiştirilmeden bir kez daha ölçülecek.
+
+**Kayıt.** Rapor, iki adayın ham okumaları ve tek seferlik çalıştırma betikleri: `evals/output/olcum-2026-11-16-set-a-benzetim/` (repo dışı, 1 MB).
