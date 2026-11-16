@@ -1,29 +1,65 @@
-/* Tek açık tema: temiz kartlar; cam efekti yalnız çekmecelerde. Harici yazı tipi yok. */
+/* Lacivert zemin, mercan vurgu, krem ve beyaz yüzeyler. Büyük yuvarlak karolar (bento),
+   hap biçimli düğmeler. Harici yazı tipi yok (internetsiz açılış).
+   Geniş ekranda belgeler solda, kaynak sağda sabit durur; dar ekranda çekmecedir.
+   Renkler iki bağlamda tanımlı: lacivert zemin (varsayılan) ve açık yüzeyler. */
 :root {
-  --color-page: #f4f5f7;
-  --color-surface: #ffffff;
-  --color-line: #e6e8ec;
-  --color-text: #14202b;
-  --color-muted: #5b6b78;
-  --color-accent: #0f766e;
-  --color-accent-soft: #e6f4f2;
-  --color-on-accent: #ffffff;
-  --color-highlight: #fef3c7;
-  --color-ok: #15803d;
-  --color-ok-surface: #dcfce7;
-  --color-warn: #b54708;
-  --color-warn-surface: #fef0c7;
-  --color-bad: #b42318;
-  --color-bad-surface: #fee4e2;
+  --navy-900: #0a1230;
+  --navy-800: #101b42;
+  --navy-700: #182656;
+  --navy-600: #22336e;
+  --coral: #ff6f4f;
+  --coral-ink: #c23c1c;
+  --cream: #f7eedd;
+  --white: #ffffff;
+
+  --color-page: var(--navy-900);
+  --color-raised: var(--navy-800);
+  --color-raised-hover: var(--navy-700);
+  --color-text: var(--white);
+  --color-muted: #a9b4d6;
+  --color-line: rgb(255 255 255 / 12%);
+  --color-accent-text: var(--coral);
+  --color-on-accent: var(--navy-900);
+  --color-highlight: #ffd9a8;
+  --color-ok: #7fe0a7;
+  --color-ok-surface: rgb(127 224 167 / 14%);
+  --color-warn: #ffcf7a;
+  --color-warn-surface: rgb(255 207 122 / 14%);
+  --color-bad: #ffa193;
+  --color-bad-surface: rgb(255 161 147 / 14%);
+  --color-chip: rgb(255 255 255 / 8%);
+
   --font-body: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
   --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, Roboto,
     sans-serif;
-  --font-mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
-  --radius: 14px;
-  --radius-small: 10px;
-  --shadow: 0 1px 2px rgb(20 32 43 / 6%), 0 4px 16px rgb(20 32 43 / 4%);
+  --font-mono: "Cascadia Mono", Consolas, ui-monospace, Menlo, monospace;
+  --radius-tile: 28px;
+  --radius: 20px;
+  --radius-small: 12px;
   --touch-size: 48px;
-  --ease: 180ms ease;
+  --rail-width: 340px;
+  --source-width: min(520px, 38vw);
+  --ease: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  color-scheme: dark;
+}
+
+/* Açık yüzeyler: cevap kartı, kaynak paneli, krem ve beyaz karolar. */
+.answer,
+.drawer.is-right,
+.action-card.is-write,
+.action-card.is-add {
+  --color-text: var(--navy-900);
+  --color-muted: #4d5878;
+  --color-line: rgb(10 18 48 / 13%);
+  --color-accent-text: var(--coral-ink);
+  --color-ok: #17663a;
+  --color-ok-surface: #d9f0df;
+  --color-warn: #8a4b06;
+  --color-warn-surface: #fbe6bd;
+  --color-bad: #b3261e;
+  --color-bad-surface: #fbdcd6;
+  --color-chip: rgb(10 18 48 / 7%);
+  color: var(--color-text);
   color-scheme: light;
 }
 
@@ -52,12 +88,18 @@ input {
 }
 
 button {
-  transition: opacity var(--ease);
+  transition:
+    opacity var(--ease),
+    transform var(--ease);
+}
+
+button:not(:disabled):active {
+  transform: scale(0.98);
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: 3px solid var(--coral);
+  outline-offset: 3px;
 }
 
 .visually-hidden {
@@ -73,18 +115,19 @@ h1,
 h2 {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.02em;
 }
 
 h1 {
-  font-size: clamp(2rem, 5vw, 2.75rem);
-  line-height: 1.1;
+  font-size: clamp(2.25rem, 1.4rem + 3.4vw, 3.5rem);
+  line-height: 1.08;
 }
 
 h2 {
-  font-size: 1.125rem;
-  line-height: 1.3;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.25;
 }
 
 /* Yerleşim */
@@ -92,6 +135,12 @@ h2 {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   height: 100%;
+  /* Atmosfer: sol üstte mercan parıltı, sağ üstte ince eşyükselti çizgileri. */
+  background:
+    radial-gradient(60vmax 44vmax at -8% -12%, rgb(255 111 79 / 24%), transparent 62%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='520' fill='none' stroke='%23ffffff' stroke-opacity='.07'%3E%3Cpath d='M720 40C560 20 430 90 420 210s90 190 300 230M720 90C590 76 480 130 474 214s70 150 246 176M720 142c-104-8-190 30-194 80s56 104 194 122M720 196c-70-4-128 14-130 34s40 54 130 66'/%3E%3C/svg%3E")
+      no-repeat right top,
+    var(--color-page);
 }
 
 .topbar {
@@ -99,14 +148,13 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px clamp(16px, 4vw, 32px);
+  padding: 14px clamp(16px, 4vw, 32px);
 }
 
 .brand {
   font-family: var(--font-display);
   font-size: 0.9375rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
   color: var(--color-muted);
 }
 
@@ -119,16 +167,14 @@ h2 {
   padding: 0 16px;
   border: 1px solid var(--color-line);
   border-radius: 999px;
-  background: var(--color-surface);
-  box-shadow: var(--shadow);
+  background: var(--color-raised);
   font-weight: 600;
   cursor: pointer;
 }
 
 .library-button:hover,
-.home-button:hover,
-.home-button:focus-visible {
-  border-color: var(--color-accent);
+.home-button:hover {
+  background: var(--color-raised-hover);
 }
 
 .home-button {
@@ -137,17 +183,16 @@ h2 {
 
 .home-button:hover,
 .home-button:focus-visible {
-  color: var(--color-accent);
+  color: var(--color-text);
 }
 
 .library-button .count {
-  min-width: 1.75em;
-  padding: 0 7px;
+  padding: 1px 9px;
   border-radius: 999px;
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
+  background: var(--coral);
+  color: var(--color-on-accent);
   font-size: 0.8125rem;
-  text-align: center;
+  font-weight: 700;
 }
 
 .conversation {
@@ -165,93 +210,129 @@ h2 {
   align-content: safe center;
   justify-items: center;
   overflow-y: auto;
-  padding: 0 16px 6vh;
+  padding: 0 0 6vh;
 }
 
 .hero {
-  padding: 0 0 28px;
-  text-align: center;
+  width: 100%;
+  max-width: 680px;
+  padding: 0 clamp(16px, 4vw, 24px) 22px;
+}
+
+.hero h1 {
+  max-width: 12ch;
 }
 
 .hero p {
-  margin: 10px 0 0;
+  margin: 12px 0 0;
   color: var(--color-muted);
   font-size: 1.0625rem;
 }
 
+/* Bento: solda iki satır boyunca büyük mercan karo, sağda krem ve beyaz karolar. */
 .actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
-  margin-top: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(118px, auto);
+  gap: 10px;
+  margin-top: 6px;
 }
 
 .action-card {
+  position: relative;
   display: grid;
+  grid-template-rows: auto 1fr auto auto;
   justify-items: start;
-  gap: 4px;
-  min-height: 96px;
-  padding: 16px;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  box-shadow: var(--shadow);
+  min-width: 0;
+  padding: 16px 18px;
+  border: 0;
+  border-radius: var(--radius-tile);
   text-align: left;
   cursor: pointer;
+  transition: transform var(--ease);
 }
 
-.action-card svg {
-  color: var(--color-accent);
+.action-card:hover,
+.action-card:focus-visible {
+  transform: translateY(-3px);
 }
 
-.action-card:hover {
-  border-color: var(--color-accent);
+.action-card:hover .action-arrow {
+  transform: translate(3px, -3px);
+}
+
+.action-card.is-talk {
+  order: -1;
+  grid-row: span 2;
+  background: var(--coral);
+  color: var(--navy-900);
+}
+
+.action-card.is-write {
+  background: var(--cream);
+}
+
+.action-card.is-add {
+  background: var(--white);
+}
+
+/* Mikrofon yoksa büyük karo yazarak sormaktır. */
+.actions:not(:has(.is-talk)) .is-write {
+  grid-row: span 2;
+}
+
+.action-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgb(10 18 48 / 12%);
+}
+
+.action-arrow {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  transition: transform var(--ease);
 }
 
 .action-title {
+  grid-row: 3;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
   font-weight: 600;
+  line-height: 1.2;
+}
+
+.is-talk .action-title,
+.actions:not(:has(.is-talk)) .is-write .action-title {
+  max-width: 6ch;
+  font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.5rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
 }
 
 .action-text {
-  color: var(--color-muted);
+  grid-row: 4;
+  margin-top: 2px;
   font-size: 0.875rem;
-  line-height: 1.4;
-}
-
-@media (max-width: 640px) {
-  .hero {
-    padding-bottom: 16px;
-  }
-
-  .actions {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .action-card {
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    gap: 12px;
-    min-height: 56px;
-    padding: 8px 16px;
-  }
-
-  .action-text {
-    display: none;
-  }
+  line-height: 1.35;
+  opacity: 0.72;
 }
 
 .status-card {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 4px 16px;
-  justify-self: center;
+  justify-self: start;
   margin: 8px 0 0;
   padding: 8px 16px;
   border: 1px solid var(--color-line);
   border-radius: 999px;
-  background: var(--color-surface);
+  background: var(--color-raised);
   color: var(--color-muted);
   font-size: 0.875rem;
 }
@@ -263,6 +344,18 @@ button.status-card {
 
 .status-card.is-attention {
   border-color: var(--color-bad);
+}
+
+.status-ready::before,
+.status-pending::before,
+.status-failed::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: currentcolor;
 }
 
 .status-ready {
@@ -281,9 +374,9 @@ button.status-card {
 /* Soru kutusu */
 .composer-area {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  max-width: 760px;
+  max-width: 800px;
   justify-self: center;
   padding: 8px clamp(16px, 4vw, 24px) max(16px, env(safe-area-inset-bottom));
 }
@@ -301,26 +394,30 @@ button.status-card {
 .composer {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 6px 6px 8px;
+  gap: 4px;
+  padding: 6px 6px 6px 14px;
   border: 1px solid var(--color-line);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  box-shadow: var(--shadow);
+  border-radius: 999px;
+  background: var(--color-raised);
+  transition: border-color var(--ease);
 }
 
 .composer:focus-within {
-  border-color: var(--color-accent);
+  border-color: var(--coral);
 }
 
 .composer input {
   flex: 1;
   min-width: 0;
   min-height: var(--touch-size);
-  padding: 8px 10px;
+  padding: 8px;
   border: 0;
   background: transparent;
   font-size: 1.0625rem;
+}
+
+.composer input::placeholder {
+  color: var(--color-muted);
 }
 
 .composer input:focus-visible {
@@ -328,20 +425,23 @@ button.status-card {
 }
 
 .is-landing .composer input {
-  min-height: 64px;
-  font-size: 1.125rem;
+  min-height: 56px;
 }
 
 .composer button {
-  min-width: 72px;
+  min-width: 76px;
   min-height: var(--touch-size);
-  padding: 0 18px;
+  padding: 0 20px;
   border: 0;
-  border-radius: var(--radius-small);
-  background: var(--color-accent);
+  border-radius: 999px;
+  background: var(--coral);
   color: var(--color-on-accent);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+}
+
+.is-landing .composer button {
+  min-height: 56px;
 }
 
 .composer .icon-button {
@@ -350,23 +450,24 @@ button.status-card {
   place-items: center;
   width: var(--touch-size);
   min-width: var(--touch-size);
+  min-height: var(--touch-size);
   padding: 0;
   background: transparent;
   color: var(--color-muted);
 }
 
 .composer .icon-button:hover {
-  background: var(--color-page);
-  color: var(--color-accent);
+  background: var(--color-raised-hover);
+  color: var(--color-text);
 }
 
 .composer .icon-button.is-active {
-  background: var(--color-accent);
+  background: var(--coral);
   color: var(--color-on-accent);
 }
 
 .composer .stop-button {
-  background: var(--color-bad);
+  background: var(--white);
 }
 
 .composer button:disabled {
@@ -376,6 +477,7 @@ button.status-card {
 
 .composer-notice {
   margin: 0;
+  padding: 0 16px;
 }
 
 /* Turlar */
@@ -383,7 +485,7 @@ button.status-card {
   display: grid;
   align-content: start;
   justify-items: center;
-  gap: 28px;
+  gap: 36px;
   overflow-y: auto;
   padding: 12px clamp(16px, 4vw, 40px) 24px;
   scroll-padding-top: 12px;
@@ -398,34 +500,36 @@ button.status-card {
 
 .turn {
   display: grid;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
   width: 100%;
-  max-width: 760px;
+  max-width: 800px;
   animation: rise var(--ease);
 }
 
 .question {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.0625rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 
 .resolved {
-  margin: -6px 0 0;
+  margin: -8px 0 0;
   font-size: 0.875rem;
   color: var(--color-muted);
 }
 
 .answer {
   display: grid;
-  gap: 10px;
-  padding: 18px 20px;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  box-shadow: var(--shadow);
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  padding: 16px 22px 20px;
+  border-radius: var(--radius-tile);
+  background: var(--cream);
 }
 
 .answer-head {
@@ -444,10 +548,21 @@ button.status-card {
 
 .badge {
   justify-self: start;
-  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
   border-radius: 999px;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentcolor;
 }
 
 .badge.is-ok {
@@ -472,21 +587,20 @@ button.status-card {
   height: 44px;
   padding: 0;
   border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--color-muted);
+  border-radius: 50%;
+  background: var(--navy-900);
+  color: var(--cream);
   cursor: pointer;
 }
 
 .speak-button:hover,
 .speak-button:focus-visible {
-  background: var(--color-page);
-  color: var(--color-accent);
+  background: var(--navy-600);
 }
 
 .speak-button.is-playing {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  background: var(--coral);
+  color: var(--navy-900);
 }
 
 .speak-button.is-loading {
@@ -496,11 +610,22 @@ button.status-card {
 
 .answer-items {
   display: grid;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
   margin: 0;
   padding: 0;
   list-style: none;
   font-size: 1.125rem;
+  line-height: 1.5;
+}
+
+.answer-item {
+  padding: 12px 0 6px;
+  border-top: 1px solid var(--color-line);
+}
+
+.answer-item:first-child {
+  padding-top: 2px;
+  border-top: 0;
 }
 
 .answer-item.is-streaming {
@@ -519,14 +644,13 @@ button.status-card {
 /* Gizlenen cümlenin yerindeki alıntıyı doğrulanmış cümleden ayıran küçük, nötr etiket. */
 .quote-label {
   display: inline-block;
-  margin-right: 4px;
-  padding: 1px 8px;
-  border: 1px solid var(--color-line);
+  margin-right: 6px;
+  padding: 1px 9px;
   border-radius: 999px;
-  background: var(--color-page);
+  background: var(--color-chip);
   color: var(--color-muted);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   vertical-align: 0.15em;
 }
 
@@ -534,7 +658,7 @@ button.status-card {
   display: inline-block;
   width: 3.2em;
   height: 0.9em;
-  border-radius: 4px;
+  border-radius: 6px;
   background: var(--color-line);
   vertical-align: -0.08em;
 }
@@ -547,26 +671,44 @@ button.status-card {
 }
 
 .citation {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   max-width: 100%;
   min-width: 0;
   min-height: 44px;
-  padding: 4px 14px;
-  border: 1px solid var(--color-line);
+  padding: 0 14px 0 6px;
+  border: 0;
   border-radius: 999px;
-  background: var(--color-page);
+  background: var(--color-chip);
   color: var(--color-text);
   font-size: 0.8125rem;
   text-align: left;
   cursor: pointer;
 }
 
-.citation:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+/* Kaynak işareti: lacivert daire içinde belge simgesi. */
+.citation::before {
+  content: "";
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23f7eedd' d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm2 16H8v-2h8v2Zm0-4H8v-2h8v2Zm-3-5V3.5L18.5 9H13Z'/%3E%3C/svg%3E")
+      center / 16px no-repeat,
+    var(--navy-900);
+  transition: background-color var(--ease);
+}
+
+.citation:hover::before,
+.citation:focus-visible::before {
+  background-color: var(--coral-ink);
 }
 
 .citation-label {
   display: block;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -575,10 +717,10 @@ button.status-card {
 .code-block {
   overflow-x: auto;
   margin: 8px 0 0;
-  padding: 12px 14px;
-  border: 1px solid var(--color-line);
+  padding: 14px 16px;
   border-radius: var(--radius-small);
-  background: var(--color-page);
+  background: var(--navy-900);
+  color: var(--cream);
   font: 0.875rem/1.5 var(--font-mono);
 }
 
@@ -598,7 +740,8 @@ button.status-card {
 }
 
 .clarify p {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+  font-size: 1.125rem;
 }
 
 .choices {
@@ -609,17 +752,18 @@ button.status-card {
 
 .choice {
   min-height: var(--touch-size);
-  padding: 8px 16px;
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-small);
-  background: var(--color-surface);
-  color: var(--color-accent);
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--navy-900);
+  color: var(--cream);
   font-weight: 600;
   cursor: pointer;
 }
 
-.choice:hover {
-  background: var(--color-accent-soft);
+.choice:not(:disabled):hover {
+  background: var(--coral);
+  color: var(--navy-900);
 }
 
 .choice:disabled {
@@ -642,7 +786,8 @@ button.status-card {
 
 .inventory-total {
   margin: 0;
-  font-size: 1.125rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
   font-weight: 600;
 }
 
@@ -657,10 +802,10 @@ button.status-card {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 6px 6px 14px;
+  padding: 6px 6px 6px 18px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius);
-  background: var(--color-surface);
+  background: var(--color-raised);
   font-size: 0.875rem;
 }
 
@@ -674,11 +819,12 @@ button.status-card {
 }
 
 .context-label {
+  align-self: center;
   font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--color-accent-text);
 }
 
 .context-question {
@@ -691,24 +837,23 @@ button.status-card {
 
 .ghost {
   min-height: 44px;
-  padding: 0 14px;
+  padding: 0 16px;
   border: 1px solid var(--color-line);
-  border-radius: var(--radius-small);
-  background: var(--color-surface);
+  border-radius: 999px;
+  background: transparent;
   cursor: pointer;
 }
 
 .ghost:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  border-color: currentcolor;
 }
 
-/* Çekmeceler: yarı saydam, arkası bulanık; desteklenmiyorsa düz beyaz. */
+/* Çekmeceler: dar ekranda sayfanın üstüne açılır. */
 .drawer-backdrop {
   position: fixed;
   inset: 0;
   z-index: 3;
-  background: rgb(20 32 43 / 18%);
+  background: rgb(4 8 24 / 60%);
   animation: fade var(--ease);
 }
 
@@ -719,31 +864,22 @@ button.status-card {
   z-index: 4;
   display: grid;
   align-content: start;
-  width: min(360px, 100%);
+  width: min(var(--rail-width), 100%);
   overflow-y: auto;
-  border: 1px solid rgb(255 255 255 / 70%);
-  background: var(--color-surface);
-  box-shadow: 0 12px 40px rgb(20 32 43 / 16%);
-}
-
-@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-  .drawer {
-    background: rgb(255 255 255 / 55%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
-    backdrop-filter: blur(18px) saturate(140%);
-  }
+  background: var(--color-raised);
+  box-shadow: 0 0 80px rgb(0 0 0 / 50%);
 }
 
 .drawer.is-left {
   left: 0;
-  border-radius: 0 20px 20px 0;
+  border-right: 1px solid var(--color-line);
   animation: slide-left var(--ease);
 }
 
 .drawer.is-right {
   right: 0;
   width: min(560px, 100%);
-  border-radius: 20px 0 0 20px;
+  background: var(--cream);
   animation: slide-right var(--ease);
 }
 
@@ -760,17 +896,34 @@ button.status-card {
   .drawer.is-left,
   .drawer.is-right {
     width: 100%;
-    border-radius: 0;
   }
 }
 
-/* Cam üstünde metin taşıyan bloklar yarı opak beyaz yüzeyde: arkası ne olursa olsun okunur. */
-.drawer-header,
-.document-list,
-.documents > .notice,
-.documents > .muted {
-  border-radius: var(--radius-small);
-  background: rgb(255 255 255 / 88%);
+/* Çalışma alanı: geniş ekranda paneller sayfanın parçasıdır, sohbet ortada kullanılır kalır. */
+@media (min-width: 1080px) {
+  .drawer-backdrop {
+    display: none;
+  }
+
+  .drawer {
+    box-shadow: none;
+  }
+
+  .drawer.is-right {
+    width: var(--source-width);
+  }
+
+  .layout:has(.drawer.is-left:not([hidden])) {
+    padding-left: var(--rail-width);
+  }
+
+  .layout:has(.drawer.is-right:not([hidden])) {
+    padding-right: var(--source-width);
+  }
+
+  .layout:has(.drawer.is-left:not([hidden])) .library-button {
+    visibility: hidden;
+  }
 }
 
 .drawer-header {
@@ -778,16 +931,10 @@ button.status-card {
   align-items: start;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 6px 6px 14px;
-}
-
-.documents > .notice,
-.documents > .muted {
-  padding: 8px 12px;
 }
 
 .drawer-header h2 {
-  padding-top: 6px;
+  padding-top: 8px;
   overflow-wrap: anywhere;
 }
 
@@ -796,28 +943,33 @@ button.status-card {
   display: grid;
   align-content: start;
   gap: 14px;
-  padding: 20px;
+  padding: 18px 16px;
 }
 
 .upload {
   position: relative;
   display: grid;
   place-items: center;
-  min-height: var(--touch-size);
-  border-radius: var(--radius-small);
-  background: var(--color-accent);
+  min-height: 52px;
+  border-radius: 999px;
+  background: var(--coral);
   color: var(--color-on-accent);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  transition: transform var(--ease);
+}
+
+.upload span::before {
+  content: "+ ";
 }
 
 .upload:hover {
-  opacity: 0.92;
+  transform: translateY(-2px);
 }
 
 .upload:focus-within {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: 3px solid var(--white);
+  outline-offset: 3px;
 }
 
 .upload.is-busy {
@@ -834,7 +986,7 @@ button.status-card {
 
 .document-groups {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -846,41 +998,69 @@ button.status-card {
   justify-content: space-between;
   width: 100%;
   min-height: var(--touch-size);
-  padding: 0 14px;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-small);
-  background: rgb(255 255 255 / 88%);
-  font-weight: 600;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
 .group-toggle:hover {
-  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.group-toggle span:first-child::before {
+  content: "›";
+  display: inline-block;
+  width: 1.1em;
+  color: var(--coral);
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform var(--ease);
+}
+
+.group-toggle[aria-expanded="true"] span:first-child::before {
+  transform: rotate(90deg);
 }
 
 .group-count {
-  color: var(--color-muted);
-  font-weight: 400;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: var(--color-chip);
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .document-list {
   display: grid;
-  margin: 4px 0 0;
-  padding: 0 12px;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
   list-style: none;
 }
 
+.document-list[hidden] {
+  display: none;
+}
+
+/* Yuvarlak, koyu, tek tek ayrılmış satırlar. */
 .document {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 2px 8px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--color-line);
+  padding: 12px 14px 6px;
+  border-radius: var(--radius-small);
+  background: rgb(255 255 255 / 5%);
   font-size: 0.9375rem;
 }
 
-.document:last-child {
-  border-bottom: 0;
+.document:hover,
+.document:focus-within {
+  background: rgb(255 255 255 / 9%);
 }
 
 .document-title {
@@ -897,12 +1077,12 @@ button.status-card {
 
 .status {
   align-self: start;
-  padding: 1px 8px;
+  padding: 1px 9px;
   border-radius: 999px;
-  background: var(--color-page);
+  background: var(--color-chip);
   color: var(--color-muted);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .status.is-outdated,
@@ -939,29 +1119,34 @@ button.status-card {
   grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 4px 16px;
 }
 
 .document-actions button {
   min-height: 44px;
-  padding: 4px 14px;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-small);
-  background: var(--color-surface);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
   font-size: 0.8125rem;
   cursor: pointer;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .document-actions button {
+    min-height: 32px;
+  }
+}
+
 .document-actions button:not(:disabled):hover,
 .document-actions button:not(:disabled):focus-visible {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .document-actions button.is-danger:not(:disabled):hover,
 .document-actions button.is-danger:not(:disabled):focus-visible {
-  border-color: var(--color-bad);
   color: var(--color-bad);
 }
 
@@ -975,7 +1160,7 @@ button.status-card {
   display: grid;
   align-content: start;
   gap: 14px;
-  padding: 20px;
+  padding: 18px 20px 24px;
 }
 
 .source-location {
@@ -986,23 +1171,23 @@ button.status-card {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid var(--color-line);
   border-radius: var(--radius-small);
-  background: var(--color-surface);
+  background: var(--white);
+  box-shadow: 0 10px 30px -12px rgb(10 18 48 / 35%);
 }
 
 .source-text {
   margin: 0;
-  padding: 14px;
-  border-radius: var(--radius-small);
-  background: var(--color-surface);
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--white);
   white-space: pre-wrap;
 }
 
 .sheet-scroll {
   overflow: auto;
-  border-radius: var(--radius-small);
-  background: var(--color-surface);
+  border-radius: var(--radius);
+  background: var(--white);
 }
 
 .sheet {
@@ -1012,15 +1197,16 @@ button.status-card {
 }
 
 .sheet caption {
-  padding: 10px;
+  padding: 12px 14px;
   color: var(--color-muted);
+  font-weight: 700;
   text-align: left;
 }
 
 .sheet th,
 .sheet td {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--color-line);
+  padding: 8px 14px;
+  border-top: 1px solid var(--color-line);
   text-align: left;
   vertical-align: top;
 }
@@ -1033,14 +1219,14 @@ button.status-card {
 
 .sheet .is-highlighted {
   background: var(--color-highlight);
-  box-shadow: inset 4px 0 0 var(--color-warn);
+  box-shadow: inset 5px 0 0 var(--coral);
 }
 
 .sheet .is-highlighted th {
   color: var(--color-text);
 }
 
-/* Konuşma modu */
+/* Konuşma modu: ortada ses düzeyiyle büyüyen küre, altta büyük bitir düğmesi. */
 .talk {
   position: absolute;
   inset: 0;
@@ -1049,29 +1235,62 @@ button.status-card {
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 12px;
   padding: clamp(16px, 4vw, 40px);
-  background: var(--color-page);
+  background:
+    radial-gradient(50vmax 36vmax at 50% -10%, rgb(255 111 79 / 16%), transparent 65%),
+    var(--color-page);
   animation: fade var(--ease);
 }
 
 .talk-stage {
   display: grid;
   justify-items: center;
-  gap: 12px;
+  gap: 18px;
   padding-top: clamp(8px, 4vh, 40px);
 }
 
 .talk-bars {
   --level: 0;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 168px;
-  height: 120px;
+  width: clamp(168px, 34vmin, 240px);
+  aspect-ratio: 1;
   padding: 0;
   border: 0;
+  border-radius: 50%;
   background: transparent;
   cursor: pointer;
+}
+
+.talk-bars::before,
+.talk-bars::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%;
+}
+
+.talk-bars::before {
+  background: conic-gradient(
+    from 210deg,
+    var(--coral),
+    var(--cream),
+    #7f9cff,
+    var(--navy-600),
+    var(--coral)
+  );
+  filter: blur(2px);
+  transform: scale(calc(0.9 + var(--level) * 0.16));
+  transition: transform 120ms linear;
+  animation: orb-turn 14s linear infinite;
+}
+
+.talk-bars::after {
+  inset: 16%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--navy-600), var(--navy-900) 70%);
 }
 
 .talk-bars:disabled {
@@ -1079,11 +1298,13 @@ button.status-card {
 }
 
 .talk-bars span {
+  position: relative;
+  z-index: 1;
   display: block;
-  width: 14px;
-  height: 100%;
-  border-radius: 7px;
-  background: var(--color-accent);
+  width: 8px;
+  height: 34%;
+  border-radius: 4px;
+  background: var(--cream);
   transform: scaleY(calc(0.14 + var(--level) * var(--weight) * 0.86));
   transition: transform var(--duration-bars, 80ms) linear;
 }
@@ -1115,10 +1336,11 @@ button.status-card {
 
 .talk-status {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: var(--coral);
+  color: var(--color-on-accent);
+  font-weight: 700;
 }
 
 .talk-turn {
@@ -1126,12 +1348,24 @@ button.status-card {
   overflow-y: auto;
 }
 
-.talk-end {
-  justify-self: center;
-  min-width: 120px;
+.talk-turn .turn {
+  margin: 0 auto;
 }
 
-/* Hareket: yalnız opaklık ve kaydırma; azaltılmış harekette kapalı. */
+.talk-end {
+  justify-self: center;
+  min-width: 160px;
+  min-height: 56px;
+  border: 0;
+  background: var(--cream);
+  color: var(--navy-900);
+  font-weight: 700;
+  box-shadow:
+    0 0 0 10px rgb(247 238 221 / 8%),
+    0 0 0 22px rgb(247 238 221 / 4%);
+}
+
+/* Hareket: yalnız opaklık ve dönüşüm; azaltılmış harekette kapalı. */
 @keyframes fade {
   from {
     opacity: 0;
@@ -1141,7 +1375,7 @@ button.status-card {
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
 }
 
@@ -1166,6 +1400,12 @@ button.status-card {
 
   to {
     transform: scaleY(calc(var(--weight) * 0.9));
+  }
+}
+
+@keyframes orb-turn {
+  to {
+    rotate: 1turn;
   }
 }
 
