@@ -16,6 +16,16 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 - **Docling bazı hücreleri kaçırıyor:** SL055 ve NK005'te Tol(+), NK015'te XXL hücresi tablo yapısında yok; değer parçada eksik kalıyor (yanlış değil).
 - **Sunucuya taşıma:** Hücre okuma önbelleği (`VA_CELL_READER_CACHE`, varsayılan `data/cell-reads`) kalıcı bir birimde tutulmalı.
 
+## Sayfa okuyucusu (0011)
+
+- Gerçek okuyucuyla uçtan uca deneme yapılmadı: bu bilgisayarda paket indirmesi çok yavaştı, model indirilemedi. Okuyucunun sonuç biçimi set A kaydından ve paddleocr kaynağından alındı; ilk gerçek belgede doğrulanacak.
+- `local` kipi Windows'ta ve işlemcide denenmedi; hız ürün sahibinin makinesinde ölçülecek.
+- Fotoğraf (görsel dosyası) önce PDF'e çevrilip 300 dpi'de yeniden çizilerek okuyucuya veriliyor; ölçümde sayfa görüntüsü doğrudan verilmişti. Fark ölçülmedi.
+- Metin katmanı olan taranmış sayfalar (`SCANNED`, `WEAK`) eski OCR yolunda kaldı; 0010'daki 788 yanlış değerin bu yoldan gelen kısmı sürüyor. Onları da okuyucuya vermek ayrı karar.
+- Karışık belgede (metinli + taranmış sayfa) okuyucu yokken metinli sayfalar da aranamıyor.
+- Yüklü taranmış belgeler eski kuralla duruyor ("Eski kural"); yeniden işlenmedi.
+- Arayüzde "Okuyucu bekleniyor" etiketi nötr renkte; `arayuz-calisma-alani` birleşince uyarı rengine alınabilir.
+
 ## Markdown belgeler
 
 - Hazır gelen markdown'da OCR kökenli metin işaretlenmiyor: FastReact sürüm notları OCR'dan çıkarılmış ("Text extracted by OCR" notuyla), ama `.md` metni OCR'dan gelmemiş sayılıyor; OCR değerlerine uygulanan "Kısmen doğrulandı" kuralı bu metinde çalışmıyor.

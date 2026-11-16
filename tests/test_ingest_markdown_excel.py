@@ -172,7 +172,7 @@ def _no_tools() -> IngestTools:
     def unused(*_: object) -> object:
         raise AssertionError("bu biçimde dış araç kullanılmaz")
 
-    return IngestTools(*([unused] * 9))  # type: ignore[arg-type]
+    return IngestTools(*([unused] * 10))  # type: ignore[arg-type]
 
 
 def test_report_records_the_format_and_rules_version(tmp_path: Path) -> None:

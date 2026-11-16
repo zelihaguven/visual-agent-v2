@@ -53,9 +53,10 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     # 5 (PDF, görsel, Office): tabloyu kaplayan etiket ve not satırları satırların bölümüne girer.
     # 6 (PDF, görsel, Office): taranmış çizgili tablolar çizgilerinden, hücre hücre okunur.
     # 7 (PDF, görsel, Office): OCR'da eğiklik düzeltme yok; fark filtresi tablo notuna bakar.
-    InputFormat.PDF: 7,
-    InputFormat.OFFICE: 7,
-    InputFormat.IMAGE: 7,
+    # 8 (PDF, görsel, Office): metin katmanı olmayan sayfalar sayfa okuyucusuyla okunur (0010).
+    InputFormat.PDF: 8,
+    InputFormat.OFFICE: 8,
+    InputFormat.IMAGE: 8,
     InputFormat.SPREADSHEET: 3,
     InputFormat.LEGACY_SPREADSHEET: 3,
     InputFormat.SQL: 2,

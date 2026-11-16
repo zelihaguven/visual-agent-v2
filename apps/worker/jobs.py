@@ -12,7 +12,7 @@ from apps.worker.topics import TopicAssigner
 from visual_agent.ask.language import document_language
 from visual_agent.catalog.repository import StoredDocument
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk, DocumentMeta
-from visual_agent.ingest.external import MissingTool
+from visual_agent.ingest.external import MissingTool, ReaderUnavailable
 from visual_agent.ingest.formats import UnsupportedFormat
 from visual_agent.ingest.pipeline import IngestReport, IngestResult
 
@@ -38,7 +38,7 @@ class JobRepository(Protocol):
         display_pdf: str | None,
     ) -> bool: ...
 
-    async def mark_failed(self, doc_id: str, message: str) -> bool: ...
+    async def mark_failed(self, doc_id: str, message: str, waiting: bool = False) -> bool: ...
 
     async def purge(self, doc_id: str) -> None: ...
 
@@ -81,15 +81,18 @@ class DocumentProcessor:
     async def _process_and_record(self, document: StoredDocument) -> None:
         try:
             await self._process(document)
+        except ReaderUnavailable as error:
+            # Belge bozuk değil: okuyucu gelince "Yeniden işle" ile okunur.
+            await self._fail(document, str(error), waiting=True)
         except (UnsupportedFormat, MissingTool) as error:
             await self._fail(document, str(error))
         except Exception:
             logger.exception("Belge işlenemedi: %s", document.doc_id)
             await self._fail(document, _GENERIC_FAILURE)
 
-    async def _fail(self, document: StoredDocument, message: str) -> None:
+    async def _fail(self, document: StoredDocument, message: str, waiting: bool = False) -> None:
         """Belge işlenirken silindiyse hata yazılmaz; geride kalanları işçi temizler."""
-        if not await self._repository.mark_failed(document.doc_id, message):
+        if not await self._repository.mark_failed(document.doc_id, message, waiting):
             await self._discard_deleted(document)
 
     async def _process(self, document: StoredDocument) -> None:

@@ -35,6 +35,11 @@ from visual_agent.ingest.images import (
     lines_to_elements,
     with_uncertain_tokens,
 )
+from visual_agent.ingest.page_reader import (
+    ReadPage,
+    read_scanned_pages,
+    tesseract_reader,
+)
 from visual_agent.ingest.pdf_tables import BoundingBox, TableCell
 from visual_agent.ingest.pipeline import IngestTools, OcrOutcome, PageInfo
 from visual_agent.ingest.ruled_table import (
@@ -590,12 +595,27 @@ def recover_page_text(path: Path, page: int) -> list[Element]:
     return [Element(ElementKind.TEXT, " ".join(text.split()), SourceLocation(page=page))]
 
 
+def _read_scanned(
+    path: Path, pages: list[int], work: Path, external: ExternalTools, read_page: ReadPage | None
+) -> list[Element]:
+    """İkinci okuma ölçümdeki gibi Tesseract tur+eng; Tesseract yoksa belge bunu söyler."""
+    if read_page is None:
+        # Boş sayfalar dışında okunacak sayfa varsa okuyucu gerekir; Tesseract sonra aranır.
+        return read_scanned_pages(path, pages, work, None, lambda _: "")
+    second = tesseract_reader(external.require_tesseract("tur+eng"))
+    return read_scanned_pages(path, pages, work, read_page, second)
+
+
 def default_tools(
-    external: ExternalTools | None = None, cell_reader: CellReader | None = None
+    external: ExternalTools | None = None,
+    cell_reader: CellReader | None = None,
+    read_page: ReadPage | None = None,
 ) -> IngestTools:
-    """Araç yolları verilmezse PATH'te aranır. Hücre okuyucu yoksa tablolar OCR'da kalır."""
+    """Araç yolları verilmezse PATH'te aranır. Hücre okuyucu yoksa tablolar OCR'da kalır.
+    Sayfa okuyucusu yoksa metin katmanı olmayan sayfası olan belge okuyucuyu bekler."""
     found = external if external is not None else locate_tools(None, None)
     return IngestTools(
+        read_scanned_pages=partial(_read_scanned, external=found, read_page=read_page),
         office_to_pdf=partial(office_to_pdf, external=found),
         legacy_spreadsheet_to_xlsx=partial(legacy_spreadsheet_to_xlsx, external=found),
         image_to_pdf=image_to_pdf,
