@@ -887,7 +887,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Eski klasörler:** n3–n9, run7-taban, run11-taban ve fastreact karşılaştırma için
   kalıyor. `evals/output/` `.gitignore`'da; repoda izlenen dosyası yok.
 
-## Karar belgeleri 0001–0008
+## Karar belgeleri 0001–0009
 
 Eskiden `docs/decisions/` altındaki dört belgenin tam metni. Yukarıdaki maddelerde "0001"–"0004" diye anılan belgeler bunlar.
 
@@ -1128,3 +1128,14 @@ Tarih: 2026-11-16. Dal: `sentetik-techpack` (PR #60). Hiçbir okuyucu set A'ya �
 - **Rapor kırılımı:** Her iki sayım ayrıca sayfa türüne (kapak, yorum, değerlendirme, BOM, ölçü, fark) ve kesir yazımına göre verilir. Kesir yazımı belgeye göre: syn1 ve syn4 tek karakter (⅜), syn3 düz (3/8), syn5 küçük rakamlı, syn2 küçük rakamlı ama santimetre (kesir az). Kırılım dondurulmuş puanlamanın sonuçlarından hesaplanır; puanlama kodu değişmez.
 
 **Kurallar.** `ocr_score.py` ve `ocr_truth.py` özetleri testte; ölçümden sonra değişmez. Her aday set A'nın taranmış ve fotoğraflanmış sayfalarında bir kez ölçülür; sonuçlara bakıp üretici, puanlama ya da dönüştürücü değiştirilmez. Raporda "doğrulanmış yanlış değer" yanında sayı içermeyen yanlış cümleler de ayrıca yazılır.
+
+### 0009: Set A basılı taranamadı; ölçüm taranmış ve fotoğraflanmış benzetimle yapılır
+Tarih: 2026-11-16. Dal: `set-a-benzetim`. Ekip set A'yı basıp tarayamadı; benzetimi kod üretir. Hiçbir okuyucu çalıştırılmadan donduruldu.
+
+**Benzetim (`evals/render/imaging.py`, `degrade_set`, tohum 20261116).**
+- Tarama: 30 sayfanın hepsi, 300 dpi gri; ±1,5° eğiklik, 0,4–0,8 piksel bulanıklık, Gauss gürültüsü (σ 6), kontrast 0,85–1,05. Belge başına bir PDF (`synN_tarama.pdf`).
+- Telefon fotoğrafı: her sayfa türünden 2 sayfa (12 fotoğraf), ~220 dpi; masa zemini, köşelerde %3'e kadar perspektif (dönme dahil, tek dönüşüm), bir yandan gelen ışık (en karanlık yer %67), 0,6–1,0 piksel bulanıklık, gürültü (σ 8), JPEG kalite 70–85 (`synN_sM_foto.jpg`).
+- Var olan düşük çözünürlüklü benzetim (yaklaşık 122 dpi; geliştirme setleri için) değişmedi; set A'nın 7–8,5 puntoluk yazısı için kullanılmadı.
+- Aynı tohum aynı dosyaları verir (gürültü tohumdan türetilir, PDF tarihi sabit); 17 dosyanın sha256 özetleri testte. Dosyalar 31 MB olduğu için repoya girmedi; testteki özetlerle yeniden üretilir.
+
+**Sınırlar (ölçüm raporunda yazılacak).** Gerçek kâğıt, gerçek tarayıcı ve gerçek telefon değil: kâğıt dokusu, mürekkep yayılması, katlanma, gölge, odak dışı bölge, kamera bükülmesi ve renkli gürültü yok; bozulmalar düzgün ve tek tip. Sonuçlar gerçek taramaya göre iyimser olabilir. Karar kuralı (0008) değişmeden uygulanır.
