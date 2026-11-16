@@ -887,7 +887,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Eski klasörler:** n3–n9, run7-taban, run11-taban ve fastreact karşılaştırma için
   kalıyor. `evals/output/` `.gitignore`'da; repoda izlenen dosyası yok.
 
-## Karar belgeleri 0001–0009
+## Karar belgeleri 0001–0010
 
 Eskiden `docs/decisions/` altındaki dört belgenin tam metni. Yukarıdaki maddelerde "0001"–"0004" diye anılan belgeler bunlar.
 
@@ -1139,3 +1139,28 @@ Tarih: 2026-11-16. Dal: `set-a-benzetim`. Ekip set A'yı basıp tarayamadı; ben
 - Aynı tohum aynı dosyaları verir (gürültü tohumdan türetilir, PDF tarihi sabit); 17 dosyanın sha256 özetleri testte. Dosyalar 31 MB olduğu için repoya girmedi; testteki özetlerle yeniden üretilir.
 
 **Sınırlar (ölçüm raporunda yazılacak).** Gerçek kâğıt, gerçek tarayıcı ve gerçek telefon değil: kâğıt dokusu, mürekkep yayılması, katlanma, gölge, odak dışı bölge, kamera bükülmesi ve renkli gürültü yok; bozulmalar düzgün ve tek tip. Sonuçlar gerçek taramaya göre iyimser olabilir. Karar kuralı (0008) değişmeden uygulanır.
+
+### 0010: Okuma ölçümü sonucu: PaddleOCR-VL + Tesseract karar kuralına göre benimsenir (ince farkla)
+Tarih: 2026-11-16. Ölçüm: set A benzetimi (0009), 5 taranmış belge (30 sayfa) + 12 telefon fotoğrafı, 3.121 değer. Her aday bir kez çalıştırıldı; puanlama, dönüştürücüler ve karar kuralı (0008) ölçümden önce donmuştu, değişmedi.
+
+| | Mevcut hat | PaddleOCR-VL + Tesseract |
+|---|---|---|
+| Doğru gösterilen | 1.324 | 1.325 |
+| Yanlış gösterilen | 788 (bağ kopması 693, yanlış karakter 95, ayraç 0) | 87 (bağ kopması 37, yanlış karakter 50, ayraç 0) |
+| Atlama | 922 | 49 |
+| Gizlendi (doğruydu / yanlıştı) | 43 / 44 | 1.335 / 325 |
+| Süre (42 sayfa) | 871 sn | 271 sn (PaddleOCR-VL 238 + Tesseract 33) |
+| Bulut maliyeti | 0,32 $ | 0 $ |
+
+**Karar kuralının sonucu: Benimsenir.** Yanlış gösterilen fazla değil (87 ≤ 788), doğru gösterilen yüksek (1.325 > 1.324). Fark doğru gösterilende yalnız 1 değer: kazanç yanlış gösterilenin %89 azalması ve atlamanın neredeyse kalkması; bedel değerlerin yaklaşık %43'ünün (1.335) doğru okunduğu hâlde gizlenmesi (Tesseract aynı bloğu farklı sayıyor).
+
+**Kırılım (doğru / yanlış gösterilen).** Tarama: mevcut hat 1.075 / 507, aday 1.035 / 32. Fotoğraf: 249 / 281, aday 290 / 55. Sayfa türü — ölçü 477/258 → 305/51; fark 212/234 → 253/6; BOM 253/179 → 424/14; değerlendirme 282/111 → 185/3; kapak 62/6 → 82/3; yorum 38/0 → 76/10. Kesir yazımı — tek karakter 657/423 → 446/59; düz 329/159 → 237/15; küçük rakamlı 279/161 → 233/10; küçük rakamlı (cm) 59/45 → 409/3.
+
+**Gözlemler.**
+- Mevcut hattın bağ kopmaları gerçek: OCR sütun başlıklarını bozuk okuyor ("Tol (-)" → "Tol)", "Tol (+)" → "Tol 6)"), bazı satırlarda bir sütun kayboluyor; değer yanlış adlı sütuna bağlanıyor.
+- Adayın 50 yanlış karakterinin 26'sı tek bir ortak hatadan: fotoğraftaki ölçü tablosunda tek karakterli kesirler ("⅞") PaddleOCR-VL'de de Tesseract'ta da "%" okunuyor ("14⅞" → "14%"); iki okuma aynı yanlışta uyuştuğu için gizlenmiyor. Bu, bilinen zayıflıktan (dengelenen iki hata) farklı: iki okuyucunun aynı hatası. Dengelenen hataların sayısı ayrıca ölçülmedi.
+- Yalnız okuma ölçüldü; cevap modeli çalıştırılmadı, bu yüzden "sayı içermeyen doğrulanmış yanlış cümle" bu ölçümde yok.
+
+**Sınırlar.** Benzetim, gerçek kâğıt ve kamera değil (0009); sonuçlar iyimser olabilir.
+
+**Açık karar (ekibin).** Adayı hatta almak yeni bağımlılık getirir (paddlepaddle, paddleocr, MLX sunucusu, ~2 GB model). "%" ortak hatası ve gizlenen değerlerin oranı, benimseme durumunda tasarımın ilk iş listesidir; tasarım değişirse set A ile değil set B ile ölçülür.
