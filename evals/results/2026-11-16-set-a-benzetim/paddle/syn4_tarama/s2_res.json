@@ -1,0 +1,1071 @@
+{
+    "input_path": "olcum/sayfalar/syn4_tarama/s2.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 3508,
+    "height": 2482,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Zeltas Wear</td><td>03.11.2027</td></tr><tr><td>RT7S6-R</td><td>Vibel Tişört</td></tr></table>",
+            "block_bbox": [
+                157,
+                138,
+                3368,
+                299
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    157.0445556640625,
+                    126.063720703125
+                ],
+                [
+                    3367.59765625,
+                    138.0657958984375
+                ],
+                [
+                    3367.0,
+                    298.0
+                ],
+                [
+                    156.4466552734375,
+                    285.9979248046875
+                ]
+            ]
+        },
+        {
+            "block_label": "paragraph_title",
+            "block_content": "Comments",
+            "block_bbox": [
+                150,
+                312,
+                450,
+                362
+            ],
+            "block_id": 1,
+            "block_order": 1,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    150.0,
+                    312.0
+                ],
+                [
+                    450.0,
+                    312.0
+                ],
+                [
+                    450.0,
+                    362.0
+                ],
+                [
+                    150.0,
+                    362.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "Zelgi Kobelya | 23.03.25",
+            "block_bbox": [
+                147,
+                373,
+                548,
+                415
+            ],
+            "block_id": 2,
+            "block_order": 2,
+            "group_id": 2,
+            "block_polygon_points": [
+                [
+                    147.0,
+                    373.0
+                ],
+                [
+                    548.0,
+                    373.0
+                ],
+                [
+                    548.0,
+                    415.0
+                ],
+                [
+                    147.0,
+                    415.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "1. Waist width should be  $ 16\\frac{1}{2} $.",
+            "block_bbox": [
+                148,
+                418,
+                650,
+                458
+            ],
+            "block_id": 3,
+            "block_order": 3,
+            "group_id": 3,
+            "block_polygon_points": [
+                [
+                    148.0,
+                    418.0
+                ],
+                [
+                    650.0,
+                    418.0
+                ],
+                [
+                    650.0,
+                    458.0
+                ],
+                [
+                    148.0,
+                    458.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "2. Manşet yüksekliği is measuring 33⅓\" on the sample, please correct.",
+            "block_bbox": [
+                146,
+                461,
+                1271,
+                506
+            ],
+            "block_id": 4,
+            "block_order": 4,
+            "group_id": 4,
+            "block_polygon_points": [
+                [
+                    146.1026611328125,
+                    450.5099182128906
+                ],
+                [
+                    1270.425537109375,
+                    461.5130920410156
+                ],
+                [
+                    1270.0,
+                    505.0000305175781
+                ],
+                [
+                    145.6771240234375,
+                    493.9968566894531
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "3. Keep Chest width tolerance at 91.9 cm.",
+            "block_bbox": [
+                147,
+                503,
+                826,
+                544
+            ],
+            "block_id": 5,
+            "block_order": 5,
+            "group_id": 5,
+            "block_polygon_points": [
+                [
+                    147.0,
+                    503.0
+                ],
+                [
+                    826.0,
+                    503.0
+                ],
+                [
+                    826.0,
+                    544.0
+                ],
+                [
+                    147.0,
+                    544.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "Zelhar Sonlenmi | 28.11.27",
+            "block_bbox": [
+                147,
+                543,
+                589,
+                584
+            ],
+            "block_id": 6,
+            "block_order": 6,
+            "group_id": 6,
+            "block_polygon_points": [
+                [
+                    147.0,
+                    543.0
+                ],
+                [
+                    589.0,
+                    543.0
+                ],
+                [
+                    589.0,
+                    584.0
+                ],
+                [
+                    147.0,
+                    584.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "1. Keep Hood height tolerance at  $ 34\\frac{1}{8} $.",
+            "block_bbox": [
+                146,
+                587,
+                784,
+                627
+            ],
+            "block_id": 7,
+            "block_order": 7,
+            "group_id": 7,
+            "block_polygon_points": [
+                [
+                    146.0,
+                    587.0
+                ],
+                [
+                    784.0,
+                    587.0
+                ],
+                [
+                    784.0,
+                    627.0
+                ],
+                [
+                    146.0,
+                    627.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "2. Neck opening should be 104.0 cm.",
+            "block_bbox": [
+                147,
+                630,
+                747,
+                669
+            ],
+            "block_id": 8,
+            "block_order": 8,
+            "group_id": 8,
+            "block_polygon_points": [
+                [
+                    147.0,
+                    630.0
+                ],
+                [
+                    747.0,
+                    630.0
+                ],
+                [
+                    747.0,
+                    669.0
+                ],
+                [
+                    147.0,
+                    669.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "3. Chest width should be 88.7 cm.",
+            "block_bbox": [
+                146,
+                671,
+                695,
+                712
+            ],
+            "block_id": 9,
+            "block_order": 9,
+            "group_id": 9,
+            "block_polygon_points": [
+                [
+                    146.0,
+                    671.0
+                ],
+                [
+                    695.0,
+                    671.0
+                ],
+                [
+                    695.0,
+                    712.0
+                ],
+                [
+                    146.0,
+                    712.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "4. Ağ yüksekliği should be 16 $ ^{3} $ $ _{8} $\"",
+            "block_bbox": [
+                146,
+                713,
+                674,
+                754
+            ],
+            "block_id": 10,
+            "block_order": 10,
+            "group_id": 10,
+            "block_polygon_points": [
+                [
+                    146.0,
+                    713.0
+                ],
+                [
+                    674.0,
+                    713.0
+                ],
+                [
+                    674.0,
+                    754.0
+                ],
+                [
+                    146.0,
+                    754.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "5. Kapüşon yüksekliği is measuring 24⅝\" on the sample, please correct. Vitu Nuharvi | 17.12.24",
+            "block_bbox": [
+                145,
+                755,
+                1290,
+                839
+            ],
+            "block_id": 11,
+            "block_order": 11,
+            "group_id": 11,
+            "block_polygon_points": [
+                [
+                    145.0,
+                    755.0
+                ],
+                [
+                    1290.0,
+                    755.0
+                ],
+                [
+                    1290.0,
+                    839.0
+                ],
+                [
+                    145.0,
+                    839.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "1. Back length is measuring 65.4 cm on the sample, please correct.",
+            "block_bbox": [
+                146,
+                840,
+                1218,
+                885
+            ],
+            "block_id": 12,
+            "block_order": 12,
+            "group_id": 12,
+            "block_polygon_points": [
+                [
+                    146.0,
+                    840.0
+                ],
+                [
+                    1218.0,
+                    840.0
+                ],
+                [
+                    1218.0,
+                    885.0
+                ],
+                [
+                    146.0,
+                    885.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "2. Keep Kol boyu tolerance at 34\".",
+            "block_bbox": [
+                145,
+                882,
+                692,
+                923
+            ],
+            "block_id": 13,
+            "block_order": 13,
+            "group_id": 13,
+            "block_polygon_points": [
+                [
+                    145.0,
+                    882.0
+                ],
+                [
+                    692.0,
+                    882.0
+                ],
+                [
+                    692.0,
+                    923.0
+                ],
+                [
+                    145.0,
+                    923.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "3. Iç paça is measuring 10 $ \\frac{1}{4} $\" on the sample, please correct.",
+            "block_bbox": [
+                143,
+                925,
+                1104,
+                969
+            ],
+            "block_id": 14,
+            "block_order": 14,
+            "group_id": 14,
+            "block_polygon_points": [
+                [
+                    143.0,
+                    925.0
+                ],
+                [
+                    1104.0,
+                    925.0
+                ],
+                [
+                    1104.0,
+                    969.0
+                ],
+                [
+                    143.0,
+                    969.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "4. Pocket width is measuring  $ 16\\frac{1}{2} $ on the sample, please correct.",
+            "block_bbox": [
+                143,
+                967,
+                1176,
+                1013
+            ],
+            "block_id": 15,
+            "block_order": 15,
+            "group_id": 15,
+            "block_polygon_points": [
+                [
+                    143.0,
+                    967.0
+                ],
+                [
+                    1176.0,
+                    967.0
+                ],
+                [
+                    1176.0,
+                    1013.0
+                ],
+                [
+                    143.0,
+                    1013.0
+                ]
+            ]
+        },
+        {
+            "block_label": "footer",
+            "block_content": "SYN-4 · 2/6 · A",
+            "block_bbox": [
+                133,
+                2371,
+                331,
+                2401
+            ],
+            "block_id": 16,
+            "block_order": null,
+            "group_id": 16,
+            "block_polygon_points": [
+                [
+                    133.0,
+                    2371.0
+                ],
+                [
+                    331.0,
+                    2371.0
+                ],
+                [
+                    331.0,
+                    2401.0
+                ],
+                [
+                    133.0,
+                    2401.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.6894866824150085,
+                "coordinate": [
+                    157,
+                    138,
+                    3368,
+                    299
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        157.0445556640625,
+                        126.063720703125
+                    ],
+                    [
+                        3367.59765625,
+                        138.0657958984375
+                    ],
+                    [
+                        3367.0,
+                        298.0
+                    ],
+                    [
+                        156.4466552734375,
+                        285.9979248046875
+                    ]
+                ]
+            },
+            {
+                "cls_id": 17,
+                "label": "paragraph_title",
+                "score": 0.8187664151191711,
+                "coordinate": [
+                    150,
+                    312,
+                    450,
+                    362
+                ],
+                "order": 1,
+                "polygon_points": [
+                    [
+                        150.0,
+                        312.0
+                    ],
+                    [
+                        450.0,
+                        312.0
+                    ],
+                    [
+                        450.0,
+                        362.0
+                    ],
+                    [
+                        150.0,
+                        362.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.7050601243972778,
+                "coordinate": [
+                    147,
+                    373,
+                    548,
+                    415
+                ],
+                "order": 2,
+                "polygon_points": [
+                    [
+                        147.0,
+                        373.0
+                    ],
+                    [
+                        548.0,
+                        373.0
+                    ],
+                    [
+                        548.0,
+                        415.0
+                    ],
+                    [
+                        147.0,
+                        415.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.7676414847373962,
+                "coordinate": [
+                    148,
+                    418,
+                    650,
+                    458
+                ],
+                "order": 3,
+                "polygon_points": [
+                    [
+                        148.0,
+                        418.0
+                    ],
+                    [
+                        650.0,
+                        418.0
+                    ],
+                    [
+                        650.0,
+                        458.0
+                    ],
+                    [
+                        148.0,
+                        458.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.773483157157898,
+                "coordinate": [
+                    146,
+                    461,
+                    1271,
+                    506
+                ],
+                "order": 4,
+                "polygon_points": [
+                    [
+                        146.1026611328125,
+                        450.5099182128906
+                    ],
+                    [
+                        1270.425537109375,
+                        461.5130920410156
+                    ],
+                    [
+                        1270.0,
+                        505.0000305175781
+                    ],
+                    [
+                        145.6771240234375,
+                        493.9968566894531
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.7504849433898926,
+                "coordinate": [
+                    147,
+                    503,
+                    826,
+                    544
+                ],
+                "order": 5,
+                "polygon_points": [
+                    [
+                        147.0,
+                        503.0
+                    ],
+                    [
+                        826.0,
+                        503.0
+                    ],
+                    [
+                        826.0,
+                        544.0
+                    ],
+                    [
+                        147.0,
+                        544.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.7468100190162659,
+                "coordinate": [
+                    147,
+                    543,
+                    589,
+                    584
+                ],
+                "order": 6,
+                "polygon_points": [
+                    [
+                        147.0,
+                        543.0
+                    ],
+                    [
+                        589.0,
+                        543.0
+                    ],
+                    [
+                        589.0,
+                        584.0
+                    ],
+                    [
+                        147.0,
+                        584.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.7833205461502075,
+                "coordinate": [
+                    146,
+                    587,
+                    784,
+                    627
+                ],
+                "order": 7,
+                "polygon_points": [
+                    [
+                        146.0,
+                        587.0
+                    ],
+                    [
+                        784.0,
+                        587.0
+                    ],
+                    [
+                        784.0,
+                        627.0
+                    ],
+                    [
+                        146.0,
+                        627.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.7819343209266663,
+                "coordinate": [
+                    147,
+                    630,
+                    747,
+                    669
+                ],
+                "order": 8,
+                "polygon_points": [
+                    [
+                        147.0,
+                        630.0
+                    ],
+                    [
+                        747.0,
+                        630.0
+                    ],
+                    [
+                        747.0,
+                        669.0
+                    ],
+                    [
+                        147.0,
+                        669.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.7772262692451477,
+                "coordinate": [
+                    146,
+                    671,
+                    695,
+                    712
+                ],
+                "order": 9,
+                "polygon_points": [
+                    [
+                        146.0,
+                        671.0
+                    ],
+                    [
+                        695.0,
+                        671.0
+                    ],
+                    [
+                        695.0,
+                        712.0
+                    ],
+                    [
+                        146.0,
+                        712.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.7854799032211304,
+                "coordinate": [
+                    146,
+                    713,
+                    674,
+                    754
+                ],
+                "order": 10,
+                "polygon_points": [
+                    [
+                        146.0,
+                        713.0
+                    ],
+                    [
+                        674.0,
+                        713.0
+                    ],
+                    [
+                        674.0,
+                        754.0
+                    ],
+                    [
+                        146.0,
+                        754.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.8005160689353943,
+                "coordinate": [
+                    145,
+                    755,
+                    1290,
+                    839
+                ],
+                "order": 11,
+                "polygon_points": [
+                    [
+                        145.0,
+                        755.0
+                    ],
+                    [
+                        1290.0,
+                        755.0
+                    ],
+                    [
+                        1290.0,
+                        839.0
+                    ],
+                    [
+                        145.0,
+                        839.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.7924850583076477,
+                "coordinate": [
+                    146,
+                    840,
+                    1218,
+                    885
+                ],
+                "order": 12,
+                "polygon_points": [
+                    [
+                        146.0,
+                        840.0
+                    ],
+                    [
+                        1218.0,
+                        840.0
+                    ],
+                    [
+                        1218.0,
+                        885.0
+                    ],
+                    [
+                        146.0,
+                        885.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.8055705428123474,
+                "coordinate": [
+                    145,
+                    882,
+                    692,
+                    923
+                ],
+                "order": 13,
+                "polygon_points": [
+                    [
+                        145.0,
+                        882.0
+                    ],
+                    [
+                        692.0,
+                        882.0
+                    ],
+                    [
+                        692.0,
+                        923.0
+                    ],
+                    [
+                        145.0,
+                        923.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.8017434477806091,
+                "coordinate": [
+                    143,
+                    925,
+                    1104,
+                    969
+                ],
+                "order": 14,
+                "polygon_points": [
+                    [
+                        143.0,
+                        925.0
+                    ],
+                    [
+                        1104.0,
+                        925.0
+                    ],
+                    [
+                        1104.0,
+                        969.0
+                    ],
+                    [
+                        143.0,
+                        969.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.8092146515846252,
+                "coordinate": [
+                    143,
+                    967,
+                    1176,
+                    1013
+                ],
+                "order": 15,
+                "polygon_points": [
+                    [
+                        143.0,
+                        967.0
+                    ],
+                    [
+                        1176.0,
+                        967.0
+                    ],
+                    [
+                        1176.0,
+                        1013.0
+                    ],
+                    [
+                        143.0,
+                        1013.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 8,
+                "label": "footer",
+                "score": 0.48248767852783203,
+                "coordinate": [
+                    133,
+                    2371,
+                    331,
+                    2401
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        133.0,
+                        2371.0
+                    ],
+                    [
+                        331.0,
+                        2371.0
+                    ],
+                    [
+                        331.0,
+                        2401.0
+                    ],
+                    [
+                        133.0,
+                        2401.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,278 @@
+{
+    "input_path": "olcum/sayfalar/syn1_s4_foto/s4.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 2037,
+    "height": 2791,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Danser Apparel</td><td>17.04.2024</td></tr><tr><td>VV1Z7-V</td><td>Koson Pantolon</td></tr></table>",
+            "block_bbox": [
+                247,
+                242,
+                1785,
+                344
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    246.25148010253906,
+                    255.10009765625
+                ],
+                [
+                    1784.000244140625,
+                    242.0
+                ],
+                [
+                    1784.849609375,
+                    341.6978759765625
+                ],
+                [
+                    247.100830078125,
+                    354.7979736328125
+                ]
+            ]
+        },
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Kod</td><td>Açıklama</td><td>Tol (-)</td><td>Tol (+)</td><td>34</td><td>36</td><td>38</td><td>40</td><td>42</td></tr><tr><td>VA2014</td><td>Outseam</td><td>$ -\\frac{1}{2} $</td><td>$ \\frac{1}{2} $</td><td>-1</td><td>-1</td><td>-1</td><td>0</td><td>1</td></tr><tr><td>VI-S3137</td><td>Sleeve length</td><td>$ -\\frac{1}{2} $</td><td>$ \\frac{1}{2} $</td><td>$ -\\frac{1}{2} $</td><td>$ -\\frac{1}{2} $</td><td>$ -\\frac{1}{2} $</td><td>0</td><td>$ \\frac{1}{2} $</td></tr><tr><td>HR1758</td><td>Back length</td><td>$ -\\frac{1}{4} $</td><td>$ \\frac{1}{4} $</td><td>-1</td><td>-1</td><td>-1</td><td>0</td><td>1</td></tr><tr><td>LC-3073</td><td>Inseam</td><td>$ -\\frac{1}{2} $</td><td>$ \\frac{1}{2} $</td><td>$ -\\frac{1}{2} $</td><td>$ -\\frac{1}{2} $</td><td>$ -\\frac{1}{2} $</td><td>0</td><td>$ \\frac{1}{2} $</td></tr><tr><td>GL-5Z2B</td><td>Waist width</td><td>$ -\\frac{3}{8} $</td><td>$ \\frac{3}{8} $</td><td>$ -\\frac{1}{2} $</td><td>$ -\\frac{1}{2} $</td><td>$ -\\frac{1}{2} $</td><td>0</td><td>$ \\frac{1}{2} $</td></tr><tr><td>Tall</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>8LI96-8</td><td>Chest width</td><td>$ -\\frac{1}{2} $</td><td>$ \\frac{1}{2} $</td><td>$ -\\frac{1}{4} $</td><td>$ -\\frac{1}{4} $</td><td>$ -\\frac{1}{4} $</td><td>0</td><td>$ \\frac{1}{4} $</td></tr><tr><td>D401020</td><td>Sleeve opening</td><td>$ -\\frac{1}{2} $</td><td>$ \\frac{1}{2} $</td><td>-1</td><td>-1</td><td>-1</td><td>0</td><td>1</td></tr><tr><td>GD9I2-G</td><td>Neck opening</td><td>$ -\\frac{1}{2} $</td><td>$ \\frac{1}{2} $</td><td>-1</td><td>-1</td><td>-1</td><td>0</td><td>1</td></tr><tr><td>VDBS8-V</td><td>Hem width</td><td>$ -\\frac{3}{8} $</td><td>$ \\frac{3}{8} $</td><td>$ -\\frac{3}{4} $</td><td>$ -\\frac{3}{4} $</td><td>$ -\\frac{3}{4} $</td><td>0</td><td>$ \\frac{3}{4} $</td></tr></table>",
+            "block_bbox": [
+                244,
+                449,
+                1035,
+                1034
+            ],
+            "block_id": 1,
+            "block_order": null,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    244.0,
+                    449.0
+                ],
+                [
+                    1035.0,
+                    449.0
+                ],
+                [
+                    1035.0,
+                    1034.0
+                ],
+                [
+                    244.0,
+                    1034.0
+                ]
+            ]
+        },
+        {
+            "block_label": "vision_footnote",
+            "block_content": "Units: Fractions of inches · Gösterim: Fark",
+            "block_bbox": [
+                235,
+                1065,
+                708,
+                1101
+            ],
+            "block_id": 2,
+            "block_order": null,
+            "group_id": 2,
+            "block_polygon_points": [
+                [
+                    235.0,
+                    1065.0
+                ],
+                [
+                    708.0,
+                    1065.0
+                ],
+                [
+                    708.0,
+                    1101.0
+                ],
+                [
+                    235.0,
+                    1101.0
+                ]
+            ]
+        },
+        {
+            "block_label": "number",
+            "block_content": "SYN-1 · 4/6 · A",
+            "block_bbox": [
+                210,
+                2650,
+                347,
+                2674
+            ],
+            "block_id": 3,
+            "block_order": null,
+            "group_id": 3,
+            "block_polygon_points": [
+                [
+                    210.0,
+                    2650.0
+                ],
+                [
+                    347.0,
+                    2650.0
+                ],
+                [
+                    347.0,
+                    2674.0
+                ],
+                [
+                    210.0,
+                    2674.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.5491951107978821,
+                "coordinate": [
+                    247,
+                    242,
+                    1785,
+                    344
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        246.25148010253906,
+                        255.10009765625
+                    ],
+                    [
+                        1784.000244140625,
+                        242.0
+                    ],
+                    [
+                        1784.849609375,
+                        341.6978759765625
+                    ],
+                    [
+                        247.100830078125,
+                        354.7979736328125
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.647515058517456,
+                "coordinate": [
+                    244,
+                    449,
+                    1035,
+                    1034
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        244.0,
+                        449.0
+                    ],
+                    [
+                        1035.0,
+                        449.0
+                    ],
+                    [
+                        1035.0,
+                        1034.0
+                    ],
+                    [
+                        244.0,
+                        1034.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 24,
+                "label": "vision_footnote",
+                "score": 0.8149979710578918,
+                "coordinate": [
+                    235,
+                    1065,
+                    708,
+                    1101
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        235.0,
+                        1065.0
+                    ],
+                    [
+                        708.0,
+                        1065.0
+                    ],
+                    [
+                        708.0,
+                        1101.0
+                    ],
+                    [
+                        235.0,
+                        1101.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 16,
+                "label": "number",
+                "score": 0.43508410453796387,
+                "coordinate": [
+                    210,
+                    2650,
+                    347,
+                    2674
+                ],
+                "order": 1,
+                "polygon_points": [
+                    [
+                        210.0,
+                        2650.0
+                    ],
+                    [
+                        347.0,
+                        2650.0
+                    ],
+                    [
+                        347.0,
+                        2674.0
+                    ],
+                    [
+                        210.0,
+                        2674.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

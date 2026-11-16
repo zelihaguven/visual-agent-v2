@@ -1,0 +1,217 @@
+{
+    "input_path": "olcum/sayfalar/syn5_s6_foto/s6.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 2881,
+    "height": 2127,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Veson Wear</td><td>08.09.2026</td></tr><tr><td>4NA9B-4</td><td>Beltas Hoodie</td></tr></table>",
+            "block_bbox": [
+                288,
+                232,
+                2651,
+                362
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    287.0399475097656,
+                    253.00857543945312
+                ],
+                [
+                    2650.000244140625,
+                    231.99996948242188
+                ],
+                [
+                    2650.960205078125,
+                    339.9914245605469
+                ],
+                [
+                    288.0,
+                    361.0000305175781
+                ]
+            ]
+        },
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Malzeme</td><td>Açıklama</td><td>Miktar</td><td>Birim</td><td>984 Ember</td><td>896 Ochre</td><td>479 Lilac</td><td>867 Kömür</td></tr><tr><td>LV091ZB</td><td>Drawcord - Tasser - 121 gsm - Pisontu - Thread - %29 Viko - MR745-M</td><td>2.43</td><td>yd</td><td>Slate</td><td>Mürdüm</td><td>Kömür</td><td>Fjord</td></tr><tr><td>KV7102</td><td>Zipper - Kanu - 342 gsm - Harzelser - Thread - %14 Harson - HZ-S40</td><td>2.61</td><td>yd</td><td>Moss</td><td>Fildişi</td><td>Fildişi</td><td>Kiremit</td></tr><tr><td>FM504-F</td><td>Thread - Gibel - 189 gsm - Koyanis - Zipper - %40 Nismor - SG-58610</td><td>1.78</td><td>kg</td><td>Kum</td><td>Moss</td><td>Ochre</td><td>Mürdüm</td></tr><tr><td>NHI4A-N</td><td>Zipper - Ginis - 257 gsm - Rovinis</td><td>1.8195</td><td>yd</td><td>Zeytin</td><td>Fildişi</td><td>Ochre</td><td>Bulut</td></tr><tr><td>2TI36-2</td><td>Fermuar - Pigi - 162 gsm - Nutuzel - Button</td><td>1.63</td><td>kg</td><td>Kum</td><td>Lilac</td><td>Zeytin</td><td>Zeytin</td></tr><tr><td>CMA89-C</td><td>Rib trim - Hardan - 90 gsm - Kagiya - Label - %15 Vemi</td><td>1.98</td><td>yd</td><td>Kömür</td><td>Bulut</td><td>Kömür</td><td>Kiremit</td></tr><tr><td>APS22-A</td><td>Button - Raklen - 198 gsm</td><td>1.24</td><td>ad.</td><td>Gece</td><td>Ochre</td><td>Ember</td><td>Kömür</td></tr><tr><td>AH0Z7-A</td><td>Örme kumaş - Vika</td><td>0.7482</td><td>ad.</td><td>Ochre</td><td>Ochre</td><td>Kömür</td><td>Kömür</td></tr></table>",
+            "block_bbox": [
+                265,
+                430,
+                1947,
+                919
+            ],
+            "block_id": 1,
+            "block_order": null,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    265.0,
+                    430.0
+                ],
+                [
+                    1947.0,
+                    430.0
+                ],
+                [
+                    1947.0,
+                    919.0
+                ],
+                [
+                    265.0,
+                    919.0
+                ]
+            ]
+        },
+        {
+            "block_label": "number",
+            "block_content": "SYN-5 · 6/6 · A",
+            "block_bbox": [
+                211,
+                1922,
+                363,
+                1948
+            ],
+            "block_id": 2,
+            "block_order": null,
+            "group_id": 2,
+            "block_polygon_points": [
+                [
+                    211.0,
+                    1922.0
+                ],
+                [
+                    363.0,
+                    1922.0
+                ],
+                [
+                    363.0,
+                    1948.0
+                ],
+                [
+                    211.0,
+                    1948.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.6784295439720154,
+                "coordinate": [
+                    288,
+                    232,
+                    2651,
+                    362
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        287.0399475097656,
+                        253.00857543945312
+                    ],
+                    [
+                        2650.000244140625,
+                        231.99996948242188
+                    ],
+                    [
+                        2650.960205078125,
+                        339.9914245605469
+                    ],
+                    [
+                        288.0,
+                        361.0000305175781
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.8122965097427368,
+                "coordinate": [
+                    265,
+                    430,
+                    1947,
+                    919
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        265.0,
+                        430.0
+                    ],
+                    [
+                        1947.0,
+                        430.0
+                    ],
+                    [
+                        1947.0,
+                        919.0
+                    ],
+                    [
+                        265.0,
+                        919.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 16,
+                "label": "number",
+                "score": 0.6116308569908142,
+                "coordinate": [
+                    211,
+                    1922,
+                    363,
+                    1948
+                ],
+                "order": 1,
+                "polygon_points": [
+                    [
+                        211.0,
+                        1922.0
+                    ],
+                    [
+                        363.0,
+                        1922.0
+                    ],
+                    [
+                        363.0,
+                        1948.0
+                    ],
+                    [
+                        211.0,
+                        1948.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

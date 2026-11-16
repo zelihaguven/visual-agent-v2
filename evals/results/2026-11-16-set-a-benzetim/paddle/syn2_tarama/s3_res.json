@@ -1,0 +1,278 @@
+{
+    "input_path": "olcum/sayfalar/syn2_tarama/s3.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 2482,
+    "height": 3508,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Gison Moda</td><td>04.04.2025</td></tr><tr><td>HF-AII0Z</td><td>Ropi Pantolon</td></tr></table>",
+            "block_bbox": [
+                112,
+                126,
+                2305,
+                310
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    109.6135025024414,
+                    161.25009155273438
+                ],
+                [
+                    2301.57470703125,
+                    125.84521484375
+                ],
+                [
+                    2304.26171875,
+                    292.2041931152344
+                ],
+                [
+                    112.300537109375,
+                    327.60906982421875
+                ]
+            ]
+        },
+        {
+            "block_label": "figure_title",
+            "block_content": "Malzeme listesi",
+            "block_bbox": [
+                114,
+                356,
+                475,
+                418
+            ],
+            "block_id": 1,
+            "block_order": null,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    114.0,
+                    356.0
+                ],
+                [
+                    475.0,
+                    356.0
+                ],
+                [
+                    475.0,
+                    418.0
+                ],
+                [
+                    114.0,
+                    418.0
+                ]
+            ]
+        },
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Malzeme</td><td>Description</td><td>Qty</td><td>UoM</td><td>914 Zeytin</td><td>673 Kömür</td><td>522 Ember</td><td>816 Ochre</td></tr><tr><td>Z2BS0-Z</td><td>Thread - Pibel - 122 gsm - Loronis</td><td>0,7996</td><td>yd</td><td>Lilac</td><td>Moss</td><td>Gece</td><td>Lilac</td></tr><tr><td>CB4IS-C</td><td>Ribana - Belgi - 250 gsm - Sertupi</td><td>2,9850</td><td>ad.</td><td>Lilac</td><td>Slate</td><td>Kiremit</td><td>Fildişi</td></tr><tr><td>AS-71IS3</td><td>Drawcord - Mika - 258 gsm - Yarodan - Thread - %53 Dapi</td><td>0,7152</td><td>yd</td><td>Mürdüm</td><td>Kum</td><td>Zeytin</td><td>Kiremit</td></tr><tr><td>2L-44Z</td><td>Örme kumaş - Taszel</td><td>2,5331</td><td>m</td><td>Ochre</td><td>Kum</td><td>Bulut</td><td>Ochre</td></tr><tr><td>LM337-L</td><td>Drawcord - Zelvi</td><td>1,00</td><td>kg</td><td>Kiremit</td><td>Lilac</td><td>Ochre</td><td>Fildişi</td></tr><tr><td>KZ-B10A</td><td>Etiket - Mivi - 212 gsm - Belfeko - Label - %50 Sonve - 4DS43-4</td><td>2,49</td><td>kg</td><td>Fildişi</td><td>Lilac</td><td>Ember</td><td>Slate</td></tr><tr><td>BP3B8-B</td><td>Etiket - Koko - 297 gsm - Beldalo - Button - %63 Felen - SG12B-S</td><td>1,43</td><td>pcs</td><td>Mürdüm</td><td>Ember</td><td>Zeytin</td><td>Kum</td></tr><tr><td>RN3031</td><td>Ribana - Rolo - 305 gsm</td><td>0,0435</td><td>pcs</td><td>Lilac</td><td>Ember</td><td>Fildişi</td><td>Slate</td></tr><tr><td>OAI6B-O</td><td>Thread - Danson - 129 gsm - Harvemi - Fermuar</td><td>2,6041</td><td>m</td><td>Ochre</td><td>Kum</td><td>Kömür</td><td>Moss</td></tr><tr><td>C50131</td><td>Button - Belmor - 142 gsm - Vedantu - Kordon - %25 Nuro - LF-02714</td><td>0,1070</td><td>m</td><td>Slate</td><td>Gece</td><td>Gece</td><td>Ember</td></tr></table>",
+            "block_bbox": [
+                117,
+                393,
+                2317,
+                1280
+            ],
+            "block_id": 2,
+            "block_order": null,
+            "group_id": 2,
+            "block_polygon_points": [
+                [
+                    2304.0,
+                    393.0
+                ],
+                [
+                    130.0,
+                    428.0
+                ],
+                [
+                    142.0,
+                    1279.0
+                ],
+                [
+                    2316.0,
+                    1245.0
+                ]
+            ]
+        },
+        {
+            "block_label": "footer",
+            "block_content": "SYN-2 · 3/6 · A",
+            "block_bbox": [
+                182,
+                3428,
+                375,
+                3464
+            ],
+            "block_id": 3,
+            "block_order": null,
+            "group_id": 3,
+            "block_polygon_points": [
+                [
+                    182.0,
+                    3428.0
+                ],
+                [
+                    375.0,
+                    3428.0
+                ],
+                [
+                    375.0,
+                    3464.0
+                ],
+                [
+                    182.0,
+                    3464.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.799741804599762,
+                "coordinate": [
+                    112,
+                    126,
+                    2305,
+                    310
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        109.6135025024414,
+                        161.25009155273438
+                    ],
+                    [
+                        2301.57470703125,
+                        125.84521484375
+                    ],
+                    [
+                        2304.26171875,
+                        292.2041931152344
+                    ],
+                    [
+                        112.300537109375,
+                        327.60906982421875
+                    ]
+                ]
+            },
+            {
+                "cls_id": 7,
+                "label": "figure_title",
+                "score": 0.5685298442840576,
+                "coordinate": [
+                    114,
+                    356,
+                    475,
+                    418
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        114.0,
+                        356.0
+                    ],
+                    [
+                        475.0,
+                        356.0
+                    ],
+                    [
+                        475.0,
+                        418.0
+                    ],
+                    [
+                        114.0,
+                        418.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.9237047433853149,
+                "coordinate": [
+                    117,
+                    393,
+                    2317,
+                    1280
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        2304.0,
+                        393.0
+                    ],
+                    [
+                        130.0,
+                        428.0
+                    ],
+                    [
+                        142.0,
+                        1279.0
+                    ],
+                    [
+                        2316.0,
+                        1245.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 8,
+                "label": "footer",
+                "score": 0.4700619876384735,
+                "coordinate": [
+                    182,
+                    3428,
+                    375,
+                    3464
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        182.0,
+                        3428.0
+                    ],
+                    [
+                        375.0,
+                        3428.0
+                    ],
+                    [
+                        375.0,
+                        3464.0
+                    ],
+                    [
+                        182.0,
+                        3464.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

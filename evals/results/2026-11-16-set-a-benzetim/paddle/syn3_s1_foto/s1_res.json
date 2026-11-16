@@ -1,0 +1,278 @@
+{
+    "input_path": "olcum/sayfalar/syn3_s1_foto/s1.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 2881,
+    "height": 2127,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Tasvi Wear</td><td>13.02.2027</td></tr><tr><td>HL-0BI8</td><td>Vefe Hoodie</td></tr></table>",
+            "block_bbox": [
+                320,
+                264,
+                2678,
+                396
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    320.0,
+                    264.0000305175781
+                ],
+                [
+                    2677.56005859375,
+                    275.0026550292969
+                ],
+                [
+                    2677.0,
+                    395.0000305175781
+                ],
+                [
+                    319.43994140625,
+                    383.9974060058594
+                ]
+            ]
+        },
+        {
+            "block_label": "paragraph_title",
+            "block_content": "Kapak bilgileri",
+            "block_bbox": [
+                318,
+                399,
+                593,
+                445
+            ],
+            "block_id": 1,
+            "block_order": 1,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    318.0,
+                    399.0
+                ],
+                [
+                    593.0,
+                    399.0
+                ],
+                [
+                    593.0,
+                    445.0
+                ],
+                [
+                    318.0,
+                    445.0
+                ]
+            ]
+        },
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Model no</td><td>HL-0BI8</td><td>Beden aralığı</td><td>S-48</td><td>Bileşim</td><td>%71 Pamuk</td></tr><tr><td>Sezon</td><td>İY26</td><td>Model adı</td><td>Vefe Hoodie</td><td>Numune durumu</td><td>Beklemede</td></tr><tr><td>Hazırlayan</td><td>Giro Lentuzel</td><td colspan=\"2\">Tedarikçi turu</td><td>Bölge</td><td>US</td></tr><tr><td>Kalp</td><td>Regular</td><td colspan=\"2\">Kumaş açıklaması Danlen - Label</td><td></td><td></td></tr></table>",
+            "block_bbox": [
+                321,
+                456,
+                2662,
+                660
+            ],
+            "block_id": 2,
+            "block_order": null,
+            "group_id": 2,
+            "block_polygon_points": [
+                [
+                    321.0,
+                    456.0
+                ],
+                [
+                    2662.607666015625,
+                    478.01513671875
+                ],
+                [
+                    2660.70068359375,
+                    680.856201171875
+                ],
+                [
+                    319.093017578125,
+                    658.841064453125
+                ]
+            ]
+        },
+        {
+            "block_label": "number",
+            "block_content": "SYN-3 · 1/6 · A",
+            "block_bbox": [
+                319,
+                1874,
+                460,
+                1898
+            ],
+            "block_id": 3,
+            "block_order": null,
+            "group_id": 3,
+            "block_polygon_points": [
+                [
+                    319.0,
+                    1874.0
+                ],
+                [
+                    460.0,
+                    1874.0
+                ],
+                [
+                    460.0,
+                    1898.0
+                ],
+                [
+                    319.0,
+                    1898.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.7508752346038818,
+                "coordinate": [
+                    320,
+                    264,
+                    2678,
+                    396
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        320.0,
+                        264.0000305175781
+                    ],
+                    [
+                        2677.56005859375,
+                        275.0026550292969
+                    ],
+                    [
+                        2677.0,
+                        395.0000305175781
+                    ],
+                    [
+                        319.43994140625,
+                        383.9974060058594
+                    ]
+                ]
+            },
+            {
+                "cls_id": 17,
+                "label": "paragraph_title",
+                "score": 0.4401977062225342,
+                "coordinate": [
+                    318,
+                    399,
+                    593,
+                    445
+                ],
+                "order": 1,
+                "polygon_points": [
+                    [
+                        318.0,
+                        399.0
+                    ],
+                    [
+                        593.0,
+                        399.0
+                    ],
+                    [
+                        593.0,
+                        445.0
+                    ],
+                    [
+                        318.0,
+                        445.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.7660017013549805,
+                "coordinate": [
+                    321,
+                    456,
+                    2662,
+                    660
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        321.0,
+                        456.0
+                    ],
+                    [
+                        2662.607666015625,
+                        478.01513671875
+                    ],
+                    [
+                        2660.70068359375,
+                        680.856201171875
+                    ],
+                    [
+                        319.093017578125,
+                        658.841064453125
+                    ]
+                ]
+            },
+            {
+                "cls_id": 16,
+                "label": "number",
+                "score": 0.6739135384559631,
+                "coordinate": [
+                    319,
+                    1874,
+                    460,
+                    1898
+                ],
+                "order": 2,
+                "polygon_points": [
+                    [
+                        319.0,
+                        1874.0
+                    ],
+                    [
+                        460.0,
+                        1874.0
+                    ],
+                    [
+                        460.0,
+                        1898.0
+                    ],
+                    [
+                        319.0,
+                        1898.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

@@ -1167,4 +1167,4 @@ Tarih: 2026-11-16. Ölçüm: set A benzetimi (0009), 5 taranmış belge (30 sayf
 
 **Ekip kararı (2026-11-16).** Uygulamaya geçilmiyor. "⅞" → "%" ortak hatası için düzeltme yapılmıyor; tasarım değişirse set A ile değil set B ile ölçülür. Set A'nın gerçek taramaları geldiğinde aynı iki aday, hiçbir şey değiştirilmeden bir kez daha ölçülecek.
 
-**Kayıt.** Rapor, iki adayın ham okumaları ve tek seferlik çalıştırma betikleri: `evals/output/olcum-2026-11-16-set-a-benzetim/` (repo dışı, 1 MB).
+**Kayıt.** Rapor (`rapor.json`), mevcut hattın okuması (`hat_cikti.json`) ve PaddleOCR-VL + Tesseract ham okumaları (`paddle/`): `evals/results/2026-11-16-set-a-benzetim/` (1 MB). Okuyucuları yeniden çalıştırmadan yeniden puanlama ve gerçek taramalarla yan yana karşılaştırma için repoda tutulur. Tek seferlik çalıştırma betikleri repo dışında: `evals/output/olcum-2026-11-16-set-a-benzetim/`.

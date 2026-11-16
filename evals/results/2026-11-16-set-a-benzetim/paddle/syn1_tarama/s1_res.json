@@ -1,0 +1,338 @@
+{
+    "input_path": "olcum/sayfalar/syn1_tarama/s1.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 2482,
+    "height": 3508,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Danser Apparel</td><td>17.04.2024</td></tr><tr><td>VV1Z7-V</td><td>Koson Pantolon</td></tr></table>",
+            "block_bbox": [
+                181,
+                137,
+                2357,
+                298
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    181.0,
+                    136.99998474121094
+                ],
+                [
+                    2357.117431640625,
+                    154.00869750976562
+                ],
+                [
+                    2355.999755859375,
+                    296.99993896484375
+                ],
+                [
+                    179.88232421875,
+                    279.9912414550781
+                ]
+            ]
+        },
+        {
+            "block_label": "paragraph_title",
+            "block_content": "Cover sheet",
+            "block_bbox": [
+                167,
+                307,
+                503,
+                360
+            ],
+            "block_id": 1,
+            "block_order": 1,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    167.0,
+                    307.0
+                ],
+                [
+                    503.0,
+                    307.0
+                ],
+                [
+                    503.0,
+                    360.0
+                ],
+                [
+                    167.0,
+                    360.0
+                ]
+            ]
+        },
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Model no</td><td>VV1Z7-V</td><td>Fit type</td><td>Regular</td></tr><tr><td>Sezon</td><td>SK28</td><td>Tedarikci</td><td>Nutuser Mills</td></tr><tr><td>Kumaş açıklaması</td><td>Rakdan - Jersey knit</td><td>Hazırlayan</td><td>Danrak Karomor</td></tr><tr><td>Tedarikçi turu</td><td></td><td>Size range</td><td>XS-5XL</td></tr><tr><td>Model adı</td><td>Koson Pantolon</td><td>Bölge</td><td>US</td></tr><tr><td>Composition</td><td>%61 Pamuk</td><td>Main material</td><td>KT982S</td></tr><tr><td>Sample status</td><td>On hold</td><td></td><td></td></tr></table>",
+            "block_bbox": [
+                165,
+                371,
+                2329,
+                834
+            ],
+            "block_id": 2,
+            "block_order": null,
+            "group_id": 2,
+            "block_polygon_points": [
+                [
+                    165.0,
+                    371.0
+                ],
+                [
+                    2329.0,
+                    371.0
+                ],
+                [
+                    2329.0,
+                    834.0
+                ],
+                [
+                    165.0,
+                    834.0
+                ]
+            ]
+        },
+        {
+            "block_label": "footer",
+            "block_content": "SYN-1 · 1/6 · A",
+            "block_bbox": [
+                121,
+                3393,
+                312,
+                3425
+            ],
+            "block_id": 3,
+            "block_order": null,
+            "group_id": 3,
+            "block_polygon_points": [
+                [
+                    121.0,
+                    3393.0
+                ],
+                [
+                    312.0,
+                    3393.0
+                ],
+                [
+                    312.0,
+                    3425.0
+                ],
+                [
+                    121.0,
+                    3425.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.753471851348877,
+                "coordinate": [
+                    181,
+                    137,
+                    2357,
+                    298
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        181.0,
+                        136.99998474121094
+                    ],
+                    [
+                        2357.117431640625,
+                        154.00869750976562
+                    ],
+                    [
+                        2355.999755859375,
+                        296.99993896484375
+                    ],
+                    [
+                        179.88232421875,
+                        279.9912414550781
+                    ]
+                ]
+            },
+            {
+                "cls_id": 17,
+                "label": "paragraph_title",
+                "score": 0.3526085913181305,
+                "coordinate": [
+                    167,
+                    307,
+                    503,
+                    360
+                ],
+                "order": 1,
+                "polygon_points": [
+                    [
+                        167.0,
+                        307.0
+                    ],
+                    [
+                        503.0,
+                        307.0
+                    ],
+                    [
+                        503.0,
+                        360.0
+                    ],
+                    [
+                        167.0,
+                        360.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.325711727142334,
+                "coordinate": [
+                    164,
+                    375,
+                    1234,
+                    843
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        164.0,
+                        375.0
+                    ],
+                    [
+                        1234.0,
+                        375.0
+                    ],
+                    [
+                        1234.0,
+                        843.0
+                    ],
+                    [
+                        164.0,
+                        843.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.7398957014083862,
+                "coordinate": [
+                    165,
+                    371,
+                    2329,
+                    834
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        165.0,
+                        371.0
+                    ],
+                    [
+                        2329.0,
+                        371.0
+                    ],
+                    [
+                        2329.0,
+                        834.0
+                    ],
+                    [
+                        165.0,
+                        834.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.3482173681259155,
+                "coordinate": [
+                    1259,
+                    395,
+                    2330,
+                    798
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        1259.0,
+                        395.0
+                    ],
+                    [
+                        2330.0,
+                        395.0
+                    ],
+                    [
+                        2330.0,
+                        798.0
+                    ],
+                    [
+                        1259.0,
+                        798.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 8,
+                "label": "footer",
+                "score": 0.6776198744773865,
+                "coordinate": [
+                    121,
+                    3393,
+                    312,
+                    3425
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        121.0,
+                        3393.0
+                    ],
+                    [
+                        312.0,
+                        3393.0
+                    ],
+                    [
+                        312.0,
+                        3425.0
+                    ],
+                    [
+                        121.0,
+                        3425.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

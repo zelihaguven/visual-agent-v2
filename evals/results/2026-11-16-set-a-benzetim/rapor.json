@@ -1,0 +1,1051 @@
+{
+ "mevcut hat": {
+  "toplam": {
+   "değer": 3121,
+   "doğru gösterilen": 1324,
+   "yanlış gösterilen": 788,
+   "doğru": 1324,
+   "ayraç farkı": 0,
+   "yanlış karakter": 95,
+   "bağ kopması": 693,
+   "atlama": 922,
+   "gizlendi (doğruydu)": 43,
+   "gizlendi (yanlıştı)": 44
+  },
+  "tarama": {
+   "değer": 2277,
+   "doğru gösterilen": 1075,
+   "yanlış gösterilen": 507,
+   "doğru": 1075,
+   "ayraç farkı": 0,
+   "yanlış karakter": 77,
+   "bağ kopması": 430,
+   "atlama": 624,
+   "gizlendi (doğruydu)": 36,
+   "gizlendi (yanlıştı)": 35
+  },
+  "foto": {
+   "değer": 844,
+   "doğru gösterilen": 249,
+   "yanlış gösterilen": 281,
+   "doğru": 249,
+   "ayraç farkı": 0,
+   "yanlış karakter": 18,
+   "bağ kopması": 263,
+   "atlama": 298,
+   "gizlendi (doğruydu)": 7,
+   "gizlendi (yanlıştı)": 9
+  },
+  "sayfa türü": {
+   "bom": {
+    "doğru": 253,
+    "yanlış": 179,
+    "gizli_doğru": 0,
+    "değer": 493
+   },
+   "degerlendirme": {
+    "doğru": 282,
+    "yanlış": 111,
+    "gizli_doğru": 0,
+    "değer": 502
+   },
+   "fark": {
+    "doğru": 212,
+    "yanlış": 234,
+    "gizli_doğru": 27,
+    "değer": 841
+   },
+   "kapak": {
+    "doğru": 62,
+    "yanlış": 6,
+    "gizli_doğru": 5,
+    "değer": 111
+   },
+   "olcu": {
+    "doğru": 477,
+    "yanlış": 258,
+    "gizli_doğru": 3,
+    "değer": 1070
+   },
+   "yorum": {
+    "doğru": 38,
+    "yanlış": 0,
+    "gizli_doğru": 8,
+    "değer": 104
+   }
+  },
+  "kesir yazımı": {
+   "düz": {
+    "doğru": 329,
+    "yanlış": 159,
+    "gizli_doğru": 11,
+    "değer": 626
+   },
+   "küçük rakamlı": {
+    "doğru": 279,
+    "yanlış": 161,
+    "gizli_doğru": 18,
+    "değer": 523
+   },
+   "küçük rakamlı (cm)": {
+    "doğru": 59,
+    "yanlış": 45,
+    "gizli_doğru": 0,
+    "değer": 508
+   },
+   "tek karakter": {
+    "doğru": 657,
+    "yanlış": 423,
+    "gizli_doğru": 14,
+    "değer": 1464
+   }
+  },
+  "değer türü": {
+   "cell": {
+    "doğru": 1125,
+    "yanlış": 768,
+    "gizli_doğru": 26,
+    "değer": 2700
+   },
+   "pair": {
+    "doğru": 42,
+    "yanlış": 15,
+    "gizli_doğru": 0,
+    "değer": 118
+   },
+   "text": {
+    "doğru": 157,
+    "yanlış": 5,
+    "gizli_doğru": 17,
+    "değer": 303
+   }
+  },
+  "yanlış örnekler": [
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "−½",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "½",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "14⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "15⅛",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "15⅜",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "15⅝",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "−¼",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "¼",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "20⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "21⅛",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "21⅜",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "21⅝",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "21⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "Hem width",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "−¼",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "¼",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "MT-I3Z5I",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "Front length",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "−½",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "½",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "4l-B801",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "Neck opening",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "−¼",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "19⅜",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "20⅛",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "−¼",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "¼",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "Sleeve length",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "−½",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "Hip width",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "−½",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "½",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "34⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "35⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "36⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "38⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "39⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "Pocket width",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "text",
+    "beklenen": "Units: Fractions of inches · Grade Rule Display: Absolute",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 4,
+    "tür": "fark",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "Outseam",
+    "sonuç": "bağ kopması"
+   }
+  ]
+ },
+ "PaddleOCR-VL + Tesseract": {
+  "toplam": {
+   "değer": 3121,
+   "doğru gösterilen": 1325,
+   "yanlış gösterilen": 87,
+   "doğru": 1325,
+   "ayraç farkı": 0,
+   "yanlış karakter": 50,
+   "bağ kopması": 37,
+   "atlama": 49,
+   "gizlendi (doğruydu)": 1335,
+   "gizlendi (yanlıştı)": 325
+  },
+  "tarama": {
+   "değer": 2277,
+   "doğru gösterilen": 1035,
+   "yanlış gösterilen": 32,
+   "doğru": 1035,
+   "ayraç farkı": 0,
+   "yanlış karakter": 16,
+   "bağ kopması": 16,
+   "atlama": 24,
+   "gizlendi (doğruydu)": 951,
+   "gizlendi (yanlıştı)": 235
+  },
+  "foto": {
+   "değer": 844,
+   "doğru gösterilen": 290,
+   "yanlış gösterilen": 55,
+   "doğru": 290,
+   "ayraç farkı": 0,
+   "yanlış karakter": 34,
+   "bağ kopması": 21,
+   "atlama": 25,
+   "gizlendi (doğruydu)": 384,
+   "gizlendi (yanlıştı)": 90
+  },
+  "sayfa türü": {
+   "bom": {
+    "doğru": 424,
+    "yanlış": 14,
+    "gizli_doğru": 50,
+    "değer": 493
+   },
+   "degerlendirme": {
+    "doğru": 185,
+    "yanlış": 3,
+    "gizli_doğru": 265,
+    "değer": 502
+   },
+   "fark": {
+    "doğru": 253,
+    "yanlış": 6,
+    "gizli_doğru": 446,
+    "değer": 841
+   },
+   "kapak": {
+    "doğru": 82,
+    "yanlış": 3,
+    "gizli_doğru": 24,
+    "değer": 111
+   },
+   "olcu": {
+    "doğru": 305,
+    "yanlış": 51,
+    "gizli_doğru": 542,
+    "değer": 1070
+   },
+   "yorum": {
+    "doğru": 76,
+    "yanlış": 10,
+    "gizli_doğru": 8,
+    "değer": 104
+   }
+  },
+  "kesir yazımı": {
+   "düz": {
+    "doğru": 237,
+    "yanlış": 15,
+    "gizli_doğru": 372,
+    "değer": 626
+   },
+   "küçük rakamlı": {
+    "doğru": 233,
+    "yanlış": 10,
+    "gizli_doğru": 85,
+    "değer": 523
+   },
+   "küçük rakamlı (cm)": {
+    "doğru": 409,
+    "yanlış": 3,
+    "gizli_doğru": 88,
+    "değer": 508
+   },
+   "tek karakter": {
+    "doğru": 446,
+    "yanlış": 59,
+    "gizli_doğru": 790,
+    "değer": 1464
+   }
+  },
+  "değer türü": {
+   "cell": {
+    "doğru": 1029,
+    "yanlış": 65,
+    "gizli_doğru": 1266,
+    "değer": 2700
+   },
+   "pair": {
+    "doğru": 76,
+    "yanlış": 10,
+    "gizli_doğru": 15,
+    "değer": 118
+   },
+   "text": {
+    "doğru": 220,
+    "yanlış": 12,
+    "gizli_doğru": 54,
+    "değer": 303
+   }
+  },
+  "yanlış örnekler": [
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "14⅞",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "20⅞",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "16⅞",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "18⅜",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "29⅜",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "29⅝",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "29⅞",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "30⅛",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "30⅜",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "20⅛",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "20⅞",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "22⅜",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "23⅛",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "8⅞",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "9⅞",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "11⅞",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "12⅞",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "10",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "11¼",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "Hip width",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "½",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "11⅛",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "11⅜",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "11⅝",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "11⅞",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "12⅛",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "20¾",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "22¼",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "foto",
+    "belge": "syn1",
+    "sayfa": 4,
+    "tür": "fark",
+    "kesir": "tek karakter",
+    "değer_türü": "pair",
+    "beklenen": "40",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "tarama",
+    "belge": "syn1",
+    "sayfa": 1,
+    "tür": "kapak",
+    "kesir": "tek karakter",
+    "değer_türü": "pair",
+    "beklenen": "Nutuser Mills",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "tarama",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "pair",
+    "beklenen": "DANIS 1",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "tarama",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "Dl-2S93",
+    "sonuç": "yanlış karakter"
+   },
+   {
+    "kaynak": "tarama",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "Hip width",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "tarama",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "½",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "tarama",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "34⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "tarama",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "35⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "tarama",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "36⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "tarama",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "37⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "tarama",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "38⅞",
+    "sonuç": "bağ kopması"
+   },
+   {
+    "kaynak": "tarama",
+    "belge": "syn1",
+    "sayfa": 2,
+    "tür": "olcu",
+    "kesir": "tek karakter",
+    "değer_türü": "cell",
+    "beklenen": "39⅞",
+    "sonuç": "bağ kopması"
+   }
+  ]
+ },
+ "karar": "Benimsenir"
+}

@@ -1,0 +1,339 @@
+{
+    "input_path": "olcum/sayfalar/syn3_tarama/s3.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 3508,
+    "height": 2482,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Tasvi Wear</td><td>13.02.2027</td></tr><tr><td>HL-0BI8</td><td>Vefe Hoodie</td></tr></table>",
+            "block_bbox": [
+                141,
+                132,
+                3349,
+                311
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    139.8076171875,
+                    157.00938415527344
+                ],
+                [
+                    3348.000244140625,
+                    131.9999237060547
+                ],
+                [
+                    3349.19287109375,
+                    284.9906005859375
+                ],
+                [
+                    141.000244140625,
+                    310.00006103515625
+                ]
+            ]
+        },
+        {
+            "block_label": "figure_title",
+            "block_content": "Ölçü tablosu",
+            "block_bbox": [
+                134,
+                352,
+                459,
+                418
+            ],
+            "block_id": 1,
+            "block_order": null,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    134.0,
+                    352.0
+                ],
+                [
+                    459.0,
+                    352.0
+                ],
+                [
+                    459.0,
+                    418.0
+                ],
+                [
+                    134.0,
+                    418.0
+                ]
+            ]
+        },
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td colspan=\"8\">Taban beden XS</td><td>Tol</td></tr><tr><td>Kod</td><td>Açıklama</td><td>Tol (-)</td><td>Tol (+)</td><td>XS</td><td>S</td><td>M</td><td>L</td><td>XL</td></tr><tr><td>EO97Z</td><td>Kalça genişliği</td><td>-1/4</td><td>1/4</td><td>0</td><td>1/4</td><td>1/4</td><td>1/4</td><td>1/4</td></tr><tr><td>AZ9BI9</td><td>Ağ yüksekliği</td><td>-3/8</td><td>3/8</td><td>0</td><td>1/2</td><td>1/2</td><td>1/2</td><td>1/2</td></tr><tr><td>5O234</td><td>Cep genişliği</td><td>-3/8</td><td>3/8</td><td>0</td><td>3/4</td><td>3/4</td><td>3/4</td><td>3/4</td></tr><tr><td>H52A1-H</td><td>Kol ağzı</td><td>-3/8</td><td>3/8</td><td>0</td><td>3/4</td><td>3/4</td><td>3/4</td><td>3/4</td></tr><tr><td>GG83B-G</td><td>Dış paça</td><td>-1/2</td><td>1/2</td><td>0</td><td>3/4</td><td>3/4</td><td>3/4</td><td>3/4</td></tr><tr><td>GN-02Z0</td><td>Etek genişliği</td><td>-1/2</td><td>1/2</td><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td></tr><tr><td colspan=\"9\">Uzun boy</td></tr><tr><td>4S871-4</td><td>Göğüs genişliği</td><td>-3/8</td><td>3/8</td><td>0</td><td>1/2</td><td>1/2</td><td>1/2</td><td>1/2</td></tr><tr><td>N4-Z5B1</td><td>Arka boy</td><td>-1/2</td><td>1/2</td><td>0</td><td>3/4</td><td>3/4</td><td>3/4</td><td>3/4</td></tr><tr><td>C4-I105B</td><td>Ön boy</td><td>-3/8</td><td>3/8</td><td>0</td><td>1/4</td><td>1/4</td><td>1/4</td><td>1/4</td></tr><tr><td>2T39120</td><td>Manşet yüksekliği</td><td>-1/4</td><td>1/4</td><td>0</td><td>1/4</td><td>1/4</td><td>1/4</td><td>1/4</td></tr></table>",
+            "block_bbox": [
+                145,
+                432,
+                1279,
+                1426
+            ],
+            "block_id": 2,
+            "block_order": null,
+            "group_id": 2,
+            "block_polygon_points": [
+                [
+                    145.0,
+                    432.0
+                ],
+                [
+                    1279.0,
+                    432.0
+                ],
+                [
+                    1279.0,
+                    1426.0
+                ],
+                [
+                    145.0,
+                    1426.0
+                ]
+            ]
+        },
+        {
+            "block_label": "vision_footnote",
+            "block_content": "Birim: inç kesir · Gösterim: Fark",
+            "block_bbox": [
+                145,
+                1464,
+                663,
+                1518
+            ],
+            "block_id": 3,
+            "block_order": null,
+            "group_id": 3,
+            "block_polygon_points": [
+                [
+                    145.0,
+                    1464.0
+                ],
+                [
+                    663.0,
+                    1464.0
+                ],
+                [
+                    663.0,
+                    1518.0
+                ],
+                [
+                    145.0,
+                    1518.0
+                ]
+            ]
+        },
+        {
+            "block_label": "number",
+            "block_content": "SYN-3 · 3/6 · A",
+            "block_bbox": [
+                159,
+                2401,
+                353,
+                2432
+            ],
+            "block_id": 4,
+            "block_order": null,
+            "group_id": 4,
+            "block_polygon_points": [
+                [
+                    159.0,
+                    2401.0
+                ],
+                [
+                    353.0,
+                    2401.0
+                ],
+                [
+                    353.0,
+                    2432.0
+                ],
+                [
+                    159.0,
+                    2432.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.574042797088623,
+                "coordinate": [
+                    141,
+                    132,
+                    3349,
+                    311
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        139.8076171875,
+                        157.00938415527344
+                    ],
+                    [
+                        3348.000244140625,
+                        131.9999237060547
+                    ],
+                    [
+                        3349.19287109375,
+                        284.9906005859375
+                    ],
+                    [
+                        141.000244140625,
+                        310.00006103515625
+                    ]
+                ]
+            },
+            {
+                "cls_id": 7,
+                "label": "figure_title",
+                "score": 0.4391545057296753,
+                "coordinate": [
+                    134,
+                    352,
+                    459,
+                    418
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        134.0,
+                        352.0
+                    ],
+                    [
+                        459.0,
+                        352.0
+                    ],
+                    [
+                        459.0,
+                        418.0
+                    ],
+                    [
+                        134.0,
+                        418.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.7736605405807495,
+                "coordinate": [
+                    145,
+                    432,
+                    1279,
+                    1426
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        145.0,
+                        432.0
+                    ],
+                    [
+                        1279.0,
+                        432.0
+                    ],
+                    [
+                        1279.0,
+                        1426.0
+                    ],
+                    [
+                        145.0,
+                        1426.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 24,
+                "label": "vision_footnote",
+                "score": 0.8127144575119019,
+                "coordinate": [
+                    145,
+                    1464,
+                    663,
+                    1518
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        145.0,
+                        1464.0
+                    ],
+                    [
+                        663.0,
+                        1464.0
+                    ],
+                    [
+                        663.0,
+                        1518.0
+                    ],
+                    [
+                        145.0,
+                        1518.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 16,
+                "label": "number",
+                "score": 0.7528680562973022,
+                "coordinate": [
+                    159,
+                    2401,
+                    353,
+                    2432
+                ],
+                "order": 1,
+                "polygon_points": [
+                    [
+                        159.0,
+                        2401.0
+                    ],
+                    [
+                        353.0,
+                        2401.0
+                    ],
+                    [
+                        353.0,
+                        2432.0
+                    ],
+                    [
+                        159.0,
+                        2432.0
+                    ]
+                ]
+            }
+        ]
+    }
+}
