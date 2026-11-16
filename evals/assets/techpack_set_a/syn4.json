@@ -1,0 +1,7184 @@
+{
+ "doc_id": "syn4",
+ "source": "synthetic",
+ "seed": 20261116,
+ "pdf_sha256": "6b78a4abb6dfe22b7f39722962de664e6924b95b71adfd5c3956007e79348540",
+ "pages": [
+  {
+   "page": 1,
+   "page_type": "kapak",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Zeltas Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      89.936279296875,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "03.11.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      471.39117095226385,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "RT7S6-R",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      55.125,
+      74.61767578125,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vibel Tişört",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      55.125,
+      472.54473540538885,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Cover sheet",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      78.375,
+      113.439697265625,
+      90.45
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "İY24",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Season",
+     "box": [
+      127.360107421875,
+      96.9,
+      143.69677734375,
+      104.775
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Vibel Tişört",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Style name",
+     "box": [
+      127.360107421875,
+      113.025,
+      169.6025390625,
+      120.9
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Beklemede",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Sample status",
+     "box": [
+      127.360107421875,
+      129.15,
+      169.4560546875,
+      137.025
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "%58 Pamuk",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Composition",
+     "box": [
+      127.360107421875,
+      145.275,
+      171.935302734375,
+      153.15
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Slim",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Fit type",
+     "box": [
+      127.360107421875,
+      161.4,
+      143.59423828125,
+      169.275
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "2-4XL",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Size range",
+     "box": [
+      127.360107421875,
+      177.525,
+      148.92626953125,
+      185.4
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "RT7S6-R",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Style #",
+     "box": [
+      127.360107421875,
+      193.65,
+      159.374267578125,
+      201.525
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "US",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Region",
+     "box": [
+      512.3049893116388,
+      96.9,
+      522.5552334522638,
+      104.775
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Fevevi A.Ş.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Supplier",
+     "box": [
+      512.3049893116388,
+      113.025,
+      553.8516201710138,
+      120.9
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Sontu Belmorrak",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Modified by",
+     "box": [
+      512.3049893116388,
+      129.15,
+      575.3298916553888,
+      137.025
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Viser Rodanve",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Created by",
+     "box": [
+      512.3049893116388,
+      145.275,
+      566.4712490772638,
+      153.15
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "V8702-V",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Main material",
+     "box": [
+      512.3049893116388,
+      161.4,
+      544.3594326710138,
+      169.275
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Tudan - Kordon",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Material description",
+     "box": [
+      512.3049893116388,
+      193.65,
+      569.9172939991388,
+      201.525
+     ]
+    }
+   ]
+  },
+  {
+   "page": 2,
+   "page_type": "yorum",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Zeltas Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      89.936279296875,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "03.11.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      471.39117095226385,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "RT7S6-R",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      55.125,
+      74.61767578125,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vibel Tişört",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      55.125,
+      472.54473540538885,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Comments",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      78.375,
+      104.635009765625,
+      90.45
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Zelgi Kobelya | 23.03.25",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      93.9,
+      127.7578125,
+      101.775
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "1. Waist width should be 16½\".",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      104.025,
+      153.56103515625,
+      111.9
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "2. Manşet yüksekliği is measuring 33¾\" on the sample, please correct.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      114.15,
+      302.62353515625,
+      122.025
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "3. Keep Chest width tolerance at 91.9 cm.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      124.275,
+      194.323974609375,
+      132.15
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Zelhar Sonlenmi | 28.11.27",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      134.4,
+      138.2900390625,
+      142.275
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "1. Keep Hood height tolerance at 34⅞\".",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      144.525,
+      185.432373046875,
+      152.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "2. Neck opening should be 104.0 cm.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      154.65,
+      175.97314453125,
+      162.525
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "3. Chest width should be 88.7 cm.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      164.775,
+      164.3203125,
+      172.65
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "4. Ağ yüksekliği should be 16⅜\".",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      174.9,
+      159.248291015625,
+      182.775
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "5. Kapüşon yüksekliği is measuring 24⅜\" on the sample, please correct.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      185.025,
+      307.61865234375,
+      192.9
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vitu Nuharvi | 17.12.24",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      195.15,
+      123.3046875,
+      203.025
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "1. Back length is measuring 65.4 cm on the sample, please correct.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      205.275,
+      290.293212890625,
+      213.15
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "2. Keep Kol boyu tolerance at 34\".",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      215.4,
+      164.81103515625,
+      223.275
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "3. İç paça is measuring 10¼\" on the sample, please correct.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      225.525,
+      262.34033203125,
+      233.4
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "4. Pocket width is measuring 16½ on the sample, please correct.",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      235.65,
+      280.28466796875,
+      243.525
+     ]
+    }
+   ]
+  },
+  {
+   "page": 3,
+   "page_type": "bom",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Zeltas Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      89.936279296875,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "03.11.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      471.39117095226385,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "RT7S6-R",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      55.125,
+      74.61767578125,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vibel Tişört",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      55.125,
+      472.54473540538885,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Bill of materials",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      78.375,
+      138.70263671875,
+      90.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "H4-I38Z0",
+     "table": 1,
+     "row_key": "H4-I38Z0",
+     "column": "Material",
+     "label": null,
+     "box": [
+      39.0,
+      113.025,
+      73.78271484375,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Button - Kohar - 136 gsm - Yavemi",
+     "table": 1,
+     "row_key": "H4-I38Z0",
+     "column": "Description",
+     "label": null,
+     "box": [
+      80.09765625,
+      113.025,
+      209.87548828125,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1.12",
+     "table": 1,
+     "row_key": "H4-I38Z0",
+     "column": "Qty",
+     "label": null,
+     "box": [
+      352.241455078125,
+      113.025,
+      368.940673828125,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "yd",
+     "table": 1,
+     "row_key": "H4-I38Z0",
+     "column": "UoM",
+     "label": null,
+     "box": [
+      384.484130859375,
+      113.025,
+      393.683349609375,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Lilac",
+     "table": 1,
+     "row_key": "H4-I38Z0",
+     "column": "634 Mürdüm",
+     "label": null,
+     "box": [
+      409.190185546875,
+      113.025,
+      426.255615234375,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Lilac",
+     "table": 1,
+     "row_key": "H4-I38Z0",
+     "column": "724 Slate",
+     "label": null,
+     "box": [
+      468.481201171875,
+      113.025,
+      485.546630859375,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Zeytin",
+     "table": 1,
+     "row_key": "H4-I38Z0",
+     "column": "310 Fjord",
+     "label": null,
+     "box": [
+      514.453125,
+      113.025,
+      538.421630859375,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Bulut",
+     "table": 1,
+     "row_key": "H4-I38Z0",
+     "column": "141 Ochre",
+     "label": null,
+     "box": [
+      560.6337890625,
+      113.025,
+      580.310302734375,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "BB0S5-B",
+     "table": 1,
+     "row_key": "BB0S5-B",
+     "column": "Material",
+     "label": null,
+     "box": [
+      39.0,
+      129.15,
+      71.4462890625,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Jersey knit - Vinis - 372 gsm - Rakgife",
+     "table": 1,
+     "row_key": "BB0S5-B",
+     "column": "Description",
+     "label": null,
+     "box": [
+      80.09765625,
+      129.15,
+      220.777587890625,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0.67",
+     "table": 1,
+     "row_key": "BB0S5-B",
+     "column": "Qty",
+     "label": null,
+     "box": [
+      352.241455078125,
+      129.15,
+      368.940673828125,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "kg",
+     "table": 1,
+     "row_key": "BB0S5-B",
+     "column": "UoM",
+     "label": null,
+     "box": [
+      384.484130859375,
+      129.15,
+      393.588134765625,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Bulut",
+     "table": 1,
+     "row_key": "BB0S5-B",
+     "column": "634 Mürdüm",
+     "label": null,
+     "box": [
+      409.190185546875,
+      129.15,
+      428.86669921875,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Fjord",
+     "table": 1,
+     "row_key": "BB0S5-B",
+     "column": "724 Slate",
+     "label": null,
+     "box": [
+      468.481201171875,
+      129.15,
+      487.311767578125,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kum",
+     "table": 1,
+     "row_key": "BB0S5-B",
+     "column": "310 Fjord",
+     "label": null,
+     "box": [
+      514.453125,
+      129.15,
+      531.4306640625,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Fildişi",
+     "table": 1,
+     "row_key": "BB0S5-B",
+     "column": "141 Ochre",
+     "label": null,
+     "box": [
+      560.6337890625,
+      129.15,
+      581.950927734375,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "2L-S240",
+     "table": 1,
+     "row_key": "2L-S240",
+     "column": "Material",
+     "label": null,
+     "box": [
+      39.0,
+      145.275,
+      69.732421875,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Drawcord - Minu - 355 gsm - Konismi - Örme kumaş - %72 Serhar",
+     "table": 1,
+     "row_key": "2L-S240",
+     "column": "Description",
+     "label": null,
+     "box": [
+      80.09765625,
+      145.275,
+      326.1328125,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1.2078",
+     "table": 1,
+     "row_key": "2L-S240",
+     "column": "Qty",
+     "label": null,
+     "box": [
+      352.241455078125,
+      145.275,
+      378.484130859375,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "m",
+     "table": 1,
+     "row_key": "2L-S240",
+     "column": "UoM",
+     "label": null,
+     "box": [
+      384.484130859375,
+      145.275,
+      391.7900390625,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kum",
+     "table": 1,
+     "row_key": "2L-S240",
+     "column": "634 Mürdüm",
+     "label": null,
+     "box": [
+      409.190185546875,
+      145.275,
+      426.167724609375,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ember",
+     "table": 1,
+     "row_key": "2L-S240",
+     "column": "724 Slate",
+     "label": null,
+     "box": [
+      468.481201171875,
+      145.275,
+      492.984375,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ember",
+     "table": 1,
+     "row_key": "2L-S240",
+     "column": "310 Fjord",
+     "label": null,
+     "box": [
+      514.453125,
+      145.275,
+      538.956298828125,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kömür",
+     "table": 1,
+     "row_key": "2L-S240",
+     "column": "141 Ochre",
+     "label": null,
+     "box": [
+      560.6337890625,
+      145.275,
+      585.283447265625,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "OA67I",
+     "table": 1,
+     "row_key": "OA67I",
+     "column": "Material",
+     "label": null,
+     "box": [
+      39.0,
+      161.4,
+      61.789306640625,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Örme kumaş - Pihar - 217 gsm - Tutasnis - İplik - %73 Koson",
+     "table": 1,
+     "row_key": "OA67I",
+     "column": "Description",
+     "label": null,
+     "box": [
+      80.09765625,
+      161.4,
+      306.1962890625,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1.3196",
+     "table": 1,
+     "row_key": "OA67I",
+     "column": "Qty",
+     "label": null,
+     "box": [
+      352.241455078125,
+      161.4,
+      378.484130859375,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "kg",
+     "table": 1,
+     "row_key": "OA67I",
+     "column": "UoM",
+     "label": null,
+     "box": [
+      384.484130859375,
+      161.4,
+      393.588134765625,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Slate",
+     "table": 1,
+     "row_key": "OA67I",
+     "column": "634 Mürdüm",
+     "label": null,
+     "box": [
+      409.190185546875,
+      161.4,
+      428.185546875,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ember",
+     "table": 1,
+     "row_key": "OA67I",
+     "column": "724 Slate",
+     "label": null,
+     "box": [
+      468.481201171875,
+      161.4,
+      492.984375,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Zeytin",
+     "table": 1,
+     "row_key": "OA67I",
+     "column": "310 Fjord",
+     "label": null,
+     "box": [
+      514.453125,
+      161.4,
+      538.421630859375,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ochre",
+     "table": 1,
+     "row_key": "OA67I",
+     "column": "141 Ochre",
+     "label": null,
+     "box": [
+      560.6337890625,
+      161.4,
+      583.11181640625,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "HO1S11",
+     "table": 1,
+     "row_key": "HO1S11",
+     "column": "Material",
+     "label": null,
+     "box": [
+      39.0,
+      177.525,
+      69.618896484375,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Thread - Pimi - 145 gsm - Danloko - Drawcord",
+     "table": 1,
+     "row_key": "HO1S11",
+     "column": "Description",
+     "label": null,
+     "box": [
+      80.09765625,
+      177.525,
+      251.927490234375,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1.46",
+     "table": 1,
+     "row_key": "HO1S11",
+     "column": "Qty",
+     "label": null,
+     "box": [
+      352.241455078125,
+      177.525,
+      368.940673828125,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "pcs",
+     "table": 1,
+     "row_key": "HO1S11",
+     "column": "UoM",
+     "label": null,
+     "box": [
+      384.484130859375,
+      177.525,
+      397.27587890625,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Zeytin",
+     "table": 1,
+     "row_key": "HO1S11",
+     "column": "634 Mürdüm",
+     "label": null,
+     "box": [
+      409.190185546875,
+      177.525,
+      433.15869140625,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Moss",
+     "table": 1,
+     "row_key": "HO1S11",
+     "column": "724 Slate",
+     "label": null,
+     "box": [
+      468.481201171875,
+      177.525,
+      487.355712890625,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kiremit",
+     "table": 1,
+     "row_key": "HO1S11",
+     "column": "310 Fjord",
+     "label": null,
+     "box": [
+      514.453125,
+      177.525,
+      541.483154296875,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Gece",
+     "table": 1,
+     "row_key": "HO1S11",
+     "column": "141 Ochre",
+     "label": null,
+     "box": [
+      560.6337890625,
+      177.525,
+      579.797607421875,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Hl32Z0",
+     "table": 1,
+     "row_key": "Hl32Z0",
+     "column": "Material",
+     "label": null,
+     "box": [
+      39.0,
+      193.65,
+      66.176513671875,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Zipper - Kalen - 258 gsm - Dakozel - Ribana",
+     "table": 1,
+     "row_key": "Hl32Z0",
+     "column": "Description",
+     "label": null,
+     "box": [
+      80.09765625,
+      193.65,
+      244.013671875,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "2.3375",
+     "table": 1,
+     "row_key": "Hl32Z0",
+     "column": "Qty",
+     "label": null,
+     "box": [
+      352.241455078125,
+      193.65,
+      378.484130859375,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "yd",
+     "table": 1,
+     "row_key": "Hl32Z0",
+     "column": "UoM",
+     "label": null,
+     "box": [
+      384.484130859375,
+      193.65,
+      393.683349609375,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Zeytin",
+     "table": 1,
+     "row_key": "Hl32Z0",
+     "column": "634 Mürdüm",
+     "label": null,
+     "box": [
+      409.190185546875,
+      193.65,
+      433.15869140625,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Mürdüm",
+     "table": 1,
+     "row_key": "Hl32Z0",
+     "column": "724 Slate",
+     "label": null,
+     "box": [
+      468.481201171875,
+      193.65,
+      499.609130859375,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Lilac",
+     "table": 1,
+     "row_key": "Hl32Z0",
+     "column": "310 Fjord",
+     "label": null,
+     "box": [
+      514.453125,
+      193.65,
+      531.5185546875,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Mürdüm",
+     "table": 1,
+     "row_key": "Hl32Z0",
+     "column": "141 Ochre",
+     "label": null,
+     "box": [
+      560.6337890625,
+      193.65,
+      591.76171875,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "B58271B",
+     "table": 1,
+     "row_key": "B58271B",
+     "column": "Material",
+     "label": null,
+     "box": [
+      39.0,
+      209.775,
+      73.149169921875,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Örme kumaş - Sontas - 178 gsm - Rakpirak - Label - %9 Dada - 2G-SBII",
+     "table": 1,
+     "row_key": "B58271B",
+     "column": "Description",
+     "label": null,
+     "box": [
+      80.09765625,
+      209.775,
+      346.241455078125,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "2.31",
+     "table": 1,
+     "row_key": "B58271B",
+     "column": "Qty",
+     "label": null,
+     "box": [
+      352.241455078125,
+      209.775,
+      368.940673828125,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "m",
+     "table": 1,
+     "row_key": "B58271B",
+     "column": "UoM",
+     "label": null,
+     "box": [
+      384.484130859375,
+      209.775,
+      391.7900390625,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Slate",
+     "table": 1,
+     "row_key": "B58271B",
+     "column": "634 Mürdüm",
+     "label": null,
+     "box": [
+      409.190185546875,
+      209.775,
+      428.185546875,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ember",
+     "table": 1,
+     "row_key": "B58271B",
+     "column": "724 Slate",
+     "label": null,
+     "box": [
+      468.481201171875,
+      209.775,
+      492.984375,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Bulut",
+     "table": 1,
+     "row_key": "B58271B",
+     "column": "310 Fjord",
+     "label": null,
+     "box": [
+      514.453125,
+      209.775,
+      534.129638671875,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Slate",
+     "table": 1,
+     "row_key": "B58271B",
+     "column": "141 Ochre",
+     "label": null,
+     "box": [
+      560.6337890625,
+      209.775,
+      579.629150390625,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "MT188-M",
+     "table": 1,
+     "row_key": "MT188-M",
+     "column": "Material",
+     "label": null,
+     "box": [
+      39.0,
+      225.9,
+      73.544677734375,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Thread - Mornu - 147 gsm - Rokapi - Kordon",
+     "table": 1,
+     "row_key": "MT188-M",
+     "column": "Description",
+     "label": null,
+     "box": [
+      80.09765625,
+      225.9,
+      244.984130859375,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0.3993",
+     "table": 1,
+     "row_key": "MT188-M",
+     "column": "Qty",
+     "label": null,
+     "box": [
+      352.241455078125,
+      225.9,
+      378.484130859375,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "m",
+     "table": 1,
+     "row_key": "MT188-M",
+     "column": "UoM",
+     "label": null,
+     "box": [
+      384.484130859375,
+      225.9,
+      391.7900390625,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Fildişi",
+     "table": 1,
+     "row_key": "MT188-M",
+     "column": "634 Mürdüm",
+     "label": null,
+     "box": [
+      409.190185546875,
+      225.9,
+      430.50732421875,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ember",
+     "table": 1,
+     "row_key": "MT188-M",
+     "column": "724 Slate",
+     "label": null,
+     "box": [
+      468.481201171875,
+      225.9,
+      492.984375,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Lilac",
+     "table": 1,
+     "row_key": "MT188-M",
+     "column": "310 Fjord",
+     "label": null,
+     "box": [
+      514.453125,
+      225.9,
+      531.5185546875,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Mürdüm",
+     "table": 1,
+     "row_key": "MT188-M",
+     "column": "141 Ochre",
+     "label": null,
+     "box": [
+      560.6337890625,
+      225.9,
+      591.76171875,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "TA4397",
+     "table": 1,
+     "row_key": "TA4397",
+     "column": "Material",
+     "label": null,
+     "box": [
+      39.0,
+      242.025,
+      67.798828125,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Rib trim - Harmor - 225 gsm - Niskason - Fermuar - %22 Tudan",
+     "table": 1,
+     "row_key": "TA4397",
+     "column": "Description",
+     "label": null,
+     "box": [
+      80.09765625,
+      242.025,
+      316.3330078125,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0.50",
+     "table": 1,
+     "row_key": "TA4397",
+     "column": "Qty",
+     "label": null,
+     "box": [
+      352.241455078125,
+      242.025,
+      368.940673828125,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "pcs",
+     "table": 1,
+     "row_key": "TA4397",
+     "column": "UoM",
+     "label": null,
+     "box": [
+      384.484130859375,
+      242.025,
+      397.27587890625,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Ember",
+     "table": 1,
+     "row_key": "TA4397",
+     "column": "634 Mürdüm",
+     "label": null,
+     "box": [
+      409.190185546875,
+      242.025,
+      433.693359375,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Zeytin",
+     "table": 1,
+     "row_key": "TA4397",
+     "column": "724 Slate",
+     "label": null,
+     "box": [
+      468.481201171875,
+      242.025,
+      492.44970703125,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Zeytin",
+     "table": 1,
+     "row_key": "TA4397",
+     "column": "310 Fjord",
+     "label": null,
+     "box": [
+      514.453125,
+      242.025,
+      538.421630859375,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Bulut",
+     "table": 1,
+     "row_key": "TA4397",
+     "column": "141 Ochre",
+     "label": null,
+     "box": [
+      560.6337890625,
+      242.025,
+      580.310302734375,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "BB783-B",
+     "table": 1,
+     "row_key": "BB783-B",
+     "column": "Material",
+     "label": null,
+     "box": [
+      39.0,
+      258.15,
+      71.457275390625,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Rib trim - Danson - 165 gsm - Fenisda - Örme kumaş - %74 Pika",
+     "table": 1,
+     "row_key": "BB783-B",
+     "column": "Description",
+     "label": null,
+     "box": [
+      80.09765625,
+      258.15,
+      320.196533203125,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "2.7152",
+     "table": 1,
+     "row_key": "BB783-B",
+     "column": "Qty",
+     "label": null,
+     "box": [
+      352.241455078125,
+      258.15,
+      378.484130859375,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "pcs",
+     "table": 1,
+     "row_key": "BB783-B",
+     "column": "UoM",
+     "label": null,
+     "box": [
+      384.484130859375,
+      258.15,
+      397.27587890625,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Lilac",
+     "table": 1,
+     "row_key": "BB783-B",
+     "column": "634 Mürdüm",
+     "label": null,
+     "box": [
+      409.190185546875,
+      258.15,
+      426.255615234375,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Mürdüm",
+     "table": 1,
+     "row_key": "BB783-B",
+     "column": "724 Slate",
+     "label": null,
+     "box": [
+      468.481201171875,
+      258.15,
+      499.609130859375,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Slate",
+     "table": 1,
+     "row_key": "BB783-B",
+     "column": "310 Fjord",
+     "label": null,
+     "box": [
+      514.453125,
+      258.15,
+      533.448486328125,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Kömür",
+     "table": 1,
+     "row_key": "BB783-B",
+     "column": "141 Ochre",
+     "label": null,
+     "box": [
+      560.6337890625,
+      258.15,
+      585.283447265625,
+      266.025
+     ]
+    }
+   ]
+  },
+  {
+   "page": 4,
+   "page_type": "fark",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Zeltas Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      89.936279296875,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "03.11.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      471.39117095226385,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "RT7S6-R",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      55.125,
+      74.61767578125,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vibel Tişört",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      55.125,
+      472.54473540538885,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Measurement chart",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      78.375,
+      162.909912109375,
+      90.45
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "4XL",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Base size",
+     "box": [
+      86.677734375,
+      96.9,
+      100.765869140625,
+      104.775
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "SERVE 2",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Tolerance",
+     "box": [
+      343.30765563484255,
+      96.9,
+      375.04349547859255,
+      104.775
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Mida - 2023",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Grade rule",
+     "box": [
+      599.9375768946851,
+      96.9,
+      644.4102331446851,
+      104.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "AF-7023",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      139.275,
+      70.23779296875,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Chest width",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "Description",
+     "label": null,
+     "box": [
+      82.459716796875,
+      139.275,
+      126.968994140625,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.284423828125,
+      139.275,
+      156.260009765625,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      177.703125,
+      139.275,
+      184.972412109375,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "S",
+     "label": null,
+     "box": [
+      212.293212890625,
+      139.275,
+      222.268798828125,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "M",
+     "label": null,
+     "box": [
+      228.268798828125,
+      139.275,
+      238.244384765625,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "L",
+     "label": null,
+     "box": [
+      244.244384765625,
+      139.275,
+      254.219970703125,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "XL",
+     "label": null,
+     "box": [
+      260.219970703125,
+      139.275,
+      270.195556640625,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "2XL",
+     "label": null,
+     "box": [
+      276.781494140625,
+      139.275,
+      286.757080078125,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      298.5615234375,
+      139.275,
+      308.537109375,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      320.341552734375,
+      139.275,
+      325.11328125,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      342.12158203125,
+      139.275,
+      349.390869140625,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "6XL",
+     "label": null,
+     "box": [
+      363.901611328125,
+      139.275,
+      371.1708984375,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "7XL",
+     "label": null,
+     "box": [
+      385.681640625,
+      139.275,
+      392.950927734375,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "AF-7023",
+     "column": "8XL",
+     "label": null,
+     "box": [
+      407.461669921875,
+      139.275,
+      414.73095703125,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "DS-63A39",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      155.4,
+      76.459716796875,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Inseam",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "Description",
+     "label": null,
+     "box": [
+      82.459716796875,
+      155.4,
+      109.8486328125,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.284423828125,
+      155.4,
+      156.260009765625,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      177.703125,
+      155.4,
+      184.972412109375,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "S",
+     "label": null,
+     "box": [
+      212.293212890625,
+      155.4,
+      222.268798828125,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "M",
+     "label": null,
+     "box": [
+      228.268798828125,
+      155.4,
+      238.244384765625,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "L",
+     "label": null,
+     "box": [
+      244.244384765625,
+      155.4,
+      254.219970703125,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "XL",
+     "label": null,
+     "box": [
+      260.219970703125,
+      155.4,
+      270.195556640625,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "2XL",
+     "label": null,
+     "box": [
+      276.781494140625,
+      155.4,
+      286.757080078125,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      298.5615234375,
+      155.4,
+      308.537109375,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      320.341552734375,
+      155.4,
+      325.11328125,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      342.12158203125,
+      155.4,
+      349.390869140625,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "6XL",
+     "label": null,
+     "box": [
+      363.901611328125,
+      155.4,
+      371.1708984375,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "7XL",
+     "label": null,
+     "box": [
+      385.681640625,
+      155.4,
+      392.950927734375,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "DS-63A39",
+     "column": "8XL",
+     "label": null,
+     "box": [
+      407.461669921875,
+      155.4,
+      414.73095703125,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "LK78I00",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      171.525,
+      69.3955078125,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Hood height",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "Description",
+     "label": null,
+     "box": [
+      82.459716796875,
+      171.525,
+      128.32763671875,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.284423828125,
+      171.525,
+      156.260009765625,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      177.703125,
+      171.525,
+      184.972412109375,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "S",
+     "label": null,
+     "box": [
+      212.293212890625,
+      171.525,
+      219.771240234375,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "M",
+     "label": null,
+     "box": [
+      228.268798828125,
+      171.525,
+      235.746826171875,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "L",
+     "label": null,
+     "box": [
+      244.244384765625,
+      171.525,
+      251.722412109375,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "XL",
+     "label": null,
+     "box": [
+      260.219970703125,
+      171.525,
+      267.697998046875,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "2XL",
+     "label": null,
+     "box": [
+      276.781494140625,
+      171.525,
+      284.259521484375,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      298.5615234375,
+      171.525,
+      306.03955078125,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      320.341552734375,
+      171.525,
+      325.11328125,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      342.12158203125,
+      171.525,
+      346.893310546875,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "6XL",
+     "label": null,
+     "box": [
+      363.901611328125,
+      171.525,
+      368.67333984375,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "7XL",
+     "label": null,
+     "box": [
+      385.681640625,
+      171.525,
+      390.453369140625,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "LK78I00",
+     "column": "8XL",
+     "label": null,
+     "box": [
+      407.461669921875,
+      171.525,
+      412.2333984375,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "FC-70034",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      187.65,
+      75.11572265625,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Neck opening",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "Description",
+     "label": null,
+     "box": [
+      82.459716796875,
+      187.65,
+      133.85009765625,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.284423828125,
+      187.65,
+      156.260009765625,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      177.703125,
+      187.65,
+      184.972412109375,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "S",
+     "label": null,
+     "box": [
+      212.293212890625,
+      187.65,
+      219.771240234375,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "M",
+     "label": null,
+     "box": [
+      228.268798828125,
+      187.65,
+      235.746826171875,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "L",
+     "label": null,
+     "box": [
+      244.244384765625,
+      187.65,
+      251.722412109375,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "XL",
+     "label": null,
+     "box": [
+      260.219970703125,
+      187.65,
+      267.697998046875,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "2XL",
+     "label": null,
+     "box": [
+      276.781494140625,
+      187.65,
+      284.259521484375,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      298.5615234375,
+      187.65,
+      306.03955078125,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      320.341552734375,
+      187.65,
+      325.11328125,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      342.12158203125,
+      187.65,
+      346.893310546875,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "6XL",
+     "label": null,
+     "box": [
+      363.901611328125,
+      187.65,
+      368.67333984375,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "7XL",
+     "label": null,
+     "box": [
+      385.681640625,
+      187.65,
+      390.453369140625,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "FC-70034",
+     "column": "8XL",
+     "label": null,
+     "box": [
+      407.461669921875,
+      187.65,
+      412.2333984375,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "FKZ03",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      203.775,
+      62.91357421875,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Cuff height",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "Description",
+     "label": null,
+     "box": [
+      82.459716796875,
+      203.775,
+      124.02099609375,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.284423828125,
+      203.775,
+      156.260009765625,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      177.703125,
+      203.775,
+      184.972412109375,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "S",
+     "label": null,
+     "box": [
+      212.293212890625,
+      203.775,
+      222.268798828125,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "M",
+     "label": null,
+     "box": [
+      228.268798828125,
+      203.775,
+      238.244384765625,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "L",
+     "label": null,
+     "box": [
+      244.244384765625,
+      203.775,
+      254.219970703125,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "XL",
+     "label": null,
+     "box": [
+      260.219970703125,
+      203.775,
+      270.195556640625,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "2XL",
+     "label": null,
+     "box": [
+      276.781494140625,
+      203.775,
+      286.757080078125,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      298.5615234375,
+      203.775,
+      308.537109375,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      320.341552734375,
+      203.775,
+      325.11328125,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      342.12158203125,
+      203.775,
+      349.390869140625,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "6XL",
+     "label": null,
+     "box": [
+      363.901611328125,
+      203.775,
+      371.1708984375,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "7XL",
+     "label": null,
+     "box": [
+      385.681640625,
+      203.775,
+      392.950927734375,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "FKZ03",
+     "column": "8XL",
+     "label": null,
+     "box": [
+      407.461669921875,
+      203.775,
+      414.73095703125,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "VP040-V",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      219.9,
+      70.805419921875,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Sleeve length",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "Description",
+     "label": null,
+     "box": [
+      82.459716796875,
+      219.9,
+      133.875732421875,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.284423828125,
+      219.9,
+      156.260009765625,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      177.703125,
+      219.9,
+      184.972412109375,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "S",
+     "label": null,
+     "box": [
+      212.293212890625,
+      219.9,
+      222.268798828125,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "M",
+     "label": null,
+     "box": [
+      228.268798828125,
+      219.9,
+      238.244384765625,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "L",
+     "label": null,
+     "box": [
+      244.244384765625,
+      219.9,
+      254.219970703125,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "XL",
+     "label": null,
+     "box": [
+      260.219970703125,
+      219.9,
+      270.195556640625,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "2XL",
+     "label": null,
+     "box": [
+      276.781494140625,
+      219.9,
+      286.757080078125,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¾",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      298.5615234375,
+      219.9,
+      308.537109375,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      320.341552734375,
+      219.9,
+      325.11328125,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      342.12158203125,
+      219.9,
+      349.390869140625,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "6XL",
+     "label": null,
+     "box": [
+      363.901611328125,
+      219.9,
+      371.1708984375,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "7XL",
+     "label": null,
+     "box": [
+      385.681640625,
+      219.9,
+      392.950927734375,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¾",
+     "table": 1,
+     "row_key": "VP040-V",
+     "column": "8XL",
+     "label": null,
+     "box": [
+      407.461669921875,
+      219.9,
+      414.73095703125,
+      227.775
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Tall",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      236.025,
+      54.318603515625,
+      243.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "KBBAZ-K",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      252.14999999999998,
+      72.101806640625,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Rise",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "Description",
+     "label": null,
+     "box": [
+      82.459716796875,
+      252.14999999999998,
+      98.2763671875,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.284423828125,
+      252.14999999999998,
+      156.260009765625,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      177.703125,
+      252.14999999999998,
+      184.972412109375,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "S",
+     "label": null,
+     "box": [
+      212.293212890625,
+      252.14999999999998,
+      222.268798828125,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "M",
+     "label": null,
+     "box": [
+      228.268798828125,
+      252.14999999999998,
+      238.244384765625,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "L",
+     "label": null,
+     "box": [
+      244.244384765625,
+      252.14999999999998,
+      254.219970703125,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "XL",
+     "label": null,
+     "box": [
+      260.219970703125,
+      252.14999999999998,
+      270.195556640625,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "2XL",
+     "label": null,
+     "box": [
+      276.781494140625,
+      252.14999999999998,
+      286.757080078125,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      298.5615234375,
+      252.14999999999998,
+      308.537109375,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      320.341552734375,
+      252.14999999999998,
+      325.11328125,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      342.12158203125,
+      252.14999999999998,
+      349.390869140625,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "6XL",
+     "label": null,
+     "box": [
+      363.901611328125,
+      252.14999999999998,
+      371.1708984375,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "7XL",
+     "label": null,
+     "box": [
+      385.681640625,
+      252.14999999999998,
+      392.950927734375,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "KBBAZ-K",
+     "column": "8XL",
+     "label": null,
+     "box": [
+      407.461669921875,
+      252.14999999999998,
+      414.73095703125,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "54-I7BS1",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      268.275,
+      72.9111328125,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Sleeve opening",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "Description",
+     "label": null,
+     "box": [
+      82.459716796875,
+      268.275,
+      140.284423828125,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.284423828125,
+      268.275,
+      156.260009765625,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      177.703125,
+      268.275,
+      184.972412109375,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "S",
+     "label": null,
+     "box": [
+      212.293212890625,
+      268.275,
+      219.771240234375,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "M",
+     "label": null,
+     "box": [
+      228.268798828125,
+      268.275,
+      235.746826171875,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "L",
+     "label": null,
+     "box": [
+      244.244384765625,
+      268.275,
+      251.722412109375,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "XL",
+     "label": null,
+     "box": [
+      260.219970703125,
+      268.275,
+      267.697998046875,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "2XL",
+     "label": null,
+     "box": [
+      276.781494140625,
+      268.275,
+      284.259521484375,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-1",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      298.5615234375,
+      268.275,
+      306.03955078125,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      320.341552734375,
+      268.275,
+      325.11328125,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      342.12158203125,
+      268.275,
+      346.893310546875,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "6XL",
+     "label": null,
+     "box": [
+      363.901611328125,
+      268.275,
+      368.67333984375,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "7XL",
+     "label": null,
+     "box": [
+      385.681640625,
+      268.275,
+      390.453369140625,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "1",
+     "table": 1,
+     "row_key": "54-I7BS1",
+     "column": "8XL",
+     "label": null,
+     "box": [
+      407.461669921875,
+      268.275,
+      412.2333984375,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "A2430-A",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      284.4,
+      71.054443359375,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Back length",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "Description",
+     "label": null,
+     "box": [
+      82.459716796875,
+      284.4,
+      126.9580078125,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      146.284423828125,
+      284.4,
+      156.260009765625,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      177.703125,
+      284.4,
+      184.972412109375,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "S",
+     "label": null,
+     "box": [
+      212.293212890625,
+      284.4,
+      222.268798828125,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "M",
+     "label": null,
+     "box": [
+      228.268798828125,
+      284.4,
+      238.244384765625,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "L",
+     "label": null,
+     "box": [
+      244.244384765625,
+      284.4,
+      254.219970703125,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "XL",
+     "label": null,
+     "box": [
+      260.219970703125,
+      284.4,
+      270.195556640625,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "2XL",
+     "label": null,
+     "box": [
+      276.781494140625,
+      284.4,
+      286.757080078125,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "3XL",
+     "label": null,
+     "box": [
+      298.5615234375,
+      284.4,
+      308.537109375,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "0",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "4XL",
+     "label": null,
+     "box": [
+      320.341552734375,
+      284.4,
+      325.11328125,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "5XL",
+     "label": null,
+     "box": [
+      342.12158203125,
+      284.4,
+      349.390869140625,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "6XL",
+     "label": null,
+     "box": [
+      363.901611328125,
+      284.4,
+      371.1708984375,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "7XL",
+     "label": null,
+     "box": [
+      385.681640625,
+      284.4,
+      392.950927734375,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "A2430-A",
+     "column": "8XL",
+     "label": null,
+     "box": [
+      407.461669921875,
+      284.4,
+      414.73095703125,
+      292.275
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Units: Fractions of inches · Grade Rule Display: Increment",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      307.65,
+      253.115478515625,
+      315.525
+     ]
+    }
+   ]
+  },
+  {
+   "page": 5,
+   "page_type": "olcu",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Zeltas Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      89.936279296875,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "03.11.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      471.39117095226385,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "RT7S6-R",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      55.125,
+      74.61767578125,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vibel Tişört",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      55.125,
+      472.54473540538885,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Measurement chart",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      78.375,
+      162.909912109375,
+      90.45
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "XS",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Base size",
+     "box": [
+      86.677734375,
+      96.9,
+      96.576416015625,
+      104.775
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "RORAK 3",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Tolerance",
+     "box": [
+      343.30765563484255,
+      96.9,
+      376.83792907234255,
+      104.775
+     ]
+    },
+    {
+     "kind": "pair",
+     "value": "Danve - 2026",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": "Grade rule",
+     "box": [
+      599.9375768946851,
+      96.9,
+      650.6761022853101,
+      104.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "LC-5011",
+     "table": 1,
+     "row_key": "LC-5011",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      139.275,
+      70.20849609375,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Rise",
+     "table": 1,
+     "row_key": "LC-5011",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      139.275,
+      98.924560546875,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "LC-5011",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      139.275,
+      158.75390625,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "LC-5011",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      139.275,
+      187.46630859375,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23",
+     "table": 1,
+     "row_key": "LC-5011",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      139.275,
+      224.33056640625,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23½",
+     "table": 1,
+     "row_key": "LC-5011",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      139.275,
+      254.41259765625,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "24",
+     "table": 1,
+     "row_key": "LC-5011",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      139.275,
+      269.9560546875,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "24½",
+     "table": 1,
+     "row_key": "LC-5011",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      139.275,
+      300.0380859375,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25",
+     "table": 1,
+     "row_key": "LC-5011",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      139.275,
+      315.58154296875,
+      147.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "K86B0-K",
+     "table": 1,
+     "row_key": "K86B0-K",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      155.4,
+      71.003173828125,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Cuff height",
+     "table": 1,
+     "row_key": "K86B0-K",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      155.4,
+      124.669189453125,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "K86B0-K",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      155.4,
+      158.75390625,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "K86B0-K",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      155.4,
+      187.46630859375,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "21¼",
+     "table": 1,
+     "row_key": "K86B0-K",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      155.4,
+      231.599853515625,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "21¾",
+     "table": 1,
+     "row_key": "K86B0-K",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      155.4,
+      254.41259765625,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22¼",
+     "table": 1,
+     "row_key": "K86B0-K",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      155.4,
+      277.225341796875,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22¾",
+     "table": 1,
+     "row_key": "K86B0-K",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      155.4,
+      300.0380859375,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23¼",
+     "table": 1,
+     "row_key": "K86B0-K",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      155.4,
+      322.850830078125,
+      163.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "8R-9Z1S",
+     "table": 1,
+     "row_key": "8R-9Z1S",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      171.525,
+      71.13134765625,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Waist width",
+     "table": 1,
+     "row_key": "8R-9Z1S",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      171.525,
+      127.108154296875,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "8R-9Z1S",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      171.525,
+      158.75390625,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "8R-9Z1S",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      171.525,
+      187.46630859375,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15⅛",
+     "table": 1,
+     "row_key": "8R-9Z1S",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      171.525,
+      231.599853515625,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15⅜",
+     "table": 1,
+     "row_key": "8R-9Z1S",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      171.525,
+      254.41259765625,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15⅝",
+     "table": 1,
+     "row_key": "8R-9Z1S",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      171.525,
+      277.225341796875,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15⅞",
+     "table": 1,
+     "row_key": "8R-9Z1S",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      171.525,
+      300.0380859375,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "16⅛",
+     "table": 1,
+     "row_key": "8R-9Z1S",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      171.525,
+      322.850830078125,
+      179.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "OH-28065",
+     "table": 1,
+     "row_key": "OH-28065",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      187.65,
+      77.10791015625,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Hip width",
+     "table": 1,
+     "row_key": "OH-28065",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      187.65,
+      118.648681640625,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "OH-28065",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      187.65,
+      158.75390625,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "OH-28065",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      187.65,
+      187.46630859375,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "10½",
+     "table": 1,
+     "row_key": "OH-28065",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      187.65,
+      231.599853515625,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "10¾",
+     "table": 1,
+     "row_key": "OH-28065",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      187.65,
+      254.41259765625,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11",
+     "table": 1,
+     "row_key": "OH-28065",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      187.65,
+      269.9560546875,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11¼",
+     "table": 1,
+     "row_key": "OH-28065",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      187.65,
+      300.0380859375,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11½",
+     "table": 1,
+     "row_key": "OH-28065",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      187.65,
+      322.850830078125,
+      195.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "5S14S-5",
+     "table": 1,
+     "row_key": "5S14S-5",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      203.775,
+      70.314697265625,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Sleeve length",
+     "table": 1,
+     "row_key": "5S14S-5",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      203.775,
+      134.52392578125,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "5S14S-5",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      203.775,
+      158.75390625,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "5S14S-5",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      203.775,
+      187.46630859375,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12",
+     "table": 1,
+     "row_key": "5S14S-5",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      203.775,
+      224.33056640625,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12¾",
+     "table": 1,
+     "row_key": "5S14S-5",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      203.775,
+      254.41259765625,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "13½",
+     "table": 1,
+     "row_key": "5S14S-5",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      203.775,
+      277.225341796875,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "14¼",
+     "table": 1,
+     "row_key": "5S14S-5",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      203.775,
+      300.0380859375,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15",
+     "table": 1,
+     "row_key": "5S14S-5",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      203.775,
+      315.58154296875,
+      211.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "M2509-M",
+     "table": 1,
+     "row_key": "M2509-M",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      219.9,
+      73.735107421875,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Front length",
+     "table": 1,
+     "row_key": "M2509-M",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      219.9,
+      129.078369140625,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "M2509-M",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      219.9,
+      158.75390625,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "M2509-M",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      219.9,
+      187.46630859375,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "19¼",
+     "table": 1,
+     "row_key": "M2509-M",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      219.9,
+      231.599853515625,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "20¼",
+     "table": 1,
+     "row_key": "M2509-M",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      219.9,
+      254.41259765625,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "21¼",
+     "table": 1,
+     "row_key": "M2509-M",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      219.9,
+      277.225341796875,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22¼",
+     "table": 1,
+     "row_key": "M2509-M",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      219.9,
+      300.0380859375,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23¼",
+     "table": 1,
+     "row_key": "M2509-M",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      219.9,
+      322.850830078125,
+      227.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "FA115-F",
+     "table": 1,
+     "row_key": "FA115-F",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      236.025,
+      69.780029296875,
+      243.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Hem width",
+     "table": 1,
+     "row_key": "FA115-F",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      236.025,
+      123.724365234375,
+      243.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "FA115-F",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      236.025,
+      158.75390625,
+      243.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "FA115-F",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      236.025,
+      187.46630859375,
+      243.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "14⅞",
+     "table": 1,
+     "row_key": "FA115-F",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      236.025,
+      231.599853515625,
+      243.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15⅛",
+     "table": 1,
+     "row_key": "FA115-F",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      236.025,
+      254.41259765625,
+      243.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15⅜",
+     "table": 1,
+     "row_key": "FA115-F",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      236.025,
+      277.225341796875,
+      243.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15⅝",
+     "table": 1,
+     "row_key": "FA115-F",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      236.025,
+      300.0380859375,
+      243.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15⅞",
+     "table": 1,
+     "row_key": "FA115-F",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      236.025,
+      322.850830078125,
+      243.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "PAI71-P",
+     "table": 1,
+     "row_key": "PAI71-P",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      252.14999999999998,
+      67.6376953125,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Chest width",
+     "table": 1,
+     "row_key": "PAI71-P",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      252.14999999999998,
+      127.6171875,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "PAI71-P",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      252.14999999999998,
+      158.75390625,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "PAI71-P",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      252.14999999999998,
+      187.46630859375,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "26⅝",
+     "table": 1,
+     "row_key": "PAI71-P",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      252.14999999999998,
+      231.599853515625,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27⅛",
+     "table": 1,
+     "row_key": "PAI71-P",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      252.14999999999998,
+      254.41259765625,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27⅝",
+     "table": 1,
+     "row_key": "PAI71-P",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      252.14999999999998,
+      277.225341796875,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28⅛",
+     "table": 1,
+     "row_key": "PAI71-P",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      252.14999999999998,
+      300.0380859375,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28⅝",
+     "table": 1,
+     "row_key": "PAI71-P",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      252.14999999999998,
+      322.850830078125,
+      260.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "4K-0Z7ZS",
+     "table": 1,
+     "row_key": "4K-0Z7ZS",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      268.275,
+      75.976318359375,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Sleeve opening",
+     "table": 1,
+     "row_key": "4K-0Z7ZS",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      268.275,
+      140.9326171875,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "4K-0Z7ZS",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      268.275,
+      158.75390625,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "4K-0Z7ZS",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      268.275,
+      187.46630859375,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "21¾",
+     "table": 1,
+     "row_key": "4K-0Z7ZS",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      268.275,
+      231.599853515625,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22¾",
+     "table": 1,
+     "row_key": "4K-0Z7ZS",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      268.275,
+      254.41259765625,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23¾",
+     "table": 1,
+     "row_key": "4K-0Z7ZS",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      268.275,
+      277.225341796875,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "24¾",
+     "table": 1,
+     "row_key": "4K-0Z7ZS",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      268.275,
+      300.0380859375,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25¾",
+     "table": 1,
+     "row_key": "4K-0Z7ZS",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      268.275,
+      322.850830078125,
+      276.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "GP-062",
+     "table": 1,
+     "row_key": "GP-062",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      284.4,
+      66.35595703125,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Pocket width",
+     "table": 1,
+     "row_key": "GP-062",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      284.4,
+      131.297607421875,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "GP-062",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      284.4,
+      158.75390625,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "GP-062",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      284.4,
+      187.46630859375,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "21⅝",
+     "table": 1,
+     "row_key": "GP-062",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      284.4,
+      231.599853515625,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "21⅞",
+     "table": 1,
+     "row_key": "GP-062",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      284.4,
+      254.41259765625,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22⅛",
+     "table": 1,
+     "row_key": "GP-062",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      284.4,
+      277.225341796875,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22⅜",
+     "table": 1,
+     "row_key": "GP-062",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      284.4,
+      300.0380859375,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "22⅝",
+     "table": 1,
+     "row_key": "GP-062",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      284.4,
+      322.850830078125,
+      292.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "O5024-O",
+     "table": 1,
+     "row_key": "O5024-O",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      300.525,
+      72.599853515625,
+      308.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Across shoulder",
+     "table": 1,
+     "row_key": "O5024-O",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      300.525,
+      142.7783203125,
+      308.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "O5024-O",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      300.525,
+      158.75390625,
+      308.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "O5024-O",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      300.525,
+      187.46630859375,
+      308.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11⅝",
+     "table": 1,
+     "row_key": "O5024-O",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      300.525,
+      231.599853515625,
+      308.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11⅞",
+     "table": 1,
+     "row_key": "O5024-O",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      300.525,
+      254.41259765625,
+      308.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12⅛",
+     "table": 1,
+     "row_key": "O5024-O",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      300.525,
+      277.225341796875,
+      308.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12⅜",
+     "table": 1,
+     "row_key": "O5024-O",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      300.525,
+      300.0380859375,
+      308.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12⅝",
+     "table": 1,
+     "row_key": "O5024-O",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      300.525,
+      322.850830078125,
+      308.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "5N-64S",
+     "table": 1,
+     "row_key": "5N-64S",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      316.65,
+      66.392578125,
+      324.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Back length",
+     "table": 1,
+     "row_key": "5N-64S",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      316.65,
+      127.606201171875,
+      324.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "5N-64S",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      316.65,
+      158.75390625,
+      324.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "5N-64S",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      316.65,
+      187.46630859375,
+      324.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12⅞",
+     "table": 1,
+     "row_key": "5N-64S",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      316.65,
+      231.599853515625,
+      324.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "13⅞",
+     "table": 1,
+     "row_key": "5N-64S",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      316.65,
+      254.41259765625,
+      324.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "14⅞",
+     "table": 1,
+     "row_key": "5N-64S",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      316.65,
+      277.225341796875,
+      324.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15⅞",
+     "table": 1,
+     "row_key": "5N-64S",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      316.65,
+      300.0380859375,
+      324.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "16⅞",
+     "table": 1,
+     "row_key": "5N-64S",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      316.65,
+      322.850830078125,
+      324.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Sl51I3",
+     "table": 1,
+     "row_key": "Sl51I3",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      332.775,
+      62.37158203125,
+      340.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Outseam",
+     "table": 1,
+     "row_key": "Sl51I3",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      332.775,
+      117.12890625,
+      340.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "Sl51I3",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      332.775,
+      158.75390625,
+      340.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "Sl51I3",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      332.775,
+      187.46630859375,
+      340.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "33⅞",
+     "table": 1,
+     "row_key": "Sl51I3",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      332.775,
+      231.599853515625,
+      340.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "34⅝",
+     "table": 1,
+     "row_key": "Sl51I3",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      332.775,
+      254.41259765625,
+      340.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "35⅜",
+     "table": 1,
+     "row_key": "Sl51I3",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      332.775,
+      277.225341796875,
+      340.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "36⅛",
+     "table": 1,
+     "row_key": "Sl51I3",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      332.775,
+      300.0380859375,
+      340.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "36⅞",
+     "table": 1,
+     "row_key": "Sl51I3",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      332.775,
+      322.850830078125,
+      340.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "FS-043",
+     "table": 1,
+     "row_key": "FS-043",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      348.9,
+      65.09619140625,
+      356.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Hood height",
+     "table": 1,
+     "row_key": "FS-043",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      348.9,
+      128.975830078125,
+      356.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "FS-043",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      348.9,
+      158.75390625,
+      356.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "FS-043",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      348.9,
+      187.46630859375,
+      356.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11⅜",
+     "table": 1,
+     "row_key": "FS-043",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      348.9,
+      231.599853515625,
+      356.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "12⅜",
+     "table": 1,
+     "row_key": "FS-043",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      348.9,
+      254.41259765625,
+      356.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "13⅜",
+     "table": 1,
+     "row_key": "FS-043",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      348.9,
+      277.225341796875,
+      356.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "14⅜",
+     "table": 1,
+     "row_key": "FS-043",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      348.9,
+      300.0380859375,
+      356.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "15⅜",
+     "table": 1,
+     "row_key": "FS-043",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      348.9,
+      322.850830078125,
+      356.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "LK-S55",
+     "table": 1,
+     "row_key": "LK-S55",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      365.025,
+      65.107177734375,
+      372.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Neck opening",
+     "table": 1,
+     "row_key": "LK-S55",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      365.025,
+      134.498291015625,
+      372.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "LK-S55",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      365.025,
+      158.75390625,
+      372.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "LK-S55",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      365.025,
+      187.46630859375,
+      372.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23",
+     "table": 1,
+     "row_key": "LK-S55",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      365.025,
+      224.33056640625,
+      372.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "23½",
+     "table": 1,
+     "row_key": "LK-S55",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      365.025,
+      254.41259765625,
+      372.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "24",
+     "table": 1,
+     "row_key": "LK-S55",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      365.025,
+      269.9560546875,
+      372.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "24½",
+     "table": 1,
+     "row_key": "LK-S55",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      365.025,
+      300.0380859375,
+      372.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "25",
+     "table": 1,
+     "row_key": "LK-S55",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      365.025,
+      315.58154296875,
+      372.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "ZS1I6",
+     "table": 1,
+     "row_key": "ZS1I6",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      381.15,
+      60.654052734375,
+      389.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Inseam",
+     "table": 1,
+     "row_key": "ZS1I6",
+     "column": "Description",
+     "label": null,
+     "box": [
+      83.10791015625,
+      381.15,
+      110.496826171875,
+      389.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "ZS1I6",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      148.7783203125,
+      381.15,
+      158.75390625,
+      389.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "ZS1I6",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      180.197021484375,
+      381.15,
+      187.46630859375,
+      389.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "32½",
+     "table": 1,
+     "row_key": "ZS1I6",
+     "column": "XS",
+     "label": null,
+     "box": [
+      214.787109375,
+      381.15,
+      231.599853515625,
+      389.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "33¼",
+     "table": 1,
+     "row_key": "ZS1I6",
+     "column": "S",
+     "label": null,
+     "box": [
+      237.599853515625,
+      381.15,
+      254.41259765625,
+      389.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "34",
+     "table": 1,
+     "row_key": "ZS1I6",
+     "column": "M",
+     "label": null,
+     "box": [
+      260.41259765625,
+      381.15,
+      269.9560546875,
+      389.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "34¾",
+     "table": 1,
+     "row_key": "ZS1I6",
+     "column": "L",
+     "label": null,
+     "box": [
+      283.225341796875,
+      381.15,
+      300.0380859375,
+      389.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "35½",
+     "table": 1,
+     "row_key": "ZS1I6",
+     "column": "XL",
+     "label": null,
+     "box": [
+      306.0380859375,
+      381.15,
+      322.850830078125,
+      389.025
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Units: Fractions of inches · Grade Rule Display: Absolute",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      404.4,
+      247.494140625,
+      412.275
+     ]
+    }
+   ]
+  },
+  {
+   "page": 6,
+   "page_type": "degerlendirme",
+   "values": [
+    {
+     "kind": "text",
+     "value": "Zeltas Wear",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      39.0,
+      89.936279296875,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "03.11.2027",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      39.0,
+      471.39117095226385,
+      46.875
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "RT7S6-R",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      39.0,
+      55.125,
+      74.61767578125,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Vibel Tişört",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      423.94488188976385,
+      55.125,
+      472.54473540538885,
+      63.0
+     ]
+    },
+    {
+     "kind": "text",
+     "value": "Evaluation by sample",
+     "table": null,
+     "row_key": null,
+     "column": null,
+     "label": null,
+     "box": [
+      36.0,
+      78.375,
+      174.825439453125,
+      90.45
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "FC-09I",
+     "table": 1,
+     "row_key": "FC-09I",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      113.025,
+      63.012451171875,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Hip width",
+     "table": 1,
+     "row_key": "FC-09I",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      113.025,
+      117.008056640625,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "FC-09I",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      113.025,
+      155.267578125,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "FC-09I",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      113.025,
+      183.97998046875,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "14",
+     "table": 1,
+     "row_key": "FC-09I",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      113.025,
+      220.84423828125,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "14⅛",
+     "table": 1,
+     "row_key": "FC-09I",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      113.025,
+      262.02978515625,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "14",
+     "table": 1,
+     "row_key": "FC-09I",
+     "column": "Revised",
+     "label": null,
+     "box": [
+      282.520751953125,
+      113.025,
+      292.064208984375,
+      120.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "DC362-D",
+     "table": 1,
+     "row_key": "DC362-D",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      129.15,
+      72.80859375,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Sleeve opening",
+     "table": 1,
+     "row_key": "DC362-D",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      129.15,
+      139.2919921875,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "DC362-D",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      129.15,
+      155.267578125,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "DC362-D",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      129.15,
+      183.97998046875,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28¼",
+     "table": 1,
+     "row_key": "DC362-D",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      129.15,
+      228.113525390625,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "27⅞",
+     "table": 1,
+     "row_key": "DC362-D",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      129.15,
+      262.02978515625,
+      137.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "8Z17I",
+     "table": 1,
+     "row_key": "8Z17I",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      145.275,
+      60.6650390625,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Cuff height",
+     "table": 1,
+     "row_key": "8Z17I",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      145.275,
+      123.028564453125,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "8Z17I",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      145.275,
+      155.267578125,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "8Z17I",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      145.275,
+      183.97998046875,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "6¾",
+     "table": 1,
+     "row_key": "8Z17I",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      145.275,
+      223.341796875,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "6⅝",
+     "table": 1,
+     "row_key": "8Z17I",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      145.275,
+      257.258056640625,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "6¾",
+     "table": 1,
+     "row_key": "8Z17I",
+     "column": "Revised",
+     "label": null,
+     "box": [
+      282.520751953125,
+      145.275,
+      294.561767578125,
+      153.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "82-207A0",
+     "table": 1,
+     "row_key": "82-207A0",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      161.4,
+      75.46728515625,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Sleeve length",
+     "table": 1,
+     "row_key": "82-207A0",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      161.4,
+      132.88330078125,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "82-207A0",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      161.4,
+      155.267578125,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "82-207A0",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      161.4,
+      183.97998046875,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "5½",
+     "table": 1,
+     "row_key": "82-207A0",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      161.4,
+      223.341796875,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "5¾",
+     "table": 1,
+     "row_key": "82-207A0",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      161.4,
+      257.258056640625,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "5½",
+     "table": 1,
+     "row_key": "82-207A0",
+     "column": "Revised",
+     "label": null,
+     "box": [
+      282.520751953125,
+      161.4,
+      294.561767578125,
+      169.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "B4S150",
+     "table": 1,
+     "row_key": "B4S150",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      177.525,
+      67.992919921875,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Neck opening",
+     "table": 1,
+     "row_key": "B4S150",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      177.525,
+      132.857666015625,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "B4S150",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      177.525,
+      155.267578125,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "B4S150",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      177.525,
+      183.97998046875,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "14⅝",
+     "table": 1,
+     "row_key": "B4S150",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      177.525,
+      228.113525390625,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "14½",
+     "table": 1,
+     "row_key": "B4S150",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      177.525,
+      262.02978515625,
+      185.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "DB-013",
+     "table": 1,
+     "row_key": "DB-013",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      193.65,
+      66.94189453125,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Front length",
+     "table": 1,
+     "row_key": "DB-013",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      193.65,
+      127.437744140625,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "DB-013",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      193.65,
+      155.267578125,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "DB-013",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      193.65,
+      183.97998046875,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30⅝",
+     "table": 1,
+     "row_key": "DB-013",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      193.65,
+      228.113525390625,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30½",
+     "table": 1,
+     "row_key": "DB-013",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      193.65,
+      262.02978515625,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "30⅝",
+     "table": 1,
+     "row_key": "DB-013",
+     "column": "Revised",
+     "label": null,
+     "box": [
+      282.520751953125,
+      193.65,
+      299.33349609375,
+      201.525
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "VG258I",
+     "table": 1,
+     "row_key": "VG258I",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      209.775,
+      66.469482421875,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Outseam",
+     "table": 1,
+     "row_key": "VG258I",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      209.775,
+      115.48828125,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "VG258I",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      209.775,
+      155.267578125,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "VG258I",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      209.775,
+      183.97998046875,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "20¾",
+     "table": 1,
+     "row_key": "VG258I",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      209.775,
+      228.113525390625,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "20⅝",
+     "table": 1,
+     "row_key": "VG258I",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      209.775,
+      262.02978515625,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "20¾",
+     "table": 1,
+     "row_key": "VG258I",
+     "column": "Revised",
+     "label": null,
+     "box": [
+      282.520751953125,
+      209.775,
+      299.33349609375,
+      217.65
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "2F1I0-2",
+     "table": 1,
+     "row_key": "2F1I0-2",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      225.9,
+      67.319091796875,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Hood height",
+     "table": 1,
+     "row_key": "2F1I0-2",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      225.9,
+      127.335205078125,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "2F1I0-2",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      225.9,
+      155.267578125,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "2F1I0-2",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      225.9,
+      183.97998046875,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "13½",
+     "table": 1,
+     "row_key": "2F1I0-2",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      225.9,
+      228.113525390625,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "13¾",
+     "table": 1,
+     "row_key": "2F1I0-2",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      225.9,
+      262.02978515625,
+      233.775
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "E4-002",
+     "table": 1,
+     "row_key": "E4-002",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      242.025,
+      65.531982421875,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Hem width",
+     "table": 1,
+     "row_key": "E4-002",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      242.025,
+      122.083740234375,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "E4-002",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      242.025,
+      155.267578125,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "E4-002",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      242.025,
+      183.97998046875,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29⅜",
+     "table": 1,
+     "row_key": "E4-002",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      242.025,
+      228.113525390625,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29⅝",
+     "table": 1,
+     "row_key": "E4-002",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      242.025,
+      262.02978515625,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "29⅜",
+     "table": 1,
+     "row_key": "E4-002",
+     "column": "Revised",
+     "label": null,
+     "box": [
+      282.520751953125,
+      242.025,
+      299.33349609375,
+      249.9
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "BD865-B",
+     "table": 1,
+     "row_key": "BD865-B",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      258.15,
+      72.087158203125,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Back length",
+     "table": 1,
+     "row_key": "BD865-B",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      258.15,
+      125.965576171875,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-¼",
+     "table": 1,
+     "row_key": "BD865-B",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      258.15,
+      155.267578125,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "¼",
+     "table": 1,
+     "row_key": "BD865-B",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      258.15,
+      183.97998046875,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11",
+     "table": 1,
+     "row_key": "BD865-B",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      258.15,
+      220.84423828125,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "11⅛",
+     "table": 1,
+     "row_key": "BD865-B",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      258.15,
+      262.02978515625,
+      266.025
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "AO572-A",
+     "table": 1,
+     "row_key": "AO572-A",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      274.275,
+      72.18603515625,
+      282.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Rise",
+     "table": 1,
+     "row_key": "AO572-A",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      274.275,
+      97.283935546875,
+      282.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "AO572-A",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      274.275,
+      155.267578125,
+      282.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "AO572-A",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      274.275,
+      183.97998046875,
+      282.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "31⅞",
+     "table": 1,
+     "row_key": "AO572-A",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      274.275,
+      228.113525390625,
+      282.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "32⅛",
+     "table": 1,
+     "row_key": "AO572-A",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      274.275,
+      262.02978515625,
+      282.15
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "GGZBS",
+     "table": 1,
+     "row_key": "GGZBS",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      290.4,
+      65.66748046875,
+      298.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Chest width",
+     "table": 1,
+     "row_key": "GGZBS",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      290.4,
+      125.9765625,
+      298.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-½",
+     "table": 1,
+     "row_key": "GGZBS",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      290.4,
+      155.267578125,
+      298.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "½",
+     "table": 1,
+     "row_key": "GGZBS",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      290.4,
+      183.97998046875,
+      298.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28½",
+     "table": 1,
+     "row_key": "GGZBS",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      290.4,
+      228.113525390625,
+      298.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "28⅛",
+     "table": 1,
+     "row_key": "GGZBS",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      290.4,
+      262.02978515625,
+      298.275
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "ZR207-Z",
+     "table": 1,
+     "row_key": "ZR207-Z",
+     "column": "Dim",
+     "label": null,
+     "box": [
+      39.0,
+      306.525,
+      71.508544921875,
+      314.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "Pocket width",
+     "table": 1,
+     "row_key": "ZR207-Z",
+     "column": "Description",
+     "label": null,
+     "box": [
+      81.46728515625,
+      306.525,
+      129.656982421875,
+      314.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "-⅜",
+     "table": 1,
+     "row_key": "ZR207-Z",
+     "column": "Tol (-)",
+     "label": null,
+     "box": [
+      145.2919921875,
+      306.525,
+      155.267578125,
+      314.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "⅜",
+     "table": 1,
+     "row_key": "ZR207-Z",
+     "column": "Tol (+)",
+     "label": null,
+     "box": [
+      176.710693359375,
+      306.525,
+      183.97998046875,
+      314.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "33⅞",
+     "table": 1,
+     "row_key": "ZR207-Z",
+     "column": "Target",
+     "label": null,
+     "box": [
+      211.30078125,
+      306.525,
+      228.113525390625,
+      314.4
+     ]
+    },
+    {
+     "kind": "cell",
+     "value": "34",
+     "table": 1,
+     "row_key": "ZR207-Z",
+     "column": "Sample",
+     "label": null,
+     "box": [
+      245.217041015625,
+      306.525,
+      254.760498046875,
+      314.4
+     ]
+    }
+   ]
+  }
+ ]
+}
