@@ -887,7 +887,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Eski klasörler:** n3–n9, run7-taban, run11-taban ve fastreact karşılaştırma için
   kalıyor. `evals/output/` `.gitignore`'da; repoda izlenen dosyası yok.
 
-## Karar belgeleri 0001–0007
+## Karar belgeleri 0001–0008
 
 Eskiden `docs/decisions/` altındaki dört belgenin tam metni. Yukarıdaki maddelerde "0001"–"0004" diye anılan belgeler bunlar.
 
@@ -1103,3 +1103,18 @@ Tarih: 2026-11-15. Dal: `deskew-kaldir`. Kural sürümü PDF, Office ve görsel 
 **Test.** OCR komutunu kuran `tools.py`, CI'da kurulmayan belge işleme paketlerini yüklüyor; birim testi eklenmedi. Davranış yukarıdaki kuru çalıştırmayla ölçüldü.
 
 **Gerekenler.** Birleştikten sonra uygulamadaki 28 PDF/Office/görsel belgesi bir kez yeniden işlenmeli: 19 OCR'lı (hücre okumaları büyük ölçüde önbellekte) ve 9 OCR'sız (bulut çağrısı yok).
+
+### 0008: Okuma katmanı ölçümü: sentetik kilitli set A ve dondurulmuş puanlama
+Tarih: 2026-11-16. Dal: `sentetik-techpack` (PR #60). Hiçbir okuyucu set A'ya çalıştırılmadan donduruldu.
+
+**Amaç.** OCR'ı test belgelerine göre ayarlamayı bırakıp görülmemiş belgelerde çalışan genel bir okuma katmanı seçmek. Adaylar: mevcut hat (resim yolundan) ve PaddleOCR-VL-1.6 (resmi akış: düzen modeli + bölge bölge, MLX) + ikinci okuma Tesseract. GLM-OCR bırakıldı (model kartında Türkçe yok; 5 geliştirme sayfasında uydurma metin ve 52 boşluğu düşmüş kesir).
+
+**Set A.** `evals/assets/techpack_set_a/`: 5 belge × 6 sayfa, tohum 20261116, 2.277 değer (881 kesir, 314 eksi). Gerçek föylerden yalnız sayfa yapısı alındı (kapak formu, yorumlar, numune değerlendirme, BOM, ölçü tablosu, fark tablosu); bütün ad, kod ve değerler uydurma. Yazı tipi, kesir yazımı (tek karakter, küçük rakamlı, düz) ve birim belgeler arasında sırayla dağılır. Doğru cevap çizimle aynı veriden, kutusuyla kaydedilir; her değer dijital PDF'in metin katmanında kendi kutusunda bulunmazsa üretim durur (ilk denemede bir üretici hatası yakalandı: `.lower()` "İplik"i "i̇plik" yapıyordu). Dosyalar repoda (taramalar bunlara bağlı); test hem dosyaların hem üreticinin sha256 özetlerini denetler.
+
+**Eşdeğerlik (ölçümden önce, `evals/ocr_truth.py`).** Yalnız yazım biçimi: kesir yazımları (`⅜`, `³⁄₈`, `3/8`, `\frac{3}{8}`), eksi işaretleri, boşluklar ve tırnaklar eşdeğer; `271/2 ≠ 27 1/2`; harf büyüklüğü korunur. Rakamlar arasındaki virgül–nokta eşdeğer **değil**: "1.500" ile "1,500" farklı değerler olabilir; yalnız ayraçla ayrılan değer "ayraç farkı" diye ayrı raporlanır. Bu kural ilk sürümde eşdeğerdi; hiçbir okuyucu çalışmadan değiştirildi, dondurma kuralına aykırı değil.
+
+**Puanlama (`evals/ocr_score.py`).** Okuyucudan bağımsız okuma biçimi (sayfa → satır → hücre; konum varsa konumla, yoksa sırayla eşleşme). Sonuç türleri: doğru, ayraç farkı, yanlış karakter, bağ kopması (en ağır), atlama, gizlendi (doğruydu), gizlendi (yanlıştı). Etiket bağı, değer etiketin sağında ya da altındaysa korunur; iki etiket karışık okunursa ya da değer başka etikete bağlanırsa bağ kopmasıdır. Dijital metin katmanıyla sınama: 2.277/2.277 doğru, 0 atlama, 0 bağ kopması. Dönüştürücüler (mevcut hat parçaları, PaddleOCR-VL sayfa sonucu) 5 geliştirme sayfasında satır, sütun ve hücre metinlerini kaynakla birebir aktarıyor.
+
+**PaddleOCR-VL'nin ikinci okuması.** Tesseract (tur+eng, eğiklik düzeltmesiz, psm 11). Her blokta her sayı ve kod parçasının (rakamsız kodlar dahil) geçiş sayısı iki okumada aynı olmalı; farklıysa o bloktaki o parçayı taşıyan bütün hücreler gizlenir. RapidOCR seçilmedi: PaddleOCR-VL ile aynı aileden, hataları ortak olabilir. Geliştirme sayfalarında (set A değil) 214 değer hücresinin 131'i belirsiz çıktı (129'u s.24'teki ölçü tablosu); PaddleOCR-VL'nin yanlış okuduğu 9 eksi kesirin 9'u da gizlendi. **Bilinen zayıflık:** aynı bloktaki iki hata birbirini dengelerse (bir "1/4" → "1/2", bir "1/2" → "1/4") sayılar tutar ve hata geçer.
+
+**Kurallar.** `ocr_score.py` ve `ocr_truth.py` özetleri testte; ölçümden sonra değişmez. Her aday set A'nın taranmış ve fotoğraflanmış sayfalarında bir kez ölçülür; sonuçlara bakıp üretici, puanlama ya da dönüştürücü değiştirilmez. Raporda "doğrulanmış yanlış değer" yanında sayı içermeyen yanlış cümleler de ayrıca yazılır.
