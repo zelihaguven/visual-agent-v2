@@ -1117,4 +1117,12 @@ Tarih: 2026-11-16. Dal: `sentetik-techpack` (PR #60). Hiçbir okuyucu set A'ya �
 
 **PaddleOCR-VL'nin ikinci okuması.** Tesseract (tur+eng, eğiklik düzeltmesiz, psm 11). Her blokta her sayı ve kod parçasının (rakamsız kodlar dahil) geçiş sayısı iki okumada aynı olmalı; farklıysa o bloktaki o parçayı taşıyan bütün hücreler gizlenir. RapidOCR seçilmedi: PaddleOCR-VL ile aynı aileden, hataları ortak olabilir. Geliştirme sayfalarında (set A değil) 214 değer hücresinin 131'i belirsiz çıktı (129'u s.24'teki ölçü tablosu); PaddleOCR-VL'nin yanlış okuduğu 9 eksi kesirin 9'u da gizlendi. **Bilinen zayıflık:** aynı bloktaki iki hata birbirini dengelerse (bir "1/4" → "1/2", bir "1/2" → "1/4") sayılar tutar ve hata geçer.
 
+**Karar kuralı (ölçümden önce yazıldı; sonuçlar görüldükten sonra değişmez).** Sayımlar `evals/ocr_score.py`'nin sonuç türlerinden, iki aday için set A'nın aynı taranmış ve fotoğraflanmış sayfaları üzerinden toplanır:
+- **Doğru gösterilen:** "doğru".
+- **Yanlış gösterilen:** "yanlış karakter" + "ayraç farkı" + "bağ kopması".
+- **Benimsenir:** PaddleOCR-VL + Tesseract'ın yanlış gösterileni mevcut hattınkinden fazla değil **ve** doğru gösterileni daha yüksek.
+- **Reddedilir:** Yanlış gösterileni mevcut hattınkinden fazla.
+- **Ara durum:** Yanlış gösterileni eşit ya da az, ama "gizlendi (doğruydu)" sayısı daha yüksek. Bu durumda tasarım değişirse yeni tasarım set A ile değil, yeni bir tohumla üretilen set B ile ölçülür.
+- **Rapor kırılımı:** Her iki sayım ayrıca sayfa türüne (kapak, yorum, değerlendirme, BOM, ölçü, fark) ve kesir yazımına göre verilir. Kesir yazımı belgeye göre: syn1 ve syn4 tek karakter (⅜), syn3 düz (3/8), syn5 küçük rakamlı, syn2 küçük rakamlı ama santimetre (kesir az). Kırılım dondurulmuş puanlamanın sonuçlarından hesaplanır; puanlama kodu değişmez.
+
 **Kurallar.** `ocr_score.py` ve `ocr_truth.py` özetleri testte; ölçümden sonra değişmez. Her aday set A'nın taranmış ve fotoğraflanmış sayfalarında bir kez ölçülür; sonuçlara bakıp üretici, puanlama ya da dönüştürücü değiştirilmez. Raporda "doğrulanmış yanlış değer" yanında sayı içermeyen yanlış cümleler de ayrıca yazılır.
