@@ -313,3 +313,65 @@ def test_text_hidden_under_a_page_covering_image_is_an_ocr_layer(
     page = _layered_pdf(tmp_path / "s.pdf", order, invisible, cover)
 
     assert is_ocr_layer(page, 400.0 * 600.0) is expected
+
+
+COVER_FORM = (
+    "<table><tr><td>Sample Status</td><td>Fit Approved, Hold Sampling</td>"
+    "<td>Main Material #</td><td>KNT-222888</td><td>Modified By</td><td>Eunbi Kim</td></tr>"
+    '<tr><td colspan="2">Supplier Request Round</td><td>Material Description</td>'
+    "<td>PacMan - Fleece - Solid</td><td></td><td></td></tr>"
+    "<tr><td>Regional Fit</td><td>US</td><td>Created By</td><td>Christianah Owolabi</td>"
+    "<td></td><td></td></tr></table>"
+)
+"""6013448 kapak sayfasının okuyucudan gelen ham tablosu: etiket ile değeri aynı satırda."""
+
+
+def _table_texts(html: str) -> list[str]:
+    elements = page_elements(_page([_block(0, "table", html)]), 1, (500.0, 1000.0), {})
+    return [element.text for element in elements]
+
+
+def test_form_table_rows_stay_as_read_and_keep_label_next_to_its_value() -> None:
+    texts = _table_texts(COVER_FORM)
+
+    assert texts[0].startswith("Sample Status | Fit Approved, Hold Sampling | Main Material #")
+    assert texts[1] == "Supplier Request Round | Material Description | PacMan - Fleece - Solid"
+    assert texts[2] == "Regional Fit | US | Created By | Christianah Owolabi"
+    assert not any("Sample Status: Regional Fit" in text for text in texts)
+
+
+def test_form_table_whose_first_value_is_a_number_is_not_a_header_table() -> None:
+    form = (
+        "<table><tr><td>Style #</td><td>6013448</td><td>Product Family</td><td>Fleece</td></tr>"
+        "<tr><td>Style Name</td><td>UA Rival Flc Hoodie</td><td>Fit Type</td><td>Regular</td></tr>"
+        "<tr><td>Sub Category</td><td>Sportstyle</td><td>Size Range</td>"
+        "<td>XS-4XL, SMT-4XLT</td></tr>"
+        "<tr><td>Product Team</td><td>Mens</td><td>Actual Sizes</td><td>XS-4XLT</td></tr></table>"
+    )
+
+    texts = _table_texts(form)
+
+    assert texts[0] == "Style # | 6013448 | Product Family | Fleece"
+    assert texts[2] == "Sub Category | Sportstyle | Size Range | XS-4XL, SMT-4XLT"
+
+
+def test_measurement_table_with_numbered_size_names_keeps_its_header() -> None:
+    table = (
+        "<table><tr><td>Dim</td><td>Description</td><td>Tol (-)</td><td>XS</td><td>3XL</td></tr>"
+        "<tr><td>BL005</td><td>Front Length</td><td>-3/8</td><td>24</td><td>29</td></tr>"
+        "<tr><td>SL005</td><td>Sleeve Length</td><td>-1/4</td><td>25 1/2</td><td>30</td></tr>"
+        "</table>"
+    )
+
+    texts = _table_texts(table)
+
+    assert texts[0] == "Dim: BL005 | Description: Front Length | Tol (-): -3/8 | XS: 24 | 3XL: 29"
+    assert len(texts) == 2
+
+
+def test_text_only_table_has_no_header_evidence_and_stays_as_read() -> None:
+    table = (
+        "<table><tr><td>Kolon</td><td>Tip</td></tr><tr><td>ADI</td><td>VARCHAR</td></tr></table>"
+    )
+
+    assert _table_texts(table) == ["Kolon | Tip", "ADI | VARCHAR"]

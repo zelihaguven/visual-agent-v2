@@ -221,11 +221,36 @@ def _uncertain(text: str, tokens: Sequence[str]) -> tuple[str, ...]:
     return tuple(token for token in tokens if token in present)
 
 
+_DIGIT_RE = re.compile(r"\d")
+
+
+def _first_row_is_header(rows: Sequence[Sequence[str]]) -> bool:
+    """Okuyucu başlık hücresini işaretlemez (HTML'de yalnız <td> var); karar tablonun yapısından
+    verilir. Başlık kanıtı: bir sütunda ilk hücrede rakam yok, altındaki dolu hücrelerin en az
+    yarısında var (etiketin altında değerler). Karşı kanıt: ilk hücrede rakam var, altındakilerin
+    çoğunda yok (ilk hücre kendisi bir değer). Form gibi tablolarda (etiket ile değeri aynı
+    satırda yan yana) kanıt çıkmaz ya da karşı kanıt çıkar: ilk satır başlık değildir."""
+    evidence = counter = False
+    for column in range(max((len(row) for row in rows), default=0)):
+        head = rows[0][column] if column < len(rows[0]) else ""
+        body = [row[column] for row in rows[1:] if column < len(row) and row[column].strip()]
+        if not head.strip() or not body:
+            continue
+        numeric = sum(bool(_DIGIT_RE.search(cell)) for cell in body) * 2 >= len(body)
+        if _DIGIT_RE.search(head):
+            counter = counter or not numeric
+        else:
+            evidence = evidence or numeric
+    return evidence and not counter
+
+
 def _table_elements(content: str, location: SourceLocation, tokens: Sequence[str]) -> list[Element]:
-    """İlk satır başlıktır; tek satırlı tabloda başlık yoktur (satır değer olarak kalır)."""
+    """Başlıklı tabloda satır "Başlık: değer" biçimindedir; başlıksız tabloda (form, tek satır)
+    satır okunduğu gibi kalır: hücreler sırayla, ilk satır da bir satırdır."""
     rows = [[canonical(text) for text in row] for row in html_rows(content)]
+    has_header = len(rows) > 1 and _first_row_is_header(rows)
     cells = [
-        TableCell(r, r + 1, c, c + 1, text, header=r == 0 and len(rows) > 1)
+        TableCell(r, r + 1, c, c + 1, text, header=has_header and r == 0)
         for r, row in enumerate(rows)
         for c, text in enumerate(row)
     ]
@@ -240,7 +265,7 @@ def _table_elements(content: str, location: SourceLocation, tokens: Sequence[str
             ocr_checked=True,
             context=row.context,
         )
-        for row in group_table_rows(cells)
+        for row in group_table_rows(cells, infer_header=False)
     ]
 
 

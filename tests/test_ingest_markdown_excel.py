@@ -243,7 +243,10 @@ def test_documents_from_before_the_previous_rules_stay_outdated() -> None:
 @pytest.mark.parametrize(
     ("version", "page_kinds", "outdated"),
     [
-        (8, {"none": 12}, False),  # sayfa okuyucusuyla okunan belge: hücre okuyucu onu etkilemez
+        (8, {"none": 12}, True),  # 9→10: sayfa okuyucusundaki form tabloları değişti
+        (9, {"none": 12}, True),
+        (9, {"text": 3, "weak": 1}, False),  # eski OCR yolundaki sayfayı 9→10 etkilemez
+        (9, {"text": 3}, False),
         (8, {"text": 3, "weak": 1}, True),
         (7, {"text": 3, "weak": 1}, True),
         (7, {"text": 3}, False),
