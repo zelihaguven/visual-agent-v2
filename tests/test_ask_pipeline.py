@@ -372,6 +372,57 @@ def test_clarification_within_one_document_offers_no_document_buttons() -> None:
     assert result.options == ()
 
 
+def _measure_deps(client: FakeClient, codes: Sequence[str]) -> AskDeps:
+    """Her kod için bir ölçü föyü; hepsi aramada çıkar."""
+    chunks = [
+        chunk(f"m{n}:1", f"m{n}", f"İç paça | M: 7{n},5", title=f"{code} ölçü föyü")
+        for n, code in enumerate(codes)
+    ]
+    catalog = DocumentCatalog()
+    for item in chunks:
+        catalog.add(DocumentMeta(doc_id=item.doc_id, title=item.title))
+    return replace(
+        make_deps(client, FakeRetriever(hits=chunks)),
+        catalog=catalog,
+        identifiers=build_identifier_index(chunks),
+    )
+
+
+def _clarify_all(count: int) -> FakeClient:
+    options = [{"kaynak_no": number} for number in range(1, count + 1)]
+    payload = {"tur": "netlestirme", "netlestirme": {"soru": "Hangi model?", "secenekler": options}}
+    return FakeClient({**payload, "cevap": []})
+
+
+def test_clarification_offers_every_candidate_document_even_more_than_four() -> None:
+    """Sınır setinde D3: altı aday belge vardı, düğme çıkmıyordu."""
+    codes = ["PNT-1126", "PNT-1162", "SRT-4294", "GML-6473", "CKT-7308", "MNT-8598"]
+
+    result = ask(_measure_deps(_clarify_all(6), codes), "İç paça ölçüsü kaç?").result
+
+    assert isinstance(result, Clarify)
+    assert [choice.label for choice in result.options] == [f"{code} ölçü föyü" for code in codes]
+
+
+def test_clarification_drops_documents_the_question_does_not_name() -> None:
+    """Soru SRT-4294'ü soruyor; model başka ürünün kaynağını da seçenek gösterse düğme olmaz."""
+    codes = ["SRT-4294", "SRT-4294", "PNT-1126"]
+
+    result = ask(_measure_deps(_clarify_all(3), codes), "SRT-4294 M beden iç paça kaç?").result
+
+    assert isinstance(result, Clarify)
+    assert [choice.doc_id for choice in result.options] == ["m0", "m1"]
+
+
+def test_clarification_keeps_all_candidates_when_the_question_names_none() -> None:
+    codes = ["PNT-1126", "PNT-1162"]
+
+    result = ask(_measure_deps(_clarify_all(2), codes), "İç paça ölçüsü kaç?").result
+
+    assert isinstance(result, Clarify)
+    assert len(result.options) == 2
+
+
 def _clarify_client(question: str) -> FakeClient:
     return FakeClient(
         {
