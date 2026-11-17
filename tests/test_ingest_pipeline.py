@@ -8,6 +8,7 @@ from visual_agent.domain.document import Box, ChunkKind, DocumentMeta, SourceLoc
 from visual_agent.ingest.chunking import build_chunks
 from visual_agent.ingest.docling_parser import carries_value, page_header_identifies
 from visual_agent.ingest.elements import Element, ElementKind
+from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.images import (
     OcrSegment,
     group_lines,
@@ -139,7 +140,22 @@ def _fake_tools(calls: list[str], page_kind: PageKind = PageKind.TEXT) -> Ingest
         calls.append(f"images:{language}")
         return [Element(ElementKind.FIGURE, "Görsel metni", SourceLocation(page=1), from_ocr=True)]
 
+    def read_scanned(path: Path, pages: list[int], work: Path, image: Path | None) -> list[Element]:
+        calls.append(f"image:{image.name}") if image is not None else None
+        calls.append(f"reader:{pages}")
+        return [
+            Element(
+                ElementKind.TEXT,
+                "Taranmış sayfa 42 mm",
+                SourceLocation(page=page),
+                from_ocr=True,
+                ocr_checked=True,
+            )
+            for page in pages
+        ]
+
     return IngestTools(
+        read_scanned_pages=read_scanned,
         office_to_pdf=office_to_pdf,
         legacy_spreadsheet_to_xlsx=lambda path, work: path,
         image_to_pdf=image_to_pdf,
@@ -354,3 +370,68 @@ def test_table_row_context_is_added_to_its_chunk_section() -> None:
 )
 def test_headings_carrying_a_value_are_kept_as_text_too(heading: str, expected: bool) -> None:
     assert carries_value(heading) is expected
+
+
+def test_pages_without_a_text_layer_go_to_the_page_reader_not_to_ocr(tmp_path: Path) -> None:
+    path = tmp_path / "karisik.pdf"
+    path.write_bytes(b"%PDF-x")
+    calls: list[str] = []
+    ocr_pages: list[int] = []
+    tools = _fake_tools(calls)
+
+    def inspect(path: Path) -> list[PageInfo]:
+        return [
+            PageInfo(page=1, kind=PageKind.TEXT, chars=500, image_boxes=()),
+            PageInfo(page=2, kind=PageKind.NONE, chars=0, image_boxes=(box(),)),
+        ]
+
+    def ocr(path: Path, pages: list[PageInfo], language: str, work: Path) -> OcrOutcome:
+        ocr_pages.extend(page.page for page in pages)
+        return OcrOutcome(pdf_path=path, ocr_pages={})
+
+    result = ingest_document(path, META, replace(tools, inspect_pdf=inspect, run_ocr=ocr), tmp_path)
+
+    assert "reader:[2]" in calls
+    assert ocr_pages == [1]
+    assert result.report.ocr_pages == (2,)
+    scanned = [chunk for chunk in result.chunks if chunk.location.page == 2]
+    assert [chunk.text for chunk in scanned] == ["Taranmış sayfa 42 mm"]
+    assert all(chunk.from_ocr for chunk in scanned)
+
+
+def test_unavailable_reader_stops_the_document_without_falling_back_to_ocr(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "tarama.pdf"
+    path.write_bytes(b"%PDF-x")
+    calls: list[str] = []
+
+    def unavailable(path: Path, pages: list[int], work: Path, image: Path | None) -> list[Element]:
+        raise ReaderUnavailable("okuyucu yok")
+
+    tools = replace(_fake_tools(calls, page_kind=PageKind.NONE), read_scanned_pages=unavailable)
+
+    with pytest.raises(ReaderUnavailable):
+        ingest_document(path, META, tools, tmp_path)
+
+    assert not any(call.startswith(("ocr", "parse")) for call in calls)
+
+
+def test_image_file_itself_is_given_to_the_page_reader(tmp_path: Path) -> None:
+    path = tmp_path / "foto.jpg"
+    path.write_bytes(b"\xff\xd8\xffx")
+    calls: list[str] = []
+
+    ingest_document(path, META, _fake_tools(calls, page_kind=PageKind.NONE), tmp_path)
+
+    assert "image:foto.jpg" in calls
+
+
+def test_pdf_pages_are_rendered_not_read_from_an_image_file(tmp_path: Path) -> None:
+    path = tmp_path / "tarama.pdf"
+    path.write_bytes(b"%PDF-x")
+    calls: list[str] = []
+
+    ingest_document(path, META, _fake_tools(calls, page_kind=PageKind.NONE), tmp_path)
+
+    assert not any(call.startswith("image:") for call in calls)

@@ -20,6 +20,8 @@ const STATUS_LABELS: Record<DocumentInfo["status"], string | null> = {
   processing: "İşleniyor",
   ready: null,
   failed: "Hata",
+  // Belge bozuk değil: taranmış sayfaların okuyucusu yok; gelince "Yeniden işle" ile okunur.
+  waiting_reader: "Okuyucu bekleniyor",
 };
 // Bu kadar ya da daha az belgeli grup açık başlar; kalabalık grup başlığıyla gelir.
 const OPEN_GROUP_LIMIT = 10;

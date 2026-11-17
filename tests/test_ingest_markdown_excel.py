@@ -172,7 +172,7 @@ def _no_tools() -> IngestTools:
     def unused(*_: object) -> object:
         raise AssertionError("bu biçimde dış araç kullanılmaz")
 
-    return IngestTools(*([unused] * 9))  # type: ignore[arg-type]
+    return IngestTools(*([unused] * 10))  # type: ignore[arg-type]
 
 
 def test_report_records_the_format_and_rules_version(tmp_path: Path) -> None:
@@ -220,3 +220,21 @@ def test_word_report_from_the_first_ocr_rules_is_outdated() -> None:
 
 def test_unknown_file_type_is_never_outdated() -> None:
     assert not is_outdated(_old_report(), "eski.bin")
+
+
+@pytest.mark.parametrize(
+    ("page_kinds", "outdated"),
+    [({"text": 12}, False), ({"text": 2, "none": 1}, True), ({"scanned": 3}, True)],
+)
+def test_page_reader_rules_only_outdate_documents_with_scanned_pages(
+    page_kinds: dict[str, int], outdated: bool
+) -> None:
+    report = {**_old_report(), "input_format": "pdf", "rules_version": 7, "page_kinds": page_kinds}
+
+    assert is_outdated(report, "belge.pdf") is outdated
+
+
+def test_documents_from_before_the_previous_rules_stay_outdated() -> None:
+    report = {**_old_report(), "input_format": "pdf", "rules_version": 6, "page_kinds": {"text": 3}}
+
+    assert is_outdated(report, "belge.pdf")

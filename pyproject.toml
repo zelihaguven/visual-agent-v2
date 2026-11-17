@@ -32,6 +32,8 @@ ingest = [
     "onnxruntime>=1.20",
     "torch>=2.5",
     "torchvision>=0.20",
+    "paddleocr[doc-parser]>=3.3",
+    "paddlepaddle>=3.2.1",
 ]
 
 [tool.uv]
@@ -102,5 +104,5 @@ explicit_package_bases = true
 mypy_path = ["src", "."]
 
 [[tool.mypy.overrides]]
-module = ["fastembed.*", "sentence_transformers.*", "huggingface_hub.*", "docling.*", "numpy.*", "docx.*", "openpyxl.*", "pikepdf.*", "pypdfium2.*", "rapidocr.*", "reportlab.*"]
+module = ["fastembed.*", "paddleocr.*", "sentence_transformers.*", "huggingface_hub.*", "docling.*", "numpy.*", "docx.*", "openpyxl.*", "pikepdf.*", "pypdfium2.*", "rapidocr.*", "reportlab.*"]
 ignore_missing_imports = true

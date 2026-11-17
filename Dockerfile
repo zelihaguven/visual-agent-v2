@@ -26,6 +26,7 @@ FROM base AS ingest
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         fonts-dejavu-core \
+        libgl1 \
         libreoffice-impress \
         libreoffice-writer \
         tesseract-ocr \
