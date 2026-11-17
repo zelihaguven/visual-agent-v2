@@ -212,6 +212,19 @@ def test_failure_message_is_recorded(tmp_path: Path) -> None:
     assert (stored.status, stored.error) == (DocumentStatus.FAILED, "Belge işlenemedi.")
 
 
+def test_document_waiting_for_the_reader_is_recorded_as_waiting(tmp_path: Path) -> None:
+    repository = _repository(tmp_path)
+
+    async def run() -> StoredDocument | None:
+        await repository.create_document(_document("a", DocumentStatus.PROCESSING))
+        await repository.mark_failed("a", "okuyucu bekleniyor", waiting=True)
+        return await repository.get_document("a")
+
+    stored = asyncio.run(run())
+    assert stored is not None
+    assert (stored.status, stored.error) == (DocumentStatus.WAITING_READER, "okuyucu bekleniyor")
+
+
 def test_only_ready_documents_reach_the_search_catalog(tmp_path: Path) -> None:
     repository = _repository(tmp_path)
 
@@ -374,7 +387,9 @@ def test_failure_does_not_overwrite_a_deletion(tmp_path: Path) -> None:
     assert [d.doc_id for d in asyncio.run(run())] == ["a"]
 
 
-@pytest.mark.parametrize("status", [DocumentStatus.READY, DocumentStatus.FAILED])
+@pytest.mark.parametrize(
+    "status", [DocumentStatus.READY, DocumentStatus.FAILED, DocumentStatus.WAITING_READER]
+)
 def test_ready_or_failed_document_can_be_processed_again(
     tmp_path: Path, status: DocumentStatus
 ) -> None:

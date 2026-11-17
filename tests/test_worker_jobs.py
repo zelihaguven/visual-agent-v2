@@ -10,7 +10,12 @@ from tests.test_ingest_pipeline import _fake_tools
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
 from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
-from visual_agent.ingest.external import SOFFICE_MISSING, MissingTool, tesseract_language
+from visual_agent.ingest.external import (
+    SOFFICE_MISSING,
+    MissingTool,
+    ReaderUnavailable,
+    tesseract_language,
+)
 from visual_agent.ingest.pipeline import IngestReport, IngestResult, ingest_document
 from visual_agent.ingest.text_layer import PageKind
 
@@ -42,6 +47,7 @@ class FakeRepository:
     queued: list[StoredDocument] = field(default_factory=list)
     ready: list[tuple[str, Sequence[Chunk], str | None]] = field(default_factory=list)
     failed: list[tuple[str, str]] = field(default_factory=list)
+    waiting: list[tuple[str, str]] = field(default_factory=list)
     version_value: str = "1"
     load_calls: int = 0
     ready_error: Exception | None = None
@@ -74,12 +80,12 @@ class FakeRepository:
     async def purge(self, doc_id: str) -> None:
         self.purged.append(doc_id)
 
-    async def mark_failed(self, doc_id: str, message: str) -> bool:
+    async def mark_failed(self, doc_id: str, message: str, waiting: bool = False) -> bool:
         if self.failed_error is not None:
             raise self.failed_error
         if doc_id in self.deleted:
             return False
-        self.failed.append((doc_id, message))
+        (self.waiting if waiting else self.failed).append((doc_id, message))
         return True
 
     async def version(self) -> str:
@@ -339,3 +345,17 @@ def test_reprocessing_reads_ocr_in_turkish_and_english_whatever_the_stored_langu
     # Sayfa OCR'ı ve gömülü görsel OCR'ı aynı dili alır.
     readings = [call.split(":")[1] for call in calls if call.startswith(("ocr:", "images:"))]
     assert [tesseract_language(language) for language in readings] == ["tur+eng", "tur+eng"]
+
+
+def test_document_waits_when_the_page_reader_is_unavailable(tmp_path: Path) -> None:
+    repository, indexer = FakeRepository(queued=[document(tmp_path)]), FakeIndexer()
+
+    def ingest(path: Path, meta: DocumentMeta, work: Path) -> IngestResult:
+        raise ReaderUnavailable("okuyucu bekleniyor")
+
+    processor = DocumentProcessor(repository, indexer, ingest)
+
+    assert asyncio.run(processor.process_next()) is True
+
+    assert repository.waiting == [("d", "okuyucu bekleniyor")]
+    assert repository.failed == [] and repository.ready == [] and indexer.indexed == []

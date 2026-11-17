@@ -80,7 +80,7 @@ export type AskEvent =
     }
   | { type: "error"; message: string };
 
-export type DocumentStatus = "queued" | "processing" | "ready" | "failed";
+export type DocumentStatus = "queued" | "processing" | "ready" | "failed" | "waiting_reader";
 
 export type DocumentReport = {
   warnings: string[];

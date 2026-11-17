@@ -52,6 +52,10 @@ class MissingTool(RuntimeError):
     """Belgeyi işlemek için gereken dış araç kurulu değil."""
 
 
+class ReaderUnavailable(RuntimeError):
+    """Taranmış sayfaların okuyucusu ayarlı değil ya da ulaşılamıyor; belge okuyucuyu bekler."""
+
+
 def find_tool(configured: str | None, names: tuple[str, ...], which: Which) -> str | None:
     """Ayarla verilen yol önce denenir; verilmemişse araç PATH'te aranır."""
     if configured is not None:

@@ -16,6 +16,20 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 - **Docling bazı hücreleri kaçırıyor:** SL055 ve NK005'te Tol(+), NK015'te XXL hücresi tablo yapısında yok; değer parçada eksik kalıyor (yanlış değil).
 - **Sunucuya taşıma:** Hücre okuma önbelleği (`VA_CELL_READER_CACHE`, varsayılan `data/cell-reads`) kalıcı bir birimde tutulmalı.
 
+## Sayfa okuyucusu (0011)
+
+- Gerçek okuyucuyla deneme (2026-11-17, Mac, MLX; set A dışı üç örnek, okuma katmanı, cevap modeli çalıştırılmadı): `dikim-tarama.pdf` 3 sayfa 16,4 sn, `dikim-foto.jpg` 4,3 sn, `strickland-tarama.pdf` 2 sayfa 14,2 sn (model yüklüyken). İki ölçü tablosunun ve etiket tablosunun bütün değerleri doğru okundu ve ikinci okumayla uyuştu (belirsiz 0). Strickland'de düz yazıdaki 17 kesir ve sayı belirsiz kaldı (gizlenir); doğru olup olmadıkları tek tek sayılmadı.
+- Sayı içermeyen yanlış okuma gizlenmiyor: fotoğrafın başlığı "MNT-8598 Ổlộcũ fōyũ", taramanın 3. sayfa başlığı "olçü föyü" okundu. Karşılaştırma yalnız sayı ve kodlara bakıyor.
+- Model boyutu: PaddleOCR-VL-1.6 3,6 GB (Hugging Face önbelleği), düzen modeli 126 MB.
+- `local` kipi Windows'ta ve işlemcide denenmedi; hız ürün sahibinin makinesinde ölçülecek.
+- Tarama okuyucuya kendi çözünürlüğünde verilir. İlk denemede 300 dpi'ye büyütülen 120 dpi taramada Tesseract tablodaki 13 değerin hiçbirini doğrulayamadı (hepsi gizlendi); kendi çözünürlüğünde hepsi uyuştu. Çok düşük ya da çok yüksek çözünürlüklü gerçek taramalarda davranış ölçülmedi.
+- OCR katmanlı taramalar okuyucuya gidiyor (0011). Görünür ama zayıf metin katmanı (`WEAK`) ve büyük görselli dijital sayfa (`SCANNED`) eski yolda. Kuralın eşiği (%90 gizli metin nesnesi) gerçek tarayıcı çıktılarında denenmedi: yalnız eski hattın ürettiği 252 ocrmypdf sayfasında (hepsi yakalandı) ve üretilmiş test sayfalarında denendi. Yüklü belgelerde bu türden sayfa yok.
+- Fotoğraf doğrudan okutulunca (2026-11-17, `dikim-foto.jpg`, iki koşu) sayılar aynı ve doğru kaldı, ama etiketler bozuldu: "Ổḷc̃u noktasi", "Toierans". PDF'e çevrilmiş kopyadan okunurken "Ölçü noktası", "Tolerans" okunmuştu. Tek örnek; neden ve yaygınlık incelenmedi. Sayı içermeyen yanlış gizlenmediği için arama ve cevap metnini etkiler.
+- OCR katmanlı taramada (`dikim-tarama`'nın ocrmypdf çıktısı) değerlerin hepsi doğru okundu; ikisi (74,5 ve 36,0) ikinci okumayla uyuşmadığı için gizlendi, başlık "iGML-6473" okundu ve belirsiz işaretlendi.
+- Karışık belgede (metinli + taranmış sayfa) okuyucu yokken metinli sayfalar da aranamıyor.
+- Yüklü taranmış belgeler eski kuralla duruyor ("Eski kural"); yeniden işlenmedi.
+- Arayüzde "Okuyucu bekleniyor" etiketi nötr renkte; `arayuz-calisma-alani` birleşince uyarı rengine alınabilir.
+
 ## Markdown belgeler
 
 - Hazır gelen markdown'da OCR kökenli metin işaretlenmiyor: FastReact sürüm notları OCR'dan çıkarılmış ("Text extracted by OCR" notuyla), ama `.md` metni OCR'dan gelmemiş sayılıyor; OCR değerlerine uygulanan "Kısmen doğrulandı" kuralı bu metinde çalışmıyor.
@@ -84,6 +98,8 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 - Yerel kurulumda arayüzü nginx değil API sunuyor: nginx'teki güvenlik başlıkları (CSP, X-Frame-Options, nosniff, Referrer-Policy) ve `/api/ask`, `/api/speak`, `/api/transcribe` için hız sınırı yerelde yok. Ağa açmadan önce bunlar API'ye ya da önündeki bir vekil sunucuya eklenmeli.
 
 ## Kurulum
+
+- İki OpenCV paketi birlikte kuruluyor: `opencv-python-headless` 5.0 (rapidocr, docling) ve `opencv-contrib-python` 4.10 (paddleocr). İkisi de aynı `cv2` klasörüne yazar; hangisinin kaldığı kurulum sırasına bağlı. CI'da aynı kilitle bir koşu geçti, bir koşu `libGL.so.1` yok diye kırıldı; işçi imajına `libgl1` eklendi, böylece ikisi de açılıyor. Hangi sürümün çalıştığı yine belirsiz: birini dışarıda bırakmak (uv `override-dependencies`) ayrı karar, paddleocr'ın contrib modüllerine ihtiyacı ölçülmeden yapılmasın.
 
 - RapidOCR modelleri .venv içinde; paket yeniden kurulursa modelscope.cn'den yeniden iner (internet gerekir).
 - LibreOffice dönüştürmesinin 180 sn sınırı işlemci doluyken aşılabiliyor: iki vektörleme işi aynı anda çalışırken taban ölçümünde `sql-ekran.docx` ve `sql-notlar.docx` PDF'e çevrilemedi (`TimeoutExpired`). İşlemci boşken aynı belgeler sorunsuz çevrildi. Uygulamada belge yüklemesi büyük bir yeniden işlemeyle çakışırsa Office belgesi "işlenemedi" olabilir; sınırın yükle ilişkisi ölçülmedi.

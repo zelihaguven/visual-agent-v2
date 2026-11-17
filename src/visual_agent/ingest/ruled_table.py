@@ -84,7 +84,7 @@ def find_grid(image: Image.Image) -> tuple[list[int], list[int]] | None:
     rows = [
         y
         for y in _boundaries(ink.mean(axis=1))
-        if _continuous(ink[max(0, y - 1) : y + 2].any(axis=0), ink.shape[1])
+        if _continuous(np.asarray(ink[max(0, y - 1) : y + 2].any(axis=0)), ink.shape[1])
     ]
     if len(rows) < _MIN_LINES:
         return None
@@ -92,7 +92,7 @@ def find_grid(image: Image.Image) -> tuple[list[int], list[int]] | None:
     columns = [
         x
         for x in _boundaries(body.mean(axis=0))
-        if _continuous(body[:, max(0, x - 1) : x + 2].any(axis=1), body.shape[0])
+        if _continuous(np.asarray(body[:, max(0, x - 1) : x + 2].any(axis=1)), body.shape[0])
     ]
     if len(columns) < _MIN_LINES:
         return None

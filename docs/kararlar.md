@@ -1167,4 +1167,28 @@ Tarih: 2026-11-16. Ölçüm: set A benzetimi (0009), 5 taranmış belge (30 sayf
 
 **Ekip kararı (2026-11-16).** Uygulamaya geçilmiyor. "⅞" → "%" ortak hatası için düzeltme yapılmıyor; tasarım değişirse set A ile değil set B ile ölçülür. Set A'nın gerçek taramaları geldiğinde aynı iki aday, hiçbir şey değiştirilmeden bir kez daha ölçülecek.
 
+**Uygulamadaki aday ölçülen adayla aynı değil (2026-11-17, 0011).** Uygulamaya alınan okuyucu, ölçülen adaydan iki bakımdan ayrılır: çözünürlük (ölçümde her sayfa 300 dpi görüntüydü; uygulama taramayı kendi çözünürlüğünde okutur) ve girdi yolu (ölçümde sayfa görüntüsü doğrudan verildi; uygulama PDF sayfasını çizer, OCR katmanlı taramaları da okuyucuya verir, görsel dosyasını doğrudan okutur). Bu tablodaki sayılar uygulamadaki hattın ölçümü değildir. Bir sonraki ölçüm yeni tohumla üretilen set B ile yapılacak. Eski hattı yeniden ölçmek için `c79e4ce` kullanılmalı.
+
 **Kayıt.** Rapor (`rapor.json`), mevcut hattın okuması (`hat_cikti.json`) ve PaddleOCR-VL + Tesseract ham okumaları (`paddle/`): `evals/results/2026-11-16-set-a-benzetim/` (1 MB). Okuyucuları yeniden çalıştırmadan yeniden puanlama ve gerçek taramalarla yan yana karşılaştırma için repoda tutulur. Ölçümü yapan dört betik (`hat.py`, `paddle_calistir.py`, `tesseract.py`, `puanla.py`) aynı klasörde, ölçüldükleri haliyle durur; gerçek taramalar bunlarla, değiştirilmeden ölçülür. Bu yüzden klasör ruff ve mypy denetiminin dışındadır. `paddle_calistir.py` MLX sunucusunu `http://localhost:8111/` adresinde bekler.
+
+### 0011: PaddleOCR-VL + Tesseract hatta alındı; okuyucu yoksa belge bekler
+Tarih: 2026-11-16. Ürün sahibi kararı; yeni bağımlılık (`paddleocr[doc-parser]`, `paddlepaddle`) onaylandı.
+
+**Ne.** Metin katmanı olmayan sayfalar (`PageKind.NONE`) yalnız sayfa okuyucusundan geçer. OCR katmanlı taramalar da böyle sayılır: sayfayı kaplayan bir görüntü var ve metin nesnelerinin en az %90'ı görünmez yazım kipinde ya da o görüntünün altında (başka bir aracın OCR çıktısı, dijital metin değil). Akış: PaddleOCR-VL-1.6 resmi akışı okur, her blok Tesseract (tur+eng, psm 11, deskew yok) ile ikinci kez okunur, sayı ve kodlar sayarak karşılaştırılır (0010'daki gibi). Sayısı tutmayan değer belirsizdir, cevapta gizlenir. Görünür metni olan sayfaların yolu (zayıf metin katmanı, büyük görselli dijital sayfa, gömülü görseller) değişmedi. Görsel dosyası (jpg, png) okuyucuya PDF'e çevrilmiş kopyasıyla değil, kendi pikselleriyle verilir.
+
+**Okuyucu yoksa.** `VA_PAGE_READER` boşsa ya da okuyucuya ulaşılamıyorsa belge indekslenmez, "Okuyucu bekleniyor" (`waiting_reader`) durumunda kalır; "Yeniden işle" ile okunur. Eski OCR yolu yedek değildir. Belgenin metin katmanlı sayfaları da bekler: belge ya tamamen okunur ya hiç.
+
+**Tek ayar.** `VA_PAGE_READER`: `local` ya da `<arka uç>@<adres>`; platforma göre kod yok. Sunucuyu uygulama başlatmaz.
+
+**Kopya kod.** Eşdeğerlik kuralları ve sayarak karşılaştırma `evals/ocr_score.py` ve `evals/ocr_truth.py` içinde sha256 ile donmuş; uygulama ölçüm paketinden içe aktarmaz. Kod `ingest/page_reader.py` içine kopyalandı. `tests/test_page_reader.py` set A kaydının 42 sayfasında iki kopyayı karşılaştırır: her blokta parçalar ve tablo satırları aynı; aynı ikinci okumayla işaretler aynı; kayıttaki işaretlerin gizlediği değerlerin tamamı uygulamanın öğelerinde belirsiz. Kayıtta sayfa görüntüleri ve Tesseract'ın ham metni yok, set A'ya yeniden okuyucu çalıştırılmaz: ölçümdeki işaretler baştan hesaplanarak değil, kayıttan doğrulandı.
+
+**Bilinenler.**
+- Metin, karşılaştırılan yazımla saklanır ("14⅞" → "14 7/8"): belirsiz değer cevap denetiminde aynı yazımla aranır.
+- Tabloda hücre konumu yok: kaynak panelinde satır yerine tablonun tamamı vurgulanır.
+- 0010'daki ortak hata sürüyor: "⅞" iki okuyucuda da "%" okunursa gizlenmez.
+- Eski OCR'ın telafi kodu (çizgili tablo, hücre okuma, deskew notları) silinmedi; metin katmanlı taranmış sayfalar onu hâlâ kullanıyor. Ayrı PR.
+- `evals/results/2026-11-16-set-a-benzetim/hat.py` uygulamanın hattını çağırır: bu karardan sonra "mevcut hat" adayını değil yeni hattı ölçer. Gerçek taramalarda eski hattı ölçmek için `c79e4ce` kullanılmalı.
+- Kural sürümü 8, yalnız taranmış sayfası olan belgeleri eskitir: 7. sürümle işlenmiş ve kaydında `none` ya da `scanned` sayfa olmayan belge "Eski kural" görünmez (`is_outdated`).
+- Ölçüm MLX arka ucuyla yapıldı; `local` kipinin okuması ve hızı ölçülmedi.
+- Tarama kendi çözünürlüğünde okunur (büyütülmez): büyütülmüş görüntüde Tesseract'ın ikinci okuması bozuluyor (açık notlar, 2026-11-17 denemesi).
+

@@ -22,6 +22,8 @@ class DocumentStatus(StrEnum):
     PROCESSING = "processing"
     READY = "ready"
     FAILED = "failed"
+    WAITING_READER = "waiting_reader"
+    """Taranmış sayfaların okuyucusu yok; belge indekslenmedi, okuyucu gelince yeniden işlenir."""
     DELETING = "deleting"
 
 
@@ -332,14 +334,16 @@ class DocumentRepository:
 
         return await self._db.run(lambda connection: _transaction(connection, write))
 
-    async def mark_failed(self, doc_id: str, message: str) -> bool:
-        """Arada silinen belgenin durumu ezilmez; o durumda False döner."""
+    async def mark_failed(self, doc_id: str, message: str, waiting: bool = False) -> bool:
+        """Arada silinen belgenin durumu ezilmez; o durumda False döner. waiting: belge bozuk
+        değil, taranmış sayfaların okuyucusunu bekliyor."""
+        status = DocumentStatus.WAITING_READER if waiting else DocumentStatus.FAILED
         updated: int = await self._db.run(
             lambda connection: (
                 connection.execute(
-                    f"UPDATE documents SET status = 'failed', error = ?, updated_at = {_NOW}"  # noqa: S608
+                    f"UPDATE documents SET status = ?, error = ?, updated_at = {_NOW}"  # noqa: S608
                     " WHERE doc_id = ? AND status = 'processing'",
-                    (message, doc_id),
+                    (status.value, message, doc_id),
                 ).rowcount
             )
         )
@@ -350,7 +354,7 @@ class DocumentRepository:
         row = await self._db.run(
             lambda connection: connection.execute(
                 f"UPDATE documents SET status = 'queued', error = NULL, updated_at = {_NOW}"  # noqa: S608
-                " WHERE doc_id = ? AND status IN ('ready', 'failed')"
+                " WHERE doc_id = ? AND status IN ('ready', 'failed', 'waiting_reader')"
                 f" RETURNING {_COLUMNS}",
                 (doc_id,),
             ).fetchone()
