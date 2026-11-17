@@ -1086,6 +1086,7 @@ button.status-card {
 }
 
 .status.is-outdated,
+.status.is-waiting_reader,
 .status.is-queued,
 .status.is-processing {
   background: var(--color-warn-surface);

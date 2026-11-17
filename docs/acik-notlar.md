@@ -28,7 +28,6 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 - OCR katmanlı taramada (`dikim-tarama`'nın ocrmypdf çıktısı) değerlerin hepsi doğru okundu; ikisi (74,5 ve 36,0) ikinci okumayla uyuşmadığı için gizlendi, başlık "iGML-6473" okundu ve belirsiz işaretlendi.
 - Karışık belgede (metinli + taranmış sayfa) okuyucu yokken metinli sayfalar da aranamıyor.
 - Yüklü taranmış belgeler eski kuralla duruyor ("Eski kural"); yeniden işlenmedi.
-- Arayüzde "Okuyucu bekleniyor" etiketi nötr renkte; `arayuz-calisma-alani` birleşince uyarı rengine alınabilir.
 
 ## Markdown belgeler
 
