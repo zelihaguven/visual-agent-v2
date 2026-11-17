@@ -143,9 +143,10 @@ def _with_label_first_row(cells: Sequence[TableCell]) -> list[TableCell]:
     return [replace(cell, header=cell.row_start == first_row) for cell in cells]
 
 
-def group_table_rows(raw_cells: Sequence[TableCell]) -> list[TableRow]:
+def group_table_rows(raw_cells: Sequence[TableCell], infer_header: bool = True) -> list[TableRow]:
+    """infer_header kapalıysa başlık kararı çağırana aittir: işaretsiz ilk satır başlık yapılmaz."""
     cleaned = [replace(cell, text=cell.text.strip(_EDGE_ARTIFACTS)) for cell in raw_cells]
-    cells = _with_label_first_row(cleaned)
+    cells = _with_label_first_row(cleaned) if infer_header else cleaned
     headers = _column_headers(cells)
     spans = _header_spans(cells)
     body = [cell for cell in cells if not cell.header and cell.text.strip()]
