@@ -52,4 +52,21 @@ describe("DocumentsPanel", () => {
     expect(within(pendingRow).getByRole("button", { name: /yeniden işle/ })).toBeDisabled();
     expect(within(pendingRow).getByRole("button", { name: /sil/ })).toBeEnabled();
   });
+  it("shows a document waiting for the page reader and lets it be reprocessed", async () => {
+    const waiting: DocumentInfo = {
+      doc_id: "w",
+      title: "tarama",
+      filename: "tarama.pdf",
+      status: "waiting_reader",
+      error: "Taranmış sayfaların okuyucusuna ulaşılamadı; belge okuyucuyu bekliyor.",
+      report: null,
+    };
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([waiting]))));
+    render(<DocumentsPanel onClose={() => undefined} />);
+
+    const row = (await screen.findByText("tarama")).closest("li") as HTMLElement;
+    expect(within(row).getByText("Okuyucu bekleniyor")).toBeInTheDocument();
+    expect(within(row).getByText(/okuyucuyu bekliyor/)).toBeInTheDocument();
+    expect(within(row).getByRole("button", { name: /yeniden işle/ })).toBeEnabled();
+  });
 });

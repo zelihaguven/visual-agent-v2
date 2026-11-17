@@ -52,6 +52,9 @@ class IngestTools:
     legacy_spreadsheet_to_xlsx: Callable[[Path, Path], Path]
     image_to_pdf: Callable[[Path, Path], Path]
     inspect_pdf: Callable[[Path], list[PageInfo]]
+    read_scanned_pages: Callable[[Path, list[int], Path, Path | None], list[Element]]
+    """Metin katmanı olmayan sayfalar (karar 0011). Son değer: belge bir görsel dosyasıysa
+    dosyanın kendisi (doğrudan okunur). Okuyucu yoksa `ReaderUnavailable`."""
     run_ocr: Callable[[Path, list[PageInfo], str, Path], OcrOutcome]
     parse_pdf: Callable[[Path, Mapping[int, tuple[str, ...]], Path], list[Element]]
     """OCR'lı belge, OCR'lı sayfalar (sayfa → belirsiz değerler) ve OCR'dan önceki PDF
@@ -125,12 +128,23 @@ def pages_missing_text(elements: Sequence[Element], pages: Sequence[PageInfo]) -
 
 
 def _elements_from_pdf(
-    pdf_path: Path, meta: DocumentMeta, tools: IngestTools, work: Path
+    pdf_path: Path, meta: DocumentMeta, tools: IngestTools, work: Path, image: Path | None = None
 ) -> tuple[list[Element], list[PageInfo], OcrOutcome]:
     pages = tools.inspect_pdf(pdf_path)
-    outcome = tools.run_ocr(pdf_path, pages, meta.language, work)
+    # Metin katmanı olmayan sayfalar yalnız sayfa okuyucusundan geçer; eski OCR yolu onlara
+    # uygulanmaz. Okuyucu yoksa belge hiç indekslenmez (ReaderUnavailable yükselir).
+    scanned = [page.page for page in pages if page.kind is PageKind.NONE]
+    read = tools.read_scanned_pages(pdf_path, scanned, work, image) if scanned else []
+    layered = [page for page in pages if page.kind is not PageKind.NONE]
+    outcome = tools.run_ocr(pdf_path, layered, meta.language, work)
     parsed = annotate_ocr_pages(
-        promote_code_elements(tools.parse_pdf(outcome.pdf_path, outcome.ocr_pages, pdf_path)),
+        [
+            element
+            for element in promote_code_elements(
+                tools.parse_pdf(outcome.pdf_path, outcome.ocr_pages, pdf_path)
+            )
+            if element.location.page not in scanned
+        ],
         outcome.ocr_pages,
     )
     recovered = annotate_ocr_pages(
@@ -142,8 +156,13 @@ def _elements_from_pdf(
         outcome.ocr_pages,
     )
     images = tools.read_embedded_images(outcome.pdf_path, pages, meta.language)
-    combined = [*parsed, *recovered, *images]
-    return sorted(combined, key=lambda element: element.location.page or 0), pages, outcome
+    combined = [*parsed, *recovered, *images, *read]
+    read_pages = {**outcome.ocr_pages, **dict.fromkeys(scanned, ())}
+    return (
+        sorted(combined, key=lambda element: element.location.page or 0),
+        pages,
+        replace(outcome, ocr_pages=read_pages),
+    )
 
 
 @dataclass(frozen=True)
@@ -201,7 +220,8 @@ def _parse(
     if input_format is InputFormat.LEGACY_SPREADSHEET:
         return _Parsed(*parse_workbook(tools.legacy_spreadsheet_to_xlsx(path, work)))
     pdf_path = _pdf_source(path, input_format, tools, work)
-    elements, pages, outcome = _elements_from_pdf(pdf_path, meta, tools, work)
+    image = path if input_format is InputFormat.IMAGE else None
+    elements, pages, outcome = _elements_from_pdf(pdf_path, meta, tools, work, image)
     warnings = [*_image_only_warnings(outcome), *tools.skipped_image_warnings(pages)]
     return _Parsed(elements, warnings, pages, outcome)
 

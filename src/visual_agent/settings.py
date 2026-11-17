@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     web_directory: str | None = "apps/web/dist"
     soffice_path: str | None = None
     tesseract_path: str | None = None
+    # Metin katmanı olmayan sayfaların okuyucusu (PaddleOCR-VL): "local" ya da
+    # "<arka uç>@<adres>", ör. "mlx-vlm-server@http://localhost:8111/". Boşsa bu sayfaları
+    # olan belgeler okuyucuyu bekler.
+    page_reader: str | None = None
     openrouter_api_key: SecretStr | None = None
     openrouter_url: AnyHttpUrl = AnyHttpUrl("https://openrouter.ai/api/v1")
     answer_model: str = "google/gemma-4-26b-a4b-it"
@@ -54,7 +58,12 @@ class Settings(BaseSettings):
     cell_reader_cache: str = "data/cell-reads"
 
     @field_validator(
-        "qdrant_path", "web_directory", "soffice_path", "tesseract_path", mode="before"
+        "qdrant_path",
+        "web_directory",
+        "soffice_path",
+        "tesseract_path",
+        "page_reader",
+        mode="before",
     )
     @classmethod
     def empty_path_means_server(cls, value: object) -> object:
