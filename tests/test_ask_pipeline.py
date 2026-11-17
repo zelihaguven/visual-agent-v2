@@ -770,3 +770,26 @@ def test_difference_rows_are_used_when_the_question_asks_for_the_difference() ->
     ask(make_deps(client, retriever), "MD beden kol boyu farkı (increment) kaç?")
 
     assert "MD: -3/8" in client.calls[0][1]["content"]
+
+
+def test_answer_that_only_claims_absence_becomes_not_found() -> None:
+    """ "Belgede belirtilmemiş" doğrulanmış cevap olamaz; yalnız "bulunamadı" olarak verilir."""
+    client = FakeClient(answer_payload("M beden iç paça belgede belirtilmemiştir."))
+
+    outcome = ask(make_deps(client), "PNT-4417 M beden iç paça kaç?")
+
+    assert isinstance(outcome.result, NotFound)
+
+
+def test_absence_claim_next_to_a_verified_sentence_is_only_hidden() -> None:
+    payload = answer_payload("M beden iç paça 76,5.")
+    extra = {
+        "alintilar": [{"kaynak_no": 1, "metin": "Beden M: 76,5"}],
+        "metin": "Tolerans belgede yer almıyor.",
+    }
+    payload["cevap"] = [*payload["cevap"], extra]  # type: ignore[misc]
+
+    outcome = ask(make_deps(FakeClient(payload)), "PNT-4417 M beden iç paça kaç?")
+
+    assert isinstance(outcome.result, Answered)
+    assert [item.verified for item in outcome.result.items] == [True, False]

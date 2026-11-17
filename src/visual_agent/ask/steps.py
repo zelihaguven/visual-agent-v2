@@ -34,6 +34,7 @@ from visual_agent.generation.openrouter import AttemptRecord, ServiceUnavailable
 from visual_agent.generation.parse import ParseFailure, parse_answer
 from visual_agent.generation.sources import build_user_message, to_prompt_sources
 from visual_agent.verification.answer import (
+    ABSENCE_CLAIM,
     Sources,
     code_source_number,
     safe_clarify_question,
@@ -364,6 +365,10 @@ async def verify(state: AskState, deps: AskDeps) -> AskState:
     if answer.kind is not AnswerKind.ANSWER:
         citations = tuple(_citation(hit) for hit in state.hits)
         return replace(state, result=Failed(reason=_MODEL_FAILED, citations=citations))
+    checks = verification.items
+    if checks and all(ABSENCE_CLAIM in check.problems for check in checks):
+        # Cevabın tamamı "belgede yok" diyor: bu iddia yalnız "bulunamadı" olarak verilir.
+        return replace(state, result=NotFound())
     items = tuple(
         _answered_item(item, check, state.hits, sources)
         for item, check in zip(answer.items, verification.items, strict=True)
