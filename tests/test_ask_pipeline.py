@@ -9,6 +9,7 @@ import pytest
 from visual_agent.ask.orchestrator import AskDeps, AskRequest, answer_question
 from visual_agent.catalog.identifiers import build_identifier_index
 from visual_agent.catalog.memory import DocumentCatalog
+from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.domain.result import (
     Answered,
@@ -770,6 +771,40 @@ def test_difference_rows_are_used_when_the_question_asks_for_the_difference() ->
     ask(make_deps(client, retriever), "MD beden kol boyu farkı (increment) kaç?")
 
     assert "MD: -3/8" in client.calls[0][1]["content"]
+
+
+def _repeated_payload(*texts: str) -> dict[str, object]:
+    payload = answer_payload(texts[0])
+    payload["cevap"] = [
+        {"alintilar": [{"kaynak_no": 1, "metin": "Beden M: 76,5"}], "metin": text} for text in texts
+    ]
+    return payload
+
+
+def test_repeated_verified_sentence_is_shown_once_and_stays_verified() -> None:
+    """Taban ölçümünde (C5, D7) model aynı doğru cümleyi tekrarlayınca rozet "Doğrulanamadı"
+    oluyordu; cümle bir kez gösterilir ve cevap doğrulanmış kalır."""
+    sentence = "M beden iç paça 76,5."
+    client = FakeClient(_repeated_payload(sentence, sentence, "M beden iç paça 76,5."))
+
+    result = ask(make_deps(client), "PNT-4417 M beden iç paça kaç?").result
+
+    assert isinstance(result, Answered)
+    assert result.status is VerificationStatus.VERIFIED
+    assert [item.text for item in result.items] == [sentence]
+    assert result.problems == ()
+
+
+def test_different_sentences_and_hidden_repeats_are_kept() -> None:
+    hidden = "M beden iç paça 99,9."
+    client = FakeClient(
+        _repeated_payload("M beden iç paça 76,5.", "İç paça M bedende 76,5.", hidden, hidden)
+    )
+
+    result = ask(make_deps(client), "PNT-4417 M beden iç paça kaç?").result
+
+    assert isinstance(result, Answered)
+    assert [item.verified for item in result.items] == [True, True, False, False]
 
 
 def test_answer_that_only_claims_absence_becomes_not_found() -> None:

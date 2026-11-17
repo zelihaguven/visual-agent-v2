@@ -4,7 +4,7 @@ import asyncio
 import logging
 import re
 import time
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 
 from visual_agent.ask.agreement import agreed_answer, candidate_documents
@@ -40,7 +40,7 @@ from visual_agent.verification.answer import (
     safe_clarify_question,
     verify_answer,
 )
-from visual_agent.verification.text import identifiers_in
+from visual_agent.verification.text import identifiers_in, normalize
 
 logger = logging.getLogger(__name__)
 
@@ -348,6 +348,25 @@ def _clarification(
     )
 
 
+def _without_repeats(items: Iterable[AnsweredItem]) -> tuple[AnsweredItem, ...]:
+    """Model aynı doğrulanmış cümleyi tekrar yazarsa bir kez gösterilir; kaynakları birleşir.
+    Tekrar cevabı başarısız saymaz: cümle doğrulanmıştır."""
+    kept: list[AnsweredItem] = []
+    first: dict[str, int] = {}
+    for item in items:
+        key = normalize(item.text)
+        if not item.verified or key not in first:
+            if item.verified:
+                first[key] = len(kept)
+            kept.append(item)
+            continue
+        earlier = kept[first[key]]
+        known = {citation.chunk_id for citation in earlier.citations}
+        added = tuple(c for c in item.citations if c.chunk_id not in known)
+        kept[first[key]] = earlier.model_copy(update={"citations": (*earlier.citations, *added)})
+    return tuple(kept)
+
+
 async def verify(state: AskState, deps: AskDeps) -> AskState:
     assert state.answer is not None
     answer = state.answer
@@ -369,7 +388,7 @@ async def verify(state: AskState, deps: AskDeps) -> AskState:
     if checks and all(ABSENCE_CLAIM in check.problems for check in checks):
         # Cevabın tamamı "belgede yok" diyor: bu iddia yalnız "bulunamadı" olarak verilir.
         return replace(state, result=NotFound())
-    items = tuple(
+    items = _without_repeats(
         _answered_item(item, check, state.hits, sources)
         for item, check in zip(answer.items, verification.items, strict=True)
     )

@@ -286,12 +286,14 @@ def test_one_bad_item_fails_the_answer_but_keeps_item_results() -> None:
     assert [check.ok for check in result.items] == [True, False]
 
 
-def test_repeated_sentence_fails() -> None:
+def test_repeated_verified_sentence_does_not_fail_the_answer() -> None:
+    """Tekrar cevabı başarısız saymaz; tekrarlar cevap kurulurken teke iner (ask/steps)."""
     sentence = "Bu ayar her zaman sol tarafta yapılır."
 
     result = verify_answer(answer(item(sentence), item(sentence)), SOURCES, "tr")
 
-    assert result.status is VerificationStatus.FAILED
+    assert result.status is VerificationStatus.VERIFIED
+    assert result.problems == ()
 
 
 def test_empty_answer_fails() -> None:
