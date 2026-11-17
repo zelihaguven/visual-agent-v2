@@ -828,3 +828,67 @@ def test_absence_claim_next_to_a_verified_sentence_is_only_hidden() -> None:
 
     assert isinstance(outcome.result, Answered)
     assert [item.verified for item in outcome.result.items] == [True, False]
+
+
+TECH_PACK = "6013448-FW27-6013448-US-TORCH GARDEN LIMITED – 603186 – JADE TEXTILE – Oct 26 2026-en"
+OTHER_PACK = "6026411-SS28-6026411-US-TORCH GARDEN LIMITED – 603186 – JADE TEXTILE – Oct 13 2026-en"
+
+
+def _pack_catalog() -> DocumentCatalog:
+    catalog = DocumentCatalog()
+    catalog.add(DocumentMeta(doc_id="p1", title=TECH_PACK))
+    catalog.add(DocumentMeta(doc_id="p2", title=OTHER_PACK))
+    catalog.add(DocumentMeta(doc_id="k", title="Kılavuz"))
+    return catalog
+
+
+@pytest.mark.parametrize(
+    ("question", "expected"),
+    [
+        ("6013448'in beden aralığı nedir?", ("p1",)),
+        ("6026411 modelinde BL005 SM bedende kaç?", ("p2",)),
+        ("603186 fabrikasının föyleri hangileri?", ("p1", "p2")),
+        ("Style 6013448.", ("p1",)),
+    ],
+)
+def test_numeric_model_number_in_the_question_names_its_document(
+    question: str, expected: tuple[str, ...]
+) -> None:
+    assert _pack_catalog().mentioned_in(question, ("p1", "p2", "k")) == expected
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "1500 adet sipariş için beden aralığı nedir?",  # adet: 4 hane
+        "2026 sezonunda beden aralığı nedir?",  # yıl; başlıkta da geçiyor ama 4 hane
+        "Bel ölçüsü 76,5 mi?",  # ölçü değeri
+        "Tutar 6.013.448 TL mi?",  # binlik ayraçlı sayı model numarası değildir
+        "Tutar 6013448,50 TL mi?",  # ondalıklı sayı
+        "60134489 numaralı model var mı?",  # daha uzun sayının parçası eşleşmez
+        "12345 numaralı model var mı?",  # hiçbir belge adında yok
+        "601344 kodlu ürün?",  # belge adındaki sayının parçası eşleşmez
+    ],
+)
+def test_measures_years_and_counts_do_not_name_a_document(question: str) -> None:
+    assert _pack_catalog().mentioned_in(question, ("p1", "p2", "k")) == ()
+
+
+def test_search_is_limited_to_the_document_named_by_its_number() -> None:
+    """Sınır setinde D6: "6013448" yalnız rakam olduğu için kod sayılmıyor, arama bütün föylere
+    yayılıyordu."""
+    chunks = [
+        chunk("p1:1", "p1", "Size Range | XS-4XL", ChunkKind.TEXT, title=TECH_PACK),
+        chunk("p2:1", "p2", "Size Range | XS-3XL", ChunkKind.TEXT, title=OTHER_PACK),
+    ]
+    retriever = FakeRetriever(hits=[chunks[0]])
+    client = FakeClient(answer_payload("Beden aralığı XS-4XL.", quote="Size Range | XS-4XL"))
+    deps = replace(
+        make_deps(client, retriever),
+        catalog=_pack_catalog(),
+        identifiers=build_identifier_index(chunks),
+    )
+
+    ask(deps, "6013448'in beden aralığı nedir?")
+
+    assert retriever.calls[0]["doc_ids"] == ("p1",)
