@@ -1205,3 +1205,21 @@ Tarih: 2026-11-16. Ürün sahibi kararı; yeni bağımlılık (`paddleocr[doc-pa
 - Ölçüm MLX arka ucuyla yapıldı; `local` kipinin okuması ve hızı ölçülmedi.
 - Tarama kendi çözünürlüğünde okunur (büyütülmez): büyütülmüş görüntüde Tesseract'ın ikinci okuması bozuluyor (açık notlar, 2026-11-17 denemesi).
 
+### 0012: Taranmış belgelerde yapı kalıyor; gizleme bedeli kabul edildi
+Tarih: 2026-11-17. Ürün sahibi kararı.
+
+**Karar.** Taranmış sayfalar için bugünkü yapı kalır: PaddleOCR-VL okur, Tesseract ikinci kez okur, sayı ve kodlar blok düzeyinde sayarak karşılaştırılır (0011). Yeni bir ikinci okuyucu denenmeyecek; karşılaştırma satır düzeyine alınmayacak.
+
+**Neden.**
+- Kural 1 korunuyor: iki okumanın uyuşmadığı değer gösterilmez. Yanlış değer göstermektense göstermemek tercih edilir.
+- Belgelerin çoğu dijital; gizleme yalnız taranmış sayfaları etkiler.
+- Yapı sade kalıyor: yeni okuyucu, yeni bağımlılık ve yeni ölçüm turu gerekmiyor.
+
+**Kabul edilen bedel (2026-11-17 ölçümü, yüklü 17 tech pack, 248 sayfa, 300 dpi).** Yeniden işlemeden sonra parça metnindeki sayı ve kodların belirsiz işaretli payı %0,6'dan %42,8'e, belirsiz değer taşıyan parça oranı %6'dan %61'e çıktı. Okuma düzeyinde 22.381 değerin 11.747'si (%52,5) gizleniyor. Gizlenenlerin 10.383'ü (%88) ikinci okumada karşılığı olmayan değer, 1.364'ü (%12) karşılığı olduğu hâlde bloktaki sayım farkı yüzünden gizlenen değer. Kesirlerin %83'ü gizli: Tesseract föylerdeki kesirleri okuyamıyor ("24 1/2" yerine "24%"). Satır düzeyinde karşılaştırma tahminen yalnız 285 değer kazandırırdı (%52,5 → %51,2). Bu föylerin doğru cevap dosyası yok: gizlenenlerin kaçının doğru okunduğu, gösterilenlerin kaçının yanlış olduğu ölçülmedi.
+
+**Karşılığı (0010, set A benzetimi).** Yanlış gösterilen değer 788'den 87'ye indi; doğru gösterilen 1.324'ten 1.325'e çıktı. Bu sayılar set A'ya aittir; uygulamadaki hat ölçülen adaydan farklıdır (0010 eki).
+
+**Yeniden düşünülür.** Kullanıcılar taranmış föylerde gizlenen değer yüzünden asistanı kullanamıyorsa. İkinci okuyucunun değişmesi ya da karşılaştırma düzeyinin değişmesi ölçülen adayı değiştirir; yeni tohumla üretilen set B ile ölçülmeden yapılmaz.
+
+**Yeniden işleme (2026-11-17).** Kural 8 ile çıktısı değişen 19 belge (18 taranmış PDF, 1 fotoğraf; 252 sayfa) yeniden işlendi: 40 dakika, bulut maliyeti 0 $, hata yok. Parça sayısı 1774'ten 2408'e çıktı.
+
