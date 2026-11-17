@@ -1223,3 +1223,14 @@ Tarih: 2026-11-17. Ürün sahibi kararı.
 
 **Yeniden işleme (2026-11-17).** Kural 8 ile çıktısı değişen 19 belge (18 taranmış PDF, 1 fotoğraf; 252 sayfa) yeniden işlendi: 40 dakika, bulut maliyeti 0 $, hata yok. Parça sayısı 1774'ten 2408'e çıktı.
 
+### 0013: Eski OCR'ın telafi kodu silindi; fark filtresi kaldı
+Tarih: 2026-11-17. Ürün sahibi onayı.
+
+**Silinen.** Hücre okuyucu (`cell_reader.py`: OCR'lı tablo hücrelerini görüntü modeliyle yeniden okuyup doğrulayan katman, karar 0005), çizgili tabloları çizgilerinden okuyan ızgara okuma (`ruled_table.py`, karar 0006'nın okuma kısmı), bunların `tools.py` ve `docling_parser.py` içindeki bağlantıları, `VA_CELL_READER_*` ayarları ve eski OCR yolunun metin katmansız sayfa dalları ("yalnız görüntü kaldı" uyarısı dahil). Belge işlerken buluta görüntü gönderen tek yer hücre okuyucuydu: belge işleme artık tamamen yerel.
+
+**Neden.** Bu kod eski OCR'ın taranmış tablolardaki hatalarını telafi ediyordu. Metin katmansız ve OCR katmanlı sayfalar artık sayfa okuyucusundan geçiyor (0011); telafi kodunun çalıştığı sayfa kalmadı.
+
+**Kalan.** Fark filtresi (0006: "Grade Rule: Increment" tablolarının satırları, soru farkı sormuyorsa kaynak olmaz) kaldı: OCR hatasını değil modelin farkı ölçü diye vermesini engelliyor, yeni okuyucunun parçalarında da çalışıyor. Eğiklik ayarı 0007'de zaten kaldırılmıştı. Eski OCR yolu (ocrmypdf, rapidocr) görünür ama zayıf metin katmanlı sayfalar ve metinli sayfalardaki gömülü görseller için duruyor; bu yüzden hiçbir bağımlılık boşa çıkmadı.
+
+**Etki.** Kural sürümü 9. Yalnız eski OCR yolundan geçen (`weak`, `scanned`) sayfası olan belgeler eskir; yüklü belgelerde böyle sayfa yok. O sayfalardaki tablolar ileride gelirse hücre düzeyi doğrulama olmadan, sayfa düzeyi iki okumayla işlenir. Dondurulmuş `hat.py` bugünkü kodla içe aktarılamaz (hücre okuyucuyu çağırıyor); eski hattı ölçmek için `c79e4ce` kullanılır.
+

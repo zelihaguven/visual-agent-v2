@@ -14,7 +14,6 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 - **Kapak sayfası form düzeni:** İki sütunlu formda OCR okuma sırası etiketle değeri kaydırıyor ("Sample Status" değeri "Main Material #" satırına düşüyor); ana kumaş ve numune durumu soruları cevapsız ya da "belirtilmemiş" dönüyor. Etiket-değer eşlemesi konuma göre yapılmalı.
 - **Doğrulayıcı olumsuzlama cümlelerini denetlemiyor:** "Numune durumu belgede belirtilmemiştir; ancak Fit Onaylanmıştır" cümlesi doğrulanmış olarak gösterildi (kapakta "Fit Approved, Hold Sampling" yazıyor). Alıntı birebir ve cümlede sayı/kod olmadığı için hiçbir denetime takılmadı. Form eşleşmesi düzelince tetikleyici kalkar; "belgede yok / belirtilmemiş" iddiasının denetimi ayrı karar (2026-11-15, `techpack-6013448-baglam` ve `-deskewsiz` ölçümleri).
 - **Docling bazı hücreleri kaçırıyor:** SL055 ve NK005'te Tol(+), NK015'te XXL hücresi tablo yapısında yok; değer parçada eksik kalıyor (yanlış değil).
-- **Sunucuya taşıma:** Hücre okuma önbelleği (`VA_CELL_READER_CACHE`, varsayılan `data/cell-reads`) kalıcı bir birimde tutulmalı.
 
 ## Sayfa okuyucusu (0011)
 

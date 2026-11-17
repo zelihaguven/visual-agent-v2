@@ -3,7 +3,6 @@ import pytest
 from visual_agent.ingest.pdf_tables import TableCell, group_table_rows
 from visual_agent.ingest.text_layer import PageKind, classify_page, junk_score, quality_score
 from visual_agent.ingest.two_reading import (
-    OCR_MIN_SCORE,
     LayerChoice,
     choose_layer,
     page_ranges,
@@ -52,7 +51,7 @@ def test_junk_score_accepts_real_tokens(word: str) -> None:
 def test_size_letters_do_not_drop_a_label_table_page() -> None:
     page = "GML-6473 ölçü föyü Etiket kodları Beden Etiket kodu S ETK-3391 M ETK-3392 L ETK-3393"
 
-    assert junk_score(page) >= OCR_MIN_SCORE
+    assert junk_score(page) >= 0.85
 
 
 @pytest.mark.parametrize("letter", ["x", "q", "ğ"])
@@ -61,17 +60,15 @@ def test_lone_lowercase_letters_still_count_as_noise(letter: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("kind", "old", "new", "expected"),
+    ("old", "new", "expected"),
     [
-        (PageKind.NONE, 0.0, 0.95, LayerChoice.NEW),
-        (PageKind.NONE, 0.0, 0.4, LayerChoice.IMAGE_ONLY),
-        (PageKind.SCANNED, 0.95, 0.5, LayerChoice.OLD),
-        (PageKind.SCANNED, 0.95, 0.94, LayerChoice.NEW),
-        (PageKind.WEAK, 0.5, 0.9, LayerChoice.NEW),
+        (0.95, 0.5, LayerChoice.OLD),
+        (0.95, 0.94, LayerChoice.NEW),
+        (0.5, 0.9, LayerChoice.NEW),
     ],
 )
-def test_choose_layer(kind: PageKind, old: float, new: float, expected: LayerChoice) -> None:
-    assert choose_layer(kind, old, new) is expected
+def test_choose_layer(old: float, new: float, expected: LayerChoice) -> None:
+    assert choose_layer(old, new) is expected
 
 
 def test_page_ranges_compacts_pages() -> None:

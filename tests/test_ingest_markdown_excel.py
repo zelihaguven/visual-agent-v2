@@ -238,3 +238,25 @@ def test_documents_from_before_the_previous_rules_stay_outdated() -> None:
     report = {**_old_report(), "input_format": "pdf", "rules_version": 6, "page_kinds": {"text": 3}}
 
     assert is_outdated(report, "belge.pdf")
+
+
+@pytest.mark.parametrize(
+    ("version", "page_kinds", "outdated"),
+    [
+        (8, {"none": 12}, False),  # sayfa okuyucusuyla okunan belge: hücre okuyucu onu etkilemez
+        (8, {"text": 3, "weak": 1}, True),
+        (7, {"text": 3, "weak": 1}, True),
+        (7, {"text": 3}, False),
+    ],
+)
+def test_removing_cell_rereading_only_outdates_documents_read_by_the_old_ocr(
+    version: int, page_kinds: dict[str, int], outdated: bool
+) -> None:
+    report = {
+        **_old_report(),
+        "input_format": "pdf",
+        "rules_version": version,
+        "page_kinds": page_kinds,
+    }
+
+    assert is_outdated(report, "belge.pdf") is outdated
