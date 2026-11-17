@@ -12,7 +12,7 @@ from visual_agent.domain.answer import (
     Quote,
     VerificationStatus,
 )
-from visual_agent.verification.answer import verify_answer, verify_item
+from visual_agent.verification.answer import ABSENCE_CLAIM, verify_answer, verify_item
 
 ROW = "İç paça | M: 76,5 | Tolerans: 0,5"
 SOURCES = {
@@ -500,3 +500,77 @@ def test_code_outside_the_quote_of_a_text_source_is_still_rejected() -> None:
     check = verify_item(item("LG beden AB030 25.", quote="LG 25", source_no=2), TABLE_SOURCES, "tr")
 
     assert not check.ok
+
+
+COVER = PromptSource(
+    number=1,
+    text="Fit Approved, Hold Sampling Main Material # Sample Status Supplier Request Round",
+)
+
+
+def test_sentence_claiming_the_document_lacks_something_is_not_verified() -> None:
+    """Ölçüm kaydındaki cümle (2026-11-15): alıntı birebir, sayı ve kod yok; yine de geçmemeli."""
+    sentence = (
+        "Numune durumu (Sample Status) belgede belirtilmemiştir; ancak Fit Onaylanmıştır"
+        " (Fit Approved)."
+    )
+
+    check = verify_item(item(sentence, quote="Fit Approved"), {1: COVER}, "tr")
+
+    assert not check.ok
+    assert check.problems == (ABSENCE_CLAIM,)
+    assert check.quote is None
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Numune durumu belgede yer almıyor.",
+        "Bu değer kaynakta bulunmuyor.",
+        "Tolerans föyde geçmiyor.",
+        "Ana kumaş için bilgi yok.",
+        "Numune durumu belgede bulunamadı.",
+        "BELGEDE BELİRTİLMEMİŞTİR.",
+        "The sample status is not specified in the document.",
+        "The document does not mention the supplier round.",
+        "There is no information about the fit type.",
+    ],
+)
+def test_absence_claims_in_turkish_and_english_are_caught(sentence: str) -> None:
+    check = verify_item(item(sentence, quote="Fit Approved"), {1: COVER}, "tr")
+
+    assert ABSENCE_CLAIM in check.problems
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Başlamış bir siparişten transfer yapılmasına izin verilmez.",
+        "Numune durumu Fit Approved olarak belirtilmiştir.",
+        "Değer kapak sayfasında belirtilmektedir.",
+        "Numune durumunun belirtilmesi gerekir.",
+        "Bu değer finansal raporlamada kullanılır; başka işlevi etkilemez.",
+        "Yetkisi olmayan kullanıcı listeyi görüntüleyebilir.",
+        "Transferring from a started order is not allowed.",
+        "Yük %200'ü geçerse çubuğun tepesi gösterilmez.",
+        "Planlama tahtası açıkken FastReact kapanmaz.",
+        "Fiyat henüz verilmedi.",
+    ],
+)
+def test_negatives_and_positive_statements_are_not_absence_claims(sentence: str) -> None:
+    check = verify_item(item(sentence, quote="Fit Approved"), {1: COVER}, "tr")
+
+    assert ABSENCE_CLAIM not in check.problems
+
+
+def test_absence_stated_by_the_source_itself_passes() -> None:
+    source = PromptSource(number=1, text="Tolerance: not specified for this size.")
+
+    turkish = verify_item(
+        item("Bu beden için tolerans belirtilmemiştir.", quote=source.text), {1: source}, "tr"
+    )
+    english = verify_item(
+        item("Tolerance is not specified.", quote="not specified"), {1: source}, "en"
+    )
+
+    assert turkish.ok and english.ok

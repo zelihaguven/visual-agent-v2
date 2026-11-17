@@ -27,11 +27,29 @@ from visual_agent.verification.text import (
     numbers_in,
     numbers_with_next_word,
     prefixed_codes_in,
+    turkish_lower,
     turkish_tens,
     word_numbers,
 )
 
 Sources = Mapping[int, PromptSource]
+ABSENCE_CLAIM = "cümle belgede olmayan bir bilgiyi iddia ediyor"
+_NEGATED = r"(?:m[ae][mdy]\w*|m[ıiuü]yor\w*)"
+"""Türkçe olumsuzluk eki ve ardından gelen ek: -memiş, -medi, -meyen, -miyor. Olumlu
+"belirtilmiş", "belirtilmekte", ad olan "belirtilmesi" ve genel yasak bildiren geniş zaman
+("izin verilmez", "yapılamaz") bu kalıba girmez."""
+_ABSENCE_RE = re.compile(
+    rf"\b(?:belirtil|yer\s+al|bulun|geç|tanımlan|açıklan){_NEGATED}"
+    r"|\bbulunam[aı]\w*"
+    r"|\bmevcut\s+değil\w*"
+    r"|\b(?:bilgi|kayıt|veri|değer)\w*\s+yok\w*"
+    r"|\bnot\s+(?:specified|mentioned|stated|provided|given|indicated|listed|included|found"
+    r"|available|defined|documented)\b"
+    r"|\b(?:does|do|did)\s+not\s+(?:specify|mention|state|provide|include|contain|indicate|list)\b"
+    r"|\bno\s+(?:information|mention|data|record)\b"
+    r"|\bunspecified\b"
+)
+"""Belgenin bir şeyi içermediğini söyleyen kalıplar (dil düzeyi, Türkçe ve İngilizce)."""
 # "bir" ve "one" çoğu zaman sayı değil, belirsiz tanımlıktır; cümlede sayı sayılmaz.
 _ARTICLE_NUMBERS = {"1"}
 
@@ -73,6 +91,17 @@ def _ocr_problems(item: ModelItem, sources: Sources) -> list[str]:
         normalized = normalize(quote.text)
         uncertain += [token for token in tokens if contains_token(normalized, normalize(token))]
     return [f"OCR değeri belirsiz: {uncertain}"] if uncertain else []
+
+
+def _absence_problems(item: ModelItem) -> list[str]:
+    """Cümle belgede bir şeyin olmadığını söylüyorsa doğrulanamaz: alıntı bir şeyin var olduğunu
+    gösterebilir, olmadığını gösteremez. Bu iddia yalnız "bulunamadı" olarak verilebilir.
+    Olumsuzluk kaynağın kendi sözüyse (aynı tür ifade alıntıda geçiyorsa) cümle geçer."""
+    if not _ABSENCE_RE.search(turkish_lower(item.text)):
+        return []
+    if any(_ABSENCE_RE.search(turkish_lower(quote.text)) for quote in item.quotes):
+        return []
+    return [ABSENCE_CLAIM]
 
 
 def _tolerance_problems(text: str, evidence: str) -> list[str]:
@@ -194,6 +223,7 @@ def verify_item(item: ModelItem, sources: Sources, language: str) -> ItemCheck:
     problems += _ocr_problems(item, sources)
     problems += _token_problems(item, evidence, sources, language)
     problems += _tolerance_problems(item.text, " ".join(text for text, _ in evidence))
+    problems += _absence_problems(item)
     others = len(problems)
     problems += _unit_problems(item, evidence, sources)
     if FOREIGN_SCRIPT_RE.search(item.text):

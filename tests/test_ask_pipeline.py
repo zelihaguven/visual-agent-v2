@@ -805,3 +805,26 @@ def test_different_sentences_and_hidden_repeats_are_kept() -> None:
 
     assert isinstance(result, Answered)
     assert [item.verified for item in result.items] == [True, True, False, False]
+
+
+def test_answer_that_only_claims_absence_becomes_not_found() -> None:
+    """ "Belgede belirtilmemiş" doğrulanmış cevap olamaz; yalnız "bulunamadı" olarak verilir."""
+    client = FakeClient(answer_payload("M beden iç paça belgede belirtilmemiştir."))
+
+    outcome = ask(make_deps(client), "PNT-4417 M beden iç paça kaç?")
+
+    assert isinstance(outcome.result, NotFound)
+
+
+def test_absence_claim_next_to_a_verified_sentence_is_only_hidden() -> None:
+    payload = answer_payload("M beden iç paça 76,5.")
+    extra = {
+        "alintilar": [{"kaynak_no": 1, "metin": "Beden M: 76,5"}],
+        "metin": "Tolerans belgede yer almıyor.",
+    }
+    payload["cevap"] = [*payload["cevap"], extra]  # type: ignore[misc]
+
+    outcome = ask(make_deps(FakeClient(payload)), "PNT-4417 M beden iç paça kaç?")
+
+    assert isinstance(outcome.result, Answered)
+    assert [item.verified for item in outcome.result.items] == [True, False]
