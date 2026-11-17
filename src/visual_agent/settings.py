@@ -48,14 +48,6 @@ class Settings(BaseSettings):
     tts_model: str = "google/gemini-3.8-flash-lite-tts"
     tts_voice: str = "Kore"
     tts_format: Literal["mp3", "pcm"] = "pcm"
-    # OCR'lı tablo hücreleri: ilk model her hücreyi okur, ikincisi yerel OCR'la ayrılınca hakemdir.
-    cell_reader_models: tuple[str, str] = (
-        "qwen/qwen3-vl-30b-a3b-instruct",
-        "google/gemini-3.1-flash-lite",
-    )
-    # Belge başına buluta gidebilecek en çok hücre; 0 hücre okumayı kapatır.
-    cell_reader_max_cells: int = Field(default=3000, ge=0)
-    cell_reader_cache: str = "data/cell-reads"
 
     @field_validator(
         "qdrant_path",

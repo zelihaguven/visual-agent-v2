@@ -1,4 +1,3 @@
-from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
 
@@ -127,9 +126,7 @@ def _fake_tools(calls: list[str], page_kind: PageKind = PageKind.TEXT) -> Ingest
         calls.append(f"ocr:{language}")
         return OcrOutcome(pdf_path=path, ocr_pages={1: ("99",)})
 
-    def parse(
-        path: Path, ocr_pages: Mapping[int, tuple[str, ...]], original: Path
-    ) -> list[Element]:
+    def parse(path: Path) -> list[Element]:
         calls.append(f"parse:{path.name}")
         return [
             Element(ElementKind.HEADING, "Başlık", SourceLocation(page=1)),
@@ -177,20 +174,6 @@ def test_skipped_images_are_listed_in_the_report(tmp_path: Path) -> None:
     report = ingest_document(path, META, tools, tmp_path).report
 
     assert report.warnings == (warning,)
-
-
-def test_pages_left_as_image_only_are_warned_about(tmp_path: Path) -> None:
-    path = tmp_path / "belge.pdf"
-    path.write_bytes(b"%PDF-x")
-
-    def ocr(path: Path, pages: list[PageInfo], language: str, work: Path) -> OcrOutcome:
-        return OcrOutcome(pdf_path=path, ocr_pages={}, image_only_pages=(2, 3, 5))
-
-    report = ingest_document(path, META, replace(_fake_tools([]), run_ocr=ocr), tmp_path).report
-
-    assert report.warnings == (
-        "Sayfa 2-3,5: metin okunamadı, yalnız görüntü olarak kaldı; aramada bulunmaz.",
-    )
 
 
 def _image_box(width: float, height: float) -> Box:

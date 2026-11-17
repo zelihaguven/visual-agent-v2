@@ -4,9 +4,6 @@ import re
 from collections.abc import Iterable
 from enum import StrEnum
 
-from visual_agent.ingest.text_layer import PageKind
-
-OCR_MIN_SCORE = 0.85
 _SCORE_TOLERANCE = 0.02
 _CONFUSABLE = str.maketrans(
     {
@@ -35,12 +32,10 @@ _STRIP_CHARACTERS = ".,;:()[]{}\"'”“’‘«»|_"
 class LayerChoice(StrEnum):
     NEW = "new"
     OLD = "old"
-    IMAGE_ONLY = "image_only"
 
 
-def choose_layer(kind: PageKind, old_score: float, new_score: float) -> LayerChoice:
-    if kind is PageKind.NONE:
-        return LayerChoice.NEW if new_score >= OCR_MIN_SCORE else LayerChoice.IMAGE_ONLY
+def choose_layer(old_score: float, new_score: float) -> LayerChoice:
+    """Yeni OCR katmanı eskisinden belirgin kötüyse eski katman kalır."""
     if new_score < old_score - _SCORE_TOLERANCE:
         return LayerChoice.OLD
     return LayerChoice.NEW

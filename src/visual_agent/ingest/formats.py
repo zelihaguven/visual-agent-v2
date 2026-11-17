@@ -54,9 +54,10 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     # 6 (PDF, görsel, Office): taranmış çizgili tablolar çizgilerinden, hücre hücre okunur.
     # 7 (PDF, görsel, Office): OCR'da eğiklik düzeltme yok; fark filtresi tablo notuna bakar.
     # 8 (PDF, görsel, Office): metin katmanı olmayan sayfalar sayfa okuyucusuyla okunur (0010).
-    InputFormat.PDF: 8,
-    InputFormat.OFFICE: 8,
-    InputFormat.IMAGE: 8,
+    # 9 (PDF, görsel, Office): OCR'lı sayfalardaki tablolar hücre hücre yeniden okunmaz.
+    InputFormat.PDF: 9,
+    InputFormat.OFFICE: 9,
+    InputFormat.IMAGE: 9,
     InputFormat.SPREADSHEET: 3,
     InputFormat.LEGACY_SPREADSHEET: 3,
     InputFormat.SQL: 2,
@@ -89,7 +90,10 @@ def detect_format(path: Path) -> InputFormat:
     return input_format
 
 
-_BEFORE_PAGE_READER = 7
+_CHANGED_PAGE_KINDS = {7: ("none", "scanned"), 8: ("weak", "scanned")}
+"""Bu sürümden bir sonrakine geçiş yalnız bu tür sayfası olan belgelerin çıktısını değiştirdi:
+7→8 taranmış sayfalar sayfa okuyucusuna gitti ("scanned": OCR katmanlı tarama öyle kaydedilmiş
+olabilir); 8→9 eski OCR yolundaki (zayıf ya da taranmış metin katmanlı) sayfaların tabloları."""
 _PAGE_FORMATS = (InputFormat.PDF, InputFormat.OFFICE, InputFormat.IMAGE)
 
 
@@ -100,9 +104,11 @@ def is_outdated(report: Mapping[str, object], filename: str) -> bool:
     if input_format is None:
         return False
     version = report.get("rules_version", UNRECORDED_RULES)
-    if version == _BEFORE_PAGE_READER and input_format in _PAGE_FORMATS:
-        # Kural 8 yalnız taranmış sayfaların okunuşunu değiştirdi; öyle sayfası olmayan belgenin
-        # çıktısı aynıdır. "scanned": OCR katmanlı tarama bu türde kaydedilmiş olabilir.
-        kinds = report.get("page_kinds")
-        return isinstance(kinds, Mapping) and bool(kinds.get("none") or kinds.get("scanned"))
-    return isinstance(version, int) and version < RULES_VERSIONS[input_format]
+    if not isinstance(version, int) or version >= RULES_VERSIONS[input_format]:
+        return False
+    steps = range(version, RULES_VERSIONS[input_format])
+    if input_format not in _PAGE_FORMATS or any(step not in _CHANGED_PAGE_KINDS for step in steps):
+        return True
+    kinds = report.get("page_kinds")
+    changed = {kind for step in steps for kind in _CHANGED_PAGE_KINDS[step]}
+    return isinstance(kinds, Mapping) and any(kinds.get(kind) for kind in changed)

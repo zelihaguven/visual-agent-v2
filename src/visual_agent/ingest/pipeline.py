@@ -18,7 +18,6 @@ from visual_agent.ingest.formats import (
 from visual_agent.ingest.plain_text import parse_plain_text
 from visual_agent.ingest.spreadsheet import parse_workbook
 from visual_agent.ingest.text_layer import PageKind
-from visual_agent.ingest.two_reading import page_ranges
 from visual_agent.verification.text import contains_token
 
 _MIN_CAPTURED_TEXT_RATIO = 0.5
@@ -42,8 +41,6 @@ class PageInfo:
 class OcrOutcome:
     pdf_path: Path
     ocr_pages: Mapping[int, tuple[str, ...]]
-    # OCR okuması kalite eşiğinin altında kaldığı için metni indekse girmeyen sayfalar.
-    image_only_pages: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -56,9 +53,7 @@ class IngestTools:
     """Metin katmanı olmayan sayfalar (karar 0011). Son değer: belge bir görsel dosyasıysa
     dosyanın kendisi (doğrudan okunur). Okuyucu yoksa `ReaderUnavailable`."""
     run_ocr: Callable[[Path, list[PageInfo], str, Path], OcrOutcome]
-    parse_pdf: Callable[[Path, Mapping[int, tuple[str, ...]], Path], list[Element]]
-    """OCR'lı belge, OCR'lı sayfalar (sayfa → belirsiz değerler) ve OCR'dan önceki PDF
-    (tablo görüntüleri ondan kesilir)."""
+    parse_pdf: Callable[[Path], list[Element]]
     read_embedded_images: Callable[[Path, list[PageInfo], str], list[Element]]
     recover_page_text: Callable[[Path, int], list[Element]]
     skipped_image_warnings: Callable[[list[PageInfo]], list[str]]
@@ -140,9 +135,7 @@ def _elements_from_pdf(
     parsed = annotate_ocr_pages(
         [
             element
-            for element in promote_code_elements(
-                tools.parse_pdf(outcome.pdf_path, outcome.ocr_pages, pdf_path)
-            )
+            for element in promote_code_elements(tools.parse_pdf(outcome.pdf_path))
             if element.location.page not in scanned
         ],
         outcome.ocr_pages,
@@ -195,13 +188,6 @@ def _build_report(
     )
 
 
-def _image_only_warnings(outcome: OcrOutcome) -> list[str]:
-    if not outcome.image_only_pages:
-        return []
-    pages = page_ranges(outcome.image_only_pages)
-    return [f"Sayfa {pages}: metin okunamadı, yalnız görüntü olarak kaldı; aramada bulunmaz."]
-
-
 def _pdf_source(path: Path, input_format: InputFormat, tools: IngestTools, work: Path) -> Path:
     if input_format is InputFormat.OFFICE:
         return tools.office_to_pdf(path, work)
@@ -222,7 +208,7 @@ def _parse(
     pdf_path = _pdf_source(path, input_format, tools, work)
     image = path if input_format is InputFormat.IMAGE else None
     elements, pages, outcome = _elements_from_pdf(pdf_path, meta, tools, work, image)
-    warnings = [*_image_only_warnings(outcome), *tools.skipped_image_warnings(pages)]
+    warnings = tools.skipped_image_warnings(pages)
     return _Parsed(elements, warnings, pages, outcome)
 
 
