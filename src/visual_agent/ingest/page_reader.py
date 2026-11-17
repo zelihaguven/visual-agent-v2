@@ -19,17 +19,18 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import httpx
 import pypdfium2
 import pypdfium2.raw as pdfium_c
-from PIL import Image
+from PIL import Image, ImageOps
 
 from visual_agent.domain.document import Box, SourceLocation
 from visual_agent.ingest.elements import Element, ElementKind
 from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.pdf_tables import TableCell, group_table_rows
+from visual_agent.ingest.text_layer import IMAGE_COVER_RATIO
 
 logger = logging.getLogger(__name__)
 
@@ -368,6 +369,44 @@ class PaddleVlReader:
             raise ReaderUnavailable(UNREACHABLE) from error
 
 
+_OCR_LAYER_SHARE = 0.9
+"""Metin nesnelerinin bu kadarı gizliyse sayfanın metni bir taramanın OCR katmanıdır."""
+
+
+def is_ocr_layer(page: Any, page_area: float) -> bool:
+    """Sayfayı kaplayan bir görüntü var ve metin görünmüyor: yazım kipi görünmez ya da metin
+    o görüntünün altında. Böyle metin dijital değil, başka bir aracın OCR çıktısıdır
+    (ocrmypdf, tarayıcı yazılımı); sayfa taranmış sayılır ve sayfa okuyucusuna gider."""
+    kinds = [pdfium_c.FPDF_PAGEOBJ_IMAGE, pdfium_c.FPDF_PAGEOBJ_TEXT]
+    items = [(item, item.get_bounds()) for item in page.get_objects(filter=kinds, max_depth=4)]
+    covers = [
+        (index, bounds)
+        for index, (item, bounds) in enumerate(items)
+        if item.type == pdfium_c.FPDF_PAGEOBJ_IMAGE
+        and (bounds[2] - bounds[0]) * (bounds[3] - bounds[1]) >= IMAGE_COVER_RATIO * page_area
+    ]
+    texts = [
+        (index, item, bounds)
+        for index, (item, bounds) in enumerate(items)
+        if item.type == pdfium_c.FPDF_PAGEOBJ_TEXT
+    ]
+    if not covers or not texts:
+        return False
+    hidden = sum(
+        pdfium_c.FPDFTextObj_GetTextRenderMode(item.raw) == pdfium_c.FPDF_TEXTRENDERMODE_INVISIBLE
+        or any(
+            above > index
+            and left >= cover[0] - 1
+            and bottom >= cover[1] - 1
+            and right <= cover[2] + 1
+            and top <= cover[3] + 1
+            for above, cover in covers
+        )
+        for index, item, (left, bottom, right, top) in texts
+    )
+    return bool(hidden >= _OCR_LAYER_SHARE * len(texts))
+
+
 ReadPage = Callable[[Path], dict[str, Any]]
 
 
@@ -399,16 +438,25 @@ def read_scanned_pages(
     work: Path,
     read_page: ReadPage | None,
     second: SecondReader,
+    source_image: Path | None = None,
 ) -> list[Element]:
     """Metin katmanı olmayan sayfaları okur. Okuyucu yoksa ya da ulaşılamıyorsa
-    `ReaderUnavailable`: sayfa başka yoldan okunmaz, belge okuyucuyu bekler."""
+    `ReaderUnavailable`: sayfa başka yoldan okunmaz, belge okuyucuyu bekler.
+
+    source_image: belge bir görsel dosyasıysa (jpg, png) dosyanın kendisi. Okuyucuya PDF'e
+    çevrilmiş kopyası değil, kendi pikselleri verilir (yalnız çekim yönü düzeltilir)."""
     document = pypdfium2.PdfDocument(path)
     try:
         elements: list[Element] = []
         for number in pages:
             page = document[number - 1]
-            image = page.render(scale=_native_scale(page)).to_pil().convert("RGB")
-            if image.convert("L").getextrema()[0] >= _BLANK_LEVEL:
+            if source_image is not None:
+                with Image.open(source_image) as opened:
+                    image = ImageOps.exif_transpose(opened).convert("RGB")
+            else:
+                image = page.render(scale=_native_scale(page)).to_pil().convert("RGB")
+            darkest, _ = cast(tuple[int, int], image.convert("L").getextrema())
+            if darkest >= _BLANK_LEVEL:
                 continue  # boş sayfa: okunacak bir şey yok, okuyucu da gerekmez
             if read_page is None:
                 raise ReaderUnavailable(NOT_CONFIGURED)

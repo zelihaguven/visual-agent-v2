@@ -140,7 +140,8 @@ def _fake_tools(calls: list[str], page_kind: PageKind = PageKind.TEXT) -> Ingest
         calls.append(f"images:{language}")
         return [Element(ElementKind.FIGURE, "Görsel metni", SourceLocation(page=1), from_ocr=True)]
 
-    def read_scanned(path: Path, pages: list[int], work: Path) -> list[Element]:
+    def read_scanned(path: Path, pages: list[int], work: Path, image: Path | None) -> list[Element]:
+        calls.append(f"image:{image.name}") if image is not None else None
         calls.append(f"reader:{pages}")
         return [
             Element(
@@ -405,7 +406,7 @@ def test_unavailable_reader_stops_the_document_without_falling_back_to_ocr(
     path.write_bytes(b"%PDF-x")
     calls: list[str] = []
 
-    def unavailable(path: Path, pages: list[int], work: Path) -> list[Element]:
+    def unavailable(path: Path, pages: list[int], work: Path, image: Path | None) -> list[Element]:
         raise ReaderUnavailable("okuyucu yok")
 
     tools = replace(_fake_tools(calls, page_kind=PageKind.NONE), read_scanned_pages=unavailable)
@@ -414,3 +415,23 @@ def test_unavailable_reader_stops_the_document_without_falling_back_to_ocr(
         ingest_document(path, META, tools, tmp_path)
 
     assert not any(call.startswith(("ocr", "parse")) for call in calls)
+
+
+def test_image_file_itself_is_given_to_the_page_reader(tmp_path: Path) -> None:
+    path = tmp_path / "foto.jpg"
+    path.write_bytes(b"\xff\xd8\xffx")
+    calls: list[str] = []
+
+    ingest_document(path, META, _fake_tools(calls, page_kind=PageKind.NONE), tmp_path)
+
+    assert "image:foto.jpg" in calls
+
+
+def test_pdf_pages_are_rendered_not_read_from_an_image_file(tmp_path: Path) -> None:
+    path = tmp_path / "tarama.pdf"
+    path.write_bytes(b"%PDF-x")
+    calls: list[str] = []
+
+    ingest_document(path, META, _fake_tools(calls, page_kind=PageKind.NONE), tmp_path)
+
+    assert not any(call.startswith("image:") for call in calls)

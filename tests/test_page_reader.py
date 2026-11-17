@@ -6,8 +6,11 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
+import pypdfium2
 import pytest
 from PIL import Image, ImageDraw
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen.canvas import Canvas
 
 from evals import ocr_score, ocr_truth
 from visual_agent.ingest import page_reader
@@ -16,6 +19,7 @@ from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.page_reader import (
     PaddleVlReader,
     ReaderConfig,
+    is_ocr_layer,
     page_elements,
     parse_reader_setting,
     read_scanned_pages,
@@ -246,3 +250,66 @@ def test_unreachable_server_means_waiting_not_failure(tmp_path: Path) -> None:
 
     with pytest.raises(ReaderUnavailable, match="ulaşılamadı"):
         reader.read(tmp_path / "s1.png")
+
+
+def test_image_file_is_read_with_its_own_pixels_and_orientation(tmp_path: Path) -> None:
+    photo = Image.new("RGB", (900, 500), "white")
+    ImageDraw.Draw(photo).rectangle((50, 50, 400, 120), fill="black")
+    source = tmp_path / "foto.png"
+    photo.save(source)
+    converted = tmp_path / "foto.pdf"
+    photo.resize((300, 167)).save(converted, "PDF", resolution=150.0)  # küçültülmüş kopya
+    sizes: list[tuple[int, int]] = []
+
+    def read_page(image: Path) -> dict[str, Any]:
+        sizes.append(Image.open(image).size)
+        block = _block(0, "text", "Tork 210 Nm")
+        return {"width": 900, "height": 500, "parsing_res_list": [block]}
+
+    elements = read_scanned_pages(converted, [1], tmp_path, read_page, lambda _: "210", source)
+
+    assert sizes == [(900, 500)]
+    box = elements[0].location.boxes[0]
+    assert box.page_width == pytest.approx(144.0) and box.left == pytest.approx(16.0)
+
+
+def _layered_pdf(path: Path, order: str, invisible: bool, cover: bool = True) -> Any:
+    """order: "image-text" (metin üstte) ya da "text-image" (metin görüntünün altında)."""
+    canvas = Canvas(str(path), pagesize=(400, 600))
+    scan = ImageReader(Image.new("RGB", (40, 60), "white"))
+
+    def draw_image() -> None:
+        size = (400, 600) if cover else (80, 80)
+        canvas.drawImage(scan, 0, 0, *size)
+
+    def draw_text() -> None:
+        for line in range(3):
+            text = canvas.beginText(40, 500 - 40 * line)
+            if invisible:
+                text.setTextRenderMode(3)
+            text.textLine("Bel 38,0 cm tolerans 1,0")
+            canvas.drawText(text)
+
+    for step in order.split("-"):
+        draw_image() if step == "image" else draw_text()
+    canvas.save()
+    return pypdfium2.PdfDocument(path)[0]
+
+
+@pytest.mark.parametrize(
+    ("order", "invisible", "cover", "expected"),
+    [
+        ("image-text", True, True, True),  # ocrmypdf: görüntünün üstünde görünmez metin
+        ("text-image", False, True, True),  # metin görüntünün altında kalmış
+        ("image-text", False, True, False),  # dijital sayfa: arka plan görüntüsü, görünür metin
+        ("image-text", True, False, False),  # küçük görsel: sayfa taranmış değil
+        ("text", False, True, False),  # yalnız metin
+        ("image", False, True, False),  # yalnız görüntü: zaten metin katmanı yok
+    ],
+)
+def test_text_hidden_under_a_page_covering_image_is_an_ocr_layer(
+    tmp_path: Path, order: str, invisible: bool, cover: bool, expected: bool
+) -> None:
+    page = _layered_pdf(tmp_path / "s.pdf", order, invisible, cover)
+
+    assert is_ocr_layer(page, 400.0 * 600.0) is expected

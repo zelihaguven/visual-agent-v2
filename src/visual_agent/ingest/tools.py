@@ -37,6 +37,7 @@ from visual_agent.ingest.images import (
 )
 from visual_agent.ingest.page_reader import (
     ReadPage,
+    is_ocr_layer,
     read_scanned_pages,
     tesseract_reader,
 )
@@ -154,6 +155,8 @@ def inspect_pdf(path: Path) -> list[PageInfo]:
             cover = min(area / (width * height or 1.0), 1.0)
             chars = len(text.strip())
             kind = classify_page(chars, cover, quality_score(text))
+            if is_ocr_layer(page, width * height):
+                kind, chars = PageKind.NONE, 0  # OCR katmanı metin katmanı sayılmaz
             result.append(PageInfo(page=number, kind=kind, chars=chars, image_boxes=boxes))
         return result
     finally:
@@ -596,14 +599,19 @@ def recover_page_text(path: Path, page: int) -> list[Element]:
 
 
 def _read_scanned(
-    path: Path, pages: list[int], work: Path, external: ExternalTools, read_page: ReadPage | None
+    path: Path,
+    pages: list[int],
+    work: Path,
+    image: Path | None,
+    external: ExternalTools,
+    read_page: ReadPage | None,
 ) -> list[Element]:
     """İkinci okuma ölçümdeki gibi Tesseract tur+eng; Tesseract yoksa belge bunu söyler."""
     if read_page is None:
         # Boş sayfalar dışında okunacak sayfa varsa okuyucu gerekir; Tesseract sonra aranır.
-        return read_scanned_pages(path, pages, work, None, lambda _: "")
+        return read_scanned_pages(path, pages, work, None, lambda _: "", image)
     second = tesseract_reader(external.require_tesseract("tur+eng"))
-    return read_scanned_pages(path, pages, work, read_page, second)
+    return read_scanned_pages(path, pages, work, read_page, second, image)
 
 
 def default_tools(

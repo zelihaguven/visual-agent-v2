@@ -23,7 +23,9 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 - Model boyutu: PaddleOCR-VL-1.6 3,6 GB (Hugging Face önbelleği), düzen modeli 126 MB.
 - `local` kipi Windows'ta ve işlemcide denenmedi; hız ürün sahibinin makinesinde ölçülecek.
 - Tarama okuyucuya kendi çözünürlüğünde verilir. İlk denemede 300 dpi'ye büyütülen 120 dpi taramada Tesseract tablodaki 13 değerin hiçbirini doğrulayamadı (hepsi gizlendi); kendi çözünürlüğünde hepsi uyuştu. Çok düşük ya da çok yüksek çözünürlüklü gerçek taramalarda davranış ölçülmedi.
-- Metin katmanı olan taranmış sayfalar (`SCANNED`, `WEAK`) eski OCR yolunda kaldı; 0010'daki 788 yanlış değerin bu yoldan gelen kısmı sürüyor. Onları da okuyucuya vermek ayrı karar.
+- OCR katmanlı taramalar okuyucuya gidiyor (0011). Görünür ama zayıf metin katmanı (`WEAK`) ve büyük görselli dijital sayfa (`SCANNED`) eski yolda. Kuralın eşiği (%90 gizli metin nesnesi) gerçek tarayıcı çıktılarında denenmedi: yalnız eski hattın ürettiği 252 ocrmypdf sayfasında (hepsi yakalandı) ve üretilmiş test sayfalarında denendi. Yüklü belgelerde bu türden sayfa yok.
+- Fotoğraf doğrudan okutulunca (2026-11-17, `dikim-foto.jpg`, iki koşu) sayılar aynı ve doğru kaldı, ama etiketler bozuldu: "Ổḷc̃u noktasi", "Toierans". PDF'e çevrilmiş kopyadan okunurken "Ölçü noktası", "Tolerans" okunmuştu. Tek örnek; neden ve yaygınlık incelenmedi. Sayı içermeyen yanlış gizlenmediği için arama ve cevap metnini etkiler.
+- OCR katmanlı taramada (`dikim-tarama`'nın ocrmypdf çıktısı) değerlerin hepsi doğru okundu; ikisi (74,5 ve 36,0) ikinci okumayla uyuşmadığı için gizlendi, başlık "iGML-6473" okundu ve belirsiz işaretlendi.
 - Karışık belgede (metinli + taranmış sayfa) okuyucu yokken metinli sayfalar da aranamıyor.
 - Yüklü taranmış belgeler eski kuralla duruyor ("Eski kural"); yeniden işlenmedi.
 - Arayüzde "Okuyucu bekleniyor" etiketi nötr renkte; `arayuz-calisma-alani` birleşince uyarı rengine alınabilir.

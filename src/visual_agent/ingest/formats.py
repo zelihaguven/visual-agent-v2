@@ -89,6 +89,10 @@ def detect_format(path: Path) -> InputFormat:
     return input_format
 
 
+_BEFORE_PAGE_READER = 7
+_PAGE_FORMATS = (InputFormat.PDF, InputFormat.OFFICE, InputFormat.IMAGE)
+
+
 def is_outdated(report: Mapping[str, object], filename: str) -> bool:
     """Belge, biçiminin bugünkü kuralından eski bir kuralla işlendiyse True (kayıtlı rapordan)."""
     recorded = report.get("input_format")
@@ -96,4 +100,9 @@ def is_outdated(report: Mapping[str, object], filename: str) -> bool:
     if input_format is None:
         return False
     version = report.get("rules_version", UNRECORDED_RULES)
+    if version == _BEFORE_PAGE_READER and input_format in _PAGE_FORMATS:
+        # Kural 8 yalnız taranmış sayfaların okunuşunu değiştirdi; öyle sayfası olmayan belgenin
+        # çıktısı aynıdır. "scanned": OCR katmanlı tarama bu türde kaydedilmiş olabilir.
+        kinds = report.get("page_kinds")
+        return isinstance(kinds, Mapping) and bool(kinds.get("none") or kinds.get("scanned"))
     return isinstance(version, int) and version < RULES_VERSIONS[input_format]
