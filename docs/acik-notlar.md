@@ -17,6 +17,7 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 
 ## Sayfa okuyucusu (0011)
 
+- Tablo başlığı kuralının kusurları (2026-11-17, yüklü 17 föy, 427 tablo): 5 kapak formu hâlâ başlıklı sayılıyor (değer sütununda rakam taşıyan bir değer, ör. "Prototype 1", tesadüfen başlık kanıtı üretiyor; etiket-değer kayması bunlarda sürüyor). 64 malzeme tablosunun 10'u başlığını kaybediyor (renk sütunlarının başlığı rakam taşıyor: "001: Black // White"); satırlar etiketsiz kalıyor, yanlış etikete bağlanmıyor. Tamamı metin olan başlıklı tablolar da başlıksız sayılır. Okuyucu `rowspan` da üretiyor (102 kez); satır birleştirmesi bugün yok sayılıyor.
 - Fotoğrafta başlık bölüme dönüşmüyor (2026-11-17): `dikim-foto.jpg` yeniden işlenince okuyucu başlığı düz metin olarak etiketledi; tablo satırlarının bölümü boş kaldı ve ürün kodu (MNT-8598) satırlara bağlanmadı. "MNT-8598 S beden dış paça kaç?" artık "bulunamadı" dönüyor; eski hatta bölüm "MNT-8598 ölçü föyü · Ölçü tablosu" idi ve soru cevaplanabiliyordu. Önerilen genel kural (uygulanmadı): sayfada başlık bloğu yoksa ilk tablodan önceki en üstteki kısa metin bloğu tablo satırlarına bölüm olarak eklenir. Ölçülen adayı değiştirir; set B ile ölçülür.
 - Bir tolerans hücresi "-{3 1/8}" diye süslü parantezle okundu (tech pack, 2026-11-17 ölçümü); nedeni incelenmedi.
 - Konuşma modu kullanıcının sözünü kesti (2026-11-17, ürün sahibi denemesi); kesilen cümle soru sayılıp belgelerde arandı.
