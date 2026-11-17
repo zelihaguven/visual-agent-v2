@@ -135,14 +135,15 @@ def _clarify_all(count: int) -> dict:  # type: ignore[type-arg]
     return {"tur": "netlestirme", "netlestirme": {"soru": "Hangisi?", "secenekler": options}}
 
 
-def test_more_than_four_candidates_are_not_listed() -> None:
+def test_more_than_four_candidates_are_listed_too() -> None:
+    """Eskiden dörtten fazla aday düğmesiz kalıyordu (sınır setinde D3)."""
     hits = _many([f"Model {n}: bel {70 + n} cm ve kalça değeri" for n in range(5)])
     client = SequenceClient([_clarify_all(5), _answer("Model 0: bel 70 cm", "Bel 70 cm.")])
 
     result = _ask(client, hits).result
 
     assert isinstance(result, Clarify)
-    assert result.options == ()
+    assert len(result.options) == 5
 
 
 def test_four_candidates_are_still_listed() -> None:

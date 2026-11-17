@@ -328,14 +328,22 @@ def _answered_item(
     )
 
 
+def _relevant_documents(documents: Sequence[str], state: AskState, deps: AskDeps) -> list[str]:
+    """Soruda bir kod ya da belge adı geçiyorsa yalnız onu taşıyan aday belgeler seçenek olur:
+    model, soruda adı geçmeyen bir ürünün kaynağını da seçenek gösterebiliyor. Soru hiçbir
+    adayı adlandırmıyorsa adayların hepsi kalır."""
+    codes = identifiers_in(state.question) | deps.identifiers.codes_in_speech(state.question)
+    named = set(deps.catalog.mentioned_in(state.question, documents))
+    named.update(doc for doc in documents for code in codes if deps.identifiers.lookup(code, [doc]))
+    return [doc for doc in documents if doc in named] or list(documents)
+
+
 def _clarification(
     answer: ModelAnswer, documents: Sequence[str], state: AskState, deps: AskDeps
 ) -> Clarify:
-    """Belge düğmeleri yalnız 2-4 aday belgede gösterilir; daha çoğu listelenmez."""
-    show_choices = (
-        _MIN_CLARIFY_DOCUMENTS <= len(documents) <= _MAX_CLARIFY_DOCUMENTS
-        and not state.request.doc_ids
-    )
+    """Aday belgeler düğme olur: en az iki belge ve kapsam kullanıcı tarafından seçilmemişse.
+    Üst sınır yok; aday sayısı zaten arama sonucu sayısıyla sınırlıdır."""
+    show_choices = len(documents) >= _MIN_CLARIFY_DOCUMENTS and not state.request.doc_ids
     return Clarify(
         question=safe_clarify_question(
             answer.clarify.question if answer.clarify else "", state.question, state.language
@@ -375,7 +383,9 @@ async def verify(state: AskState, deps: AskDeps) -> AskState:
     if verification.status is VerificationStatus.NOT_FOUND:
         return replace(state, result=NotFound())
     if verification.status is VerificationStatus.CLARIFY:
-        documents = candidate_documents(state.hits, verification.clarify_options)
+        documents = _relevant_documents(
+            candidate_documents(state.hits, verification.clarify_options), state, deps
+        )
         agreed, cost = await agreed_answer(
             state.question, state.language, state.hits, documents, deps, _citation
         )
