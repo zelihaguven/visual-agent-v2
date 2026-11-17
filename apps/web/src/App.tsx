@@ -26,6 +26,8 @@ import { applyEvent, newTurn, type Turn } from "./turn";
 
 const ASK_FAILED = "Cevap alınamadı. Bağlantınızı kontrol edip yeniden deneyin.";
 const ASK_STOPPED = "Soru durduruldu.";
+// App.css içindeki çalışma alanı kırılımıyla aynı.
+const WORKSPACE_QUERY = "(min-width: 1080px)";
 
 type AskOptions = {
   context: ConversationContext | null;
@@ -46,7 +48,10 @@ export function App() {
   const [speech, setSpeech] = useState<{ turnId: string; status: SpeechStatus } | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [hasVoiceService, setHasVoiceService] = useState(true);
-  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  // Geniş ekranda belgeler sohbetin yanında açık başlar; dar ekranda çekmecedir.
+  const [isLibraryOpen, setIsLibraryOpen] = useState(
+    () => window.matchMedia?.(WORKSPACE_QUERY).matches ?? false,
+  );
   const [summary, setSummary] = useState<DocumentSummary | null>(null);
   const closeLibrary = useCallback(() => setIsLibraryOpen(false), []);
   // Yoklama her turda yeni nesne getirir; sayılar değişmedikçe yeniden çizilmez.

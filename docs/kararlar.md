@@ -794,6 +794,19 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Geri eklemek için:** Yeni bir gerekçe gerekir (ör. gece vardiyasında ölçülmüş bir okuma
   sorunu).
 
+### Çalışma alanı düzeni; lacivert, mercan, krem görünüm
+- **Ne zaman:** 2026-11-16, `arayuz-calisma-alani` dalı; ürün sahibi isteği ve gönderdiği örnek
+  görsel. "Tek açık tema" kararının yerini alır: zemin lacivert, cevap ve kaynak krem/beyaz
+  yüzeyde (koyu zemin üstünde açık kart; ayrı bir açık tema yok).
+- **Ne:** 1080 px ve üstünde belgeler solda, kaynak sağda sabit panel; sohbet ortada kullanılır
+  kalır (karartma yok), belgeler paneli açık başlar. Dar ekranda eskisi gibi çekmece. Açılışta
+  bento karolar (büyük mercan "Sesli sor", krem "Yazarak sor", beyaz "Belge ekle"); konuşma
+  modunda ses düzeyiyle büyüyen küre.
+- **Nasıl:** `App.css`, `App.tsx`'te açılış durumu, `LandingActions.tsx`'te karo sınıfı ve ok
+  simgesi. Metinler ve erişilebilirlik adları değişmedi. Harici yazı tipi yok.
+- **Denenmedi:** atölye ışığında koyu zeminin okunurluğu; konuşma modu yalnız stil olarak
+  değişti, mikrofonla denenmedi.
+
 ### İnternetsiz açılış: VA_MODELS_OFFLINE; BM25 önbelleği kalıcı klasörde
 - **Ne zaman:** 2026-11-13, `cevrimdisi-acilis` dalı; ürün sahibi isteği (fabrika ağında
   internet olmayabilir).
