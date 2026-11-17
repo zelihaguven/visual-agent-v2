@@ -99,6 +99,8 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 
 ## Kurulum
 
+- İki OpenCV paketi birlikte kuruluyor: `opencv-python-headless` 5.0 (rapidocr, docling) ve `opencv-contrib-python` 4.10 (paddleocr). İkisi de aynı `cv2` klasörüne yazar; hangisinin kaldığı kurulum sırasına bağlı. CI'da aynı kilitle bir koşu geçti, bir koşu `libGL.so.1` yok diye kırıldı; işçi imajına `libgl1` eklendi, böylece ikisi de açılıyor. Hangi sürümün çalıştığı yine belirsiz: birini dışarıda bırakmak (uv `override-dependencies`) ayrı karar, paddleocr'ın contrib modüllerine ihtiyacı ölçülmeden yapılmasın.
+
 - RapidOCR modelleri .venv içinde; paket yeniden kurulursa modelscope.cn'den yeniden iner (internet gerekir).
 - LibreOffice dönüştürmesinin 180 sn sınırı işlemci doluyken aşılabiliyor: iki vektörleme işi aynı anda çalışırken taban ölçümünde `sql-ekran.docx` ve `sql-notlar.docx` PDF'e çevrilemedi (`TimeoutExpired`). İşlemci boşken aynı belgeler sorunsuz çevrildi. Uygulamada belge yüklemesi büyük bir yeniden işlemeyle çakışırsa Office belgesi "işlenemedi" olabilir; sınırın yükle ilişkisi ölçülmedi.
 - Sunucu (Docker) kurulumundaki Docling model indirme komutu (`docling-tools models download`) önceki bilgisayarda takıldı ve hiç doğrulanmadı. Yerel kurulumda bu komut kullanılmıyor, modeller ilk belgede kendiliğinden iniyor. Sunucuya ilk kurulumda denenecek; takılırsa nedeni bulunacak.
