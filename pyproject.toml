@@ -82,6 +82,8 @@ omit = ["*/ingest/tools.py", "*/ingest/docling_parser.py", "*/retrieval/encoders
 line-length = 100
 target-version = "py312"
 src = ["src", "."]
+# Dondurulmuş ölçüm kayıtlarındaki betikler ölçüldükleri haliyle saklanır; biçimlenmez.
+extend-exclude = ["evals/results"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "C90"]
@@ -93,8 +95,8 @@ max-complexity = 10
 python_version = "3.12"
 strict = true
 files = ["src", "apps", "evals", "tests"]
-# Ölçüm çıktıları ve oradaki tek seferlik betikler git dışıdır; denetimi kırmamalı.
-exclude = ["^evals/output/"]
+# Ölçüm çıktıları git dışıdır; dondurulmuş ölçüm kayıtlarının betikleri ölçüldükleri haliyle kalır.
+exclude = ["^evals/output/", "^evals/results/"]
 plugins = ["pydantic.mypy"]
 explicit_package_bases = true
 mypy_path = ["src", "."]

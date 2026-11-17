@@ -1,0 +1,278 @@
+{
+    "input_path": "olcum/sayfalar/syn3_s4_foto/s4.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 2881,
+    "height": 2127,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Tasvi Wear</td><td>13.02.2027</td></tr><tr><td>HL-0BI8</td><td>Vefe Hoodie</td></tr></table>",
+            "block_bbox": [
+                316,
+                221,
+                2678,
+                367
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    314.468994140625,
+                    253.02088928222656
+                ],
+                [
+                    2677.000244140625,
+                    220.9999542236328
+                ],
+                [
+                    2678.54248046875,
+                    334.789306640625
+                ],
+                [
+                    316.01123046875,
+                    366.81024169921875
+                ]
+            ]
+        },
+        {
+            "block_label": "figure_title",
+            "block_content": "Malzeme listesi",
+            "block_bbox": [
+                313,
+                397,
+                610,
+                446
+            ],
+            "block_id": 1,
+            "block_order": null,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    313.0,
+                    397.0
+                ],
+                [
+                    610.0,
+                    397.0
+                ],
+                [
+                    610.0,
+                    446.0
+                ],
+                [
+                    313.0,
+                    446.0
+                ]
+            ]
+        },
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Malzeme</td><td>Açıklama</td><td>Miktar</td><td>Birim</td><td>459 Mürdiüm</td><td>167 Kum</td><td>681 Fjord</td><td>643 Moss</td></tr><tr><td>BZ1AI3</td><td>Drawcord - Katu - 315 gsm - Morharhar</td><td>2.38</td><td>ad.</td><td>Kum</td><td>Kömür</td><td>Kum</td><td>Ochre</td></tr><tr><td>SL3AZ-S</td><td>Rib trim - Katu - 389 gsm - Zelpiro - İplik</td><td>1.5184</td><td>ad.</td><td>Kum</td><td>Slate</td><td>Fildişi</td><td>Fildişi</td></tr><tr><td>NR820</td><td>Button - Fevi - 190 gsm - Yanisve - Button</td><td>0.61</td><td>yd</td><td>Ember</td><td>Bulut</td><td>Fjord</td><td>Moss</td></tr><tr><td>B8-AAISS</td><td>Button - Mormi - 247 gsm - Vivegi - Örme kumaş - %40 Raktu - L4115</td><td>0.6648</td><td>yd</td><td>Ember</td><td>Kömür</td><td>Ochre</td><td>Gece</td></tr><tr><td>4M-139Z</td><td>Label - Serve - 232 gsm</td><td>0.08</td><td>kg</td><td>Moss</td><td>Mürdiüm</td><td>Kiremit</td><td>Gece</td></tr><tr><td>ZN9S40</td><td>Thread - Harko - 254 gsm - Dandada - Thread - %51 Kami - 8R86AA9</td><td>0.56</td><td>kg</td><td>Slate</td><td>Zeytin</td><td>Fjord</td><td>Bulut</td></tr><tr><td>4S-S88</td><td>Etiket - Yave - 292 gsm - Lolorak - İplik - %89 Kolen - 8EA105</td><td>0.9004</td><td>m</td><td>Lilac</td><td>Ember</td><td>Kömür</td><td>Gece</td></tr><tr><td>GFSAI15</td><td>Düşme - Miro - 223 gsm - Pikoko - Rib trim</td><td>0.4100</td><td>ad.</td><td>Moss</td><td>Moss</td><td>Gece</td><td>Zeytin</td></tr></table>",
+            "block_bbox": [
+                314,
+                435,
+                2035,
+                939
+            ],
+            "block_id": 2,
+            "block_order": null,
+            "group_id": 2,
+            "block_polygon_points": [
+                [
+                    314.0,
+                    435.0
+                ],
+                [
+                    2035.0,
+                    435.0
+                ],
+                [
+                    2035.0,
+                    939.0
+                ],
+                [
+                    314.0,
+                    939.0
+                ]
+            ]
+        },
+        {
+            "block_label": "number",
+            "block_content": "SYN-3 · 4/6 · A",
+            "block_bbox": [
+                308,
+                1900,
+                450,
+                1925
+            ],
+            "block_id": 3,
+            "block_order": null,
+            "group_id": 3,
+            "block_polygon_points": [
+                [
+                    308.0,
+                    1900.0
+                ],
+                [
+                    450.0,
+                    1900.0
+                ],
+                [
+                    450.0,
+                    1925.0
+                ],
+                [
+                    308.0,
+                    1925.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.6776026487350464,
+                "coordinate": [
+                    316,
+                    221,
+                    2678,
+                    367
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        314.468994140625,
+                        253.02088928222656
+                    ],
+                    [
+                        2677.000244140625,
+                        220.9999542236328
+                    ],
+                    [
+                        2678.54248046875,
+                        334.789306640625
+                    ],
+                    [
+                        316.01123046875,
+                        366.81024169921875
+                    ]
+                ]
+            },
+            {
+                "cls_id": 7,
+                "label": "figure_title",
+                "score": 0.45971444249153137,
+                "coordinate": [
+                    313,
+                    397,
+                    610,
+                    446
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        313.0,
+                        397.0
+                    ],
+                    [
+                        610.0,
+                        397.0
+                    ],
+                    [
+                        610.0,
+                        446.0
+                    ],
+                    [
+                        313.0,
+                        446.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.8348146080970764,
+                "coordinate": [
+                    314,
+                    435,
+                    2035,
+                    939
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        314.0,
+                        435.0
+                    ],
+                    [
+                        2035.0,
+                        435.0
+                    ],
+                    [
+                        2035.0,
+                        939.0
+                    ],
+                    [
+                        314.0,
+                        939.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 16,
+                "label": "number",
+                "score": 0.6602187752723694,
+                "coordinate": [
+                    308,
+                    1900,
+                    450,
+                    1925
+                ],
+                "order": 1,
+                "polygon_points": [
+                    [
+                        308.0,
+                        1900.0
+                    ],
+                    [
+                        450.0,
+                        1900.0
+                    ],
+                    [
+                        450.0,
+                        1925.0
+                    ],
+                    [
+                        308.0,
+                        1925.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

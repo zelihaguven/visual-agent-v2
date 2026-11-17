@@ -318,3 +318,38 @@ def test_generator_still_reproduces_set_a(tmp_path: Path) -> None:
     from evals.render.techpack_pdf import generate_set
 
     assert generate_set(FROZEN_TECHPACK_SEED, 5, tmp_path, "A") == FROZEN_TECHPACK_SET_A
+
+
+FROZEN_SET_A_SIMULATION_SEED = 20261116
+FROZEN_SET_A_SIMULATION = {
+    "syn1_tarama.pdf": "59ae4f3b2e85e678d112cc6764483e757bf54dcd4e7eb6a0018b77fd3bae9ebd",
+    "syn2_tarama.pdf": "c5288ee6ab3b239f8e44c4b6019b6b319a60ac76d90c1eebfff5251449c90c0d",
+    "syn3_tarama.pdf": "047a52aeddbf87bf3ff9a1fd38e2664265459ad6b4191b81839959c7777eabe5",
+    "syn4_tarama.pdf": "7c52afb49e0914136deab02e624457cf80517501221e0308b613d7bcf9cdf165",
+    "syn5_tarama.pdf": "6b8de4fbc80bb6fd1b259be9462097fa0a3bb7ab4821b98286b46fe407641c33",
+    "syn5_s6_foto.jpg": "9fa9b1b95be30186960eada2ba30aeaf4c5101df2eb2d41e8cbba583d2cde76a",
+    "syn3_s4_foto.jpg": "eb5d9f19a9108dbcd050591638af8c5dcc5e3d17c6b457fd5a3d299e2c398b8c",
+    "syn1_s6_foto.jpg": "3b448005a710cfa01e7014904e85a9ccac45f06085a77f3d41a2dfda7056b2b9",
+    "syn3_s2_foto.jpg": "5b2716fce9fc6ac4f604b2fe10900f286945487764b107c5ceb88162f241fcab",
+    "syn4_s4_foto.jpg": "14869a929dbb884cec3ac881b7665dacca6922ca1cfa752bd9e0eceb43e7fc16",
+    "syn1_s4_foto.jpg": "71bac6c3f9d38d922ad148dd3e675290c71f4fdf94a9e9c950c5f5b629fa7998",
+    "syn3_s1_foto.jpg": "23deedc7148fcf10edda58229b4a2ea5aa5663c4bef59cd47f598daa8eebd899",
+    "syn4_s1_foto.jpg": "0039bdb47c1518214bd4a7489816cf53190d6da7f3f38a6b61d3e7554b0c9951",
+    "syn4_s5_foto.jpg": "2ee5e214069044effe148b71c572bdf592c827f03ae04e7554cb64231cd9d403",
+    "syn1_s2_foto.jpg": "5087eb8948de74c5e76ebd37bf6fec04e580c88a2ca25f5c1d34044749935173",
+    "syn2_s6_foto.jpg": "03c17dfd715b59f03884611b87f42efef5b8412bd661bab3033d1e3989d81a36",
+    "syn5_s4_foto.jpg": "1f2b30b339a5f19ec7aaf4616bae32c27fc5ff12a03543dfe1572f1a8688acc9",
+}
+"""Set A'nın taranmış (300 dpi) ve telefonla çekilmiş benzetimi (2026-11-16, karar 0009):
+basılı tarama yapılamadığı için ölçüm bu dosyalarla yapılır. Hiçbir okuyucu çalıştırılmadan
+donduruldu; benzetim değişirse bu test kırılır ve yeni benzetim yeni bir setle ölçülür."""
+
+
+def test_set_a_simulation_is_frozen(tmp_path: Path) -> None:
+    import hashlib
+
+    from evals.render.imaging import degrade_set
+
+    names = degrade_set(FROZEN_TECHPACK_DIR, tmp_path, FROZEN_SET_A_SIMULATION_SEED)
+    produced = {name: hashlib.sha256((tmp_path / name).read_bytes()).hexdigest() for name in names}
+    assert produced == FROZEN_SET_A_SIMULATION

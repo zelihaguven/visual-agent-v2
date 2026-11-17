@@ -1,0 +1,278 @@
+{
+    "input_path": "olcum/sayfalar/syn1_tarama/s5.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 2482,
+    "height": 3508,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Danser Apparel</td><td>17.04.2024</td></tr><tr><td>VV1Z7-V</td><td>Koson Pantolon</td></tr></table>",
+            "block_bbox": [
+                177,
+                128,
+                2369,
+                304
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    177.0,
+                    128.0
+                ],
+                [
+                    2370.23583984375,
+                    163.03570556640625
+                ],
+                [
+                    2368.0,
+                    303.0
+                ],
+                [
+                    174.76416015625,
+                    267.96429443359375
+                ]
+            ]
+        },
+        {
+            "block_label": "figure_title",
+            "block_content": "Malzeme listesi",
+            "block_bbox": [
+                173,
+                297,
+                603,
+                362
+            ],
+            "block_id": 1,
+            "block_order": null,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    173.0,
+                    297.0
+                ],
+                [
+                    603.0,
+                    297.0
+                ],
+                [
+                    603.0,
+                    362.0
+                ],
+                [
+                    173.0,
+                    362.0
+                ]
+            ]
+        },
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Material</td><td>Açıklama</td><td>Qty</td><td>Birim</td><td>749 Kömür</td><td>863 Lilac</td></tr><tr><td>VM801I</td><td>Label - Felo - 329 gsm - Harkami</td><td>2.94</td><td>m</td><td>Fjord</td><td>Ochre</td></tr><tr><td>CB-I8AA</td><td>Button - Dako - 171 gsm - Nupiser - Jersey knit - %50 Koson</td><td>2.6725</td><td>kg</td><td>Fildişi</td><td>Lilac</td></tr><tr><td>BV-058</td><td>Jersey knit - Belda - 161 gsm</td><td>1.1089</td><td>pcs</td><td>Zeytin</td><td>Gece</td></tr><tr><td>E4A16-E</td><td>Ribana - Nuson</td><td>1.0749</td><td>m</td><td>Fildişi</td><td>Kum</td></tr><tr><td>N2I41-N</td><td>Label - Nisko</td><td>0.63</td><td>ad.</td><td>Kum</td><td>Bulut</td></tr><tr><td>5E404-5</td><td>Kordon - Venu - 145 gsm</td><td>1.7896</td><td>kg</td><td>Slate</td><td>Moss</td></tr><tr><td>GII7S-G</td><td>Kordon - Rovi - 166 gsm - Sersonpi - Dügme</td><td>0.22</td><td>kg</td><td>Lilac</td><td>Mürdüm</td></tr></table>",
+            "block_bbox": [
+                165,
+                372,
+                1960,
+                933
+            ],
+            "block_id": 2,
+            "block_order": null,
+            "group_id": 2,
+            "block_polygon_points": [
+                [
+                    165.0,
+                    372.0
+                ],
+                [
+                    1960.0,
+                    372.0
+                ],
+                [
+                    1960.0,
+                    933.0
+                ],
+                [
+                    165.0,
+                    933.0
+                ]
+            ]
+        },
+        {
+            "block_label": "footer",
+            "block_content": "SYN-1 · 5/6 · A",
+            "block_bbox": [
+                112,
+                3388,
+                304,
+                3422
+            ],
+            "block_id": 3,
+            "block_order": null,
+            "group_id": 3,
+            "block_polygon_points": [
+                [
+                    112.0,
+                    3388.0
+                ],
+                [
+                    304.0,
+                    3388.0
+                ],
+                [
+                    304.0,
+                    3422.0
+                ],
+                [
+                    112.0,
+                    3422.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.7856118679046631,
+                "coordinate": [
+                    177,
+                    128,
+                    2369,
+                    304
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        177.0,
+                        128.0
+                    ],
+                    [
+                        2370.23583984375,
+                        163.03570556640625
+                    ],
+                    [
+                        2368.0,
+                        303.0
+                    ],
+                    [
+                        174.76416015625,
+                        267.96429443359375
+                    ]
+                ]
+            },
+            {
+                "cls_id": 7,
+                "label": "figure_title",
+                "score": 0.5519770383834839,
+                "coordinate": [
+                    173,
+                    297,
+                    603,
+                    362
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        173.0,
+                        297.0
+                    ],
+                    [
+                        603.0,
+                        297.0
+                    ],
+                    [
+                        603.0,
+                        362.0
+                    ],
+                    [
+                        173.0,
+                        362.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.9106270670890808,
+                "coordinate": [
+                    165,
+                    372,
+                    1960,
+                    933
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        165.0,
+                        372.0
+                    ],
+                    [
+                        1960.0,
+                        372.0
+                    ],
+                    [
+                        1960.0,
+                        933.0
+                    ],
+                    [
+                        165.0,
+                        933.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 8,
+                "label": "footer",
+                "score": 0.6574971675872803,
+                "coordinate": [
+                    112,
+                    3388,
+                    304,
+                    3422
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        112.0,
+                        3388.0
+                    ],
+                    [
+                        304.0,
+                        3388.0
+                    ],
+                    [
+                        304.0,
+                        3422.0
+                    ],
+                    [
+                        112.0,
+                        3422.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

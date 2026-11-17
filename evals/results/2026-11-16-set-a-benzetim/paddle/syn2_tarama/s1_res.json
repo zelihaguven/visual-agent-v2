@@ -1,0 +1,246 @@
+{
+    "input_path": "olcum/sayfalar/syn2_tarama/s1.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 2482,
+    "height": 3508,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Gison Moda</td><td colspan=\"2\">04.04.2025</td></tr><tr><td>HF-AII0Z</td><td colspan=\"2\">Ropi Pantolon</td></tr><tr><td colspan=\"3\">Cover sheet</td></tr><tr><td>Numune durumu On hold</td><td>Hazirlayan</td><td>Pinis Kapidan</td></tr><tr><td>Style #</td><td>HF-AII0Z</td><td>Modified by Damor Vipigi</td></tr><tr><td>Season</td><td>SS26</td><td>Supplier round</td></tr><tr><td>Fit type</td><td>Oversize</td><td>Style name Ropi Pantolon</td></tr><tr><td>Main material</td><td>LK-A927</td><td>Tedarikçi Vedanser Ltd.</td></tr></table>",
+            "block_bbox": [
+                166,
+                127,
+                2365,
+                796
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    166.0,
+                    127.0
+                ],
+                [
+                    2365.0,
+                    127.0
+                ],
+                [
+                    2365.0,
+                    796.0
+                ],
+                [
+                    166.0,
+                    796.0
+                ]
+            ]
+        },
+        {
+            "block_label": "number",
+            "block_content": "SYN-2 · 1/6 · A",
+            "block_bbox": [
+                117,
+                3389,
+                306,
+                3423
+            ],
+            "block_id": 1,
+            "block_order": null,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    117.0,
+                    3389.0
+                ],
+                [
+                    306.0,
+                    3389.0
+                ],
+                [
+                    306.0,
+                    3423.0
+                ],
+                [
+                    117.0,
+                    3423.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.3871963322162628,
+                "coordinate": [
+                    176,
+                    130,
+                    2360,
+                    310
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        175.9998779296875,
+                        130.0
+                    ],
+                    [
+                        2361.15478515625,
+                        162.0316162109375
+                    ],
+                    [
+                        2359.00048828125,
+                        309.0
+                    ],
+                    [
+                        173.8455810546875,
+                        276.9683837890625
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.6522512435913086,
+                "coordinate": [
+                    166,
+                    127,
+                    2365,
+                    796
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        166.0,
+                        127.0
+                    ],
+                    [
+                        2365.0,
+                        127.0
+                    ],
+                    [
+                        2365.0,
+                        796.0
+                    ],
+                    [
+                        166.0,
+                        796.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 17,
+                "label": "paragraph_title",
+                "score": 0.4800705015659332,
+                "coordinate": [
+                    171,
+                    323,
+                    446,
+                    379
+                ],
+                "order": 1,
+                "polygon_points": [
+                    [
+                        171.0,
+                        323.0
+                    ],
+                    [
+                        446.0,
+                        323.0
+                    ],
+                    [
+                        446.0,
+                        379.0
+                    ],
+                    [
+                        171.0,
+                        379.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.38942837715148926,
+                "coordinate": [
+                    165,
+                    405,
+                    2340,
+                    789
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        165.0,
+                        405.0
+                    ],
+                    [
+                        2340.0,
+                        405.0
+                    ],
+                    [
+                        2340.0,
+                        789.0
+                    ],
+                    [
+                        165.0,
+                        789.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 16,
+                "label": "number",
+                "score": 0.5601420998573303,
+                "coordinate": [
+                    117,
+                    3389,
+                    306,
+                    3423
+                ],
+                "order": 2,
+                "polygon_points": [
+                    [
+                        117.0,
+                        3389.0
+                    ],
+                    [
+                        306.0,
+                        3389.0
+                    ],
+                    [
+                        306.0,
+                        3423.0
+                    ],
+                    [
+                        117.0,
+                        3423.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

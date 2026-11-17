@@ -887,7 +887,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Eski klasörler:** n3–n9, run7-taban, run11-taban ve fastreact karşılaştırma için
   kalıyor. `evals/output/` `.gitignore`'da; repoda izlenen dosyası yok.
 
-## Karar belgeleri 0001–0008
+## Karar belgeleri 0001–0010
 
 Eskiden `docs/decisions/` altındaki dört belgenin tam metni. Yukarıdaki maddelerde "0001"–"0004" diye anılan belgeler bunlar.
 
@@ -1128,3 +1128,43 @@ Tarih: 2026-11-16. Dal: `sentetik-techpack` (PR #60). Hiçbir okuyucu set A'ya �
 - **Rapor kırılımı:** Her iki sayım ayrıca sayfa türüne (kapak, yorum, değerlendirme, BOM, ölçü, fark) ve kesir yazımına göre verilir. Kesir yazımı belgeye göre: syn1 ve syn4 tek karakter (⅜), syn3 düz (3/8), syn5 küçük rakamlı, syn2 küçük rakamlı ama santimetre (kesir az). Kırılım dondurulmuş puanlamanın sonuçlarından hesaplanır; puanlama kodu değişmez.
 
 **Kurallar.** `ocr_score.py` ve `ocr_truth.py` özetleri testte; ölçümden sonra değişmez. Her aday set A'nın taranmış ve fotoğraflanmış sayfalarında bir kez ölçülür; sonuçlara bakıp üretici, puanlama ya da dönüştürücü değiştirilmez. Raporda "doğrulanmış yanlış değer" yanında sayı içermeyen yanlış cümleler de ayrıca yazılır.
+
+### 0009: Set A basılı taranamadı; ölçüm taranmış ve fotoğraflanmış benzetimle yapılır
+Tarih: 2026-11-16. Dal: `set-a-benzetim`. Ekip set A'yı basıp tarayamadı; benzetimi kod üretir. Hiçbir okuyucu çalıştırılmadan donduruldu.
+
+**Benzetim (`evals/render/imaging.py`, `degrade_set`, tohum 20261116).**
+- Tarama: 30 sayfanın hepsi, 300 dpi gri; ±1,5° eğiklik, 0,4–0,8 piksel bulanıklık, Gauss gürültüsü (σ 6), kontrast 0,85–1,05. Belge başına bir PDF (`synN_tarama.pdf`).
+- Telefon fotoğrafı: her sayfa türünden 2 sayfa (12 fotoğraf), ~220 dpi; masa zemini, köşelerde %3'e kadar perspektif (dönme dahil, tek dönüşüm), bir yandan gelen ışık (en karanlık yer %67), 0,6–1,0 piksel bulanıklık, gürültü (σ 8), JPEG kalite 70–85 (`synN_sM_foto.jpg`).
+- Var olan düşük çözünürlüklü benzetim (yaklaşık 122 dpi; geliştirme setleri için) değişmedi; set A'nın 7–8,5 puntoluk yazısı için kullanılmadı.
+- Aynı tohum aynı dosyaları verir (gürültü tohumdan türetilir, PDF tarihi sabit); 17 dosyanın sha256 özetleri testte. Dosyalar 31 MB olduğu için repoya girmedi; testteki özetlerle yeniden üretilir.
+
+**Sınırlar (ölçüm raporunda yazılacak).** Gerçek kâğıt, gerçek tarayıcı ve gerçek telefon değil: kâğıt dokusu, mürekkep yayılması, katlanma, gölge, odak dışı bölge, kamera bükülmesi ve renkli gürültü yok; bozulmalar düzgün ve tek tip. Sonuçlar gerçek taramaya göre iyimser olabilir. Karar kuralı (0008) değişmeden uygulanır.
+
+### 0010: Okuma ölçümü sonucu: PaddleOCR-VL + Tesseract karar kuralına göre benimsenir (ince farkla)
+Tarih: 2026-11-16. Ölçüm: set A benzetimi (0009), 5 taranmış belge (30 sayfa) + 12 telefon fotoğrafı, 3.121 değer. Her aday bir kez çalıştırıldı; puanlama, dönüştürücüler ve karar kuralı (0008) ölçümden önce donmuştu, değişmedi.
+
+| | Mevcut hat | PaddleOCR-VL + Tesseract |
+|---|---|---|
+| Doğru gösterilen | 1.324 | 1.325 |
+| Yanlış gösterilen | 788 (bağ kopması 693, yanlış karakter 95, ayraç 0) | 87 (bağ kopması 37, yanlış karakter 50, ayraç 0) |
+| Atlama | 922 | 49 |
+| Gizlendi (doğruydu / yanlıştı) | 43 / 44 | 1.335 / 325 |
+| Süre (42 sayfa) | 871 sn | 271 sn (PaddleOCR-VL 238 + Tesseract 33) |
+| Bulut maliyeti | 0,32 $ | 0 $ |
+
+**Karar kuralının sonucu: Benimsenir.** Yanlış gösterilen fazla değil (87 ≤ 788), doğru gösterilen yüksek (1.325 > 1.324). Fark doğru gösterilende yalnız 1 değer: kazanç yanlış gösterilenin %89 azalması ve atlamanın neredeyse kalkması; bedel değerlerin yaklaşık %43'ünün (1.335) doğru okunduğu hâlde gizlenmesi (Tesseract aynı bloğu farklı sayıyor).
+
+**Kırılım (doğru / yanlış gösterilen).** Tarama: mevcut hat 1.075 / 507, aday 1.035 / 32. Fotoğraf: 249 / 281, aday 290 / 55. Sayfa türü — ölçü 477/258 → 305/51; fark 212/234 → 253/6; BOM 253/179 → 424/14; değerlendirme 282/111 → 185/3; kapak 62/6 → 82/3; yorum 38/0 → 76/10. Kesir yazımı — tek karakter 657/423 → 446/59; düz 329/159 → 237/15; küçük rakamlı 279/161 → 233/10; küçük rakamlı (cm) 59/45 → 409/3.
+
+**Mevcut hat: 788 değer yanlış gösteriliyor.** Bugün uygulamada çalışan hat, bu benzetimde 788 değeri yanlış gösterdi: 507'si taranmış belgelerde (30 sayfa), 281'i telefon fotoğraflarında (12 sayfa). 693'ü bağ kopması (değer yanlış sütun ya da etikete bağlı), 95'i yanlış karakter. Hattın kendi iki okuması bunların yalnız 44'ünü gizledi. Bu, kural 1 açısından hattın bugünkü durumudur; benzetim gerçek taramaya göre iyimser olabileceği için gerçek sayı daha yüksek olabilir.
+
+**Gözlemler.**
+- Mevcut hattın bağ kopmaları gerçek: OCR sütun başlıklarını bozuk okuyor ("Tol (-)" → "Tol)", "Tol (+)" → "Tol 6)"), bazı satırlarda bir sütun kayboluyor; değer yanlış adlı sütuna bağlanıyor.
+- Adayın 50 yanlış karakterinin 26'sı tek bir ortak hatadan: fotoğraftaki ölçü tablosunda tek karakterli kesirler ("⅞") PaddleOCR-VL'de de Tesseract'ta da "%" okunuyor ("14⅞" → "14%"); iki okuma aynı yanlışta uyuştuğu için gizlenmiyor. Bu, bilinen zayıflıktan (dengelenen iki hata) farklı: iki okuyucunun aynı hatası. Dengelenen hataların sayısı ayrıca ölçülmedi.
+- Yalnız okuma ölçüldü; cevap modeli çalıştırılmadı, bu yüzden "sayı içermeyen doğrulanmış yanlış cümle" bu ölçümde yok.
+
+**Sınırlar.** Benzetim, gerçek kâğıt ve kamera değil (0009); sonuçlar iyimser olabilir.
+
+**Ekip kararı (2026-11-16).** Uygulamaya geçilmiyor. "⅞" → "%" ortak hatası için düzeltme yapılmıyor; tasarım değişirse set A ile değil set B ile ölçülür. Set A'nın gerçek taramaları geldiğinde aynı iki aday, hiçbir şey değiştirilmeden bir kez daha ölçülecek.
+
+**Kayıt.** Rapor (`rapor.json`), mevcut hattın okuması (`hat_cikti.json`) ve PaddleOCR-VL + Tesseract ham okumaları (`paddle/`): `evals/results/2026-11-16-set-a-benzetim/` (1 MB). Okuyucuları yeniden çalıştırmadan yeniden puanlama ve gerçek taramalarla yan yana karşılaştırma için repoda tutulur. Ölçümü yapan dört betik (`hat.py`, `paddle_calistir.py`, `tesseract.py`, `puanla.py`) aynı klasörde, ölçüldükleri haliyle durur; gerçek taramalar bunlarla, değiştirilmeden ölçülür. Bu yüzden klasör ruff ve mypy denetiminin dışındadır. `paddle_calistir.py` MLX sunucusunu `http://localhost:8111/` adresinde bekler.

@@ -1,0 +1,400 @@
+{
+    "input_path": "olcum/sayfalar/syn3_tarama/s5.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 3508,
+    "height": 2482,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Tasvi Wear</td><td>13.02.2027</td></tr><tr><td>HL-0BI8</td><td>Vefe Hoodie</td></tr></table>",
+            "block_bbox": [
+                125,
+                118,
+                3337,
+                329
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    122.50922393798828,
+                    168.03872680664062
+                ],
+                [
+                    3336.000244140625,
+                    118.0000991821289
+                ],
+                [
+                    3338.490966796875,
+                    277.9613342285156
+                ],
+                [
+                    125.0,
+                    327.9999694824219
+                ]
+            ]
+        },
+        {
+            "block_label": "figure_title",
+            "block_content": "Ölçü tablosu",
+            "block_bbox": [
+                126,
+                366,
+                452,
+                435
+            ],
+            "block_id": 1,
+            "block_order": null,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    126.0,
+                    366.0
+                ],
+                [
+                    452.0,
+                    366.0
+                ],
+                [
+                    452.0,
+                    435.0
+                ],
+                [
+                    126.0,
+                    435.0
+                ]
+            ]
+        },
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Taban beden</td><td colspan=\"6\">4XL</td><td colspan=\"2\">Tolerans</td><td colspan=\"6\">NISGI 3</td></tr><tr><td>Kod</td><td>Açıklama</td><td>Tol (-)</td><td>Tol (+)</td><td>XS</td><td>SM</td><td>MD</td><td>LG</td><td>XL</td><td>XXL</td><td>3XL</td><td>4XL</td><td>5XL</td><td></td><td></td></tr><tr><td>KDZ687I</td><td>Etek genişliği</td><td>-1/2</td><td>1/2</td><td>18 1/4</td><td>19</td><td>19 3/4</td><td>20 1/2</td><td>21 1/4</td><td>22</td><td>22 3/4</td><td>23 1/2</td><td>24 1/4</td><td></td><td></td></tr><tr><td>2E-61IA1</td><td>Cep genişliği</td><td>-3/8</td><td>3/8</td><td>26 1/4</td><td>26 1/2</td><td>26 3/4</td><td>27</td><td>27 1/4</td><td>27 1/2</td><td>27 3/4</td><td>28</td><td>28 1/4</td><td></td><td></td></tr><tr><td>VAZ6B</td><td>Yaka açıklığı</td><td>-1/4</td><td>1/4</td><td>10 1/2</td><td>10 3/4</td><td>11</td><td>11 1/4</td><td>11 1/2</td><td>11 3/4</td><td>12</td><td>12 1/4</td><td>12 1/2</td><td></td><td></td></tr><tr><td colspan=\"15\">Uzun boy</td></tr><tr><td>ZVZ12</td><td>Göğüs genişliği</td><td>-1/2</td><td>1/2</td><td>3 1/2</td><td>4 1/2</td><td>5 1/2</td><td>6 1/2</td><td>7 1/2</td><td>8 1/2</td><td>9 1/2</td><td>10 1/2</td><td>11 1/2</td><td></td><td></td></tr><tr><td>OO5300</td><td>Dış paça</td><td>-1/4</td><td>1/4</td><td>2 1/4</td><td>3</td><td>3 3/4</td><td>4 1/2</td><td>5 1/4</td><td>6</td><td>6 3/4</td><td>7 1/2</td><td>8 1/4</td><td></td><td></td></tr><tr><td>FG20S-F</td><td>Arka boy</td><td>-3/8</td><td>3/8</td><td>30 1/8</td><td>30 3/8</td><td>30 5/8</td><td>30 7/8</td><td>31 1/8</td><td>31 3/8</td><td>31 5/8</td><td>31 7/8</td><td>32 1/8</td><td></td><td></td></tr><tr><td>8M121B</td><td>Ön boy</td><td>-1/2</td><td>1/2</td><td>8 1/4</td><td>9 1/4</td><td>10 1/4</td><td>11 1/4</td><td>12 1/4</td><td>13 1/4</td><td>14 1/4</td><td>15 1/4</td><td>16 1/4</td><td></td><td></td></tr><tr><td>EE720A</td><td>İç paça</td><td>-1/2</td><td>1/2</td><td>25 1/8</td><td>25 3/8</td><td>25 5/8</td><td>25 7/8</td><td>26 1/8</td><td>26 3/8</td><td>26 5/8</td><td>26 7/8</td><td>27 1/8</td><td></td><td></td></tr><tr><td>EM-10Z</td><td>Kalça genişliği</td><td>-3/8</td><td>3/8</td><td>25 3/8</td><td>25 7/8</td><td>26 3/8</td><td>26 7/8</td><td>27 3/8</td><td>27 7/8</td><td>28 3/8</td><td>28 7/8</td><td>29 3/8</td><td></td><td></td></tr><tr><td>K2-686</td><td>Ağ yüksekliği</td><td>-3/8</td><td>3/8</td><td>22 5/8</td><td>22 7/8</td><td>23 1/8</td><td>23 3/8</td><td>23 5/8</td><td>23 7/8</td><td>24 1/8</td><td>24 3/8</td><td>24 5/8</td><td></td><td></td></tr><tr><td>MH9738</td><td>Omuz</td><td>-3/8</td><td>3/8</td><td>26 3/4</td><td>27 1/4</td><td>27 3/4</td><td>28 1/4</td><td>28 3/4</td><td>29 1/4</td><td>29 3/4</td><td>30 1/4</td><td>30 3/4</td><td></td><td></td></tr><tr><td>GT010</td><td>Kol ağzı</td><td>-1/2</td><td>1/2</td><td>20 5/8</td><td>21 5/8</td><td>22 5/8</td><td>23 5/8</td><td>24 5/8</td><td>25 5/8</td><td>26 5/8</td><td>27 5/8</td><td>28 5/8</td><td></td><td></td></tr><tr><td>ZA-323</td><td>Kol boyu</td><td>-1/2</td><td>1/2</td><td>27 7/8</td><td>28 7/8</td><td>29 7/8</td><td>30 7/8</td><td>31 7/8</td><td>32 7/8</td><td>33 7/8</td><td>34 7/8</td><td>35 7/8</td><td></td><td></td></tr><tr><td>8P-9554I</td><td>Bel genişliği</td><td>-1/2</td><td>1/2</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td><td>29</td><td></td><td></td></tr><tr><td>GV-5IZ0B</td><td>Kapüşon yüksekliği</td><td>-1/4</td><td>1/4</td><td>28 1/2</td><td>29</td><td>29 1/2</td><td>30</td><td>30 1/2</td><td>31</td><td>31 1/2</td><td>32</td><td>32 1/2</td><td></td><td></td></tr><tr><td>VF028Z1</td><td>Manşet yüksekliği</td><td>-3/8</td><td>3/8</td><td>10 5/8</td><td>11 5/8</td><td>12 5/8</td><td>13 5/8</td><td>14 5/8</td><td>15 5/8</td><td>16 5/8</td><td>17 5/8</td><td>18 5/8</td><td></td><td></td></tr></table>",
+            "block_bbox": [
+                135,
+                406,
+                2035,
+                1876
+            ],
+            "block_id": 2,
+            "block_order": null,
+            "group_id": 2,
+            "block_polygon_points": [
+                [
+                    135.0,
+                    406.0
+                ],
+                [
+                    2035.0,
+                    406.0
+                ],
+                [
+                    2035.0,
+                    1876.0
+                ],
+                [
+                    135.0,
+                    1876.0
+                ]
+            ]
+        },
+        {
+            "block_label": "vision_footnote",
+            "block_content": "Birim: inç kesir · Gösterim: Mutlak",
+            "block_bbox": [
+                157,
+                1910,
+                715,
+                1971
+            ],
+            "block_id": 3,
+            "block_order": null,
+            "group_id": 3,
+            "block_polygon_points": [
+                [
+                    157.0,
+                    1910.0
+                ],
+                [
+                    715.0,
+                    1910.0
+                ],
+                [
+                    715.0,
+                    1971.0
+                ],
+                [
+                    157.0,
+                    1971.0
+                ]
+            ]
+        },
+        {
+            "block_label": "vision_footnote",
+            "block_content": "Büyütme kuralı Kavi - 2026",
+            "block_bbox": [
+                2277,
+                397,
+                2747,
+                457
+            ],
+            "block_id": 4,
+            "block_order": null,
+            "group_id": 4,
+            "block_polygon_points": [
+                [
+                    2277.0,
+                    397.0
+                ],
+                [
+                    2747.0,
+                    397.0
+                ],
+                [
+                    2747.0,
+                    457.0
+                ],
+                [
+                    2277.0,
+                    457.0
+                ]
+            ]
+        },
+        {
+            "block_label": "footer",
+            "block_content": "SYN-3 · 5/6 · A",
+            "block_bbox": [
+                170,
+                2413,
+                366,
+                2448
+            ],
+            "block_id": 5,
+            "block_order": null,
+            "group_id": 5,
+            "block_polygon_points": [
+                [
+                    170.0,
+                    2413.0
+                ],
+                [
+                    366.0,
+                    2413.0
+                ],
+                [
+                    366.0,
+                    2448.0
+                ],
+                [
+                    170.0,
+                    2448.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.8093346357345581,
+                "coordinate": [
+                    125,
+                    118,
+                    3337,
+                    329
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        122.50922393798828,
+                        168.03872680664062
+                    ],
+                    [
+                        3336.000244140625,
+                        118.0000991821289
+                    ],
+                    [
+                        3338.490966796875,
+                        277.9613342285156
+                    ],
+                    [
+                        125.0,
+                        327.9999694824219
+                    ]
+                ]
+            },
+            {
+                "cls_id": 7,
+                "label": "figure_title",
+                "score": 0.4725884795188904,
+                "coordinate": [
+                    126,
+                    366,
+                    452,
+                    435
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        126.0,
+                        366.0
+                    ],
+                    [
+                        452.0,
+                        366.0
+                    ],
+                    [
+                        452.0,
+                        435.0
+                    ],
+                    [
+                        126.0,
+                        435.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.9586384296417236,
+                "coordinate": [
+                    135,
+                    406,
+                    2035,
+                    1876
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        135.0,
+                        406.0
+                    ],
+                    [
+                        2035.0,
+                        406.0
+                    ],
+                    [
+                        2035.0,
+                        1876.0
+                    ],
+                    [
+                        135.0,
+                        1876.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 24,
+                "label": "vision_footnote",
+                "score": 0.8829164505004883,
+                "coordinate": [
+                    157,
+                    1910,
+                    715,
+                    1971
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        157.0,
+                        1910.0
+                    ],
+                    [
+                        715.0,
+                        1910.0
+                    ],
+                    [
+                        715.0,
+                        1971.0
+                    ],
+                    [
+                        157.0,
+                        1971.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 24,
+                "label": "vision_footnote",
+                "score": 0.4487750232219696,
+                "coordinate": [
+                    2277,
+                    397,
+                    2747,
+                    457
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        2277.0,
+                        397.0
+                    ],
+                    [
+                        2747.0,
+                        397.0
+                    ],
+                    [
+                        2747.0,
+                        457.0
+                    ],
+                    [
+                        2277.0,
+                        457.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 8,
+                "label": "footer",
+                "score": 0.5636003017425537,
+                "coordinate": [
+                    170,
+                    2413,
+                    366,
+                    2448
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        170.0,
+                        2413.0
+                    ],
+                    [
+                        366.0,
+                        2413.0
+                    ],
+                    [
+                        366.0,
+                        2448.0
+                    ],
+                    [
+                        170.0,
+                        2448.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

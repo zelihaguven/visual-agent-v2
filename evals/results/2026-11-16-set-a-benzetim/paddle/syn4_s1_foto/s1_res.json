@@ -1,0 +1,156 @@
+{
+    "input_path": "olcum/sayfalar/syn4_s1_foto/s1.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 2881,
+    "height": 2127,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td colspan=\"2\">Zeltas Wear</td><td colspan=\"2\">03.11.2027</td></tr><tr><td colspan=\"2\">RT7S6-R</td><td colspan=\"2\">Vibel Tişört</td></tr><tr><td colspan=\"4\">Cover sheet</td></tr><tr><td>Season</td><td>İY24</td><td>Region</td><td>US</td></tr><tr><td>Style name</td><td>Vibel Tişört</td><td>Supplier</td><td>Fevevi A.Ş.</td></tr><tr><td>Sample status</td><td>Beklemede</td><td>Modified by</td><td>Sontu Belmorrak</td></tr><tr><td>Composition</td><td>%58 Pamuk</td><td>Created by</td><td>Viser Rodanve</td></tr><tr><td>Fit type</td><td>Slim</td><td>Main material</td><td>V8702-V</td></tr><tr><td>Size range</td><td>2-4XL</td><td colspan=\"2\">Supplier round</td></tr><tr><td>Style #</td><td>RT7S6-R</td><td>Material description</td><td>Tudan - Kordon</td></tr></table>",
+            "block_bbox": [
+                307,
+                275,
+                2606,
+                809
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    307.0,
+                    275.0
+                ],
+                [
+                    2606.0,
+                    275.0
+                ],
+                [
+                    2606.0,
+                    809.0
+                ],
+                [
+                    307.0,
+                    809.0
+                ]
+            ]
+        },
+        {
+            "block_label": "number",
+            "block_content": "SYN-4 · 1/6 · A",
+            "block_bbox": [
+                336,
+                1948,
+                482,
+                1971
+            ],
+            "block_id": 1,
+            "block_order": null,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    336.0,
+                    1948.0
+                ],
+                [
+                    481.0,
+                    1948.0
+                ],
+                [
+                    481.0,
+                    1970.0
+                ],
+                [
+                    336.0,
+                    1970.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.7072603106498718,
+                "coordinate": [
+                    307,
+                    275,
+                    2606,
+                    809
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        307.0,
+                        275.0
+                    ],
+                    [
+                        2606.0,
+                        275.0
+                    ],
+                    [
+                        2606.0,
+                        809.0
+                    ],
+                    [
+                        307.0,
+                        809.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 16,
+                "label": "number",
+                "score": 0.6945645213127136,
+                "coordinate": [
+                    336,
+                    1948,
+                    482,
+                    1971
+                ],
+                "order": 1,
+                "polygon_points": [
+                    [
+                        336.0,
+                        1948.0
+                    ],
+                    [
+                        481.0,
+                        1948.0
+                    ],
+                    [
+                        481.0,
+                        1970.0
+                    ],
+                    [
+                        336.0,
+                        1970.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

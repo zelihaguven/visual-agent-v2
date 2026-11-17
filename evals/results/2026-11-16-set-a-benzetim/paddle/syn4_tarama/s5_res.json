@@ -1,0 +1,400 @@
+{
+    "input_path": "olcum/sayfalar/syn4_tarama/s5.png",
+    "page_index": null,
+    "page_count": null,
+    "width": 3508,
+    "height": 2482,
+    "model_settings": {
+        "use_doc_preprocessor": false,
+        "use_layout_detection": true,
+        "use_chart_recognition": false,
+        "use_seal_recognition": false,
+        "use_ocr_for_image_block": false,
+        "format_block_content": false,
+        "merge_layout_blocks": true,
+        "markdown_ignore_labels": [
+            "number",
+            "footnote",
+            "header",
+            "header_image",
+            "footer",
+            "footer_image",
+            "aside_text"
+        ],
+        "return_layout_polygon_points": true
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Zeltas Wear</td><td>03.11.2027</td></tr><tr><td>RT7S6-R</td><td>Vibel Tişört</td></tr></table>",
+            "block_bbox": [
+                142,
+                137,
+                3349,
+                291
+            ],
+            "block_id": 0,
+            "block_order": null,
+            "group_id": 0,
+            "block_polygon_points": [
+                [
+                    141.4727020263672,
+                    149.001953125
+                ],
+                [
+                    3348.00048828125,
+                    137.00006103515625
+                ],
+                [
+                    3348.5283203125,
+                    277.998046875
+                ],
+                [
+                    142.00048828125,
+                    289.99993896484375
+                ]
+            ]
+        },
+        {
+            "block_label": "paragraph_title",
+            "block_content": "Measurement chart",
+            "block_bbox": [
+                137,
+                333,
+                680,
+                390
+            ],
+            "block_id": 1,
+            "block_order": 1,
+            "group_id": 1,
+            "block_polygon_points": [
+                [
+                    137.0,
+                    333.0
+                ],
+                [
+                    680.0,
+                    333.0
+                ],
+                [
+                    680.0,
+                    390.0
+                ],
+                [
+                    137.0,
+                    390.0
+                ]
+            ]
+        },
+        {
+            "block_label": "text",
+            "block_content": "Tolerance RORAK 3",
+            "block_bbox": [
+                1219,
+                399,
+                1571,
+                444
+            ],
+            "block_id": 2,
+            "block_order": 2,
+            "group_id": 2,
+            "block_polygon_points": [
+                [
+                    1219.0,
+                    399.0
+                ],
+                [
+                    1571.0,
+                    399.0
+                ],
+                [
+                    1571.0,
+                    444.0
+                ],
+                [
+                    1219.0,
+                    444.0
+                ]
+            ]
+        },
+        {
+            "block_label": "table",
+            "block_content": "<table><tr><td>Dim</td><td>Description</td><td>Tol (-)</td><td>Tol (+)</td><td>XS</td><td>S</td><td>M</td><td>L</td><td>XL</td></tr><tr><td>LC-5011</td><td>Rise</td><td>$ -\\frac{1}{2} $</td><td>$ \\frac{1}{2} $</td><td>23</td><td>$ 23\\frac{1}{2} $</td><td>24</td><td>$ 24\\frac{1}{2} $</td><td>25</td></tr><tr><td>K86B0-K</td><td>Cuff height</td><td>$ -\\frac{1}{4} $</td><td>$ \\frac{1}{4} $</td><td>$ 21\\frac{1}{4} $</td><td>$ 21\\frac{3}{4} $</td><td>$ 22\\frac{1}{4} $</td><td>$ 22\\frac{3}{4} $</td><td>$ 23\\frac{1}{4} $</td></tr><tr><td>8R-9Z1S</td><td>Waist width</td><td>$ -\\frac{1}{4} $</td><td>$ \\frac{1}{4} $</td><td>$ 15\\frac{1}{8} $</td><td>$ 15\\frac{3}{8} $</td><td>$ 15\\frac{5}{8} $</td><td>$ 15\\frac{7}{8} $</td><td>$ 16\\frac{1}{8} $</td></tr><tr><td>OH-28065</td><td>Hip width</td><td>$ -\\frac{3}{8} $</td><td>$ \\frac{3}{8} $</td><td>$ 10\\frac{1}{2} $</td><td>$ 10\\frac{3}{4} $</td><td>11</td><td>$ 11\\frac{1}{4} $</td><td>$ 11\\frac{1}{2} $</td></tr><tr><td>5S14S-5</td><td>Sleeve length</td><td>$ -\\frac{3}{8} $</td><td>$ \\frac{3}{8} $</td><td>12</td><td>$ 12\\frac{3}{4} $</td><td>$ 13\\frac{1}{2} $</td><td>$ 14\\frac{1}{4} $</td><td>15</td></tr><tr><td>M2509-M</td><td>Front length</td><td>$ -\\frac{1}{2} $</td><td>$ \\frac{1}{2} $</td><td>$ 19\\frac{1}{4} $</td><td>$ 20\\frac{1}{4} $</td><td>$ 21\\frac{1}{4} $</td><td>$ 22\\frac{1}{4} $</td><td>$ 23\\frac{1}{4} $</td></tr><tr><td>FA115-F</td><td>Hem width</td><td>$ -\\frac{3}{8} $</td><td>$ \\frac{3}{8} $</td><td>$ 14\\frac{7}{8} $</td><td>$ 15\\frac{1}{8} $</td><td>$ 15\\frac{3}{8} $</td><td>$ 15\\frac{5}{8} $</td><td>$ 15\\frac{7}{8} $</td></tr><tr><td>PAI71-P</td><td>Chest width</td><td>$ -\\frac{1}{2} $</td><td>$ \\frac{1}{2} $</td><td>$ 26\\frac{5}{8} $</td><td>$ 27\\frac{1}{8} $</td><td>$ 27\\frac{5}{8} $</td><td>$ 28\\frac{1}{8} $</td><td>$ 28\\frac{5}{8} $</td></tr><tr><td>4K-0Z7ZS</td><td>Sleeve opening</td><td>$ -\\frac{1}{2} $</td><td>$ \\frac{1}{2} $</td><td>$ 21\\frac{3}{4} $</td><td>$ 22\\frac{3}{4} $</td><td>$ 23\\frac{3}{4} $</td><td>$ 24\\frac{3}{4} $</td><td>$ 25\\frac{3}{4} $</td></tr><tr><td>GP-062</td><td>Pocket width</td><td>$ -\\frac{3}{8} $</td><td>$ \\frac{3}{8} $</td><td>$ 21\\frac{5}{8} $</td><td>$ 21\\frac{7}{8} $</td><td>$ 22\\frac{1}{8} $</td><td>$ 22\\frac{3}{8} $</td><td>$ 22\\frac{5}{8} $</td></tr><tr><td>O5024-O</td><td>Across shoulder</td><td>$ -\\frac{3}{8} $</td><td>$ \\frac{3}{8} $</td><td>$ 11\\frac{5}{8} $</td><td>$ 11\\frac{7}{8} $</td><td>$ 12\\frac{1}{8} $</td><td>$ 12\\frac{3}{8} $</td><td>$ 12\\frac{5}{8} $</td></tr><tr><td>5N-64S</td><td>Back length</td><td>$ -\\frac{1}{2} $</td><td>$ \\frac{1}{2} $</td><td>$ 12\\frac{7}{8} $</td><td>$ 13\\frac{7}{8} $</td><td>$ 14\\frac{7}{8} $</td><td>$ 15\\frac{7}{8} $</td><td>$ 16\\frac{7}{8} $</td></tr><tr><td>SI51I3</td><td>Outseam</td><td>$ -\\frac{3}{8} $</td><td>$ \\frac{3}{8} $</td><td>$ 33\\frac{7}{8} $</td><td>$ 34\\frac{5}{8} $</td><td>$ 35\\frac{3}{8} $</td><td>$ 36\\frac{1}{8} $</td><td>$ 36\\frac{7}{8} $</td></tr><tr><td>FS-043</td><td>Hood height</td><td>$ -\\frac{1}{4} $</td><td>$ \\frac{1}{4} $</td><td>$ 11\\frac{3}{8} $</td><td>$ 12\\frac{3}{8} $</td><td>$ 13\\frac{3}{8} $</td><td>$ 14\\frac{3}{8} $</td><td>$ 15\\frac{3}{8} $</td></tr><tr><td>LK-S55</td><td>Neck opening</td><td>$ -\\frac{3}{8} $</td><td>$ \\frac{3}{8} $</td><td>23</td><td>$ 23\\frac{1}{2} $</td><td>24</td><td>$ 24\\frac{1}{2} $</td><td>25</td></tr><tr><td>ZS116</td><td>Inseam</td><td>$ -\\frac{3}{8} $</td><td>$ \\frac{3}{8} $</td><td>$ 32\\frac{1}{2} $</td><td>$ 33\\frac{1}{4} $</td><td>34</td><td>$ 34\\frac{3}{4} $</td><td>$ 35\\frac{1}{2} $</td></tr></table>",
+            "block_bbox": [
+                147,
+                501,
+                1361,
+                1651
+            ],
+            "block_id": 3,
+            "block_order": null,
+            "group_id": 3,
+            "block_polygon_points": [
+                [
+                    147.0,
+                    501.0
+                ],
+                [
+                    1361.0,
+                    501.0
+                ],
+                [
+                    1361.0,
+                    1651.0
+                ],
+                [
+                    147.0,
+                    1651.0
+                ]
+            ]
+        },
+        {
+            "block_label": "vision_footnote",
+            "block_content": "Units: Fractions of inches · Grade Rule Display: Absolute",
+            "block_bbox": [
+                146,
+                1687,
+                1042,
+                1737
+            ],
+            "block_id": 4,
+            "block_order": null,
+            "group_id": 4,
+            "block_polygon_points": [
+                [
+                    146.0,
+                    1687.0
+                ],
+                [
+                    1042.0,
+                    1687.0
+                ],
+                [
+                    1042.0,
+                    1737.0
+                ],
+                [
+                    146.0,
+                    1737.0
+                ]
+            ]
+        },
+        {
+            "block_label": "number",
+            "block_content": "SYN-4 · 5/6 · A",
+            "block_bbox": [
+                156,
+                2397,
+                352,
+                2430
+            ],
+            "block_id": 5,
+            "block_order": null,
+            "group_id": 5,
+            "block_polygon_points": [
+                [
+                    156.0,
+                    2397.0
+                ],
+                [
+                    352.0,
+                    2397.0
+                ],
+                [
+                    352.0,
+                    2430.0
+                ],
+                [
+                    156.0,
+                    2430.0
+                ]
+            ]
+        }
+    ],
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.6896737217903137,
+                "coordinate": [
+                    142,
+                    137,
+                    3349,
+                    291
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        141.4727020263672,
+                        149.001953125
+                    ],
+                    [
+                        3348.00048828125,
+                        137.00006103515625
+                    ],
+                    [
+                        3348.5283203125,
+                        277.998046875
+                    ],
+                    [
+                        142.00048828125,
+                        289.99993896484375
+                    ]
+                ]
+            },
+            {
+                "cls_id": 17,
+                "label": "paragraph_title",
+                "score": 0.4185831844806671,
+                "coordinate": [
+                    137,
+                    333,
+                    680,
+                    390
+                ],
+                "order": 1,
+                "polygon_points": [
+                    [
+                        137.0,
+                        333.0
+                    ],
+                    [
+                        680.0,
+                        333.0
+                    ],
+                    [
+                        680.0,
+                        390.0
+                    ],
+                    [
+                        137.0,
+                        390.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 22,
+                "label": "text",
+                "score": 0.31212276220321655,
+                "coordinate": [
+                    1219,
+                    399,
+                    1571,
+                    444
+                ],
+                "order": 2,
+                "polygon_points": [
+                    [
+                        1219.0,
+                        399.0
+                    ],
+                    [
+                        1571.0,
+                        399.0
+                    ],
+                    [
+                        1571.0,
+                        444.0
+                    ],
+                    [
+                        1219.0,
+                        444.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 21,
+                "label": "table",
+                "score": 0.9497988224029541,
+                "coordinate": [
+                    147,
+                    501,
+                    1361,
+                    1651
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        147.0,
+                        501.0
+                    ],
+                    [
+                        1361.0,
+                        501.0
+                    ],
+                    [
+                        1361.0,
+                        1651.0
+                    ],
+                    [
+                        147.0,
+                        1651.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 24,
+                "label": "vision_footnote",
+                "score": 0.7730025053024292,
+                "coordinate": [
+                    146,
+                    1687,
+                    1042,
+                    1737
+                ],
+                "order": null,
+                "polygon_points": [
+                    [
+                        146.0,
+                        1687.0
+                    ],
+                    [
+                        1042.0,
+                        1687.0
+                    ],
+                    [
+                        1042.0,
+                        1737.0
+                    ],
+                    [
+                        146.0,
+                        1737.0
+                    ]
+                ]
+            },
+            {
+                "cls_id": 16,
+                "label": "number",
+                "score": 0.7061864733695984,
+                "coordinate": [
+                    156,
+                    2397,
+                    352,
+                    2430
+                ],
+                "order": 3,
+                "polygon_points": [
+                    [
+                        156.0,
+                        2397.0
+                    ],
+                    [
+                        352.0,
+                        2397.0
+                    ],
+                    [
+                        352.0,
+                        2430.0
+                    ],
+                    [
+                        156.0,
+                        2430.0
+                    ]
+                ]
+            }
+        ]
+    }
+}

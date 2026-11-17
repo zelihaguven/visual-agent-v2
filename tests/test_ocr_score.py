@@ -331,3 +331,24 @@ def test_scoring_is_frozen() -> None:
         name: hashlib.sha256((root / name).read_bytes()).hexdigest() for name in FROZEN_SCORING
     }
     assert current == FROZEN_SCORING
+
+
+FROZEN_MEASUREMENT_SCRIPTS = {
+    "hat.py": "9dfc8e88939adff5ce24c05c3f2334a546c39d529eda752e7ef6f815785c569f",
+    "paddle_calistir.py": "554fb2d8b24883002385c86a508fbe0dc45878f0c7b9f351cf8418f3429ce9ed",
+    "tesseract.py": "740cc56ba3df9dce31d8c1c0ce3050f1e1feefc394b5e9fbdb032f1b0ff5b03b",
+    "puanla.py": "56f91b9d68534da0258220ef85ab21fa8f5c610c79ae7ca6b2d2b81775ea0248",
+}
+"""Set A benzetimini ölçen dört betik ölçüldükleri haliyle saklanır (0010). Gerçek taramalar
+aynı betiklerle, değiştirilmeden ölçülecek; betik değişirse bu test kırılır."""
+
+
+def test_measurement_scripts_are_frozen() -> None:
+    import hashlib
+
+    folder = Path(__file__).parent.parent / "evals/results/2026-11-16-set-a-benzetim"
+    current = {
+        name: hashlib.sha256((folder / name).read_bytes()).hexdigest()
+        for name in FROZEN_MEASUREMENT_SCRIPTS
+    }
+    assert current == FROZEN_MEASUREMENT_SCRIPTS
