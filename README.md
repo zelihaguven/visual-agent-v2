@@ -53,7 +53,7 @@ Metin katmanı olmayan sayfalar (tarama, fotoğraf) PaddleOCR-VL ile okunur, Tes
 | `VA_PAGE_READER` | Nerede | Başlatma |
 | --- | --- | --- |
 | `local` | Windows, Linux; ekran kartı varsa onu, yoksa işlemciyi kullanır | Ayrı süreç yok; `baslat.bat` yeter. Model ilk taranmış sayfada iner. |
-| `mlx-vlm-server@http://localhost:8111/` | Apple Silicon | Ayrı pencerede `mlx_vlm.server --port 8111` (`pip install "mlx-vlm>=0.3.11"`). |
+| `mlx-vlm-server@http://localhost:8111/` | Apple Silicon | Ayrı pencerede `uvx --from "mlx-vlm>=0.3.11" mlx_vlm.server --host 127.0.0.1 --port 8111`. Model (3,6 GB) ilk sayfada iner. |
 | `llama-cpp-server@http://adres/` | İşlemcide ayrı sunucu | llama.cpp `llama-server`, PaddleOCR-VL-1.6 GGUF dosyalarıyla. Bu repoda denenmedi. |
 
 Ayar boşsa ya da okuyucuya ulaşılamıyorsa taranmış sayfası olan belge indekslenmez, listede "Okuyucu bekleniyor" olarak kalır; okuyucu çalışınca belgede "Yeniden işle"ye basılır. Bu sayfalar başka yoldan okunmaz. Metin katmanı olan belgeler okuyucusuz işlenir. `local` kipi Windows'ta ve işlemcide denenmedi; hızı ölçülmedi.

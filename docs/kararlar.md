@@ -1187,4 +1187,5 @@ Tarih: 2026-11-16. Ürün sahibi kararı; yeni bağımlılık (`paddleocr[doc-pa
 - Eski OCR'ın telafi kodu (çizgili tablo, hücre okuma, deskew notları) silinmedi; metin katmanlı taranmış sayfalar onu hâlâ kullanıyor. Ayrı PR.
 - `evals/results/2026-11-16-set-a-benzetim/hat.py` uygulamanın hattını çağırır: bu karardan sonra "mevcut hat" adayını değil yeni hattı ölçer. Gerçek taramalarda eski hattı ölçmek için `c79e4ce` kullanılmalı.
 - Ölçüm MLX arka ucuyla yapıldı; `local` kipinin okuması ve hızı ölçülmedi.
+- Tarama kendi çözünürlüğünde okunur (büyütülmez): büyütülmüş görüntüde Tesseract'ın ikinci okuması bozuluyor (açık notlar, 2026-11-17 denemesi).
 

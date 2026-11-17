@@ -190,12 +190,25 @@ def test_malformed_reader_setting_is_refused(value: str) -> None:
         parse_reader_setting(value)
 
 
-def _scan(path: Path, blank: bool = False) -> Path:
+def _scan(path: Path, blank: bool = False, dpi: float = 72.0) -> Path:
     image = Image.new("RGB", (600, 800), "white")
     if not blank:
         ImageDraw.Draw(image).rectangle((100, 100, 300, 160), fill="black")
-    image.save(path, "PDF", resolution=72.0)
+    image.save(path, "PDF", resolution=dpi)
     return path
+
+
+@pytest.mark.parametrize("dpi", [72.0, 120.0, 300.0])
+def test_scan_is_read_at_its_own_resolution_not_resampled(tmp_path: Path, dpi: float) -> None:
+    sizes: list[tuple[int, int]] = []
+
+    def read_page(image: Path) -> dict[str, Any]:
+        sizes.append(Image.open(image).size)
+        return {"width": 600, "height": 800, "parsing_res_list": []}
+
+    read_scanned_pages(_scan(tmp_path / "t.pdf", dpi=dpi), [1], tmp_path, read_page, lambda _: "")
+
+    assert sizes == [(600, 800)]
 
 
 def test_scanned_page_is_read_and_checked_by_the_second_reading(tmp_path: Path) -> None:

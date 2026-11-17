@@ -18,9 +18,11 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 
 ## Sayfa okuyucusu (0011)
 
-- Gerçek okuyucuyla uçtan uca deneme yapılmadı: bu bilgisayarda paket indirmesi çok yavaştı, model indirilemedi. Okuyucunun sonuç biçimi set A kaydından ve paddleocr kaynağından alındı; ilk gerçek belgede doğrulanacak.
+- Gerçek okuyucuyla deneme (2026-11-17, Mac, MLX; set A dışı üç örnek, okuma katmanı, cevap modeli çalıştırılmadı): `dikim-tarama.pdf` 3 sayfa 16,4 sn, `dikim-foto.jpg` 4,3 sn, `strickland-tarama.pdf` 2 sayfa 14,2 sn (model yüklüyken). İki ölçü tablosunun ve etiket tablosunun bütün değerleri doğru okundu ve ikinci okumayla uyuştu (belirsiz 0). Strickland'de düz yazıdaki 17 kesir ve sayı belirsiz kaldı (gizlenir); doğru olup olmadıkları tek tek sayılmadı.
+- Sayı içermeyen yanlış okuma gizlenmiyor: fotoğrafın başlığı "MNT-8598 Ổlộcũ fōyũ", taramanın 3. sayfa başlığı "olçü föyü" okundu. Karşılaştırma yalnız sayı ve kodlara bakıyor.
+- Model boyutu: PaddleOCR-VL-1.6 3,6 GB (Hugging Face önbelleği), düzen modeli 126 MB.
 - `local` kipi Windows'ta ve işlemcide denenmedi; hız ürün sahibinin makinesinde ölçülecek.
-- Fotoğraf (görsel dosyası) önce PDF'e çevrilip 300 dpi'de yeniden çizilerek okuyucuya veriliyor; ölçümde sayfa görüntüsü doğrudan verilmişti. Fark ölçülmedi.
+- Tarama okuyucuya kendi çözünürlüğünde verilir. İlk denemede 300 dpi'ye büyütülen 120 dpi taramada Tesseract tablodaki 13 değerin hiçbirini doğrulayamadı (hepsi gizlendi); kendi çözünürlüğünde hepsi uyuştu. Çok düşük ya da çok yüksek çözünürlüklü gerçek taramalarda davranış ölçülmedi.
 - Metin katmanı olan taranmış sayfalar (`SCANNED`, `WEAK`) eski OCR yolunda kaldı; 0010'daki 788 yanlış değerin bu yoldan gelen kısmı sürüyor. Onları da okuyucuya vermek ayrı karar.
 - Karışık belgede (metinli + taranmış sayfa) okuyucu yokken metinli sayfalar da aranamıyor.
 - Yüklü taranmış belgeler eski kuralla duruyor ("Eski kural"); yeniden işlenmedi.

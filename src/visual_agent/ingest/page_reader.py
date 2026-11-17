@@ -23,6 +23,7 @@ from typing import Any
 
 import httpx
 import pypdfium2
+import pypdfium2.raw as pdfium_c
 from PIL import Image
 
 from visual_agent.domain.document import Box, SourceLocation
@@ -370,6 +371,19 @@ class PaddleVlReader:
 ReadPage = Callable[[Path], dict[str, Any]]
 
 
+def _native_scale(page: Any) -> float:
+    """Tarama kendi pikselleriyle okunur: sayfadaki en büyük görüntünün çözünürlüğü. Büyütülmüş
+    görüntüde Tesseract'ın ikinci okuması bozulur (120 dpi tarama 300 dpi'ye çizilince tablodaki
+    bütün değerler uyuşmadı, kendi çözünürlüğünde hepsi uyuştu). Görüntü yoksa 300 dpi."""
+    best_area, scale = 0.0, _RENDER_DPI / _POINTS_PER_INCH
+    for image in page.get_objects(filter=[pdfium_c.FPDF_PAGEOBJ_IMAGE]):
+        left, bottom, right, top = image.get_bounds()
+        width, area = right - left, (right - left) * (top - bottom)
+        if width > 0 and area > best_area:
+            best_area, scale = area, image.get_px_size()[0] / width
+    return scale
+
+
 def page_reader_from_setting(value: str | None) -> ReadPage | None:
     """Ayar boşsa okuyucu yoktur; taranmış sayfası olan belgeler okuyucuyu bekler."""
     config = parse_reader_setting(value)
@@ -393,7 +407,7 @@ def read_scanned_pages(
         elements: list[Element] = []
         for number in pages:
             page = document[number - 1]
-            image = page.render(scale=_RENDER_DPI / _POINTS_PER_INCH).to_pil().convert("RGB")
+            image = page.render(scale=_native_scale(page)).to_pil().convert("RGB")
             if image.convert("L").getextrema()[0] >= _BLANK_LEVEL:
                 continue  # boş sayfa: okunacak bir şey yok, okuyucu da gerekmez
             if read_page is None:
