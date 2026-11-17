@@ -48,6 +48,7 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 
 ## Cevap kalitesi
 
+- Belge adı ya da model numarası yazılınca netleştirme çıkmaz sokak oluyor (2026-11-17): "6026411 modelinde BL005 Front Length from HPS ölçüsü SM bedende kaç?" sorusu "Hangi belge için?" döndü, ama seçenek düğmesi çıkmadı (aday belge sayısı düğme sınırının dışında). "6026411-SS28 föyünde …" yazınca doğru föy bulundu. Soruda geçen numarayı belge adıyla eşleştirmek ya da seçenek çıkmıyorsa netleştirme sormamak ayrı tasarım ister.
 - Fotoğraf, gömülü görsel ve taramadan OCR ile okunan değerlerde iki okuma uyuşursa değer gösterilir, cevap "Kısmen doğrulandı" olur; uyuşmazsa değer gizlenir, cevap "Doğrulanamadı" olur. Kısa kenarı 50 pt'den ya da alanı sayfanın %2'sinden küçük görseller okunmaz, belge listesinde uyarı çıkar. Gerçek fotoğraflarla denenecek.
 - İlk OCR artık `tur+eng` ([kararlar](kararlar.md), OCR). Bu değişiklikten önce yüklenmiş belgeler ilk OCR'ı yalnız Türkçe ile almıştı; indeks yeniden işlenmediği için onlar öyle kalıyor. Uygulamadaki örnek belgelerde taranmış sayfa yalnız set7'nin Türkçe belgelerinde var.
 - İkinci okuma doğru okunmuş toleransı da gizleyebiliyor: OCR dil ölçümünde Türkçe taranmış sayfadaki "±0,5", ikinci okumada "*0,5" okunup belirsiz sayıldı ve değer gizlendi (doğru değerin haksız reddi). Gerçek taramalarda ne sıklıkla olduğu ölçülmedi.

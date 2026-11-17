@@ -4,6 +4,7 @@ import {
   askQuestion,
   fetchVoicePhrases,
   requestSpeech,
+  type AskResult,
   type Citation,
   type ConversationContext,
   type PhraseAudio,
@@ -37,6 +38,15 @@ type AskOptions = {
   onAudio?: () => void;
   onSearching?: () => void;
 };
+
+/** Cevabın tamamı gizlendiyse (değer doğrulanamadı) ilk kaynağı: panelde kendiliğinden açılır. */
+function sourceOfHiddenAnswer(result: AskResult): Citation | null {
+  if (result.kind !== "answered" || result.items.length === 0) {
+    return null;
+  }
+  const isHidden = result.items.every((item) => !item.verified && !item.source_quote);
+  return isHidden ? (result.items.flatMap((item) => item.citations)[0] ?? null) : null;
+}
 
 export function App() {
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -156,6 +166,10 @@ export function App() {
           }
           if (event.type === "done" && activeAsk.current === control) {
             updateContext(event.context);
+            const hiddenSource = sourceOfHiddenAnswer(event.result);
+            if (hiddenSource !== null) {
+              setSource(hiddenSource);
+            }
           }
         },
         control.signal,

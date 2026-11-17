@@ -36,7 +36,13 @@ type Props = {
 
 const UNVERIFIED_TEXT = "Bu cümle kaynakla doğrulanamadığı için gösterilmiyor.";
 
-export function unverifiedText(hasSources: boolean): string {
+const UNVERIFIED_OCR_TEXT = "Bu değeri doğrulayamadım. Kaynağı aşağıda; değeri oradan okuyun.";
+
+/** Taramadan okunup doğrulanamayan değerde kullanıcı kaynağa yönlendirilir. */
+export function unverifiedText(hasSources: boolean, fromOcr = false): string {
+  if (hasSources && fromOcr) {
+    return UNVERIFIED_OCR_TEXT;
+  }
   return hasSources ? `${UNVERIFIED_TEXT} Kaynağa bakın.` : UNVERIFIED_TEXT;
 }
 
@@ -47,14 +53,48 @@ export const SOURCE_LINE_SPOKEN = "Kaynaktaki satır ekranda gösteriliyor.";
 export const SOURCE_QUOTE_LABEL = "Kaynaktaki metin";
 
 /** Kaynak alıntısı nötr metin; gizleme mesajı uyarı rengiyle ayrılır. */
-function HiddenText({ quote, hasSources }: { quote?: string | null; hasSources: boolean }) {
+function HiddenText({
+  quote,
+  hasSources,
+  fromOcr = false,
+}: {
+  quote?: string | null;
+  hasSources: boolean;
+  fromOcr?: boolean;
+}) {
   return quote ? (
     <span className="source-quote">
       <span className="quote-label">{SOURCE_QUOTE_LABEL}</span> <q>{quote}</q>
     </span>
   ) : (
-    <span className="hidden-note">{unverifiedText(hasSources)}</span>
+    <span className="hidden-note">{unverifiedText(hasSources, fromOcr)}</span>
   );
+}
+
+type AnsweredItem = Extract<AskResult, { kind: "answered" }>["items"][number];
+
+/** Art arda gelen, aynı uyarıyı taşıyan gizli cümleler tek satırda toplanır; kaynakları birleşir. */
+function mergeHidden(items: AnsweredItem[]): AnsweredItem[] {
+  const merged: AnsweredItem[] = [];
+  for (const item of items) {
+    const last = merged.at(-1);
+    const repeats =
+      last !== undefined &&
+      !item.verified &&
+      !last.verified &&
+      !item.source_quote &&
+      !last.source_quote &&
+      unverifiedText(item.citations.length > 0, item.from_ocr) ===
+        unverifiedText(last.citations.length > 0, last.from_ocr);
+    if (!repeats) {
+      merged.push(item);
+      continue;
+    }
+    const known = new Set(last.citations.map((citation) => citation.chunk_id));
+    const added = item.citations.filter((citation) => !known.has(citation.chunk_id));
+    merged[merged.length - 1] = { ...last, citations: [...last.citations, ...added] };
+  }
+  return merged;
 }
 
 const SECTION_SEPARATOR = " · ";
@@ -217,10 +257,14 @@ function FinalAnswer({
       </div>
       {result.has_conflict && <p className="notice">Kaynaklar birbiriyle çelişiyor.</p>}
       <ol className="answer-items">
-        {result.items.map((item, index) => (
+        {mergeHidden(result.items).map((item, index) => (
           <li key={index} className={`answer-item ${item.verified ? "is-verified" : "is-unverified"}`}>
             {!item.verified && (
-              <HiddenText quote={item.source_quote} hasSources={item.citations.length > 0} />
+              <HiddenText
+                quote={item.source_quote}
+                hasSources={item.citations.length > 0}
+                fromOcr={item.from_ocr}
+              />
             )}
             {item.verified && item.text.trim() !== item.code?.trim() && item.text}
             {item.code !== null && (

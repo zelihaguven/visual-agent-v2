@@ -22,7 +22,7 @@ from starlette.types import Scope
 from apps.api.display_names import DocumentNames
 from apps.api.documents import RemoveVectors, delete_document
 from apps.api.preview import render_highlighted_page
-from apps.api.question_log import InputMode, QuestionRecord, record_for
+from apps.api.question_log import InputMode, QuestionRecord, problem_kinds, record_for
 from apps.api.voice import SpokenAnswer, voice_router
 from visual_agent.ask.deps import AskRequest
 from visual_agent.ask.language import detect_language
@@ -155,7 +155,25 @@ def _result_payload(result: AskResult) -> dict[str, object]:
         (SmallTalk, "small_talk"),
     ]
     kind = next((name for model, name in kinds if isinstance(result, model)), "failed")
-    return {"kind": kind, **result.model_dump(mode="json")}
+    return {"kind": kind, **_for_client(result).model_dump(mode="json")}
+
+
+def _for_client(result: AskResult) -> AskResult:
+    """Doğrulanmamış cümlenin metni ve tanıların ayrıntısı (sayı, kod, alıntı) cihaza gitmez:
+    arayüz zaten göstermez, ama doğrulanmamış değer istemciye hiç ulaşmamalı (kural 1).
+    Kaynak alıntısı (`source_quote`) doğrulanmış kaynak metnidir, kalır."""
+    if not isinstance(result, Answered):
+        return result
+    items = tuple(
+        item.model_copy(
+            update={
+                "text": item.text if item.verified else "",
+                "problems": problem_kinds(item.problems),
+            }
+        )
+        for item in result.items
+    )
+    return result.model_copy(update={"items": items, "problems": problem_kinds(result.problems)})
 
 
 def _sse(event: Event) -> str:

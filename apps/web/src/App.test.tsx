@@ -359,6 +359,56 @@ describe("App", () => {
     expect(screen.queryByText(/Değer doğrulanamadı/)).not.toBeInTheDocument();
   });
 
+  it("tells the user to read a scanned value it could not verify from the source, once", async () => {
+    const hidden = { ...answered.result.items[0], text: "", verified: false, from_ocr: true };
+    const second = { ...CITATION, chunk_id: "d1:7", location: { ...CITATION.location, page: 16 } };
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          {
+            ...answered,
+            result: {
+              ...answered.result,
+              status: "failed",
+              items: [hidden, { ...hidden, citations: [second] }],
+            },
+          },
+        ]),
+      "/api/chunks/d1%3A0/source": () =>
+        jsonResponse({
+          kind: "page",
+          page: 2,
+          title: "PNT-4417 ölçü föyü",
+          image_url: "/api/chunks/d1:0/preview.png",
+        }),
+    });
+    render(<App />);
+    await ask("soru");
+
+    const notes = await screen.findAllByText(
+      "Bu değeri doğrulayamadım. Kaynağı aşağıda; değeri oradan okuyun.",
+    );
+    expect(notes).toHaveLength(1);
+    expect(screen.getByRole("button", { name: /s\.2/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /s\.16/ })).toBeInTheDocument();
+    // Cevabın tamamı gizli: ilk kaynak kendiliğinden açılır.
+    const image = await screen.findByRole("img", { name: /vurgulu kaynak sayfa/i });
+    expect(image).toHaveAttribute("src", "/api/chunks/d1:0/preview.png");
+  });
+
+  it("does not open the source by itself when a verified sentence is shown", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([answered]),
+    });
+    render(<App />);
+    await ask("soru");
+
+    await screen.findByText("İç paça 76,5 cm.");
+    expect(screen.queryByRole("img", { name: /vurgulu kaynak sayfa/i })).not.toBeInTheDocument();
+  });
+
   it("shows the source quote of a unit-hidden sentence but does not read it aloud", async () => {
     URL.createObjectURL = vi.fn(() => "blob:ses");
     URL.revokeObjectURL = vi.fn();
