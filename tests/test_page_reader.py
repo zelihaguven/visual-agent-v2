@@ -335,7 +335,11 @@ def test_form_table_rows_stay_as_read_and_keep_label_next_to_its_value() -> None
     texts = _table_texts(COVER_FORM)
 
     assert texts[0].startswith("Sample Status | Fit Approved, Hold Sampling | Main Material #")
-    assert texts[1] == "Supplier Request Round | Material Description | PacMan - Fleece - Solid"
+    # Etiketin değeri boş: yeri korunur, bir sonraki etiket onun değeri sanılmaz (sınır seti C2).
+    assert (
+        texts[1]
+        == "Supplier Request Round | (boş) | Material Description | PacMan - Fleece - Solid"
+    )
     assert texts[2] == "Regional Fit | US | Created By | Christianah Owolabi"
     assert not any("Sample Status: Regional Fit" in text for text in texts)
 
@@ -375,3 +379,24 @@ def test_text_only_table_has_no_header_evidence_and_stays_as_read() -> None:
     )
 
     assert _table_texts(table) == ["Kolon | Tip", "ADI | VARCHAR"]
+
+
+def test_empty_cells_keep_their_place_only_inside_rows_read_as_is() -> None:
+    form = (
+        "<table><tr><td>Gender</td><td>Mens</td><td>Graphic Fit Block Reference</td><td></td></tr>"
+        "<tr><td>Division</td><td></td><td>Season</td><td>FW27</td></tr>"
+        "<tr><td></td><td></td><td>Fit Type</td><td>Regular</td></tr></table>"
+    )
+    measure = (
+        "<table><tr><td>Dim</td><td>S</td><td>M</td></tr>"
+        "<tr><td>BL005</td><td></td><td>25</td></tr><tr><td>SL005</td><td>26</td><td>27</td></tr>"
+        "</table>"
+    )
+
+    assert _table_texts(form) == [
+        "Gender | Mens | Graphic Fit Block Reference",
+        "Division | (boş) | Season | FW27",
+        "(boş) | (boş) | Fit Type | Regular",
+    ]
+    # Başlıklı tabloda boş hücre zaten yazılmaz; biçim değişmez.
+    assert _table_texts(measure) == ["Dim: BL005 | M: 25", "Dim: SL005 | S: 26 | M: 27"]
