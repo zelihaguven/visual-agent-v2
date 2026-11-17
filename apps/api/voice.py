@@ -51,6 +51,7 @@ _NOTICES = {
         "failed": "Cevap doğrulanamadı, ekrana bakın.",
         "partial": "Bazı değerler doğrulanamadı, ekrana bakın.",
         "from_ocr": "Bu cevap görsel ya da taramadan okundu, kaynağı ekrandan kontrol edin.",
+        "ocr_hidden": "Bu değeri doğrulayamadım; değeri ekrandaki kaynaktan okuyun.",
         "incomplete": "Cevap tamamlanamadı, ekrana bakın.",
         "source_line": "Kaynaktaki satır ekranda gösteriliyor.",
     },
@@ -62,6 +63,7 @@ _NOTICES = {
         "from_ocr": (
             "This answer was read from an image or scan, please check the source on screen."
         ),
+        "ocr_hidden": "I could not verify this value; please read it from the source on screen.",
         "incomplete": "The answer could not be completed, please check the screen.",
         "source_line": "The source line is shown on the screen.",
     },
@@ -165,6 +167,9 @@ def _answered_notice_key(result: Answered) -> str | None:
     hidden = [item for item in result.items if not item.verified]
     if hidden and all(item.source_quote for item in hidden):
         return None  # gizlenen her cümlenin yerine kaynak satırı gösterildi ve söylendi
+    all_hidden = bool(hidden) and len(hidden) == len(result.items)
+    if all_hidden and all(item.from_ocr and item.citations for item in hidden):
+        return "ocr_hidden"  # taramadan okunan değer doğrulanamadı; kaynağı ekranda
     return "partial"
 
 

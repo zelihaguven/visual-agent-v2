@@ -18,11 +18,13 @@ from tests.test_api_documents import FakeRepository, _events
 from visual_agent.ask.deps import AskRequest
 from visual_agent.ask.streaming import INCOMPLETE_MESSAGE
 from visual_agent.domain.answer import VerificationStatus
+from visual_agent.domain.document import SourceLocation
 from visual_agent.domain.result import (
     Answered,
     AnsweredItem,
     AskOutcome,
     AskResult,
+    Citation,
     Clarify,
     Failed,
     NotFound,
@@ -517,3 +519,43 @@ def test_spoken_answer_without_voice_service_says_audio_is_unavailable(tmp_path:
 
     assert "audio_unavailable" in types
     assert "done" in types
+
+
+def _hidden_scan_item() -> AnsweredItem:
+    citation = Citation(chunk_id="d:1", doc_id="d", title="Föy", location=SourceLocation(page=14))
+    return AnsweredItem(
+        text="SM 24 1/2.",
+        citations=(citation,),
+        verified=False,
+        from_ocr=True,
+        problems=("OCR değeri belirsiz: ['24', '1/2']",),
+    )
+
+
+def test_hidden_scanned_value_tells_the_user_to_read_it_from_the_source(tmp_path: Path) -> None:
+    voice = FakeVoice()
+    result = Answered(status=VerificationStatus.FAILED, items=(_hidden_scan_item(),))
+
+    ask_events(make_client(tmp_path, voice, [], result))
+
+    assert voice.spoken == ["Bu değeri doğrulayamadım; değeri ekrandaki kaynaktan okuyun."]
+
+
+def test_unverified_text_and_diagnosis_details_never_reach_the_client(tmp_path: Path) -> None:
+    shown = AnsweredItem(text="Bel 38,0.", citations=(), verified=True)
+    result = Answered(
+        status=VerificationStatus.FAILED,
+        items=(shown, _hidden_scan_item()),
+        problems=("OCR değeri belirsiz: ['24', '1/2']",),
+    )
+
+    events = ask_events(make_client(tmp_path, None, [], result), speak=False)
+
+    sent = json.dumps(events, ensure_ascii=False)
+    assert "24 1/2" not in sent and "1/2" not in sent
+    done = events[-1]["result"]
+    assert isinstance(done, dict)
+    assert [item["text"] for item in done["items"]] == ["Bel 38,0.", ""]
+    assert done["items"][1]["problems"] == ["OCR değeri belirsiz"]
+    assert done["problems"] == ["OCR değeri belirsiz"]
+    assert done["items"][1]["citations"][0]["location"]["page"] == 14
