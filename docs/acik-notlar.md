@@ -18,6 +18,9 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 
 ## Sayfa okuyucusu (0011)
 
+- Fotoğrafta başlık bölüme dönüşmüyor (2026-11-17): `dikim-foto.jpg` yeniden işlenince okuyucu başlığı düz metin olarak etiketledi; tablo satırlarının bölümü boş kaldı ve ürün kodu (MNT-8598) satırlara bağlanmadı. "MNT-8598 S beden dış paça kaç?" artık "bulunamadı" dönüyor; eski hatta bölüm "MNT-8598 ölçü föyü · Ölçü tablosu" idi ve soru cevaplanabiliyordu. Önerilen genel kural (uygulanmadı): sayfada başlık bloğu yoksa ilk tablodan önceki en üstteki kısa metin bloğu tablo satırlarına bölüm olarak eklenir. Ölçülen adayı değiştirir; set B ile ölçülür.
+- Bir tolerans hücresi "-{3 1/8}" diye süslü parantezle okundu (tech pack, 2026-11-17 ölçümü); nedeni incelenmedi.
+- Konuşma modu kullanıcının sözünü kesti (2026-11-17, ürün sahibi denemesi); kesilen cümle soru sayılıp belgelerde arandı.
 - Gerçek okuyucuyla deneme (2026-11-17, Mac, MLX; set A dışı üç örnek, okuma katmanı, cevap modeli çalıştırılmadı): `dikim-tarama.pdf` 3 sayfa 16,4 sn, `dikim-foto.jpg` 4,3 sn, `strickland-tarama.pdf` 2 sayfa 14,2 sn (model yüklüyken). İki ölçü tablosunun ve etiket tablosunun bütün değerleri doğru okundu ve ikinci okumayla uyuştu (belirsiz 0). Strickland'de düz yazıdaki 17 kesir ve sayı belirsiz kaldı (gizlenir); doğru olup olmadıkları tek tek sayılmadı.
 - Sayı içermeyen yanlış okuma gizlenmiyor: fotoğrafın başlığı "MNT-8598 Ổlộcũ fōyũ", taramanın 3. sayfa başlığı "olçü föyü" okundu. Karşılaştırma yalnız sayı ve kodlara bakıyor.
 - Model boyutu: PaddleOCR-VL-1.6 3,6 GB (Hugging Face önbelleği), düzen modeli 126 MB.
