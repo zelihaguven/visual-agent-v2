@@ -244,8 +244,9 @@ def _first_row_is_header(rows: Sequence[Sequence[str]]) -> bool:
     return evidence and not counter
 
 
-EMPTY_CELL = "—"
-"""Dilden bağımsız boş hücre işareti."""
+EMPTY_CELL = "(boş)"
+"""Boş hücre işareti. Tire ya da çizgi gerçek belgelerde kendisi bir değer olabilir ("—", "-");
+açık bir sözcük hücrenin boş olduğunu söyler (ürün sahibi kararı, 2026-11-17)."""
 
 
 def _with_empty_cells_marked(row: Sequence[str]) -> list[str]:

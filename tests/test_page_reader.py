@@ -336,7 +336,10 @@ def test_form_table_rows_stay_as_read_and_keep_label_next_to_its_value() -> None
 
     assert texts[0].startswith("Sample Status | Fit Approved, Hold Sampling | Main Material #")
     # Etiketin değeri boş: yeri korunur, bir sonraki etiket onun değeri sanılmaz (sınır seti C2).
-    assert texts[1] == "Supplier Request Round | — | Material Description | PacMan - Fleece - Solid"
+    assert (
+        texts[1]
+        == "Supplier Request Round | (boş) | Material Description | PacMan - Fleece - Solid"
+    )
     assert texts[2] == "Regional Fit | US | Created By | Christianah Owolabi"
     assert not any("Sample Status: Regional Fit" in text for text in texts)
 
@@ -392,8 +395,8 @@ def test_empty_cells_keep_their_place_only_inside_rows_read_as_is() -> None:
 
     assert _table_texts(form) == [
         "Gender | Mens | Graphic Fit Block Reference",
-        "Division | — | Season | FW27",
-        "— | — | Fit Type | Regular",
+        "Division | (boş) | Season | FW27",
+        "(boş) | (boş) | Fit Type | Regular",
     ]
     # Başlıklı tabloda boş hücre zaten yazılmaz; biçim değişmez.
     assert _table_texts(measure) == ["Dim: BL005 | M: 25", "Dim: SL005 | S: 26 | M: 27"]
