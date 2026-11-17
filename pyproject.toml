@@ -37,6 +37,9 @@ ingest = [
 ]
 
 [tool.uv]
+# Tek OpenCV: paddleocr `opencv-contrib-python` ister, rapidocr `opencv-python-headless`; ikisi
+# aynı `cv2` klasörüne yazar, kalan sürüm kurulum sırasına bağlı kalırdı. contrib öbürünü kapsar.
+override-dependencies = ["opencv-python-headless ; sys_platform == 'never'"]
 required-environments = [
     "sys_platform == 'darwin' and platform_machine == 'arm64'",
     "sys_platform == 'linux' and platform_machine == 'aarch64'",
