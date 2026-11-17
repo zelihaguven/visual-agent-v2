@@ -1,0 +1,867 @@
+{
+ "tarih": "2026-11-17",
+ "set": "evals/sinir_yuklu_belgeler.json",
+ "commit": "20936b6",
+ "kosu": 3,
+ "soru": 24,
+ "not": "Kilitli 8 soru ölçülmedi. Sınıflar cevap metni okunarak verildi: dogru / guvenli / yanlis. Her koşu uygulamanın /api/ask yolundan, bağlamsız, yazılı kipte.",
+ "sorular": [
+  {
+   "id": "A1",
+   "category": "birim",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "PNT-1162 M beden bel ölçüsü 40,5'tir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "PNT-1162 M beden bel ölçüsü 40,5'tir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "PNT-1162 M beden bel ölçüsü 40,5."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "A2",
+   "category": "birim",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "PNT-1162 bel toleransı 1,0 cm'dir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "PNT-1162 bel için tolerans 1,0 cm'dir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "PNT-1162 bel ölçüsü için tolerans 1,0 cm'dir."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "A4",
+   "category": "birim",
+   "reading": false,
+   "sinif": [
+    "guvenli",
+    "guvenli",
+    "guvenli"
+   ],
+   "neden": "cümle gizlendi (kaynakta olmayan birim), kaynak satırı gösterildi",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "failed",
+     "items": [
+      "alıntı: Ebat: İç paça | S: 73,5 | M: 75,5 | L: 77,5 | Tolerans (cm): 1,0"
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "failed",
+     "items": [
+      "alıntı: Ebat: İç paça | S: 73,5 | M: 75,5 | L: 77,5 | Tolerans (cm): 1,0"
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "failed",
+     "items": [
+      "alıntı: Ebat: İç paça | S: 73,5 | M: 75,5 | L: 77,5 | Tolerans (cm): 1,0"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "A5",
+   "category": "birim",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "partial",
+     "items": [
+      "SIPARIS_KALEM tablosundaki MUSTERI_KODU kolonunun uzunluğu 19'dur."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "partial",
+     "items": [
+      "SIPARIS_KALEM tablosundaki MUSTERI_KODU kolonunun uzunluğu 19'dur."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "partial",
+     "items": [
+      "SIPARIS_KALEM tablosundaki MUSTERI_KODU kolonunun uzunluğu 19'dur."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "A7",
+   "category": "birim",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "Sorgu zaman aşımının varsayılan değeri 75 saniyedir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "Sorgu zaman aşımının varsayılan değeri 75 saniyedir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "Sorgu zaman aşımının varsayılan değeri 75 saniyedir."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "A8",
+   "category": "birim",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "1-5 yıl kıdemde yıllık izin 15 gündür."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "1-5 yıl kıdemde yıllık izin 15 gündür."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "1-5 yıl kıdemde yıllık izin 15 gündür."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "B1",
+   "category": "yanlis-sutun",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "PNT-1162 için L beden iç paça 76,5'tir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "PNT-1162 L beden iç paça 76,5."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "PNT-1162 L beden iç paça 76,5."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "B3",
+   "category": "yanlis-sutun",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "FATURA_BASLIK tablosundaki MUSTERI_KODU uzunluğu 66'dır."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "FATURA_BASLIK tablosundaki MUSTERI_KODU uzunluğu 66'dır."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "FATURA_BASLIK tablosundaki MUSTERI_KODU uzunluğu 66'dır."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "B4",
+   "category": "yanlis-sutun",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "CKT-7308 L beden kalça ölçüsü 52,5'tir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "CKT-7308 L beden kalça ölçüsü 52,5'tir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "CKT-7308 için L beden kalça ölçüsü 52,5'tir."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "B5",
+   "category": "yanlis-sutun",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "partial",
+     "items": [
+      "GML-6473 M beden etiket kodu ETK-3392'dir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "partial",
+     "items": [
+      "GML-6473 M beden etiket kodu ETK-3392'dir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "partial",
+     "items": [
+      "GML-6473 M beden etiket kodu ETK-3392'dir."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "B6",
+   "category": "yanlis-sutun",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "FATURA_BASLIK tablosundaki TESLIM_TARIHI kolonunun uzunluğu 94'tür."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "FATURA_BASLIK tablosundaki TESLIM_TARIHI kolonunun uzunluğu 94'tür."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "FATURA_BASLIK tablosundaki TESLIM_TARIHI kolonunun uzunluğu 94'tür."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "B8",
+   "category": "yanlis-sutun",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "C derecesi için yol yardımı aylık tutarı 1200 TL'dir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "C derecesi için yol yardımı aylık tutarı 1200 TL'dir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "C derecesi için yol yardımı aylık tutarı 1200 TL'dir."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C1",
+   "category": "olumsuzlama",
+   "reading": true,
+   "sinif": [
+    "guvenli",
+    "guvenli",
+    "guvenli"
+   ],
+   "neden": "bulunamadı",
+   "cevaplar": [
+    {
+     "kind": "not_found"
+    },
+    {
+     "kind": "not_found"
+    },
+    {
+     "kind": "not_found"
+    }
+   ]
+  },
+  {
+   "id": "C2",
+   "category": "olumsuzlama",
+   "reading": true,
+   "sinif": [
+    "guvenli",
+    "guvenli",
+    "guvenli"
+   ],
+   "neden": "cümle gizlendi (alıntısında olmayan sayı)",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "failed",
+     "items": [
+      "gizli: cümlede kendi alıntısında olmayan sayı"
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "failed",
+     "items": [
+      "gizli: cümlede kendi alıntısında olmayan sayı"
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "failed",
+     "items": [
+      "gizli: cümlede kendi alıntısında olmayan sayı"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C3",
+   "category": "olumsuzlama",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "Hayır, halihazırda başlatılmış bir siparişten transfer yapılmasına izin verilmez."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "Başlamış bir siparişten transfer yapılmasına izin verilmez."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "Başlamış bir siparişten transfer yapılmasına izin verilmez."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C5",
+   "category": "olumsuzlama",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "failed",
+     "items": [
+      "Kullanıcının siparişleri planlama yetkisi olmasa bile yük listesini (load list) görüntüleyebilmesi mümkündür.",
+      "Kullanıcının siparişleri planlama yetkisi olmasa bile yük listesini (load list) görüntüleyebilmesi mümkündür.",
+      "Siparişleri planlama yetkisi olmayan kullanıcılar bile yük listesini görüntüleyebilecektir, ancak bu listeyi görebilmek için siparişlerin önce Planlayıcı tarafından Low Level'a kabul edilmesi gerekir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "failed",
+     "items": [
+      "Kullanıcının siparişleri planlama yetkisi olmasa bile yük listesini (load list) görüntüleyebilir.",
+      "Kullanıcının siparişleri planlama yetkisi olmasa bile yük listesini (load list) görüntüleyebilir.",
+      "Siparişleri planlama yetkisi olmayan kullanıcılar bile yük listesini görüntüleyebilir, ancak bu listeyi görebilmek için siparişlerin önce Planlayıcı tarafından Low Level'a kabul edilmesi gerekir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "failed",
+     "items": [
+      "Kullanıcının siparişleri planlama yetkisi olmasa bile yük listesini (load list) görüntüleyebilir.",
+      "Kullanıcının siparişleri planlama yetkisi olmasa bile yük listesini (load list) görüntüleyebilir.",
+      "Siparişleri planlama yetkisi olmayan kullanıcılar bile yük listesini görüntüleyebilir, ancak bu listeyi görebilmek için siparişlerin önce Planlayıcı tarafından Low Level'a kabul edilmesi gerekir."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C6",
+   "category": "olumsuzlama",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "Bağlantı ayarları yönetici tarafından değiştirilir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "Bağlantı ayarları yönetici tarafından değiştirilir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "Bağlantı ayarları yönetici tarafından değiştirilir."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C8",
+   "category": "olumsuzlama",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "not_found"
+    },
+    {
+     "kind": "not_found"
+    },
+    {
+     "kind": "not_found"
+    }
+   ]
+  },
+  {
+   "id": "D1",
+   "category": "niteleyici",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "SRT-4294 Rev A bel ölçüsü M beden için 38,5.",
+      "SRT-4294 Rev B bel ölçüsü M beden için 39,5."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "SRT-4294 Rev A bel ölçüsü M beden için 38,5.",
+      "SRT-4294 Rev B bel ölçüsü M beden için 39,5."
+     ]
+    },
+    {
+     "kind": "clarify",
+     "question": "Hangi revizyon için?",
+     "options": [
+      "dikim rev a",
+      "dikim rev b",
+      "dikim excel"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "D2",
+   "category": "niteleyici",
+   "reading": true,
+   "sinif": [
+    "guvenli",
+    "guvenli",
+    "guvenli"
+   ],
+   "neden": "bulunamadı",
+   "cevaplar": [
+    {
+     "kind": "not_found"
+    },
+    {
+     "kind": "not_found"
+    },
+    {
+     "kind": "not_found"
+    }
+   ]
+  },
+  {
+   "id": "D3",
+   "category": "niteleyici",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "clarify",
+     "question": "Hangi model veya belge için iç paça ölçüsünü istiyorsunuz?",
+     "options": []
+    },
+    {
+     "kind": "clarify",
+     "question": "Hangi model veya belge için iç paça ölçüsünü istiyorsunuz?",
+     "options": []
+    },
+    {
+     "kind": "clarify",
+     "question": "Hangi model veya belge için iç paça ölçüsünü istiyorsunuz?",
+     "options": []
+    }
+   ]
+  },
+  {
+   "id": "D4",
+   "category": "niteleyici",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "clarify",
+     "question": "Hangi beden için?",
+     "options": []
+    },
+    {
+     "kind": "clarify",
+     "question": "Hangi beden için?",
+     "options": []
+    },
+    {
+     "kind": "clarify",
+     "question": "Hangi beden için?",
+     "options": []
+    }
+   ]
+  },
+  {
+   "id": "D6",
+   "category": "niteleyici",
+   "reading": true,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "partial",
+     "items": [
+      "Fleece için beden aralığı XS-4XL, SMT-4XLT'dir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "partial",
+     "items": [
+      "Fleece için beden aralığı XS-4XL, SMT-4XLT'dir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "partial",
+     "items": [
+      "Fleece için beden aralığı XS-4XL, SMT-4XLT'dir."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "D7",
+   "category": "niteleyici",
+   "reading": false,
+   "sinif": [
+    "dogru",
+    "dogru",
+    "dogru"
+   ],
+   "neden": "",
+   "cevaplar": [
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "Bir hedef etkinliğin en fazla beş bağımlı etkinliği olabilir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "failed",
+     "items": [
+      "Bir hedef etkinliğin en fazla beş bağımlı etkinliği olabilir.",
+      "Bir hedef etkinliğin en fazla beş bağımlı etkinliği olabilir.",
+      "Bir hedef etkinliğin en fazla beş bağımlı etkinliği olabilir."
+     ]
+    },
+    {
+     "kind": "answered",
+     "status": "verified",
+     "items": [
+      "Bir hedef etkinliğin en fazla beş bağımlı etkinliği olabilir."
+     ]
+    }
+   ]
+  }
+ ],
+ "ozet": {
+  "kosu1": {
+   "birim": {
+    "dogru": 5,
+    "guvenli": 1
+   },
+   "yanlis-sutun": {
+    "dogru": 6
+   },
+   "olumsuzlama": {
+    "guvenli": 2,
+    "dogru": 4
+   },
+   "niteleyici": {
+    "dogru": 5,
+    "guvenli": 1
+   },
+   "TÜMÜ": {
+    "dogru": 20,
+    "guvenli": 4
+   },
+   "okuma hariç": {
+    "dogru": 19,
+    "guvenli": 1
+   }
+  },
+  "kosu2": {
+   "birim": {
+    "dogru": 5,
+    "guvenli": 1
+   },
+   "yanlis-sutun": {
+    "dogru": 6
+   },
+   "olumsuzlama": {
+    "guvenli": 2,
+    "dogru": 4
+   },
+   "niteleyici": {
+    "dogru": 5,
+    "guvenli": 1
+   },
+   "TÜMÜ": {
+    "dogru": 20,
+    "guvenli": 4
+   },
+   "okuma hariç": {
+    "dogru": 19,
+    "guvenli": 1
+   }
+  },
+  "kosu3": {
+   "birim": {
+    "dogru": 5,
+    "guvenli": 1
+   },
+   "yanlis-sutun": {
+    "dogru": 6
+   },
+   "olumsuzlama": {
+    "guvenli": 2,
+    "dogru": 4
+   },
+   "niteleyici": {
+    "dogru": 5,
+    "guvenli": 1
+   },
+   "TÜMÜ": {
+    "dogru": 20,
+    "guvenli": 4
+   },
+   "okuma hariç": {
+    "dogru": 19,
+    "guvenli": 1
+   }
+  }
+ }
+}

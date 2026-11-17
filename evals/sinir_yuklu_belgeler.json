@@ -1,0 +1,413 @@
+[
+ {
+  "id": "A1",
+  "category": "birim",
+  "question": "PNT-1162 M beden bel ölçüsü kaç?",
+  "expected": "40,5 (kaynakta birim yok)",
+  "wrong": [
+   "40,5 dışında bir değer (38,5; 42,5)",
+   "kaynakta olmayan birimle gösterilen değer (40,5 cm)"
+  ],
+  "source": "dikim-pdf.pdf",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "A2",
+  "category": "birim",
+  "question": "PNT-1162 bel toleransı kaç?",
+  "expected": "1,0 cm (birim sütun başlığında)",
+  "wrong": [
+   "1,0 dışında bir değer",
+   "cm dışında bir birim"
+  ],
+  "source": "dikim-pdf.pdf",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "A3",
+  "category": "birim",
+  "question": "PNT-1126 L beden kalça kaç santim?",
+  "expected": "53,0 (kaynakta birim yok)",
+  "wrong": [
+   "53,0 dışında bir değer (49,0; 51,0)",
+   "kaynakta olmayan birimle gösterilen değer (53,0 cm)"
+  ],
+  "source": "dikim-excel.xlsx",
+  "reading": false,
+  "locked": true
+ },
+ {
+  "id": "A4",
+  "category": "birim",
+  "question": "CKT-7308 S beden iç paça kaç cm?",
+  "expected": "73,5 (kaynakta birim yok)",
+  "wrong": [
+   "73,5 dışında bir değer (75,5; 77,5)",
+   "kaynakta olmayan birimle gösterilen değer (73,5 cm)"
+  ],
+  "source": "dikim-word.docx",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "A5",
+  "category": "birim",
+  "question": "SIPARIS_KALEM tablosunda MUSTERI_KODU kolonunun uzunluğu kaç?",
+  "expected": "19 (kaynakta birim yok)",
+  "wrong": [
+   "19 dışında bir değer (59; 66)",
+   "kaynakta olmayan birimle gösterilen değer (19 karakter)"
+  ],
+  "source": "sql-ekran.docx",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "A6",
+  "category": "birim",
+  "question": "B derecesi için aylık yol yardımı ne kadar?",
+  "expected": "3450 TL (birim sütun başlığında)",
+  "wrong": [
+   "3450 dışında bir tutar (3500; 1200)",
+   "TL dışında bir birim"
+  ],
+  "source": "ik-yan-haklar.xlsx",
+  "reading": false,
+  "locked": true
+ },
+ {
+  "id": "A7",
+  "category": "birim",
+  "question": "Sorgu zaman aşımının varsayılan değeri nedir?",
+  "expected": "75 saniye (75 seconds)",
+  "wrong": [
+   "75 dışında bir değer",
+   "saniye dışında bir birim"
+  ],
+  "source": "sql-notlar.docx",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "A8",
+  "category": "birim",
+  "question": "1-5 yıl kıdemde yıllık izin kaç gün?",
+  "expected": "15 gün",
+  "wrong": [
+   "15 dışında bir değer (20; 28)"
+  ],
+  "source": "ik-izin.pdf",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "B1",
+  "category": "yanlis-sutun",
+  "question": "PNT-1162 L beden iç paça kaç?",
+  "expected": "76,5",
+  "wrong": [
+   "74,5 (M sütunu)",
+   "72,5 (S sütunu)",
+   "başka bir ürünün değeri"
+  ],
+  "source": "dikim-pdf.pdf",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "B2",
+  "category": "yanlis-sutun",
+  "question": "SRT-4294 Rev B M beden bel kaç?",
+  "expected": "39,5",
+  "wrong": [
+   "38,5 (Rev A)",
+   "37,5 ya da 41,5 (komşu sütun)"
+  ],
+  "source": "dikim-rev-b.pdf",
+  "reading": false,
+  "locked": true
+ },
+ {
+  "id": "B3",
+  "category": "yanlis-sutun",
+  "question": "FATURA_BASLIK tablosunda MUSTERI_KODU uzunluğu kaç?",
+  "expected": "66",
+  "wrong": [
+   "19 (SIPARIS_KALEM tablosu)",
+   "94 (komşu satır)"
+  ],
+  "source": "sql-sozluk.xlsx",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "B4",
+  "category": "yanlis-sutun",
+  "question": "CKT-7308 L beden kalça kaç?",
+  "expected": "52,5",
+  "wrong": [
+   "50,5 ya da 48,5 (komşu sütun)",
+   "52,0 (GML-6473)",
+   "53,0 (PNT-1126)"
+  ],
+  "source": "dikim-word.docx",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "B5",
+  "category": "yanlis-sutun",
+  "question": "GML-6473 M beden etiket kodu nedir?",
+  "expected": "ETK-3392",
+  "wrong": [
+   "ETK-3391 ya da ETK-3393 (komşu satır)",
+   "ETK-3352 (PNT-1162)"
+  ],
+  "source": "dikim-tarama.pdf",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "B6",
+  "category": "yanlis-sutun",
+  "question": "FATURA_BASLIK tablosunda TESLIM_TARIHI uzunluğu kaç?",
+  "expected": "94",
+  "wrong": [
+   "66 (komşu satır)",
+   "19 ya da 59 (başka tablo)"
+  ],
+  "source": "sql-sozluk.xlsx",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "B7",
+  "category": "yanlis-sutun",
+  "question": "SIPARIS_KALEM tablosunda DEPO_KODU uzunluğu kaç?",
+  "expected": "59",
+  "wrong": [
+   "19 (komşu satır)",
+   "66 ya da 94 (başka tablo)"
+  ],
+  "source": "sql-ekran.docx",
+  "reading": false,
+  "locked": true
+ },
+ {
+  "id": "B8",
+  "category": "yanlis-sutun",
+  "question": "C derecesi yol yardımı ne kadar?",
+  "expected": "1200 TL",
+  "wrong": [
+   "3450 (B)",
+   "3500 (A)"
+  ],
+  "source": "ik-yan-haklar.xlsx",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "C1",
+  "category": "olumsuzlama",
+  "question": "6013448 modelinin numune durumu nedir?",
+  "expected": "Fit Approved, Hold Sampling",
+  "wrong": [
+   "belirtilmemiş / yok",
+   "Regional Fit",
+   "Supplier Request Round",
+   "yalnız 'Fit Approved' (Hold Sampling olmadan)"
+  ],
+  "source": "6013448 tech pack, s.1 (sayfa görüntüsü)",
+  "reading": true,
+  "locked": false
+ },
+ {
+  "id": "C2",
+  "category": "olumsuzlama",
+  "question": "6013448 föyünde Supplier Request Round nedir?",
+  "expected": "Alan boş: belirtilmemiş ya da bulunamadı",
+  "wrong": [
+   "Regional Fit",
+   "US",
+   "Fit Approved, Hold Sampling",
+   "herhangi bir değer"
+  ],
+  "source": "6013448 tech pack, s.1 (sayfa görüntüsü)",
+  "reading": true,
+  "locked": false
+ },
+ {
+  "id": "C3",
+  "category": "olumsuzlama",
+  "question": "Başlamış bir siparişten transfer yapabilir miyim?",
+  "expected": "Hayır: başlamış siparişten transfere izin verilmez",
+  "wrong": [
+   "evet / yapılabilir"
+  ],
+  "source": "02_Orders_Transfer.md",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "C4",
+  "category": "olumsuzlama",
+  "question": "Satış maliyeti FastReact'ın başka işlevlerini etkiler mi?",
+  "expected": "Hayır: yalnız finansal raporlamada kullanılır",
+  "wrong": [
+   "evet / etkiler"
+  ],
+  "source": "02_Orders_Add_and_Amend_part1.md",
+  "reading": false,
+  "locked": true
+ },
+ {
+  "id": "C5",
+  "category": "olumsuzlama",
+  "question": "Sipariş planlama yetkim yoksa load list'i görebilir miyim?",
+  "expected": "Evet: yetkisi olmayan kullanıcı da load list'i görüntüleyebilir",
+  "wrong": [
+   "hayır / göremez"
+  ],
+  "source": "07_Planning_High_Level_Planning_Load_List.md",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "C6",
+  "category": "olumsuzlama",
+  "question": "Bağlantı ayarlarını kim değiştirir?",
+  "expected": "Yönetici",
+  "wrong": [
+   "kullanıcı / herkes",
+   "değiştirilemez"
+  ],
+  "source": "sql-notlar.docx",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "C7",
+  "category": "olumsuzlama",
+  "question": "Send Collaborative Package ekranındaki iki 'Select…' seçeneği birlikte etkin olabilir mi?",
+  "expected": "Hayır: birbirini dışlar, aynı sistemde ikisi birden etkin olamaz",
+  "wrong": [
+   "evet / olabilir"
+  ],
+  "source": "09_Tools_Send_Collaborative_Package.md",
+  "reading": false,
+  "locked": true
+ },
+ {
+  "id": "C8",
+  "category": "olumsuzlama",
+  "question": "FastReact'ı SAP ile nasıl entegre ederiz?",
+  "expected": "Belgelerde yok (SAP sözcüğü hiçbir parçada geçmiyor): bulunamadı",
+  "wrong": [
+   "entegrasyon adımı ya da menü yolu veren her cevap"
+  ],
+  "source": "— (2026-11-17: 6123 parçada 'SAP' yok; 14 parçada 'ASAP' var)",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "D1",
+  "category": "niteleyici",
+  "question": "SRT-4294 M beden bel kaç?",
+  "expected": "Netleştirme, ya da iki sürüm etiketli: Rev A 38,5 / Rev B 39,5",
+  "wrong": [
+   "sürüm belirtmeden tek değer (yalnız 38,5 ya da yalnız 39,5)"
+  ],
+  "source": "dikim-rev-a.pdf, dikim-rev-b.pdf",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "D2",
+  "category": "niteleyici",
+  "question": "MNT-8598 M beden bel kaç?",
+  "expected": "40,0",
+  "wrong": [
+   "38,0 ya da 42,0 (komşu sütun)",
+   "başka bir ürünün değeri"
+  ],
+  "source": "dikim-foto.jpg",
+  "reading": true,
+  "locked": false
+ },
+ {
+  "id": "D3",
+  "category": "niteleyici",
+  "question": "İç paça ölçüsü kaç?",
+  "expected": "Netleştirme (ürün ve beden belirtilmemiş)",
+  "wrong": [
+   "tek bir ürünün tek değeri"
+  ],
+  "source": "dikim belgeleri",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "D4",
+  "category": "niteleyici",
+  "question": "PNT-1162 bel ölçüsü kaç?",
+  "expected": "Üç beden etiketli: S 38,5 / M 40,5 / L 42,5, ya da netleştirme",
+  "wrong": [
+   "beden belirtmeden tek değer"
+  ],
+  "source": "dikim-pdf.pdf",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "D5",
+  "category": "niteleyici",
+  "question": "15 yıl üzeri kıdemde izin kaç gün?",
+  "expected": "28 gün",
+  "wrong": [
+   "20 (5-15 yıl)",
+   "15 (1-5 yıl)"
+  ],
+  "source": "ik-izin.pdf",
+  "reading": false,
+  "locked": true
+ },
+ {
+  "id": "D6",
+  "category": "niteleyici",
+  "question": "6013448'in beden aralığı (Size Range) nedir?",
+  "expected": "XS-4XL, SMT-4XLT",
+  "wrong": [
+   "XS-4XLT (Actual Sizes)",
+   "eksik aralık (yalnız XS-4XL)"
+  ],
+  "source": "6013448 tech pack, s.1 (sayfa görüntüsü)",
+  "reading": true,
+  "locked": false
+ },
+ {
+  "id": "D7",
+  "category": "niteleyici",
+  "question": "Bir hedef etkinliğin en fazla kaç bağımlı etkinliği olabilir?",
+  "expected": "Beş",
+  "wrong": [
+   "beş dışında bir sayı"
+  ],
+  "source": "08_Setup_Event_Planning_Framework_part1.md",
+  "reading": false,
+  "locked": false
+ },
+ {
+  "id": "D8",
+  "category": "niteleyici",
+  "question": "Tedarikçi adı en fazla kaç karakter olabilir?",
+  "expected": "15",
+  "wrong": [
+   "15 dışında bir sayı"
+  ],
+  "source": "08_Setup_General_Suppliers.md",
+  "reading": false,
+  "locked": true
+ }
+]
