@@ -32,7 +32,6 @@ from visual_agent.verification.text import (
 )
 
 Sources = Mapping[int, PromptSource]
-_MIN_WORDS_FOR_REPEAT = 4
 # "bir" ve "one" çoğu zaman sayı değil, belirsiz tanımlıktır; cümlede sayı sayılmaz.
 _ARTICLE_NUMBERS = {"1"}
 
@@ -219,15 +218,6 @@ def _unit_only_quote(item: ModelItem, problems: list[str], others: int) -> str |
     return " … ".join(quote.text for quote in item.quotes) if unit_only else None
 
 
-def _has_repeated_sentence(answer: ModelAnswer) -> bool:
-    long_texts = [
-        text
-        for text in (normalize(item.text) for item in answer.items)
-        if len(text.split()) >= _MIN_WORDS_FOR_REPEAT
-    ]
-    return len(long_texts) != len(set(long_texts))
-
-
 _SAFE_CLARIFY_QUESTION = {"tr": "Hangisi için soruyorsunuz?", "en": "Which one do you mean?"}
 
 
@@ -256,8 +246,8 @@ def _verify_clarification(answer: ModelAnswer, sources: Sources) -> AnswerVerifi
     return AnswerVerification(status=VerificationStatus.CLARIFY, clarify_options=valid)
 
 
-def _final_status(checks: tuple[ItemCheck, ...], repeated: bool) -> VerificationStatus:
-    if not checks or repeated or not all(check.ok for check in checks):
+def _final_status(checks: tuple[ItemCheck, ...]) -> VerificationStatus:
+    if not checks or not all(check.ok for check in checks):
         return VerificationStatus.FAILED
     if any(check.from_ocr for check in checks):
         return VerificationStatus.PARTIAL
@@ -270,14 +260,11 @@ def verify_answer(answer: ModelAnswer, sources: Sources, language: str) -> Answe
     if answer.kind is AnswerKind.CLARIFY:
         return _verify_clarification(answer, sources)
     checks = tuple(verify_item(item, sources, language) for item in answer.items)
-    repeated = _has_repeated_sentence(answer)
     problems = [problem for check in checks for problem in check.problems]
-    if repeated:
-        problems.append("aynı cümle tekrar ediyor")
     if not checks:
         problems.append("cevap listesi boş")
     return AnswerVerification(
-        status=_final_status(checks, repeated),
+        status=_final_status(checks),
         items=checks,
         problems=tuple(dict.fromkeys(problems)),
     )
