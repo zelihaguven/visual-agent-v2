@@ -244,11 +244,28 @@ def _first_row_is_header(rows: Sequence[Sequence[str]]) -> bool:
     return evidence and not counter
 
 
+EMPTY_CELL = "—"
+"""Dilden bağımsız boş hücre işareti."""
+
+
+def _with_empty_cells_marked(row: Sequence[str]) -> list[str]:
+    """Okunduğu gibi yazılan satırda aradaki boş hücre yerini korur: atılırsa etiket bir sonraki
+    hücreyle yan yana kalır ve onun değeri sanılır ("Supplier Request Round | Material
+    Description | …"). Satır sonundaki boş hücreler yazılmaz."""
+    filled = len(row)
+    while filled and not row[filled - 1].strip():
+        filled -= 1
+    return [cell if cell.strip() else EMPTY_CELL for cell in row[:filled]]
+
+
 def _table_elements(content: str, location: SourceLocation, tokens: Sequence[str]) -> list[Element]:
     """Başlıklı tabloda satır "Başlık: değer" biçimindedir; başlıksız tabloda (form, tek satır)
-    satır okunduğu gibi kalır: hücreler sırayla, ilk satır da bir satırdır."""
+    satır okunduğu gibi kalır: hücreler sırayla, ilk satır da bir satırdır, aradaki boş hücre
+    yerini korur."""
     rows = [[canonical(text) for text in row] for row in html_rows(content)]
     has_header = len(rows) > 1 and _first_row_is_header(rows)
+    if not has_header:
+        rows = [_with_empty_cells_marked(row) for row in rows]
     cells = [
         TableCell(r, r + 1, c, c + 1, text, header=has_header and r == 0)
         for r, row in enumerate(rows)
