@@ -15,7 +15,7 @@ from visual_agent.generation.rewrite import Rewriter
 from visual_agent.generation.translate import Translator
 
 DEFAULT_TOP_K = 8
-DEFAULT_TRANSLATION_LIMIT_SECONDS = 1.2
+DEFAULT_TRANSLATION_LIMIT_SECONDS = 1.5
 DEFAULT_REWRITE_LIMIT_SECONDS = 4.0
 DEFAULT_INTENT_LIMIT_SECONDS = 1.5
 

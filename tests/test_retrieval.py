@@ -164,6 +164,38 @@ def test_translator_sends_only_the_question_with_zdr() -> None:
     assert "iç paça" in str(recorder.body["messages"])
 
 
+def test_translator_does_not_ask_for_the_questions_own_language_and_records_the_provider() -> None:
+    """2026-11-18: Türkçe soru Türkçeye de çevriliyordu (çıktı iki kat); cevap veren sağlayıcı
+    kayda girmiyordu."""
+    import json
+
+    from visual_agent.generation.json_model import HELPER_PROVIDERS
+
+    recorder = _Recorder()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        recorder.body = json.loads(request.content)
+        message = {"message": {"content": '{"en": "inseam"}'}}
+        return httpx.Response(200, json={"provider": "Parasail", "choices": [message]})
+
+    async def run() -> tuple[str, list[str]]:
+        used: list[str] = []
+        HELPER_PROVIDERS.set(used)
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+            translator = make_translator(
+                JsonModel(http, "https://router.test/api/v1", "k", "m", ("alpha",), ())
+            )
+            return await translator("iç paça", "tr", ["tr", "en"]), used
+
+    text, used = asyncio.run(run())
+
+    assert text == "iç paça inseam"
+    assert used == ["Parasail"]
+    assert recorder.body is not None
+    system = str(recorder.body["messages"][0])  # type: ignore[index]
+    assert "into: English." in system and "(en)" in system and "Turkish, " not in system
+
+
 def test_embedded_folder_keeps_vectors_after_reopening(tmp_path: Path) -> None:
     folder = str(tmp_path / "qdrant")
 
