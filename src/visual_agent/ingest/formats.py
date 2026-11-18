@@ -58,9 +58,10 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     # 10 (PDF, görsel, Office): sayfa okuyucusunda form gibi tablolar başlıksız, okunduğu gibi.
     # 11 (PDF, görsel, Office): okunduğu gibi yazılan satırda boş hücre yerini korur.
     # 12 (PDF, görsel, Office): boş hücre işareti "(boş)".
-    InputFormat.PDF: 12,
-    InputFormat.OFFICE: 12,
-    InputFormat.IMAGE: 12,
+    # 13 (PDF, görsel, Office): başlığı ile satırları aynı sayıda hücre taşımayan tablo başlıksız.
+    InputFormat.PDF: 13,
+    InputFormat.OFFICE: 13,
+    InputFormat.IMAGE: 13,
     InputFormat.SPREADSHEET: 3,
     InputFormat.LEGACY_SPREADSHEET: 3,
     InputFormat.SQL: 2,
@@ -99,11 +100,13 @@ _CHANGED_PAGE_KINDS = {
     9: ("none", "scanned"),
     10: ("none", "scanned"),
     11: ("none", "scanned"),
+    12: ("none", "scanned"),
 }
 """Bu sürümden bir sonrakine geçiş yalnız bu tür sayfası olan belgelerin çıktısını değiştirdi:
 7→8 taranmış sayfalar sayfa okuyucusuna gitti ("scanned": OCR katmanlı tarama öyle kaydedilmiş
 olabilir); 8→9 eski OCR yolundaki (zayıf ya da taranmış metin katmanlı) sayfaların tabloları;
-9→10, 10→11 ve 11→12 sayfa okuyucusundan geçen sayfalardaki form tabloları."""
+9→10, 10→11 ve 11→12 sayfa okuyucusundan geçen sayfalardaki form tabloları; 12→13 aynı
+sayfalarda başlığı ile satırları aynı sayıda hücre taşımayan tablolar."""
 _PAGE_FORMATS = (InputFormat.PDF, InputFormat.OFFICE, InputFormat.IMAGE)
 
 

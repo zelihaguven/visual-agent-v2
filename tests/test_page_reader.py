@@ -172,6 +172,48 @@ def test_text_and_title_blocks_become_text_and_heading_and_empty_blocks_are_drop
     assert elements[1].ocr_uncertain == ("750",)
 
 
+def _rows(html: str) -> list[str]:
+    return [
+        e.text for e in page_elements(_page([_block(0, "table", html)]), 1, (500.0, 1000.0), {})
+    ]
+
+
+def test_table_whose_header_lost_a_cell_is_written_as_read() -> None:
+    """Fotoğraf kaydı (2026-11-17): başlığın ilk hücresi düştü, "Bel" satırı "S: Bel | M: 38,0"
+    diye yazıldı (doğrusu S 38,0, M 40,0). Değer yanlış sütunun adını almamalı."""
+    html = (
+        "<table><tr><td>S</td><td>M</td><td>L</td><td>Tolerans (cm)</td></tr>"
+        "<tr><td>Bel</td><td>38,0</td><td>40,0</td><td>42,0</td><td>1,0</td></tr>"
+        "<tr><td>Kalça</td><td>47,0</td><td>49,0</td><td>51,0</td><td>1,0</td></tr></table>"
+    )
+
+    assert _rows(html) == [
+        "S | M | L | Tolerans (cm)",
+        "Bel | 38,0 | 40,0 | 42,0 | 1,0",
+        "Kalça | 47,0 | 49,0 | 51,0 | 1,0",
+    ]
+
+
+def test_table_with_a_short_data_row_is_written_as_read() -> None:
+    html = (
+        "<table><tr><td>Ölçü</td><td>S</td><td>M</td></tr>"
+        "<tr><td>Bel</td><td>38,0</td><td>40,0</td></tr>"
+        "<tr><td>Kalça</td><td>49,0</td></tr></table>"
+    )
+
+    assert _rows(html) == ["Ölçü | S | M", "Bel | 38,0 | 40,0", "Kalça | 49,0"]
+
+
+def test_table_with_equal_rows_keeps_its_header() -> None:
+    html = (
+        "<table><tr><td>Ölçü</td><td>S</td><td>M</td></tr>"
+        "<tr><td>Bel</td><td>38,0</td><td>40,0</td></tr>"
+        "<tr><td>Kalça</td><td>47,0</td><td>49,0</td></tr></table>"
+    )
+
+    assert _rows(html) == ["Ölçü: Bel | S: 38,0 | M: 40,0", "Ölçü: Kalça | S: 47,0 | M: 49,0"]
+
+
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
@@ -250,6 +292,32 @@ def test_unreachable_server_means_waiting_not_failure(tmp_path: Path) -> None:
 
     with pytest.raises(ReaderUnavailable, match="ulaşılamadı"):
         reader.read(tmp_path / "s1.png")
+
+
+def test_blocks_go_to_the_server_one_at_a_time(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Aynı anda giden istekleri sunucu birlikte işler; çıktı isteklerin denk gelişine göre
+    değişir (2026-11-18: aynı fotoğrafta başlık hücresi bir okumada düştü, değerler kaydı)."""
+    seen: dict[str, Any] = {}
+
+    class FakePipeline:
+        def __init__(self, **kwargs: Any) -> None:
+            seen.update(kwargs)
+
+        def predict(self, _: str) -> list[Any]:
+            return [type("Result", (), {"json": {"res": {"parsing_res_list": []}}})()]
+
+    monkeypatch.setitem(
+        __import__("sys").modules, "paddleocr", type("M", (), {"PaddleOCRVL": FakePipeline})
+    )
+    monkeypatch.setattr("httpx.get", lambda *_, **__: None)
+
+    PaddleVlReader(ReaderConfig("mlx-vlm-server", "http://127.0.0.1:8111/")).read(
+        tmp_path / "s.png"
+    )
+
+    assert seen["vl_rec_max_concurrency"] == 1
 
 
 def test_image_file_is_read_with_its_own_pixels_and_orientation(tmp_path: Path) -> None:
