@@ -294,9 +294,19 @@ MAX_FAILED_TRANSLATION_SHARE = 0.10
 özgün soruyla yapılmış, başka dildeki belgelerde olağandan zayıf çalışmıştır."""
 
 
+_UNSCORED_KINDS = frozenset({ERROR_KIND, "failed"})
+"""Cevap üretilemeyen sorular (servis hatası): ölçümde cevap sayılmaz, yeniden sorulur."""
+
+
 def _translation_lines(records: Sequence[QuestionRecord]) -> list[str]:
-    """Çeviri denenen sorular (adım süresi kayıtlı) içinde düşenlerin payı."""
-    tried = [record for record in records if "translate" in record.timings]
+    """Çeviri denenen ve cevabı puanlanan sorular içinde düşenlerin payı. Servis hatası alan
+    soru sayılmaz: yeniden sorulur, puanlanan cevap yeniden sorulandır; servis kesintisinde
+    çeviri de düşer ve ölçülen koşulu göstermez."""
+    tried = [
+        record
+        for record in records
+        if "translate" in record.timings and record.result_kind not in _UNSCORED_KINDS
+    ]
     if not tried:
         return []
     failed = sum(record.translation_failed for record in tried)
