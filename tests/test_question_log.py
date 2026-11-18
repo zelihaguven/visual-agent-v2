@@ -403,6 +403,26 @@ def test_summary_shows_the_share_of_questions_that_needed_another_provider() -> 
     assert any(line.startswith("birden çok sağlayıcı denemesi: 1/4 soru (%25)") for line in lines)
 
 
+def test_summary_counts_failed_query_translations_and_marks_the_run_invalid() -> None:
+    """2026-11-18: çeviri 40 sorunun 40'ında düştü, ölçüm raporu bunu göstermiyordu."""
+    tried = {"timings": {"translate": 1.2, "retrieve": 0.4}}
+    fine = [_record(**tried) for _ in range(9)] + [_record(result_kind="small_talk")]
+
+    one = summary_lines([*fine, _record(**tried, translation_failed=True)])
+    two = summary_lines([*fine, *(_record(**tried, translation_failed=True) for _ in range(2))])
+
+    assert "sorgu çevirisi düştü: 1/10 soru (%10)" in one
+    assert "sorgu çevirisi düştü: 2/11 soru (%18); ÖLÇÜM GEÇERSİZ (sınır %10)" in two
+    assert not any("çevirisi" in line for line in summary_lines([_record(timings={})]))
+
+
+def test_failed_translation_is_recorded() -> None:
+    outcome = ANSWERED.model_copy(update={"translation_failed": True})
+
+    assert record_for("Soru?", "text", "answered", outcome, 4.0, 3.9).translation_failed
+    assert not record_for("Soru?", "text", "answered", ANSWERED, 4.0, 3.9).translation_failed
+
+
 def test_older_log_table_gains_the_new_columns(tmp_path: Path) -> None:
     import sqlite3
 

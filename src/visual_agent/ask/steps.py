@@ -69,6 +69,7 @@ class AskState:
     scope_inherited: bool = False
     context_resolved: bool = True
     translate_seconds: float | None = None
+    translation_failed: bool = False
     provider_attempts: int = 0
     provider_seconds: float = 0.0
 
@@ -184,21 +185,22 @@ async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
     return replace(current, exact_chunks=_exact_chunks(identifiers, current, deps))
 
 
-async def _bm25_query(state: AskState, deps: AskDeps) -> tuple[str, float | None]:
-    """Çeviri yalnız soru dili ile belge dilleri farklıysa yapılır; süresi ayrıca döner."""
+async def _bm25_query(state: AskState, deps: AskDeps) -> tuple[str, float | None, bool]:
+    """Çeviri yalnız soru dili ile belge dilleri farklıysa yapılır; süresi ve düşüp düşmediği
+    ayrıca döner. Düşen çeviride arama özgün soruyla yapılır: başka dildeki belgede zayıflar."""
     question = state.question
     targets = deps.catalog.languages(_search_domain(state))
     if deps.translator is None or all(target == state.language for target in targets):
-        return question, None
-    started = time.perf_counter()
+        return question, None, False
+    started, failed = time.perf_counter(), False
     try:
         translated = await asyncio.wait_for(
             deps.translator(question, state.language, targets), deps.translation_limit_seconds
         )
     except Exception:
         logger.warning("Sorgu çevirisi kullanılamadı; özgün soruyla aranıyor", exc_info=True)
-        translated = question
-    return translated, time.perf_counter() - started
+        translated, failed = question, True
+    return translated, time.perf_counter() - started, failed
 
 
 def _with_exact_chunks(state: AskState, found: Sequence[Hit], top_k: int) -> tuple[Hit, ...]:
@@ -230,8 +232,8 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     domain = _search_domain(state)
     if not domain:
         return replace(state, result=NotFound())
-    bm25_query, translate_seconds = await _bm25_query(state, deps)
-    state = replace(state, translate_seconds=translate_seconds)
+    bm25_query, translate_seconds, failed = await _bm25_query(state, deps)
+    state = replace(state, translate_seconds=translate_seconds, translation_failed=failed)
     found = await deps.retriever.search(state.question, bm25_query, domain, deps.top_k)
     hits = _without_relative_tables(state.question, _with_exact_chunks(state, found, deps.top_k))
     if not hits:
