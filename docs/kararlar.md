@@ -1240,3 +1240,15 @@ Tarih: 2026-11-17. Ürün sahibi onayı.
 
 **Etki.** Kural sürümü 9. Yalnız eski OCR yolundan geçen (`weak`, `scanned`) sayfası olan belgeler eskir; yüklü belgelerde böyle sayfa yok. O sayfalardaki tablolar ileride gelirse hücre düzeyi doğrulama olmadan, sayfa düzeyi iki okumayla işlenir. Dondurulmuş `hat.py` bugünkü kodla içe aktarılamaz (hücre okuyucuyu çağırıyor); eski hattı ölçmek için `c79e4ce` kullanılır.
 
+### 0014: Sınır seti turu kapandı; kilitli 8 soru artık görülmüş sayılır
+Tarih: 2026-11-18. Ürün sahibi kararı.
+
+**Tur.** Yüklü belgeler üzerindeki sınır seti (`evals/sinir_yuklu_belgeler.json`: 32 soru; birim, yanlış sütun, olumsuzlama, niteleyici) ile yürütülen tur. Bu turda giren kurallar: "belgede yok" iddiası doğrulanmış gösterilmez (#71); tekrarlanan cümlede rozet (#72); okuyucu yolunda form tabloları başlıksız, okunduğu gibi (#73); boş hücre "(boş)" (#75); soruda geçen sayısal model numarası belgeyi seçer (#76); kaynaklardan söz eden, değer taşımayan cümle doğrulanmış gösterilmez (#77); hücre sayısı uyuşmayan tablo başlıksız ve okuyucuya istekler tek tek (#78). Kurallar yalnız kilitli olmayan 24 soruyla geliştirildi.
+
+**Kilitli set sonucu (8 soru × 5 koşu, #78 koduyla, kural 13 indeksi).** Yanlış 0; doğrulanmış gösterilen sayısız yanlış cümle 0. Koşu başına doğru / güvenli / yanlış: 7/1/0, 6/2/0, 6/2/0, 6/2/0, 6/2/0. A6, B2, B7, C4, D5, D8 beş koşuda da doğru. A3 bir koşuda doğru, dördünde güvenli (model kaynakta olmayan "cm" birimini ekledi; cümle gizlendi, kaynak satırı gösterildi). C7 beş koşuda da "bulunamadı".
+
+**Ölçümün koşulu.** Bu ölçümde sorgu çevirisi 40 sorunun 40'ında süre sınırını (1,2 sn) aştı; arama özgün Türkçe soruyla yapıldı. C7'nin nedeni bu: beklenen parça özgün soruyla 11. sırada (modele 8 parça gider), İngilizce sorguyla 1. sırada. Aynı gün yapılan #78 ölçümünde de çeviri 134 sorunun 127'sinde düştü; bir gün önceki #77 ölçümünde 120 sorunun 11'inde. Yani bu sonuçlar çevirinin çalışmadığı koşulu ölçüyor; çeviri çalışırken sonuç daha kötü olmaz beklenir ama ölçülmedi.
+
+**Karar.** Tur bu sonuçla kapandı. Kilitli 8 soru (A3, A6, B2, B7, C4, C7, D5, D8) artık görülmüş sayılır: cevaplarına bakıldı, bundan sonra kural geliştirirken kullanılabilirler ama kilitli ölçüm yerine geçmezler. Sonraki tur için yeni kilitli sorular yazılacak.
+
+**Açık kalan.** Birim ekleme (A3, A4: istem kuralı var, model yine ekliyor); sorgu çevirisinin süre sınırı; D2 (fotoğrafta bölüm yok); D4 ve D6 (seçeneksiz netleştirme).
