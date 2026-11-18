@@ -867,6 +867,14 @@ def test_answer_that_only_claims_absence_becomes_not_found() -> None:
     assert isinstance(outcome.result, NotFound)
 
 
+def test_answer_that_only_talks_about_the_sources_becomes_not_found() -> None:
+    client = FakeClient(answer_payload("Kaynaklarda sadece iç paça için bilgi var."))
+
+    outcome = ask(make_deps(client), "PNT-4417 M beden dış paça kaç?")
+
+    assert isinstance(outcome.result, NotFound)
+
+
 def test_absence_claim_next_to_a_verified_sentence_is_only_hidden() -> None:
     payload = answer_payload("M beden iç paça 76,5.")
     extra = {

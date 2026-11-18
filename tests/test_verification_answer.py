@@ -574,3 +574,38 @@ def test_absence_stated_by_the_source_itself_passes() -> None:
     )
 
     assert turkish.ok and english.ok
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Kaynaklarda sadece Dış paça için bilgi var.",
+        "Kaynaklarda sadece Kalça için bilgi var.",
+        "Kaynaklarda sadece Bel için bilgi var.",
+        "Belgede yalnızca numune durumu yazıyor.",
+        "The document only covers the hip measurement.",
+    ],
+)
+def test_sentence_about_the_sources_without_a_value_is_not_verified(sentence: str) -> None:
+    """Sınır seti A4 (2026-11-17): alıntı birebir, sayı ve kod yok; kapsam iddiası denetlenemez."""
+    check = verify_item(item(sentence, quote="İç paça"), SOURCES, "tr")
+
+    assert check.problems == (ABSENCE_CLAIM,)
+
+
+def test_sentence_about_the_sources_with_a_checked_value_passes() -> None:
+    check = verify_item(
+        item("Belgede belirtildiğine göre iç paça 76,5.", quote="İç paça | M: 76,5"), SOURCES, "tr"
+    )
+
+    assert check.ok
+
+
+def test_source_talk_from_the_source_itself_passes() -> None:
+    source = PromptSource(number=1, text="Bu belgede yalnızca erkek ürünleri anlatılır.")
+
+    check = verify_item(
+        item("Belgede yalnızca erkek ürünleri anlatılır.", quote=source.text), {1: source}, "tr"
+    )
+
+    assert check.ok

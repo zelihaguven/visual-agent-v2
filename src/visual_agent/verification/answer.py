@@ -50,6 +50,11 @@ _ABSENCE_RE = re.compile(
     r"|\bunspecified\b"
 )
 """Belgenin bir şeyi içermediğini söyleyen kalıplar (dil düzeyi, Türkçe ve İngilizce)."""
+_SOURCE_TALK_RE = re.compile(
+    r"\b(?:kaynak(?:lar)?[dt]a|belge(?:ler)?de|dok[uü]man(?:lar)?da)\b"
+    r"|\b(?:the|this|these)\s+(?:documents?|sources?)\b"
+)
+"""Cümlenin belgenin içeriğini değil, belgenin kendisini anlattığını gösteren sözler."""
 # "bir" ve "one" çoğu zaman sayı değil, belirsiz tanımlıktır; cümlede sayı sayılmaz.
 _ARTICLE_NUMBERS = {"1"}
 
@@ -93,15 +98,19 @@ def _ocr_problems(item: ModelItem, sources: Sources) -> list[str]:
     return [f"OCR değeri belirsiz: {uncertain}"] if uncertain else []
 
 
-def _absence_problems(item: ModelItem) -> list[str]:
+def _absence_problems(item: ModelItem, language: str) -> list[str]:
     """Cümle belgede bir şeyin olmadığını söylüyorsa doğrulanamaz: alıntı bir şeyin var olduğunu
     gösterebilir, olmadığını gösteremez. Bu iddia yalnız "bulunamadı" olarak verilebilir.
-    Olumsuzluk kaynağın kendi sözüyse (aynı tür ifade alıntıda geçiyorsa) cümle geçer."""
-    if not _ABSENCE_RE.search(turkish_lower(item.text)):
-        return []
-    if any(_ABSENCE_RE.search(turkish_lower(quote.text)) for quote in item.quotes):
-        return []
-    return [ABSENCE_CLAIM]
+    Kaynaklardan söz eden ve denetlenecek sayı ya da kod taşımayan cümle de aynı sınıftandır
+    ("Kaynaklarda sadece kalça için bilgi var"): kaynakların neyi kapsadığını alıntı gösteremez.
+    İfade kaynağın kendi sözüyse (aynı tür ifade alıntıda geçiyorsa) cümle geçer."""
+    text = turkish_lower(item.text)
+    quotes = [turkish_lower(quote.text) for quote in item.quotes]
+    patterns = [_ABSENCE_RE] + ([] if _values_in(item.text, language) else [_SOURCE_TALK_RE])
+    for pattern in patterns:
+        if pattern.search(text) and not any(pattern.search(quote) for quote in quotes):
+            return [ABSENCE_CLAIM]
+    return []
 
 
 def _tolerance_problems(text: str, evidence: str) -> list[str]:
@@ -223,7 +232,7 @@ def verify_item(item: ModelItem, sources: Sources, language: str) -> ItemCheck:
     problems += _ocr_problems(item, sources)
     problems += _token_problems(item, evidence, sources, language)
     problems += _tolerance_problems(item.text, " ".join(text for text, _ in evidence))
-    problems += _absence_problems(item)
+    problems += _absence_problems(item, language)
     others = len(problems)
     problems += _unit_problems(item, evidence, sources)
     if FOREIGN_SCRIPT_RE.search(item.text):
