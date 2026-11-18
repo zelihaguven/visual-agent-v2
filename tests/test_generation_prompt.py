@@ -57,7 +57,10 @@ def test_prompt_allows_a_unit_only_when_the_source_states_it() -> None:
     assert "Değere birim EKLEME" in prompt
     assert "yalnız o değerin yanında ya da kendi sütun başlığında yazıyorsa" in prompt
     # Modelin birim uydurduğu iki yer adıyla yazılı: sorunun kendisi ve başka sütunun başlığı.
-    assert "Soru birimle sorulsa da" in prompt and "başka bir sütunun başlığında" in prompt
+    assert "Soru birimle sorulsa da" in prompt and "BAŞKA bir sütunun başlığında" in prompt
+    # İki yön de örnekli: kendi başlığındaki birim yazılır, başka sütununki yazılmaz.
+    assert 'Kaynak "Tolerans (cm): 1,0" ise cevap "1,0 cm"' in prompt
+    assert 'soru L bedeni soruyorsa cevap "53,0"' in prompt
 
 
 def test_prompt_tells_the_model_not_to_repeat_a_wrong_user_value() -> None:
