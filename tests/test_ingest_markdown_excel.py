@@ -245,6 +245,8 @@ def test_documents_from_before_the_previous_rules_stay_outdated() -> None:
     [
         (8, {"none": 12}, True),  # 9→10: sayfa okuyucusundaki form tabloları değişti
         (9, {"none": 12}, True),
+        (12, {"none": 1}, True),  # 12→13: hücre sayısı uyuşmayan tablolar başlıksız
+        (12, {"text": 3, "weak": 1}, False),
         (9, {"text": 3, "weak": 1}, False),  # eski OCR yolundaki sayfayı 9→10 etkilemez
         (9, {"text": 3}, False),
         (8, {"text": 3, "weak": 1}, True),

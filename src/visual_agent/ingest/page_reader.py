@@ -262,9 +262,13 @@ def _with_empty_cells_marked(row: Sequence[str]) -> list[str]:
 def _table_elements(content: str, location: SourceLocation, tokens: Sequence[str]) -> list[Element]:
     """Başlıklı tabloda satır "Başlık: değer" biçimindedir; başlıksız tabloda (form, tek satır)
     satır okunduğu gibi kalır: hücreler sırayla, ilk satır da bir satırdır, aradaki boş hücre
-    yerini korur."""
+    yerini korur. Başlık satırının hücre sayısı bir veri satırınınkinden farklıysa tablo da
+    başlıksız yazılır: okuyucu bir hücreyi düşürdüyse başlıklar bir sütun kayar ve değer yanlış
+    sütunun adını alır (fotoğrafta "S: Bel | M: 38,0"; doğrusu S 38,0). İkinci okuma bunu
+    yakalamaz, sayılar doğrudur."""
     rows = [[canonical(text) for text in row] for row in html_rows(content)]
-    has_header = len(rows) > 1 and _first_row_is_header(rows)
+    aligned = all(len(row) == len(rows[0]) for row in rows)
+    has_header = len(rows) > 1 and aligned and _first_row_is_header(rows)
     if not has_header:
         rows = [_with_empty_cells_marked(row) for row in rows]
     cells = [
@@ -394,6 +398,10 @@ class PaddleVlReader:
                     "vl_rec_backend": self._config.backend,
                     "vl_rec_server_url": self._config.url,
                     "vl_rec_api_model_name": _MODEL,
+                    # Bloklar sunucuya tek tek gider. Aynı anda giden istekleri sunucu birlikte
+                    # işler ve çıktı isteklerin denk gelişine göre değişir: aynı fotoğrafta
+                    # tablonun başlık hücresi bir okumada düştü, sonrakilerde düşmedi.
+                    "vl_rec_max_concurrency": 1,
                 }
             )
             self._pipeline = PaddleOCRVL(pipeline_version=_PIPELINE_VERSION, **server)
