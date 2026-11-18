@@ -10,6 +10,7 @@ from visual_agent.ask.intent import resolve_intent
 from visual_agent.ask.related import with_related_headings
 from visual_agent.ask.steps import AskState, generate, resolve_scope, retrieve, verify
 from visual_agent.domain.result import AskOutcome, Failed
+from visual_agent.generation.json_model import HELPER_PROVIDERS
 
 __all__ = ["AskDeps", "AskRequest", "answer_question"]
 
@@ -45,6 +46,8 @@ def _split_translation(timings: dict[str, float], translate: float | None) -> di
 
 async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
     state = AskState(request=request)
+    helper_providers: list[str] = []
+    HELPER_PROVIDERS.set(helper_providers)
     timings: dict[str, float] = {}
     for step in PIPELINE:
         started = time.perf_counter()
@@ -71,4 +74,5 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
         context=next_context(final, deps.catalog),
         scope_inherited=final.scope_inherited,
         translation_failed=final.translation_failed,
+        helper_providers=tuple(helper_providers),
     )

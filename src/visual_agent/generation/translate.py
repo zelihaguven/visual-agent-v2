@@ -28,12 +28,14 @@ def bm25_text(translations: Mapping[str, str], fallback: str) -> str:
 
 def make_translator(client: JsonModel) -> Translator:
     async def translate(question: str, source: str, targets: Sequence[str]) -> str:
-        names = ", ".join(_LANGUAGE_NAMES.get(target, target) for target in targets)
+        # Sorunun kendi dili çevrilmez: soru o dilde zaten yazılı, çıktıyı boşuna uzatır.
+        others = [target for target in targets if target != source]
+        names = ", ".join(_LANGUAGE_NAMES.get(target, target) for target in others)
         system = _PROMPT.format(
-            source=_LANGUAGE_NAMES.get(source, source), targets=names, codes=", ".join(targets)
+            source=_LANGUAGE_NAMES.get(source, source), targets=names, codes=", ".join(others)
         )
         parsed = await client.complete(system, question, _MAX_TOKENS)
-        translations = {t: str(parsed[t]).strip() for t in targets if parsed.get(t)}
-        return bm25_text(translations, question)
+        texts = {t: question if t == source else str(parsed.get(t) or "").strip() for t in targets}
+        return bm25_text({t: text for t, text in texts.items() if text}, question)
 
     return translate

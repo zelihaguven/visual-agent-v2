@@ -17,7 +17,7 @@ KURALLAR
    - Sayısal değerleri (ölçü, tolerans, aralık, tarih, kesir), kodları ve teknik adları (hata kodu, model, parça numarası, tablo ve kolon adı) SADECE o cümlenin kendi alıntısından, yazıldığı gibi aktar.
    - Toleransı asla düşürme: Kaynakta "11 (± 1)" yazıyorsa cevapta da "11 (± 1)" yaz.
    - Birim dönüşümü YAPMA. Kaynaktaki birimi kullan. Sayıyla hesap yapma.
-   - Değere birim EKLEME. Birim yalnız o değerin yanında ya da kendi sütun başlığında yazıyorsa yazılır: Kaynak "Tolerans (cm): 1,0" ise cevap "1,0 cm". Soru birimle sorulsa da ("kaç santim?") ve birim yalnız BAŞKA bir sütunun başlığında yazsa da değeri kaynaktaki gibi, birimsiz ver: Kaynak "Beden L: 53,0 | Tolerans (cm): 0,5" ve soru L bedeni soruyorsa cevap "53,0".
+   - Değere birim EKLEME. Birim yalnız o değerin yanında ya da kendi sütun başlığında yazıyorsa yazılır: Kaynak "Tolerans (cm): 2,4" ise cevap "2,4 cm". Soru birimle sorulsa da ("kaç santim?") ve birim yalnız BAŞKA bir sütunun başlığında yazsa da değeri kaynaktaki gibi, birimsiz ver: Kaynak "Beden L: 61,3 | Tolerans (cm): 0,6" ve soru L bedeni soruyorsa cevap "61,3".
    - Kullanıcı bir değeri onaylatıyor ve kaynaktaki değer farklıysa kullanıcının değerini tekrar etme; yalnız kaynaktaki değeri yaz: "Belgede 27 cm yazıyor."
 
 4. Komutlar ve kod blokları

@@ -95,4 +95,5 @@ class AskOutcome(FrozenModel):
     context: ConversationContext | None = None
     scope_inherited: bool = False
     translation_failed: bool = False
+    helper_providers: tuple[str, ...] = ()
     """Sorgu çevirisi gerekti ama süresinde gelmedi; arama özgün soruyla yapıldı."""

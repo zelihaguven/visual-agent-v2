@@ -423,6 +423,22 @@ def test_failed_translation_is_recorded() -> None:
     assert not record_for("Soru?", "text", "answered", ANSWERED, 4.0, 3.9).translation_failed
 
 
+def test_helper_providers_are_recorded_and_counted(tmp_path: Path) -> None:
+    outcome = ANSWERED.model_copy(update={"helper_providers": ("Parasail", "Venice")})
+    record = record_for("Soru?", "text", "answered", outcome, 4.0, 3.9)
+    log = open_log(tmp_path / "va.db")
+
+    async def run() -> list[QuestionRecord]:
+        await log.migrate()
+        await log.add(record)
+        return await log.last(1)
+
+    stored = asyncio.run(run())
+
+    assert stored[0].helper_providers == ("Parasail", "Venice")
+    assert "yardımcı model çağrıları: Parasail 1, Venice 1" in summary_lines(stored)
+
+
 def test_older_log_table_gains_the_new_columns(tmp_path: Path) -> None:
     import sqlite3
 

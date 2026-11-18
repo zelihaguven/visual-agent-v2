@@ -7,12 +7,16 @@ Süre sınırını çağıran koyar (`asyncio.wait_for`). Paylaşılan httpx ist
 import json
 import re
 from collections.abc import Sequence
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any
 
 import httpx
 
 _OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
+HELPER_PROVIDERS: ContextVar[list[str] | None] = ContextVar("helper_providers", default=None)
+"""Bir sorunun yardımcı model çağrılarına cevap veren sağlayıcılar, çağrı sırasıyla. Listeyi
+soruyu yürüten kurar; kurulmadıysa (belge işleme) kayıt tutulmaz."""
 
 
 @dataclass(frozen=True)
@@ -55,7 +59,11 @@ class JsonModel:
             },
         )
         response.raise_for_status()
-        content = response.json()["choices"][0]["message"]["content"] or ""
+        body = response.json()
+        used = HELPER_PROVIDERS.get()
+        if used is not None and body.get("provider"):
+            used.append(str(body["provider"]))
+        content = body["choices"][0]["message"]["content"] or ""
         match = _OBJECT_RE.search(content)
         parsed: dict[str, Any] = json.loads(match.group(0)) if match else {}
         return parsed
