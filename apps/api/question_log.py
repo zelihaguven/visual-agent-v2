@@ -56,7 +56,8 @@ CREATE TABLE IF NOT EXISTS question_log (
     total_seconds REAL NOT NULL,
     timings TEXT NOT NULL,
     provider_attempts INTEGER NOT NULL DEFAULT 0,
-    provider_wait_seconds REAL
+    provider_wait_seconds REAL,
+    translation_failed INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS question_log_time_idx ON question_log (created_at);
 """
@@ -75,11 +76,12 @@ def problem_kinds(problems: Sequence[str]) -> tuple[str, ...]:
 _COLUMNS = (
     "created_at, question, resolved_question, input_mode, result_kind, verification_status,"
     " problems, cited_doc_ids, provider, cost_usd, first_verified_seconds, total_seconds, timings,"
-    " provider_attempts, provider_wait_seconds"
+    " provider_attempts, provider_wait_seconds, translation_failed"
 )
 _ADDED_COLUMNS = {
     "provider_attempts": "INTEGER NOT NULL DEFAULT 0",
     "provider_wait_seconds": "REAL",
+    "translation_failed": "INTEGER NOT NULL DEFAULT 0",
 }
 
 
@@ -101,6 +103,7 @@ class QuestionRecord(BaseModel):
     timings: dict[str, float] = {}
     provider_attempts: int = 0
     provider_wait_seconds: float | None = None
+    translation_failed: bool = False
 
 
 def _now() -> str:
@@ -161,6 +164,7 @@ def record_for(
         },
         provider_attempts=outcome.provider_attempts,
         provider_wait_seconds=outcome.provider_seconds if outcome.provider_attempts else None,
+        translation_failed=outcome.translation_failed,
     )
 
 
@@ -181,6 +185,7 @@ def _row_values(record: QuestionRecord) -> tuple[object, ...]:
         json.dumps(record.timings),
         record.provider_attempts,
         record.provider_wait_seconds,
+        int(record.translation_failed),
     )
 
 
@@ -201,6 +206,7 @@ def _from_row(row: sqlite3.Row) -> QuestionRecord:
         timings=json.loads(row["timings"]),
         provider_attempts=row["provider_attempts"],
         provider_wait_seconds=row["provider_wait_seconds"],
+        translation_failed=bool(row["translation_failed"]),
     )
 
 
@@ -276,6 +282,23 @@ def _seconds(values: Sequence[float]) -> str:
     return f"ortanca {statistics.median(ordered):.2f} sn, p90 {p90:.2f} sn ({len(ordered)} soru)"
 
 
+MAX_FAILED_TRANSLATION_SHARE = 0.10
+"""Sorgu çevirisi soruların bundan fazlasında düştüyse ölçüm geçersizdir: arama o sorularda
+özgün soruyla yapılmış, başka dildeki belgelerde olağandan zayıf çalışmıştır."""
+
+
+def _translation_lines(records: Sequence[QuestionRecord]) -> list[str]:
+    """Çeviri denenen sorular (adım süresi kayıtlı) içinde düşenlerin payı."""
+    tried = [record for record in records if "translate" in record.timings]
+    if not tried:
+        return []
+    failed = sum(record.translation_failed for record in tried)
+    line = f"sorgu çevirisi düştü: {failed}/{len(tried)} soru (%{100 * failed / len(tried):.0f})"
+    if failed > MAX_FAILED_TRANSLATION_SHARE * len(tried):
+        line += f"; ÖLÇÜM GEÇERSİZ (sınır %{100 * MAX_FAILED_TRANSLATION_SHARE:.0f})"
+    return [line]
+
+
 def summary_lines(records: Sequence[QuestionRecord]) -> list[str]:
     """Sonuç türü ve adım sürelerinin özeti; adım yalnız çalıştığı sorularda sayılır."""
     if not records:
@@ -302,6 +325,7 @@ def summary_lines(records: Sequence[QuestionRecord]) -> list[str]:
             f" (%{100 * len(retried) / len(asked):.0f}); sağlayıcı bekleme "
             + _seconds([r.provider_wait_seconds for r in asked if r.provider_wait_seconds])
         )
+    lines += _translation_lines(records)
     cost = sum(record.cost_usd for record in records)
     lines.append(f"maliyet: {cost:.5f} $")
     return lines

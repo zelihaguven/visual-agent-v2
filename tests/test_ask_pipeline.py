@@ -502,9 +502,10 @@ def test_translation_is_used_only_when_languages_differ() -> None:
     deps = make_deps(
         FakeClient(answer_payload("76,5")), retriever, translator, {"a": "en", "b": "en", "c": "en"}
     )
-    ask(deps, "iç paça nedir")
+    outcome = ask(deps, "iç paça nedir")
 
     assert translated == ["iç paça nedir"]
+    assert not outcome.translation_failed
     assert retriever.calls[0]["bm25"] == "inseam value"
     assert retriever.calls[0]["query"] == "iç paça nedir"
 
@@ -518,9 +519,10 @@ def test_failed_translation_falls_back_to_the_original_question() -> None:
         FakeClient(answer_payload("76,5")), retriever, translator, {"a": "en", "b": "en", "c": "en"}
     )
 
-    ask(deps, "iç paça nedir")
+    outcome = ask(deps, "iç paça nedir")
 
     assert retriever.calls[0]["bm25"] == "iç paça nedir"
+    assert outcome.translation_failed
 
 
 def test_slow_translation_does_not_delay_the_search() -> None:
