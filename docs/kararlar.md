@@ -1233,6 +1233,8 @@ Tarih: 2026-11-16. Ürün sahibi kararı; yeni bağımlılık (`paddleocr[doc-pa
 - Ölçüm MLX arka ucuyla yapıldı; `local` kipinin okuması ve hızı ölçülmedi.
 - Tarama kendi çözünürlüğünde okunur (büyütülmez): büyütülmüş görüntüde Tesseract'ın ikinci okuması bozuluyor (açık notlar, 2026-11-17 denemesi).
 
+**Okuyucu sunucusu yalnız yerel (2026-11-19).** `VA_PAGE_READER=<arka uç>@<adres>` yalnız localhost, `.local` adı ya da özel/yerel IP adresi kabul eder; başka adreste uygulama açılmaz. Okuyucuya bütün sayfa görüntüsü gider ve ZDR denetimi yoktur (kural 4). Uzak okuyucu gerekirse önce karar kaydına yazılır.
+
 ### 0012: Taranmış belgelerde yapı kalıyor; gizleme bedeli kabul edildi
 Tarih: 2026-11-17. Ürün sahibi kararı.
 
