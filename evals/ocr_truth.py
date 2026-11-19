@@ -153,5 +153,5 @@ def layer_mismatches(pdf: Path, truth: TruthDocument) -> list[tuple[int, str, st
 def write_truth(documents: Sequence[TruthDocument], directory: Path) -> None:
     for document in documents:
         (directory / f"{document.doc_id}.json").write_text(
-            document.model_dump_json(indent=1), encoding="utf-8"
+            document.model_dump_json(indent=1), encoding="utf-8", newline="\n"
         )
