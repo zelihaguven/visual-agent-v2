@@ -59,14 +59,17 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     # 11 (PDF, görsel, Office): okunduğu gibi yazılan satırda boş hücre yerini korur.
     # 12 (PDF, görsel, Office): boş hücre işareti "(boş)".
     # 13 (PDF, görsel, Office): başlığı ile satırları aynı sayıda hücre taşımayan tablo başlıksız.
-    InputFormat.PDF: 13,
-    InputFormat.OFFICE: 13,
+    # 14 (PDF, Office): docling tablosunda da aynı iki koruma (ortak yardımcı): tahmin edilen
+    #    başlık her veri satırıyla aynı sayıda dolu hücre taşımalı; başlıksız satırda boş sütun
+    #    "(boş)". Excel 4, Markdown 3: hiç başlığı olmayan satırda boş hücre "(boş)".
+    InputFormat.PDF: 14,
+    InputFormat.OFFICE: 14,
     InputFormat.IMAGE: 13,
-    InputFormat.SPREADSHEET: 3,
-    InputFormat.LEGACY_SPREADSHEET: 3,
+    InputFormat.SPREADSHEET: 4,
+    InputFormat.LEGACY_SPREADSHEET: 4,
     InputFormat.SQL: 2,
     InputFormat.TEXT: 2,
-    InputFormat.MARKDOWN: 2,
+    InputFormat.MARKDOWN: 3,
 }
 """Biçimin parçalarını üreten kuralların sürümü. Bir biçimin parçalarını ya da konumlarını
 değiştiren her değişiklikte o biçimin sürümü artırılır; eski sürümle işlenmiş belge yeniden

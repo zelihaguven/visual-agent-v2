@@ -28,7 +28,12 @@ import pypdfium2.raw as pdfium_c
 from PIL import Image, ImageOps
 
 from visual_agent.domain.document import Box, SourceLocation
-from visual_agent.ingest.elements import Element, ElementKind
+from visual_agent.ingest.elements import (
+    Element,
+    ElementKind,
+    header_fits,
+    with_empty_cells_marked,
+)
 from visual_agent.ingest.external import ReaderUnavailable, tesseract_text
 from visual_agent.ingest.pdf_tables import TableCell, group_table_rows
 from visual_agent.ingest.text_layer import IMAGE_COVER_RATIO
@@ -236,21 +241,6 @@ def _first_row_is_header(rows: Sequence[Sequence[str]]) -> bool:
     return evidence and not counter
 
 
-EMPTY_CELL = "(boş)"
-"""Boş hücre işareti. Tire ya da çizgi gerçek belgelerde kendisi bir değer olabilir ("—", "-");
-açık bir sözcük hücrenin boş olduğunu söyler (ürün sahibi kararı, 2026-11-17)."""
-
-
-def _with_empty_cells_marked(row: Sequence[str]) -> list[str]:
-    """Okunduğu gibi yazılan satırda aradaki boş hücre yerini korur: atılırsa etiket bir sonraki
-    hücreyle yan yana kalır ve onun değeri sanılır ("Supplier Request Round | Material
-    Description | …"). Satır sonundaki boş hücreler yazılmaz."""
-    filled = len(row)
-    while filled and not row[filled - 1].strip():
-        filled -= 1
-    return [cell if cell.strip() else EMPTY_CELL for cell in row[:filled]]
-
-
 def _table_elements(content: str, location: SourceLocation, tokens: Sequence[str]) -> list[Element]:
     """Başlıklı tabloda satır "Başlık: değer" biçimindedir; başlıksız tabloda (form, tek satır)
     satır okunduğu gibi kalır: hücreler sırayla, ilk satır da bir satırdır, aradaki boş hücre
@@ -259,10 +249,9 @@ def _table_elements(content: str, location: SourceLocation, tokens: Sequence[str
     sütunun adını alır (fotoğrafta "S: Bel | M: 38,0"; doğrusu S 38,0). İkinci okuma bunu
     yakalamaz, sayılar doğrudur."""
     rows = [[canonical(text) for text in row] for row in html_rows(content)]
-    aligned = all(len(row) == len(rows[0]) for row in rows)
-    has_header = len(rows) > 1 and aligned and _first_row_is_header(rows)
+    has_header = len(rows) > 1 and header_fits(rows[0], rows[1:]) and _first_row_is_header(rows)
     if not has_header:
-        rows = [_with_empty_cells_marked(row) for row in rows]
+        rows = [with_empty_cells_marked(row) for row in rows]
     cells = [
         TableCell(r, r + 1, c, c + 1, text, header=has_header and r == 0)
         for r, row in enumerate(rows)

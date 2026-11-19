@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 
-from visual_agent.ingest.elements import NUMERIC_TEXT_RE
+from visual_agent.ingest.elements import NUMERIC_TEXT_RE, header_fits, with_empty_cells_marked
 
 COLUMN_JOIN = " & "
 _EDGE_ARTIFACTS = " |_"
@@ -131,16 +131,36 @@ def _union(boxes: Sequence[BoundingBox]) -> BoundingBox | None:
 
 
 def _with_label_first_row(cells: Sequence[TableCell]) -> list[TableCell]:
-    """Başlık işaretlenmemişse etiketlerden oluşan ilk satır başlıktır."""
+    """Başlık işaretlenmemişse etiketlerden oluşan ilk satır başlıktır; ama yalnız her veri
+    satırıyla aynı sayıda dolu hücre taşıyorsa. Docling boş hücreyi hiç vermiyor: form
+    tablosunda ilk satırın boş hücresi düşünce etiketler kayıyor ve değer yanlış etiketi
+    alıyordu ("Material Description: Fit Approved")."""
     if any(cell.header for cell in cells) or not cells:
         return list(cells)
     first_row = min(cell.row_start for cell in cells)
     first = [cell for cell in cells if cell.row_start == first_row and cell.text]
-    has_body = any(cell.row_start > first_row for cell in cells)
+    width = max(cell.column_end for cell in cells) - min(cell.column_start for cell in cells)
+    body = [
+        row
+        for start in sorted({cell.row_start for cell in cells if cell.row_start > first_row})
+        if (row := [cell for cell in cells if cell.row_start == start and cell.text])
+        and not _spans_table(row, width)
+    ]
     labels = [cell for cell in first if not NUMERIC_TEXT_RE.match(cell.text)]
-    if not has_body or len(labels) * 2 <= len(first):
+    if not body or len(labels) * 2 <= len(first) or not header_fits(first, body):
         return list(cells)
     return [replace(cell, header=cell.row_start == first_row) for cell in cells]
+
+
+def _texts_with_gaps(row_cells: Sequence[TableCell], first_column: int) -> list[str]:
+    """Başlıksız satırın hücreleri; aradaki boş sütun "(boş)" olur (docling boş hücre vermez)."""
+    texts: list[str] = []
+    column = first_column
+    for cell in row_cells:
+        texts += [""] * max(cell.column_start - column, 0)
+        texts.append(cell.text.strip())
+        column = max(column, cell.column_end)
+    return with_empty_cells_marked(texts)
 
 
 def group_table_rows(raw_cells: Sequence[TableCell], infer_header: bool = True) -> list[TableRow]:
@@ -150,9 +170,8 @@ def group_table_rows(raw_cells: Sequence[TableCell], infer_header: bool = True) 
     headers = _column_headers(cells)
     spans = _header_spans(cells)
     body = [cell for cell in cells if not cell.header and cell.text.strip()]
-    width = max((cell.column_end for cell in cells), default=0) - min(
-        (cell.column_start for cell in cells), default=0
-    )
+    first_column = min((cell.column_start for cell in cells), default=0)
+    width = max((cell.column_end for cell in cells), default=0) - first_column
     rows: list[TableRow] = []
     labels: list[bool] = []
     for group in _row_groups(body):
@@ -162,9 +181,12 @@ def group_table_rows(raw_cells: Sequence[TableCell], infer_header: bool = True) 
         )
         label = _spans_table(row_cells, width)
         # Etiket ve not satırı bir sütunun değeri değildir; sütun başlığı almaz.
-        parts = (
-            cell.text.strip() if label else _cell_part(cell, headers, spans) for cell in row_cells
-        )
+        if label:
+            parts = [cell.text.strip() for cell in row_cells]
+        elif headers or spans:
+            parts = [_cell_part(cell, headers, spans) for cell in row_cells]
+        else:
+            parts = _texts_with_gaps(row_cells, first_column)
         text = " | ".join(parts)
         rows.append(TableRow(text, _union([c.bbox for c in row_cells if c.bbox is not None])))
         labels.append(label)
