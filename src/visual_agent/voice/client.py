@@ -8,7 +8,8 @@ from typing import Literal, Protocol
 
 import httpx
 
-_ZERO_RETENTION = {"zdr": True, "data_collection": "deny"}
+from visual_agent.generation.openrouter import ZERO_RETENTION
+
 _TRANSCRIBE_TIMEOUT_SECONDS = 30.0
 _SPEECH_TIMEOUT_SECONDS = 20.0
 _PCM_SAMPLE_RATE = 24_000
@@ -85,7 +86,7 @@ class OpenRouterVoice:
                     "data": base64.b64encode(audio).decode("ascii"),
                     "format": audio_format,
                 },
-                "provider": _ZERO_RETENTION,
+                "provider": ZERO_RETENTION,
             },
         )
         response.raise_for_status()
@@ -102,7 +103,7 @@ class OpenRouterVoice:
                 "input": text,
                 "voice": self.tts_voice,
                 "response_format": self.tts_format,
-                "provider": _ZERO_RETENTION,
+                "provider": ZERO_RETENTION,
             },
         )
         response.raise_for_status()

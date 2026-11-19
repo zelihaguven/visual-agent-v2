@@ -5,7 +5,7 @@ from typing import Any
 from qdrant_client import AsyncQdrantClient
 
 from apps.worker.indexing import LazyIndexer, SharedEncoders
-from apps.worker.main import process_until_stopped
+from apps.worker.run import process_until_stopped
 from visual_agent.domain.document import Chunk, ChunkKind, SourceLocation
 from visual_agent.retrieval.qdrant_store import QdrantChunkStore
 

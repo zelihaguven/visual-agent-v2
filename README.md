@@ -6,9 +6,9 @@ Durum: belge yükleme, işleme, kaynaklı soru-cevap, sohbet bağlamı, ses ve w
 
 Mikrofon tarayıcıda yalnız `localhost` ya da HTTPS üzerinden açılır. Ağdaki tabletlerden kullanmak için uygulama HTTPS arkasında yayınlanmalıdır. Ses yalnız bellekte işlenir, diske yazılmaz; konuşma modelleri `VA_STT_MODEL`, `VA_TTS_MODEL` ve `VA_TTS_VOICE` ile değiştirilir.
 
-## Yerel kurulum (Docker'sız)
+## Yerel kurulum
 
-Tek bilgisayarda, Docker ve yönetici yetkisi olmadan çalışır. Her şey tek süreçtedir: API, belge işçisi ve arayüz aynı adresten açılır; veriler `data/` klasöründe kalır (SQLite dosyası, gömülü Qdrant, yüklenen belgeler). GPU gerekmez. Neden böyle kurulduğu: [0003](docs/kararlar.md#karar-0003).
+Tek bilgisayarda, yönetici yetkisi olmadan çalışır. Her şey tek süreçtedir: API, belge işçisi ve arayüz aynı adresten açılır; veriler `data/` klasöründe kalır (SQLite dosyası, gömülü Qdrant, yüklenen belgeler). GPU gerekmez. Neden böyle kurulduğu: [0003](docs/kararlar.md#karar-0003).
 
 Gereken: Windows (ya da macOS/Linux), veri saklamayan uçlara erişimi olan bir OpenRouter anahtarı ve aşağıdaki araçlar. Hepsi kullanıcı klasörüne kurulur.
 
@@ -69,26 +69,6 @@ Sonra `baslat.bat`: yeni paketler kurulur, arayüz değiştiyse yeniden derlenir
 ### Ağdan erişim
 
 Arayüz yalnız bu bilgisayardan (`127.0.0.1`) açılır. Tabletlerden kullanmadan önce [açık notlardaki](docs/acik-notlar.md) "Yayına almadan önce" maddelerine bakın: giriş yokken ağdaki herkes belgeleri görebilir, yerel kurulumda güvenlik başlıkları ve hız sınırı yoktur, mikrofon da yalnız HTTPS üzerinden açılır.
-
-## Sunucu (Docker)
-
-Sunucu paketi: Qdrant ayrı serviste, belge işçisi ayrı süreçte, arayüzü nginx sunar; veritabanı yine SQLite dosyasıdır (API ve işçi aynı birimi paylaşır). Bu bilgisayarda denenemedi; CI'daki `services` işi derleyip açılışını sınar.
-
-1. `.env` dosyasını yukarıdaki gibi oluşturun.
-
-2. Servisleri derleyip başlatın. İlk derleme paketleri indirir ve yavaş bağlantıda bir saate yaklaşabilir.
-
-   ```bash
-   docker compose up -d --build
-   ```
-
-3. Belge işleme modellerini bir kez indirin. Modeller bir birimde kalır.
-
-   ```bash
-   docker compose run --rm worker docling-tools models download layout tableformer rapidocr --output-dir /opt/docling-models
-   ```
-
-Arayüz: <http://127.0.0.1:8080>. Güncelleme: `git pull` ve `docker compose up -d --build`.
 
 ## Geliştirme
 

@@ -12,6 +12,7 @@ from visual_agent.generation.json_model import JsonModel
 from visual_agent.generation.openrouter import (
     AnswerClient,
     AnswerClientOptions,
+    ZdrEntry,
     fetch_zdr_index,
     select_providers,
 )
@@ -28,6 +29,15 @@ class ModelClients:
     rewriter: Rewriter
     intent_classifier: IntentClassifier
     system_prompt: str
+
+
+def helper_model(
+    http: httpx.AsyncClient, settings: Settings, api_key: str, index: dict[str, ZdrEntry]
+) -> JsonModel:
+    """Yardımcı model (çeviri, takip tamamlama, niyet, konu adı); yalnız ZDR sağlayıcılarla."""
+    providers, ignored = select_providers(settings.helper_model, settings.helper_providers, index)
+    url = str(settings.openrouter_url).rstrip("/")
+    return JsonModel(http, url, api_key, settings.helper_model, providers, ignored)
 
 
 async def build_model_clients(
@@ -52,15 +62,12 @@ async def build_model_clients(
         ),
     )
     # Tek yardımcı model üç işi yapar: BM25 çevirisi, takip sorusunu tamamlama, niyet.
-    helper, helper_ignored = select_providers(
-        settings.helper_model, settings.helper_providers, index
-    )
-    helper_model = JsonModel(http, url, api_key, settings.helper_model, helper, helper_ignored)
+    helper = helper_model(http, settings, api_key, index)
     return ModelClients(
         answer=answer,
-        translator=make_translator(helper_model),
-        rewriter=make_rewriter(helper_model),
-        intent_classifier=make_intent_classifier(helper_model),
+        translator=make_translator(helper),
+        rewriter=make_rewriter(helper),
+        intent_classifier=make_intent_classifier(helper),
         system_prompt=load_answer_prompt(),
     )
 

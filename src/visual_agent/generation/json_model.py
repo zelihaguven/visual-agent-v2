@@ -1,7 +1,8 @@
 """Kısa, JSON dönen yardımcı model çağrıları. ZDR her çağrıda zorunludur.
 
-Süre sınırını çağıran koyar (`asyncio.wait_for`). Paylaşılan httpx istemcisinin varsayılan
-5 sn sınırı da geçerlidir: `wait_for` daha uzunsa önce httpx keser.
+Süre sınırını çağıran koyar (`asyncio.wait_for`). Paylaşılan httpx istemcisinin sınırı da
+geçerlidir (soru hattında httpx varsayılanı 5 sn, konu adlandırıcıda 60 sn): `wait_for` daha
+uzunsa önce httpx keser.
 """
 
 import json
@@ -12,6 +13,8 @@ from dataclasses import dataclass
 from typing import Any
 
 import httpx
+
+from visual_agent.generation.openrouter import ZERO_RETENTION
 
 _OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
 HELPER_PROVIDERS: ContextVar[list[str] | None] = ContextVar("helper_providers", default=None)
@@ -30,8 +33,7 @@ class JsonModel:
 
     def _constraints(self) -> dict[str, object]:
         constraints: dict[str, object] = {
-            "zdr": True,
-            "data_collection": "deny",
+            **ZERO_RETENTION,
             "order": list(self.providers),
             "only": list(self.providers),
             "allow_fallbacks": True,

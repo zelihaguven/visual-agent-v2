@@ -505,7 +505,7 @@ class WebFiles(StaticFiles):
 
 
 def _mount_web(app: FastAPI, directory: str | None) -> None:
-    """Sunucuda arayüzü nginx sunar; yerelde aynı porttan API verir."""
+    """Derlenmiş arayüz API ile aynı porttan sunulur; klasör yoksa yalnız API çalışır."""
     if directory is None or not (Path(directory) / "index.html").is_file():
         return
     app.mount("/", WebFiles(directory=directory, html=True), name="web")

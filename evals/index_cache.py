@@ -38,16 +38,9 @@ def _ingest_all(documents: Documents) -> tuple[dict[str, list[Chunk]], dict[str,
 
     Manifest: belge ve parça sayısı, toplam süre, hatalar ve belge başına süre ile rapor.
     """
-    from visual_agent.ingest.external import locate_tools
-    from visual_agent.ingest.page_reader import page_reader_from_setting
-    from visual_agent.ingest.pipeline import ingest_document
-    from visual_agent.ingest.tools import default_tools
+    from apps.worker.run import default_ingest
 
-    settings = Settings()
-    tools = default_tools(
-        locate_tools(settings.soffice_path, settings.tesseract_path),
-        page_reader_from_setting(settings.page_reader),
-    )
+    ingest = default_ingest(Settings())
     chunks: dict[str, list[Chunk]] = {}
     errors: dict[str, str] = {}
     per_document: dict[str, dict[str, Any]] = {}
@@ -56,7 +49,7 @@ def _ingest_all(documents: Documents) -> tuple[dict[str, list[Chunk]], dict[str,
         begun = time.perf_counter()
         try:
             with tempfile.TemporaryDirectory() as work:
-                result = ingest_document(path, meta, tools, Path(work))
+                result = ingest(path, meta, Path(work))
         except Exception as error:
             errors[meta.doc_id] = f"{type(error).__name__}: {error}"
             continue

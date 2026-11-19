@@ -113,12 +113,12 @@ async def _process_documents(
 ) -> None:
     """İşçi API sürecinde: gömülü Qdrant klasörü ve embedding modeli paylaşılır.
 
-    İşçi modülleri burada yüklenir: sunucudaki API imajında belge işleme paketleri yoktur.
+    İşçi modülleri burada yüklenir: belge işleme paketleri (ingest eki) kurulu olmayabilir.
     """
     await repository.requeue_interrupted()
     try:
         from apps.worker.jobs import DocumentProcessor
-        from apps.worker.main import default_ingest, process_until_stopped
+        from apps.worker.run import default_ingest, process_until_stopped
         from apps.worker.topics import open_topic_assigner
 
         ingest = await asyncio.to_thread(default_ingest, settings)
@@ -170,11 +170,8 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
         background = [
             asyncio.create_task(runtime.warm_up()),
             asyncio.create_task(_retry_deletions(repository, store, storage)),
+            asyncio.create_task(_process_documents(repository, store, encoders, stop, settings)),
         ]
-        if settings.worker_in_process:
-            background.append(
-                asyncio.create_task(_process_documents(repository, store, encoders, stop, settings))
-            )
         try:
             yield ApiServices(
                 repository=repository,

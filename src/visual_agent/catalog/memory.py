@@ -1,4 +1,4 @@
-"""Belge kaydı. Kalıcı depo, belge yükleme ile birlikte A5'te eklenir."""
+"""Bellekteki belge kataloğu: hazır belgelerin adı, dili ve kodları (SQLite kaydından kurulur)."""
 
 import re
 from collections.abc import Iterable

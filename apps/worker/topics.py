@@ -12,9 +12,9 @@ from typing import Protocol
 
 import httpx
 
+from visual_agent.ask.clients import helper_model
 from visual_agent.catalog.repository import StoredDocument
-from visual_agent.generation.json_model import JsonModel
-from visual_agent.generation.openrouter import fetch_zdr_index, select_providers
+from visual_agent.generation.openrouter import fetch_zdr_index
 from visual_agent.generation.topic import (
     TopicMerger,
     TopicNamer,
@@ -120,16 +120,12 @@ async def open_topic_assigner(
     if not api_key:
         logger.info("Belgelere konu verilmiyor: API anahtarı yok; dosya türüne göre gruplanır.")
         return None
-    url = str(settings.openrouter_url).rstrip("/")
     http = httpx.AsyncClient(timeout=_MERGE_SECONDS)
     try:
-        index = await fetch_zdr_index(http, url, api_key)
-        providers, ignored = select_providers(
-            settings.helper_model, settings.helper_providers, index
-        )
+        index = await fetch_zdr_index(http, str(settings.openrouter_url).rstrip("/"), api_key)
+        model = helper_model(http, settings, api_key, index)
     except Exception:
         logger.warning("Konu adlandırıcı açılamadı; belgeler türe göre gruplanır.", exc_info=True)
         await http.aclose()
         return None
-    model = JsonModel(http, url, api_key, settings.helper_model, providers, ignored)
     return TopicAssigner(repository, make_topic_namer(model), make_topic_merger(model))

@@ -19,6 +19,10 @@ _ERROR_PREVIEW = 200
 _FINISH_TRUNCATED = "length"
 
 
+ZERO_RETENTION: dict[str, Any] = {"zdr": True, "data_collection": "deny"}
+"""Her OpenRouter isteğinin sağlayıcı kısıtı: yalnız veri saklamayan uç noktalar (kural 4)."""
+
+
 class ServiceUnavailable(RuntimeError):
     """Cevap servisine ulaşılamadı; yerel modele otomatik düşüş yoktur."""
 
@@ -164,8 +168,7 @@ class AnswerClient:
     def _body(self, messages: Sequence[Mapping[str, str]], provider: str) -> dict[str, Any]:
         options = self._options
         constraints: dict[str, Any] = {
-            "zdr": True,
-            "data_collection": "deny",
+            **ZERO_RETENTION,
             "order": [provider],
             "allow_fallbacks": False,
         }
