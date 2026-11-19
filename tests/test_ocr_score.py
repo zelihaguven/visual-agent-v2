@@ -169,7 +169,9 @@ def test_positioned_cells_match_columns_by_place() -> None:
 def test_digital_text_layer_of_set_a_scores_perfectly() -> None:
     """Puanlama betiğinin sınaması: metin katmanı doğru cevabın kaynağıyla aynıdır."""
     for number in (1, 3):
-        truth = TruthDocument.model_validate_json((SET_A / f"syn{number}.json").read_text())
+        truth = TruthDocument.model_validate_json(
+            (SET_A / f"syn{number}.json").read_text(encoding="utf-8")
+        )
         results = score_document(truth, text_layer_pages(SET_A / f"syn{number}.pdf"))
         assert {outcome for *_, outcome in results} == {Outcome.CORRECT}
 

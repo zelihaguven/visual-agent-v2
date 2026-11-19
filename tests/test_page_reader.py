@@ -34,7 +34,8 @@ metni kayıtta yoktur; set A'ya yeniden okuyucu çalıştırılmaz."""
 
 def _recorded(result: Path) -> tuple[dict[str, Any], dict[int, list[str]]]:
     data = json.loads(result.read_text(encoding="utf-8"))
-    marks = json.loads(result.with_name(result.name.replace("_res", "_uncertain")).read_text())
+    uncertain = result.with_name(result.name.replace("_res", "_uncertain"))
+    marks = json.loads(uncertain.read_text(encoding="utf-8"))
     return data, {int(block): tokens for block, tokens in marks.items()}
 
 

@@ -274,7 +274,9 @@ def test_synthetic_tech_packs_match_their_text_layer_and_are_reproducible(tmp_pa
     second = generate_set(3, 2, tmp_path / "b", "T")
 
     assert first == second
-    truth = TruthDocument.model_validate_json((tmp_path / "a" / "syn1.json").read_text())
+    truth = TruthDocument.model_validate_json(
+        (tmp_path / "a" / "syn1.json").read_text(encoding="utf-8")
+    )
     assert [page.page_type for page in truth.pages][0] == "kapak"
     assert len(truth.pages) == 6
     kinds = {value.kind for page in truth.pages for value in page.values}
