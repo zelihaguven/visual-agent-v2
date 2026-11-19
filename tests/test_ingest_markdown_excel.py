@@ -229,9 +229,14 @@ def test_unknown_file_type_is_never_outdated() -> None:
 def test_page_reader_rules_only_outdate_documents_with_scanned_pages(
     page_kinds: dict[str, int], outdated: bool
 ) -> None:
-    report = {**_old_report(), "input_format": "pdf", "rules_version": 7, "page_kinds": page_kinds}
+    report = {
+        **_old_report(),
+        "input_format": "image",
+        "rules_version": 7,
+        "page_kinds": page_kinds,
+    }
 
-    assert is_outdated(report, "belge.pdf") is outdated
+    assert is_outdated(report, "belge.jpg") is outdated
 
 
 def test_documents_from_before_the_previous_rules_stay_outdated() -> None:
@@ -259,9 +264,33 @@ def test_removing_cell_rereading_only_outdates_documents_read_by_the_old_ocr(
 ) -> None:
     report = {
         **_old_report(),
-        "input_format": "pdf",
+        "input_format": "image",
         "rules_version": version,
         "page_kinds": page_kinds,
     }
 
-    assert is_outdated(report, "belge.pdf") is outdated
+    assert is_outdated(report, "belge.jpg") is outdated
+
+
+def test_docling_table_guards_outdate_every_pdf_and_office_document() -> None:
+    """13→14 docling tablolarını değiştirdi: yalnız metin sayfalı belge de eskir."""
+    for input_format, name in (("pdf", "belge.pdf"), ("office", "belge.docx")):
+        report = {
+            **_old_report(),
+            "input_format": input_format,
+            "rules_version": 13,
+            "page_kinds": {"text": 3},
+        }
+        assert is_outdated(report, name)
+
+
+def test_row_without_any_labels_marks_its_empty_cells() -> None:
+    from visual_agent.ingest.elements import labeled_row
+
+    assert labeled_row(["", "", ""], ["Supplier Request Round", "", "Fleece"]) == (
+        "Supplier Request Round | (boş) | Fleece"
+    )
+    assert (
+        labeled_row(["Etiket", "", "Kumaş"], ["Round", "", "Fleece"])
+        == "Etiket: Round | Kumaş: Fleece"
+    )

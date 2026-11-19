@@ -222,3 +222,35 @@ def test_note_split_over_two_wide_cells_is_still_the_table_note() -> None:
 
     assert len(rows) == 1
     assert rows[0].context == "Displaying 1 - 16 of 38 results | Grade Rule Display: Increment"
+
+
+def test_form_table_whose_empty_cell_docling_dropped_is_not_given_a_header() -> None:
+    """Docling'in gerçek çıktısı (2026-11-19): ilk satırın boş 2. hücresi hücre listesinde yok.
+    Önceden ilk satır başlık sayılıyor, değer yanlış etiketi alıyordu ("Material Description:
+    Fit Approved"). Artık başlıksız: boş hücre "(boş)" yazılır, etiket kendi değerinin yanında."""
+    cells = [
+        cell(0, 0, "Supplier Request Round"),
+        cell(0, 2, "Material Description"),
+        cell(0, 3, "Fleece"),
+        cell(1, 0, "Sample Status"),
+        cell(1, 1, "Fit Approved"),
+        cell(1, 2, "Season"),
+        cell(1, 3, "FW27"),
+    ]
+
+    assert [row.text for row in group_table_rows(cells)] == [
+        "Supplier Request Round | (boş) | Material Description | Fleece",
+        "Sample Status | Fit Approved | Season | FW27",
+    ]
+
+
+def test_label_row_does_not_stop_a_fitting_first_row_from_being_the_header() -> None:
+    cells = [
+        cell(0, 0, "Ölçü"),
+        cell(0, 1, "M"),
+        cell(1, 0, "Üst beden", span=2),
+        cell(2, 0, "Bel"),
+        cell(2, 1, "38,0"),
+    ]
+
+    assert [row.text for row in group_table_rows(cells)][-1] == "Ölçü: Bel | M: 38,0"
