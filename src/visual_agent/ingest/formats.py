@@ -62,8 +62,10 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     # 14 (PDF, Office): docling tablosunda da aynı iki koruma (ortak yardımcı): tahmin edilen
     #    başlık her veri satırıyla aynı sayıda dolu hücre taşımalı; başlıksız satırda boş sütun
     #    "(boş)". Excel 4, Markdown 3: hiç başlığı olmayan satırda boş hücre "(boş)".
-    InputFormat.PDF: 14,
-    InputFormat.OFFICE: 14,
+    # 15 (PDF, Office): eski OCR yolu ve gömülü görsellerin ikinci okuması okuyucu kuralıyla
+    #    (sayım; harf-rakam eşdeğerliği yok, rakamsız kod denetlenir, virgül ≠ nokta).
+    InputFormat.PDF: 15,
+    InputFormat.OFFICE: 15,
     InputFormat.IMAGE: 13,
     InputFormat.SPREADSHEET: 4,
     InputFormat.LEGACY_SPREADSHEET: 4,
