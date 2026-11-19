@@ -88,7 +88,9 @@ def annotate_ocr_pages(
         if page is None or page not in ocr_pages or element.ocr_checked:
             annotated.append(element)
             continue
-        uncertain = tuple(t for t in ocr_pages[page] if contains_token(element.text, t))
+        # Satırın bağlamı (bölüm etiketi, tablo notu) da cümleye kod olarak girebilir.
+        text = f"{element.text} {element.context}"
+        uncertain = tuple(t for t in ocr_pages[page] if contains_token(text, t))
         annotated.append(replace(element, from_ocr=True, ocr_uncertain=uncertain))
     return annotated
 
