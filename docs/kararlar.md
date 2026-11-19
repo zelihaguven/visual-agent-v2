@@ -364,15 +364,33 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   - Model değişikliği yalnız ölçümle yapılır (kural 5).
   - GPT-OSS 120B ve GLM 5.3 Flash istemci uyumsuzluğu yüzünden ölçülemedi.
 
-### Sağlayıcı sırası: DeepInfra, Venice, Parasail; yedeğe yalnız kesintide geçilir
-- **Ne zaman:** Eski pilotta önce Venice birinciydi; 2026-11-06'da DeepInfra'ya geçildi.
-  Bu repoda `settings.answer_providers`.
+### Sağlayıcı sırası: Makora, yedek DeepInfra; yedeğe yalnız kesintide geçilir
+- **Ne zaman:** 2026-11-19, ürün sahibi kararı. Bu repoda `settings.answer_providers`.
+  Öncesi: eski pilotta Venice birinciydi; 2026-11-06'da DeepInfra, Venice, Parasail oldu.
 - **Neden:**
-  - Venice girintili JSON yazmaya başladı; JSON ortasında boşluk kaçağı oldu. Kaçak sayısı
-    Venice'te 16, Parasail'de 12, DeepInfra'da 0 (`adim2/okuma_nihai_ara_2026-11-06.md`,
-    `adim2/plan_cevap_modeli_2026-11-05.md`).
+  - Hedef, ilk doğrulanmış cümlenin p95'inin ≤ 3 sn olması. Süre ölçümünde (2026-11-18, 20 soru)
+    sürenin yarısından fazlası cevap modelinin içinde geçiyordu (ilk jeton ve ilk öğenin yazımı);
+    doğrulama 1 ms.
+  - Sınır setinin kilitsiz 24 sorusu × 3 koşu, üç sıra dönüşümlü, aynı kod ve aynı (eski) indeks:
+
+    | Sıra | Doğru / güvenli / yanlış | JSON hatası | Kesik | Yedeğe geçiş | İlk doğrulanmış ortanca / p95 |
+    |---|---|---|---|---|---|
+    | DeepInfra, Venice, Parasail | 59 / 10 / 3* | 0 | 0 | 3 (ilk jeton 2,5 sn'de gelmedi) | 3,47 / 5,97 sn |
+    | Makora, DeepInfra | 59 / 10 / 3* | 0 | 0 | 0 | 2,65 / 3,61 sn |
+    | NextBit, DeepInfra | 60 / 9 / 3* | 1 | 1 | 1 (boşluk kaçağı) | 3,49 / 5,07 sn |
+
+    \* Üçü de D1: indekste `dikim-rev-a.pdf` yoktu, cevap sürümsüz tek değerdi. Sağlayıcıdan
+    bağımsız; taban ölçümünde iki sürüm yüklüyken doğruydu. Doğrulanmış yanlış değer üç sırada 0.
+  - Üç sağlayıcı da bu model için OpenRouter'ın ZDR listesinde (`safety_retention: false`).
+    Nicemleme OpenRouter'da: Makora "unknown", DeepInfra fp8, NextBit bf16.
+  - Eski gerekçe sürüyor: Venice ve Parasail'de boşluk kaçağı görülmüştü (2026-11-06: 16 ve 12,
+    DeepInfra'da 0); bu yüzden yedek DeepInfra.
   - Yedeğe geçme koşulları: 2,5 sn içinde ilk token gelmezse ya da üst üste 40 boşluk
     karakteri gelirse.
+- **Bilinmeyen:** Makora'nın nicemlemesi; sağlayıcı bunu bildirmeden değiştirebilir. Ölçüm tek
+  gün, 72 cevap. p95 hedefin hâlâ üstünde (3,61 sn).
+- **Yeniden düşünülür:** Soru kaydında (`provider_errors`) Makora hataları ya da kaçakları
+  görülürse; ilk doğrulanmış cümle süresi yeniden 5 sn'ye yaklaşırsa.
 
 ### İlk token sınırı yalnız ilk tokene kadar; sonra akışın durma sınırı 10 sn (düzeltildi)
 - **Ne zaman:** `#bf3248a` (PR #18 ile birleşti, 2026-11-12),

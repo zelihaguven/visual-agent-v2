@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     openrouter_api_key: SecretStr | None = None
     openrouter_url: AnyHttpUrl = AnyHttpUrl("https://openrouter.ai/api/v1")
     answer_model: str = "google/gemma-4-26b-a4b-it"
-    answer_providers: tuple[str, ...] = ("deepinfra", "venice", "parasail")
+    answer_providers: tuple[str, ...] = ("makora", "deepinfra")
     answer_max_tokens: int = Field(default=1200, gt=0)
     answer_first_token_seconds: float = Field(default=2.5, gt=0)
     stream_runaway_limit: int = Field(default=40, gt=0)
