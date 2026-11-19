@@ -91,16 +91,20 @@ def _next_path(path: HeadingPath, heading: Element) -> HeadingPath:
     return (root,) if heading.text == root[1] else (root, (_UNKNOWN_LEVEL, heading.text))
 
 
-def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str]]:
-    """Başlıkları bölüm yoluna çevirir, ardışık paragrafları birleştirir."""
-    output: list[tuple[Element, str]] = []
+def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str, tuple[str, ...]]]:
+    """Başlıkları bölüm yoluna çevirir, ardışık paragrafları birleştirir. Bölüm yolundaki
+    başlıkların belirsiz okunan değerleri de döner: başlık parça olmadığı için bölüm adında
+    kalan belirsiz kod ("iGML-6473") yoksa cümlede doğrulanmış geçebilirdi."""
+    output: list[tuple[Element, str, tuple[str, ...]]] = []
     group: list[Element] = []
     path: HeadingPath = ()
     section = ""
+    heading_uncertain: dict[str, tuple[str, ...]] = {}
+    section_uncertain: tuple[str, ...] = ()
 
     def flush() -> None:
         if group:
-            output.append((_merge_group(group), section))
+            output.append((_merge_group(group), section, section_uncertain))
             group.clear()
 
     for element in elements:
@@ -108,6 +112,12 @@ def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str]]:
             flush()
             path = _next_path(path, element)
             section = SECTION_SEPARATOR.join(text for _, text in path)
+            heading_uncertain[element.text] = element.ocr_uncertain
+            section_uncertain = tuple(
+                dict.fromkeys(
+                    token for _, text in path for token in heading_uncertain.get(text, ())
+                )
+            )
         elif element.kind is ElementKind.TEXT:
             for piece in _split_element(element):
                 if not _can_merge(group, piece):
@@ -116,7 +126,11 @@ def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str]]:
         else:
             flush()
             output.append(
-                (element, SECTION_SEPARATOR.join(p for p in (section, element.context) if p))
+                (
+                    element,
+                    SECTION_SEPARATOR.join(p for p in (section, element.context) if p),
+                    section_uncertain,
+                )
             )
     flush()
     return output
@@ -140,9 +154,9 @@ def build_chunks(elements: Iterable[Element], meta: DocumentMeta) -> list[Chunk]
             title=meta.title,
             section=section,
             location=_location(element, section),
-            ocr_uncertain=element.ocr_uncertain,
+            ocr_uncertain=tuple(dict.fromkeys((*element.ocr_uncertain, *section_uncertain))),
             from_ocr=element.from_ocr,
             table_note=element.context,
         )
-        for index, (element, section) in enumerate(_sectioned_chunks(elements))
+        for index, (element, section, section_uncertain) in enumerate(_sectioned_chunks(elements))
     ]

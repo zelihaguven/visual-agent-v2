@@ -8,7 +8,7 @@ import pytest
 from visual_agent.domain.document import ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.chunking import build_chunks
 from visual_agent.ingest.elements import Element, ElementKind
-from visual_agent.ingest.formats import RULES_VERSIONS, is_outdated
+from visual_agent.ingest.formats import RULES_VERSIONS, InputFormat, is_outdated
 from visual_agent.ingest.markdown import parse_markdown
 from visual_agent.ingest.pipeline import IngestTools, ingest_document
 from visual_agent.ingest.spreadsheet import display_number, parse_workbook
@@ -227,16 +227,18 @@ def test_unknown_file_type_is_never_outdated() -> None:
     [({"text": 12}, False), ({"text": 2, "none": 1}, True), ({"scanned": 3}, True)],
 )
 def test_page_reader_rules_only_outdate_documents_with_scanned_pages(
-    page_kinds: dict[str, int], outdated: bool
+    page_kinds: dict[str, int], outdated: bool, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    # Sürüm 7→13 geçişleri sayfa türüne göre eskitir; sürüm 13'e sabitlenerek sınanır.
+    monkeypatch.setitem(RULES_VERSIONS, InputFormat.PDF, 13)
     report = {
         **_old_report(),
-        "input_format": "image",
+        "input_format": "pdf",
         "rules_version": 7,
         "page_kinds": page_kinds,
     }
 
-    assert is_outdated(report, "belge.jpg") is outdated
+    assert is_outdated(report, "belge.pdf") is outdated
 
 
 def test_documents_from_before_the_previous_rules_stay_outdated() -> None:
@@ -260,16 +262,18 @@ def test_documents_from_before_the_previous_rules_stay_outdated() -> None:
     ],
 )
 def test_removing_cell_rereading_only_outdates_documents_read_by_the_old_ocr(
-    version: int, page_kinds: dict[str, int], outdated: bool
+    version: int, page_kinds: dict[str, int], outdated: bool, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    # Sürüm 7→13 geçişleri sayfa türüne göre eskitir; sürüm 13'e sabitlenerek sınanır.
+    monkeypatch.setitem(RULES_VERSIONS, InputFormat.PDF, 13)
     report = {
         **_old_report(),
-        "input_format": "image",
+        "input_format": "pdf",
         "rules_version": version,
         "page_kinds": page_kinds,
     }
 
-    assert is_outdated(report, "belge.jpg") is outdated
+    assert is_outdated(report, "belge.pdf") is outdated
 
 
 def test_docling_table_guards_outdate_every_pdf_and_office_document() -> None:
@@ -294,3 +298,14 @@ def test_row_without_any_labels_marks_its_empty_cells() -> None:
         labeled_row(["Etiket", "", "Kumaş"], ["Round", "", "Fleece"])
         == "Etiket: Round | Kumaş: Fleece"
     )
+
+
+@pytest.mark.parametrize(
+    ("page_kinds", "outdated"), [({"text": 3}, False), ({"text": 2, "none": 1}, True)]
+)
+def test_uncertain_heading_rule_only_outdates_documents_with_ocr_pages(
+    page_kinds: dict[str, int], outdated: bool
+) -> None:
+    report = {**_old_report(), "input_format": "pdf", "rules_version": 15, "page_kinds": page_kinds}
+
+    assert is_outdated(report, "belge.pdf") is outdated

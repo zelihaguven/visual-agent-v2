@@ -64,9 +64,11 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     #    "(boş)". Excel 4, Markdown 3: hiç başlığı olmayan satırda boş hücre "(boş)".
     # 15 (PDF, Office): eski OCR yolu ve gömülü görsellerin ikinci okuması okuyucu kuralıyla
     #    (sayım; harf-rakam eşdeğerliği yok, rakamsız kod denetlenir, virgül ≠ nokta).
-    InputFormat.PDF: 15,
-    InputFormat.OFFICE: 15,
-    InputFormat.IMAGE: 13,
+    # 16 (PDF, Office; görsel 14): başlıkta ve satır bağlamında belirsiz okunan değer parçanın
+    #    belirsiz listesine girer (yalnız OCR'lı sayfalar).
+    InputFormat.PDF: 16,
+    InputFormat.OFFICE: 16,
+    InputFormat.IMAGE: 14,
     InputFormat.SPREADSHEET: 4,
     InputFormat.LEGACY_SPREADSHEET: 4,
     InputFormat.SQL: 2,
@@ -106,6 +108,7 @@ _CHANGED_PAGE_KINDS = {
     10: ("none", "scanned"),
     11: ("none", "scanned"),
     12: ("none", "scanned"),
+    15: ("none", "weak", "scanned"),
 }
 """Bu sürümden bir sonrakine geçiş yalnız bu tür sayfası olan belgelerin çıktısını değiştirdi:
 7→8 taranmış sayfalar sayfa okuyucusuna gitti ("scanned": OCR katmanlı tarama öyle kaydedilmiş

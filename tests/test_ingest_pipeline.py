@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from visual_agent.domain.answer import ModelItem, PromptSource, Quote
 from visual_agent.domain.document import Box, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.chunking import build_chunks
 from visual_agent.ingest.docling_parser import carries_value, page_header_identifies
@@ -24,6 +25,7 @@ from visual_agent.ingest.pipeline import (
     promote_code_elements,
 )
 from visual_agent.ingest.text_layer import PageKind
+from visual_agent.verification.answer import verify_item
 
 META = DocumentMeta(doc_id="d", title="Belge")
 
@@ -418,3 +420,68 @@ def test_pdf_pages_are_rendered_not_read_from_an_image_file(tmp_path: Path) -> N
     ingest_document(path, META, _fake_tools(calls, page_kind=PageKind.NONE), tmp_path)
 
     assert not any(call.startswith("image:") for call in calls)
+
+
+def _uncertain_heading_page() -> list[Element]:
+    page = SourceLocation(page=1)
+    return [
+        Element(
+            ElementKind.HEADING,
+            "iGML-6473 ölçü föyü",
+            page,
+            from_ocr=True,
+            ocr_uncertain=("iGML-6473",),
+            ocr_checked=True,
+        ),
+        Element(
+            ElementKind.TABLE_ROW,
+            "Beden: M | Etiket kodu: ETK-3392",
+            page,
+            from_ocr=True,
+            ocr_checked=True,
+        ),
+    ]
+
+
+def test_uncertain_heading_value_reaches_the_chunks_of_its_section() -> None:
+    """B1, 2. adım: başlık parça değil, bölüm adı olur; belirsiz işareti de parçaya geçmeli."""
+    meta = DocumentMeta(doc_id="d", title="föy", language="tr")
+    [row] = build_chunks(_uncertain_heading_page(), meta)
+
+    assert row.section == "iGML-6473 ölçü föyü"
+    assert row.ocr_uncertain == ("iGML-6473",)
+
+
+def test_sentence_with_the_uncertain_heading_code_is_hidden_but_the_value_is_shown() -> None:
+    meta = DocumentMeta(doc_id="d", title="föy", language="tr")
+    [row] = build_chunks(_uncertain_heading_page(), meta)
+    sources = {
+        1: PromptSource(
+            number=1,
+            text=row.text,
+            context=row.section,
+            ocr_uncertain=row.ocr_uncertain,
+            from_ocr=True,
+            is_table_row=True,
+        )
+    }
+
+    def check(text: str) -> bool:
+        item = ModelItem(text=text, quotes=(Quote(source_no=1, text="Etiket kodu: ETK-3392"),))
+        return verify_item(item, sources, "tr").ok
+
+    assert not check("iGML-6473 M beden etiket kodu ETK-3392.")
+    assert check("M beden etiket kodu ETK-3392.")
+
+
+def test_uncertain_value_in_the_row_context_is_marked_on_the_docling_path() -> None:
+    row = Element(
+        ElementKind.TABLE_ROW,
+        "Beden: M | Etiket kodu: ETK-3392",
+        SourceLocation(page=2),
+        context="GML-6473 ölçü föyü",
+    )
+
+    [marked] = annotate_ocr_pages([row], {2: ("GML-6473",)})
+
+    assert marked.ocr_uncertain == ("GML-6473",)
