@@ -484,7 +484,14 @@ def tesseract_reader(executable: str = "tesseract", language: str = "tur+eng") -
             source = Path(work) / "blok.png"
             image.save(source)
             command = [executable, str(source), "stdout", "-l", language, "--psm", "11"]
-            return subprocess.run(command, capture_output=True, text=True, check=True).stdout
+            return subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=True,
+            ).stdout
 
     return read
 

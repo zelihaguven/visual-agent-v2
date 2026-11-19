@@ -169,7 +169,9 @@ def test_positioned_cells_match_columns_by_place() -> None:
 def test_digital_text_layer_of_set_a_scores_perfectly() -> None:
     """Puanlama betiğinin sınaması: metin katmanı doğru cevabın kaynağıyla aynıdır."""
     for number in (1, 3):
-        truth = TruthDocument.model_validate_json((SET_A / f"syn{number}.json").read_text())
+        truth = TruthDocument.model_validate_json(
+            (SET_A / f"syn{number}.json").read_text(encoding="utf-8")
+        )
         results = score_document(truth, text_layer_pages(SET_A / f"syn{number}.pdf"))
         assert {outcome for *_, outcome in results} == {Outcome.CORRECT}
 
@@ -314,11 +316,13 @@ def test_second_reading_marks_cells_of_mismatched_values_in_each_block(tmp_path:
 
 
 FROZEN_SCORING = {
-    "evals/ocr_score.py": "a806a7f4a6d5b521e065dfb6a95e48f39b2f262f1d9f18f7be82b4d7aeafcf8d",
-    "evals/ocr_truth.py": "9533f39742831eb1eff642efbabd5ba233c04b4ce114b76211bf5d5603137744",
+    "evals/ocr_score.py": "82446ec54fe89c92069af446b0c1d9dacba411519261373c76ce85cc66eb1046",
+    "evals/ocr_truth.py": "2e9889da8178d81d27f115d79145b9317171a81a0ed2b441386ed6fe01cf40c3",
 }
 """Puanlama, eşdeğerlik kuralları, dönüştürücüler ve ikinci okumanın sayarak karşılaştırması
-ölçümden önce donduruldu (2026-11-16, ikinci sabitleme: Tesseract ikinci okuması eklendi).
+ölçümden önce donduruldu (2026-11-16, ikinci sabitleme: Tesseract ikinci okuması eklendi;
+üçüncü sabitleme 2026-11-19: yalnız Windows dosya kodlaması ve satır sonu, set A yeniden
+puanlaması birebir aynı).
 Ölçümden sonra değişirse bu test kırılır: değişiklik yeni bir ölçüm turu ve karar notu ister;
 sonuçlara bakıp puanlama değiştirilmez."""
 

@@ -1160,6 +1160,8 @@ Tarih: 2026-11-16. Dal: `sentetik-techpack` (PR #60). Hiçbir okuyucu set A'ya �
 
 **Kurallar.** `ocr_score.py` ve `ocr_truth.py` özetleri testte; ölçümden sonra değişmez. Her aday set A'nın taranmış ve fotoğraflanmış sayfalarında bir kez ölçülür; sonuçlara bakıp üretici, puanlama ya da dönüştürücü değiştirilmez. Raporda "doğrulanmış yanlış değer" yanında sayı içermeyen yanlış cümleler de ayrıca yazılır.
 
+**Üçüncü sabitleme (2026-11-19, ürün sahibi onayı).** Yalnız Windows düzeltmesi: `ocr_truth.py` doğru-cevap JSON'unu `\n` satır sonuyla yazar (Windows'ta CRLF yazıyordu, set A yeniden üretilemiyordu; PDF'ler zaten aynıydı), `ocr_score.py` Tesseract çıktısını utf-8 çözer. Dondurulmuş okumalarla (`evals/results/2026-11-16-set-a-benzetim`) `puanla.py` yeniden çalıştırıldı: `rapor.json` eski ve yeni kodla birebir aynı, karar yine "Benimsenir". Puanlama kuralları değişmedi.
+
 ### 0009: Set A basılı taranamadı; ölçüm taranmış ve fotoğraflanmış benzetimle yapılır
 Tarih: 2026-11-16. Dal: `set-a-benzetim`. Ekip set A'yı basıp tarayamadı; benzetimi kod üretir. Hiçbir okuyucu çalıştırılmadan donduruldu.
 
