@@ -1,5 +1,5 @@
 @echo off
-rem Visual Agent: bu bilgisayarda Docker ve yonetici yetkisi olmadan baslatir (cift tikla).
+rem Visual Agent: bu bilgisayarda yonetici yetkisi olmadan baslatir (cift tikla).
 rem Arayuz: http://127.0.0.1:8080  Kapatmak: bu pencerede Ctrl+C ya da pencereyi kapat.
 setlocal EnableDelayedExpansion
 cd /d "%~dp0"

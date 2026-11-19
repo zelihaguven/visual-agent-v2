@@ -2,6 +2,67 @@
 
 Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 
+## Nerede kaldık: Mac'e geçiş (2026-11-19)
+
+Mac'teki son çalışma #83'te (2026-11-18). Ondan bu yana #82, #84–#101 bu Windows bilgisayarında yapıldı ve `main`'e girdi.
+
+**Mac'i etkileyen değişiklikler**
+
+- `.env`: `VA_WORKER_IN_PROCESS` kaldırıldı (Docker'la birlikte, karar 0017). `.env`'de kalırsa yok sayılır (ayarlar bilinmeyen değişkeni yok sayar). Başka değişken eklenmedi ya da yeniden adlandırılmadı; `.env.example` değişmedi.
+- Açılışta denetlenen ayar: `VA_PAGE_READER` artık açılışta doğrulanır. Sunucu adresi yalnız `localhost`, `.local` adı ya da özel/yerel IP olabilir (sayfa görüntüsü ZDR denetimsiz gider; karar 0011 altı). Geçersiz değerde uygulama açılmaz. Mac'teki `mlx-vlm-server@http://localhost:8111/` geçerli.
+- Varsayılan cevap sağlayıcısı sırası Makora, yedek DeepInfra (#85). `.env`'de `VA_ANSWER_PROVIDERS` verilmişse o geçerli kalır.
+- Bağımlılık değişikliği yok (`pyproject.toml`, `uv.lock`, `apps/web/package.json` aynı).
+- Docker paketi kalktı (karar 0017); Mac yerel kurulumla çalıştığı için etkisi yok.
+- Kural sürümleri arttı: PDF ve Office 13 → 19, görsel 13 → 15, Excel 3 → 4, Markdown 2 → 3. Mac'teki bütün belgeler "Eski kural" görünür.
+
+**Mac'te sırayla**
+
+1. Uygulama kapalıyken `data/` klasörünü yedekle (ör. `cp -R data ../data-yedek-$(date +%F)`).
+2. `git pull` (dal `main`).
+3. `uv sync --extra ingest --extra retrieval` (bağımlılık değişmedi; kilit dosyasıyla eşitler).
+4. `.env` kontrolü: `VA_PAGE_READER=mlx-vlm-server@http://localhost:8111/`; `VA_WORKER_IN_PROCESS` satırı varsa silinebilir.
+5. Ayrı bir pencerede okuyucu sunucusu: `uvx --from "mlx-vlm>=0.3.11" mlx_vlm.server --host 127.0.0.1 --port 8111` (README, Yerel kurulum).
+6. Uygulamayı aç (`python -m apps.local`), belgeler listesinde bütün "Eski kural" belgeleri yeniden işle.
+7. Sınır seti: `python -m evals.sinir_seti --url http://127.0.0.1:8080 --runs 5 --output evals/output/sinir.jsonl` (sorular arası 5 sn; özet yedeğe geçen soruları sayar). Mac'te 6013448 yüklü olduğu için C1, C2, D6 da ölçülür.
+
+Tahmini yeniden işleme süresi (Mac'te ölçülmedi): Windows'ta 379 dijital ve Markdown belge, iki küçük tarama dahil, 48 dakika sürdü; Mac'in işlemcisi daha hızlı. Taranmış tech pack sayfaları Mac'te MLX ile sayfa başına ≈ 4–10 sn (set A: 2,7–10 sn); yüklü 17 föy ≈ 500 sayfaysa ≈ 35–80 dk. Toplam tahmin 1–2 saat.
+
+**Mac'ten Windows'a veri taşıma** (2026-11-19, Windows'ta sınandı)
+
+- Veritabanında mutlak yol yok: belge dosyaları (`stored_path`, `display_pdf`) `data/documents/...` diye göreli tutuluyor; Qdrant yerel klasöründe yol yok; parçalarda yol yok. Göreli yollar uygulamanın çalışma klasörüne göre çözülür: uygulama repo kökünden açılmalı (`baslat.bat` ve `python -m apps.local` öyle açar).
+- Sınama: `data/`'nın kopyası başka bir klasöre kondu, uygulama o klasörden açıldı; 4 soru (dikim-tarama, dikim-word, dikim-pdf, sql-notlar) doğru cevaplandı, kaynakların metni ve sayfa görüntüsü açıldı (dikim-tarama 3. sayfa, vurgulu tablo). Asıl `data/` değişmedi (414 dosya özeti aynı).
+- Adımlar: (1) iki bilgisayarda aynı commit (kural sürümleri aynı olmalı; yoksa Windows'ta "Eski kural" çıkar ve taranmış föyleri yeniden işlemek saatler sürer, karar 0015); (2) Mac'te uygulamayı kapat (Qdrant klasörü kilitlidir); (3) Mac'in `data/`'sını kopyala; `data/models` gerekmez, Windows'ta zaten var; (4) Windows'ta uygulama kapalıyken mevcut `data/`'yı yeniden adlandırıp sakla, Mac'inkini repo köküne koy; (5) `baslat.bat` ile aç; belge sayısını, "Eski kural" olmadığını ve birkaç soruyu kaynağıyla denetle. Windows'un soru günlüğü Mac'inkiyle değişir; gerekirse saklanan kopyada kalır.
+- Açık sorun (düzeltme önerildi, uygulanmadı): Windows yolları ters eğik çizgiyle yazıyor (`data\documents\...`). Mac → Windows sorunsuz (Windows düz eğik çizgiyi okur), ama Windows'ta işlenmiş veri Mac'e taşınırsa yollar tek dosya adı sayılır ve belge dosyaları açılmaz. Öneri: yolları `as_posix()` ile ve belge klasörüne göre yazmak, eski kayıtlar için bir kerelik dönüştürme (≈ 10 satır ve göç; yeniden işleme gerekmez).
+
+**Biten (#84–#101)**
+
+- Soru günlüğü deneme başına sağlayıcı ve hata yazar; özet p95 verir; sınır seti betiği repoda (bekleme, yedeğe geçen soru sayısı).
+- Sağlayıcı sırası Makora → DeepInfra (karar notu).
+- Doğrulayıcı belirsiz OCR değerini cümlede de arar; okuyucu sunucusu yalnız yerel ağda.
+- Konu adlandırıcıya yalnız başlıklar gider (karar 0016).
+- LibreOffice çıktı üretmezse belge açıkça işlenemedi olur.
+- Docker kaldırıldı (0017); eski OCR yolu kalıyor (0018); taranmış tech pack'ler hızlı makinede işlenir (0015).
+- Yeniden işleme turu: ortak tablo korumaları, ikinci okuma sayımla, başlık belirsizliği parçada, gömülü görsel yerinde, docling üst bilgisi (CKT-7308), okuyucuda değer taşıyan başlık. Windows'taki veri bu kurallarla yeniden işlendi.
+- Sınır seti 24 × 5 (Windows, 2026-11-19, kural 19): 100 doğru / 20 güvenli / 0 yanlış; yedeğe geçen soru 4 (Makora 429); ilk doğrulanmış cümle ortanca 2,49, p95 3,40 sn. A4 ve B4 5/5 doğru (önce bulunamadı). A5 5/5 gizli (aşağıda).
+
+**Yarım kalan**
+
+- LibreOffice bu Windows'ta zaman zaman çıktı üretmiyor; kök neden bilinmiyor (Kurulum bölümü).
+- Makora yük altında 429 veriyor; bekleme 5 sn kaldı, yedeğe geçişler kabul (2026-11-19 kararı).
+- 6013448 ve diğer taranmış föyler yalnız Mac'te; Windows'a taşınacak.
+- D2 (fotoğrafta bölüm yok), B8'de ara sıra "TL" eksik, yeni kilitli sorular (karar 0014).
+
+**Sıradaki**
+
+1. Mac'te güncelleme, yeniden işleme ve sınır seti (yukarıdaki adımlar).
+2. Mac'teki verinin Windows'a taşınması.
+3. Yol biçimi düzeltmesi için karar (Windows → Mac taşıma).
+4. Set B: büyük sayfa görselini küçültmenin süreye etkisi (karar 0010/0011 altındaki liste).
+
+## Doğrulama
+
+- A5'teki gizleme kabul edildi (2026-11-19, ürün sahibi kararı): `sql-ekran.docx`'in görselinden okunan satırda "VARCHAR" iki okumada aynı sayıda geçmediği için belirsiz (#94'ten beri rakamsız kodlar da denetleniyor); model satırı "Tip: VARCHAR | Uzunluk: 19" diye alıntılayınca cümle gizleniyor, doğru değer 19 da gösterilmiyor. Doğrulayıcı kuralı değiştirilmedi: belirsiz hücre alıntıda olup cümlede geçmese de cümle gizlenir. Gevşetilirse açık doğar: model belirsiz hücreyi kendi sözleriyle anlatabilir ("tipi VARCHAR değil metin", "uzunluğu on dokuz") ve cümle belirsiz parçayı birebir içermediği için denetimden geçer.
+
 ## Gerçek belgelerle ince ayar
 
 - **Kod türleri ve biçimleri:** Kodlar belge işlenirken metinden otomatik çıkarılıyor, ama gerçek belgelerde kodların biçimi ve sırası aynı olmayabilir. Harf ve rakam içeren her şey "kod" sayılıyor: etiket kodu ile ürün kodu ayrılmıyor, `A4` gibi ifadeler fazladan sayılabilir, `1162/A` gibi biçimler kaçabilir. Gerçek dosyalar gelince ölçülecek; gerekirse belge işlerken kodları türüne ayıran bir adım eklenecek.
