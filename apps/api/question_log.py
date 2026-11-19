@@ -290,12 +290,17 @@ class QuestionLog:
         return [_from_row(row) for row in rows]
 
 
+def percentile(values: Sequence[float], share: float) -> float:
+    """En yakın sıradaki değer (ara değer üretmez); günlük ve ölçümler aynı tanımı kullanır."""
+    ordered = sorted(values)
+    return ordered[min(len(ordered) - 1, round(share * (len(ordered) - 1)))]
+
+
 def _seconds(values: Sequence[float]) -> str:
     if not values:
         return "-"
-    ordered = sorted(values)
-    p90 = ordered[min(len(ordered) - 1, round(0.9 * (len(ordered) - 1)))]
-    return f"ortanca {statistics.median(ordered):.2f} sn, p90 {p90:.2f} sn ({len(ordered)} soru)"
+    p95 = percentile(values, 0.95)
+    return f"ortanca {statistics.median(values):.2f} sn, p95 {p95:.2f} sn ({len(values)} soru)"
 
 
 MAX_FAILED_TRANSLATION_SHARE = 0.10
