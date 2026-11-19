@@ -416,6 +416,19 @@ def test_summary_counts_failed_query_translations_and_marks_the_run_invalid() ->
     assert not any("çevirisi" in line for line in summary_lines([_record(timings={})]))
 
 
+def test_service_failures_are_left_out_of_the_failed_translation_share() -> None:
+    """2026-11-18: iki kısa servis kesintisinde çeviri de düştü; o sorular yeniden soruldu ama
+    pay ham kayıttan %14 çıktı (puanlanan cevaplarda %8)."""
+    tried = {"timings": {"translate": 1.5, "retrieve": 0.4}}
+    scored = [_record(**tried) for _ in range(19)] + [_record(**tried, translation_failed=True)]
+    outage = [
+        _record(**tried, translation_failed=True, result_kind=kind)
+        for kind in ("failed", "failed", "error")
+    ]
+
+    assert "sorgu çevirisi düştü: 1/20 soru (%5)" in summary_lines([*scored, *outage])
+
+
 def test_failed_translation_is_recorded() -> None:
     outcome = ANSWERED.model_copy(update={"translation_failed": True})
 
