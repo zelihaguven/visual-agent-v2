@@ -304,8 +304,9 @@ def test_row_without_any_labels_marks_its_empty_cells() -> None:
     ("page_kinds", "outdated"), [({"text": 3}, False), ({"text": 2, "none": 1}, True)]
 )
 def test_uncertain_heading_rule_only_outdates_documents_with_ocr_pages(
-    page_kinds: dict[str, int], outdated: bool
+    page_kinds: dict[str, int], outdated: bool, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setitem(RULES_VERSIONS, InputFormat.PDF, 16)
     report = {**_old_report(), "input_format": "pdf", "rules_version": 15, "page_kinds": page_kinds}
 
     assert is_outdated(report, "belge.pdf") is outdated
