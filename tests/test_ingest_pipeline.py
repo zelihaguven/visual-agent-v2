@@ -23,6 +23,7 @@ from visual_agent.ingest.pipeline import (
     ingest_document,
     pages_missing_text,
     promote_code_elements,
+    with_images_in_place,
 )
 from visual_agent.ingest.text_layer import PageKind
 from visual_agent.verification.answer import verify_item
@@ -485,3 +486,32 @@ def test_uncertain_value_in_the_row_context_is_marked_on_the_docling_path() -> N
     [marked] = annotate_ocr_pages([row], {2: ("GML-6473",)})
 
     assert marked.ocr_uncertain == ("GML-6473",)
+
+
+def _at(kind: ElementKind, text: str, page: int, top: float) -> Element:
+    at = Box(
+        page=page, left=0, top=top, right=100, bottom=top + 10, page_width=600, page_height=800
+    )
+    return Element(kind, text, SourceLocation(page=page, boxes=(at,)))
+
+
+def test_embedded_image_rows_land_in_the_section_where_the_image_is() -> None:
+    """B5: iki ürünlü sayfada görseldeki tablo kendi ürününün bölümünde kalır (önceden sayfanın
+    sonuna, yani son başlığın bölümüne ekleniyordu)."""
+    page = [
+        _at(ElementKind.HEADING, "PNT-1162 ölçü föyü", 1, 10),
+        _at(ElementKind.TEXT, "Bel ölçüleri aşağıda.", 1, 30),
+        _at(ElementKind.HEADING, "CKT-7308 ölçü föyü", 1, 400),
+        _at(ElementKind.TEXT, "Kalça ölçüleri aşağıda.", 1, 420),
+    ]
+    image_row = _at(ElementKind.TABLE_ROW, "Bel | M: 40,5", 1, 120)
+    next_page = _at(ElementKind.TEXT, "İkinci sayfa", 2, 5)
+
+    placed = with_images_in_place([*page, next_page], [image_row])
+    chunks = build_chunks(placed, DocumentMeta(doc_id="d", title="föy", language="tr"))
+
+    row = next(chunk for chunk in chunks if chunk.text == "Bel | M: 40,5")
+    assert row.section == "PNT-1162 ölçü föyü"
+    assert [element.text for element in placed if element is not image_row] == [
+        element.text for element in [*page, next_page]
+    ]
