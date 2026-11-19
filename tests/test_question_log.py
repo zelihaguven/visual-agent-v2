@@ -452,6 +452,23 @@ def test_helper_providers_are_recorded_and_counted(tmp_path: Path) -> None:
     assert "yardımcı model çağrıları: Parasail 1, Venice 1" in summary_lines(stored)
 
 
+def test_provider_errors_are_recorded_stored_and_counted(tmp_path: Path) -> None:
+    attempts = (("deepinfra", "ilk token süresinde gelmedi"), ("venice", ""))
+    outcome = ANSWERED.model_copy(update={"provider_attempts": 2, "provider_errors": attempts})
+    log = open_log(tmp_path / "va.db")
+
+    async def run() -> list[QuestionRecord]:
+        await log.migrate()
+        await log.add(record_for("Soru?", "text", "answered", outcome, 4.0, 3.9))
+        return await log.last(1)
+
+    stored = asyncio.run(run())
+
+    assert stored[0].provider_errors == attempts
+    assert "cevap sağlayıcısı hataları: deepinfra 1" in summary_lines(stored)
+    assert not any("hataları" in line for line in summary_lines([_record()]))
+
+
 def test_older_log_table_gains_the_new_columns(tmp_path: Path) -> None:
     import sqlite3
 
@@ -483,3 +500,4 @@ def test_older_log_table_gains_the_new_columns(tmp_path: Path) -> None:
         0,
         None,
     )
+    assert oldest.provider_errors == ()

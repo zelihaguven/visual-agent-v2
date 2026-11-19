@@ -2,7 +2,8 @@
 
 Kaydedilenler: zaman, kullanıcının sorusu ve tamamlanmış hali, sonuç türü, doğrulama durumu ve
 sorunlar, atıf yapılan belgeler, sağlayıcı, maliyet, ilk doğrulanmış cümleye kadar geçen süre,
-sesli ya da yazılı oluşu ve adım adım süreler. Ses ve cevap metninin tamamı yazılmaz.
+cevap sağlayıcısı denemeleri (sağlayıcı ve hata metni), sesli ya da yazılı oluşu ve adım adım
+süreler. Ses ve cevap metninin tamamı yazılmaz.
 Kayıt başarısız olursa cevap etkilenmez. Okumak için HTTP ucu yoktur:
 
     python -m apps.api.question_log --last 20
@@ -58,7 +59,8 @@ CREATE TABLE IF NOT EXISTS question_log (
     provider_attempts INTEGER NOT NULL DEFAULT 0,
     provider_wait_seconds REAL,
     translation_failed INTEGER NOT NULL DEFAULT 0,
-    helper_providers TEXT NOT NULL DEFAULT '[]'
+    helper_providers TEXT NOT NULL DEFAULT '[]',
+    provider_errors TEXT NOT NULL DEFAULT '[]'
 );
 CREATE INDEX IF NOT EXISTS question_log_time_idx ON question_log (created_at);
 """
@@ -78,13 +80,14 @@ _COLUMNS = (
     "created_at, question, resolved_question, input_mode, result_kind, verification_status,"
     " problems, cited_doc_ids, provider, cost_usd, first_verified_seconds, total_seconds, timings,"
     " provider_attempts, provider_wait_seconds, translation_failed,"
-    " helper_providers"
+    " helper_providers, provider_errors"
 )
 _ADDED_COLUMNS = {
     "provider_attempts": "INTEGER NOT NULL DEFAULT 0",
     "provider_wait_seconds": "REAL",
     "translation_failed": "INTEGER NOT NULL DEFAULT 0",
     "helper_providers": "TEXT NOT NULL DEFAULT '[]'",
+    "provider_errors": "TEXT NOT NULL DEFAULT '[]'",
 }
 
 
@@ -108,6 +111,7 @@ class QuestionRecord(BaseModel):
     provider_wait_seconds: float | None = None
     translation_failed: bool = False
     helper_providers: tuple[str, ...] = ()
+    provider_errors: tuple[tuple[str, str], ...] = ()
 
 
 def _now() -> str:
@@ -170,6 +174,7 @@ def record_for(
         provider_wait_seconds=outcome.provider_seconds if outcome.provider_attempts else None,
         translation_failed=outcome.translation_failed,
         helper_providers=outcome.helper_providers,
+        provider_errors=outcome.provider_errors,
     )
 
 
@@ -192,6 +197,7 @@ def _row_values(record: QuestionRecord) -> tuple[object, ...]:
         record.provider_wait_seconds,
         int(record.translation_failed),
         json.dumps(list(record.helper_providers)),
+        json.dumps([list(attempt) for attempt in record.provider_errors], ensure_ascii=False),
     )
 
 
@@ -214,6 +220,9 @@ def _from_row(row: sqlite3.Row) -> QuestionRecord:
         provider_wait_seconds=row["provider_wait_seconds"],
         translation_failed=bool(row["translation_failed"]),
         helper_providers=tuple(json.loads(row["helper_providers"])),
+        provider_errors=tuple(
+            (provider, error) for provider, error in json.loads(row["provider_errors"])
+        ),
     )
 
 
@@ -348,6 +357,14 @@ def summary_lines(records: Sequence[QuestionRecord]) -> list[str]:
         lines.append(
             "yardımcı model çağrıları: "
             + ", ".join(f"{name} {count}" for name, count in helpers.most_common())
+        )
+    errors = Counter(
+        provider for record in records for provider, error in record.provider_errors if error
+    )
+    if errors:
+        lines.append(
+            "cevap sağlayıcısı hataları: "
+            + ", ".join(f"{name} {count}" for name, count in errors.most_common())
         )
     cost = sum(record.cost_usd for record in records)
     lines.append(f"maliyet: {cost:.5f} $")

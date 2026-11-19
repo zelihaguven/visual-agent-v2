@@ -72,6 +72,7 @@ class AskState:
     translation_failed: bool = False
     provider_attempts: int = 0
     provider_seconds: float = 0.0
+    provider_errors: tuple[tuple[str, str], ...] = ()
 
     @property
     def question(self) -> str:
@@ -266,11 +267,12 @@ def _partial_result(assembler: StreamAssembler, hits: Sequence[Hit], sources: So
 
 
 def _with_attempts(state: AskState, attempts: Sequence[AttemptRecord]) -> AskState:
-    """Sağlayıcı yedeğine düşüldü mü ve sağlayıcılar toplam ne kadar bekletti."""
+    """Sağlayıcı yedeğine düşüldü mü, hangi sağlayıcı neden düştü, toplam ne kadar bekletti."""
     return replace(
         state,
         provider_attempts=len(attempts),
         provider_seconds=sum(attempt.seconds for attempt in attempts),
+        provider_errors=tuple((attempt.provider, attempt.error) for attempt in attempts),
     )
 
 
