@@ -78,6 +78,36 @@ class IngestResult:
     display_pdf: Path | None
 
 
+def _top(element: Element) -> float | None:
+    boxes = element.location.boxes
+    return boxes[0].top if boxes else None
+
+
+def with_images_in_place(elements: Sequence[Element], images: Sequence[Element]) -> list[Element]:
+    """Gömülü görselin öğesi, sayfasında kendisinden aşağıda başlayan ilk öğenin önüne girer.
+    Sona eklenince sayfanın son başlığının bölümüne düşüyordu: iki ürünlü sayfada görseldeki
+    tablo öteki ürünün bölüm adını alabilirdi. Öbür öğelerin sırası (okuma sırası) değişmez."""
+    placed = list(elements)
+    for image in images:
+        page, top = image.location.page or 0, _top(image)
+        index = next(
+            (
+                position
+                for position, element in enumerate(placed)
+                if (element.location.page or 0) > page
+                or (
+                    (element.location.page or 0) == page
+                    and top is not None
+                    and (element_top := _top(element)) is not None
+                    and element_top > top
+                )
+            ),
+            len(placed),
+        )
+        placed.insert(index, image)
+    return placed
+
+
 def annotate_ocr_pages(
     elements: Sequence[Element], ocr_pages: Mapping[int, tuple[str, ...]]
 ) -> list[Element]:
@@ -151,7 +181,8 @@ def _elements_from_pdf(
         outcome.ocr_pages,
     )
     images = tools.read_embedded_images(outcome.pdf_path, pages, meta.language)
-    combined = [*parsed, *recovered, *images, *read]
+    by_page = sorted([*parsed, *recovered], key=lambda element: element.location.page or 0)
+    combined = [*with_images_in_place(by_page, images), *read]
     read_pages = {**outcome.ocr_pages, **dict.fromkeys(scanned, ())}
     return (
         sorted(combined, key=lambda element: element.location.page or 0),

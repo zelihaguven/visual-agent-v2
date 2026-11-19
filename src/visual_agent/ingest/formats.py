@@ -66,8 +66,9 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     #    (sayım; harf-rakam eşdeğerliği yok, rakamsız kod denetlenir, virgül ≠ nokta).
     # 16 (PDF, Office; görsel 14): başlıkta ve satır bağlamında belirsiz okunan değer parçanın
     #    belirsiz listesine girer (yalnız OCR'lı sayfalar).
-    InputFormat.PDF: 16,
-    InputFormat.OFFICE: 16,
+    # 17 (PDF, Office): gömülü görselin öğeleri sayfadaki yerine girer (sona değil).
+    InputFormat.PDF: 17,
+    InputFormat.OFFICE: 17,
     InputFormat.IMAGE: 14,
     InputFormat.SPREADSHEET: 4,
     InputFormat.LEGACY_SPREADSHEET: 4,
