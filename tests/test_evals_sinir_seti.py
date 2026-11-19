@@ -2,8 +2,8 @@ import json
 
 import httpx
 
-from apps.api.question_log import percentile
-from evals.sinir_seti import ask, summary
+from apps.api.question_log import QuestionRecord, percentile
+from evals.sinir_seti import ask, measured_records, summary
 
 
 def _stream(*events: dict[str, object]) -> httpx.MockTransport:
@@ -71,3 +71,33 @@ def test_summary_reports_median_and_p95_of_answered_questions() -> None:
     assert result["tür"] == {"answered": 20, "not_found": 1}
     assert result["ilk doğrulanmış cümle"] == {"ortanca": 10.5, "p95": 19.0, "n": 20}
     assert percentile([3.0, 1.0, 2.0], 0.95) == 3.0
+
+
+def _record(created_at: str, attempts: tuple[tuple[str, str], ...]) -> QuestionRecord:
+    return QuestionRecord(
+        created_at=created_at,
+        question="Bel kaç?",
+        resolved_question=None,
+        input_mode="text",
+        result_kind="answered",
+        total_seconds=2.0,
+        provider_attempts=len(attempts),
+        provider_errors=attempts,
+    )
+
+
+def test_summary_counts_questions_that_fell_back_to_another_provider() -> None:
+    since = "2026-11-19T09:00:00.000+00:00"
+    records = [
+        _record("2026-11-19T08:59:59.000+00:00", (("makora", "429: sınır"), ("deepinfra", ""))),
+        _record("2026-11-19T09:00:01.000+00:00", (("makora", ""),)),
+        _record("2026-11-19T09:00:05.000+00:00", (("makora", "429: sınır"), ("deepinfra", ""))),
+        _record("2026-11-19T09:00:09.000+00:00", (("makora", "ilk token"), ("deepinfra", ""))),
+    ]
+
+    measured = measured_records(records, since)
+    result = summary([{"kind": "answered", "first_verified": 2.0}], measured)
+
+    assert len(measured) == 3  # ısınma sorusu ölçüm başlamadan önce
+    assert result["yedeğe geçen soru"] == 2
+    assert result["sağlayıcı hataları"] == {"makora": 2}
