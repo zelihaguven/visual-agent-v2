@@ -28,6 +28,19 @@ _TESSERACT_LANGUAGES = {
 _FALLBACK_TESSERACT_LANGUAGE = "eng"
 
 
+def tesseract_text(
+    executable: str, image: Path, language: str, page_mode: str, timeout: float
+) -> str:
+    """Tesseract'ın bir görseldeki metni (eğiklik düzeltmesiz). Satır sonları `\n` olur."""
+    completed = subprocess.run(
+        [executable, str(image), "stdout", "-l", language, "--psm", page_mode],
+        check=True,
+        capture_output=True,
+        timeout=timeout,
+    )
+    return completed.stdout.decode("utf-8", errors="replace").replace("\r\n", "\n")
+
+
 def tesseract_language(language: str) -> str:
     """Belge dilinin Tesseract karşılığı.
 

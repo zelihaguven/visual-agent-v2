@@ -12,7 +12,6 @@ kaydı üzerinde sınar; biri değişirse test kırılır.
 
 import logging
 import re
-import subprocess
 import tempfile
 from collections import Counter
 from collections.abc import Callable, Mapping, Sequence
@@ -28,7 +27,7 @@ from PIL import Image, ImageOps
 
 from visual_agent.domain.document import Box, SourceLocation
 from visual_agent.ingest.elements import Element, ElementKind
-from visual_agent.ingest.external import ReaderUnavailable
+from visual_agent.ingest.external import ReaderUnavailable, tesseract_text
 from visual_agent.ingest.pdf_tables import TableCell, group_table_rows
 from visual_agent.ingest.text_layer import IMAGE_COVER_RATIO
 
@@ -37,8 +36,8 @@ logger = logging.getLogger(__name__)
 LOCAL_BACKEND = "local"
 _MODEL = "PaddlePaddle/PaddleOCR-VL-1.6"
 _PIPELINE_VERSION = "v1.6"
-_RENDER_DPI = 300
-_POINTS_PER_INCH = 72
+RENDER_DPI = 300
+POINTS_PER_INCH = 72
 _SERVER_TIMEOUT_SECONDS = 5.0
 _TESSERACT_TIMEOUT_SECONDS = 120
 _BLANK_LEVEL = 250
@@ -199,16 +198,7 @@ def tesseract_reader(executable: str, language: str = "tur+eng") -> SecondReader
         with tempfile.TemporaryDirectory() as work:
             source = Path(work) / "blok.png"
             image.save(source)
-            command = [executable, str(source), "stdout", "-l", language, "--psm", "11"]
-            return subprocess.run(
-                command,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                check=True,
-                timeout=_TESSERACT_TIMEOUT_SECONDS,
-            ).stdout
+            return tesseract_text(executable, source, language, "11", _TESSERACT_TIMEOUT_SECONDS)
 
     return read
 
@@ -465,7 +455,7 @@ def _native_scale(page: Any) -> float:
     """Tarama kendi pikselleriyle okunur: sayfadaki en büyük görüntünün çözünürlüğü. Büyütülmüş
     görüntüde Tesseract'ın ikinci okuması bozulur (120 dpi tarama 300 dpi'ye çizilince tablodaki
     bütün değerler uyuşmadı, kendi çözünürlüğünde hepsi uyuştu). Görüntü yoksa 300 dpi."""
-    best_area, scale = 0.0, _RENDER_DPI / _POINTS_PER_INCH
+    best_area, scale = 0.0, RENDER_DPI / POINTS_PER_INCH
     for image in page.get_objects(filter=[pdfium_c.FPDF_PAGEOBJ_IMAGE]):
         left, bottom, right, top = image.get_bounds()
         width, area = right - left, (right - left) * (top - bottom)

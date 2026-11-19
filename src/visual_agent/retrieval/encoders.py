@@ -12,7 +12,7 @@ _MAX_SEQUENCE_LENGTH = 512
 _BATCH_SIZE = 16
 BM25_MODEL = "Qdrant/bm25"
 # Kalıcı klasör: geçici klasör temizlenirse model internetten yeniden inmek zorunda kalırdı.
-# Docker FASTEMBED_CACHE_PATH ile kendi birimini verir.
+# FASTEMBED_CACHE_PATH verilirse o klasör kullanılır.
 BM25_CACHE_DIRECTORY = "data/models/fastembed"
 
 

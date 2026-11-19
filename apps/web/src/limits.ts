@@ -4,7 +4,7 @@
 /** En uzun soru (src/visual_agent/domain/conversation.py: MAX_QUESTION_CHARS). */
 export const MAX_QUESTION_CHARS = 2000;
 
-/** En büyük yükleme (apps/api/main.py: MAX_UPLOAD_BYTES; nginx client_max_body_size). */
+/** En büyük yükleme (apps/api/main.py: MAX_UPLOAD_BYTES). */
 export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
 
 /** Yüklenebilen uzantılar (src/visual_agent/ingest/formats.py: _TYPES). */

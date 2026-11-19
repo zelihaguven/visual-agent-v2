@@ -23,7 +23,6 @@ _DIGIT_LIKE = r"\d±①-⓿❶-➓¼-¾⅐-⅟²³¹"
 _NUMBER_TOKEN_RE = re.compile(
     rf"[^\s]*[{_DIGIT_LIKE}][^\s]*(?:\s+(?:{UNIT_PATTERN})(?!\w))?", re.IGNORECASE
 )
-_VISIBLE_WORD_RE = re.compile(r"[^\W\d_]{2,}")
 
 
 def _hidden_spans(text: str, language: str) -> list[tuple[int, int]]:

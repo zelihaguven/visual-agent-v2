@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from apps.api.services import open_services
-from apps.worker import main as worker_main
+from apps.worker import run as worker_run
 from visual_agent.ask.deps import AskRequest
 from visual_agent.domain.result import Failed
 from visual_agent.settings import Settings
@@ -36,8 +36,8 @@ def test_services_start_the_worker_and_stop_it_on_exit(
             polls.append(1)
             await asyncio.sleep(poll_seconds)
 
-    monkeypatch.setattr(worker_main, "default_ingest", fake_ingest)
-    monkeypatch.setattr(worker_main, "process_until_stopped", fake_loop)
+    monkeypatch.setattr(worker_run, "default_ingest", fake_ingest)
+    monkeypatch.setattr(worker_run, "process_until_stopped", fake_loop)
 
     async def run() -> tuple[object, list[str]]:
         async with open_services(_settings(tmp_path)) as services:
@@ -53,19 +53,3 @@ def test_services_start_the_worker_and_stop_it_on_exit(
     assert checks == ["database", "qdrant"]
     assert (tmp_path / "belgeler").is_dir()
     assert polls  # işçi döngüsü çalıştı ve çıkışta durduruldu
-
-
-def test_services_without_in_process_worker_do_not_load_ingest(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    def fail(settings: Settings) -> object:
-        raise AssertionError("işçi API sürecinde başlamamalı")
-
-    monkeypatch.setattr(worker_main, "default_ingest", fail)
-    settings = _settings(tmp_path).model_copy(update={"worker_in_process": False})
-
-    async def run() -> None:
-        async with open_services(settings):
-            await asyncio.sleep(0.05)
-
-    asyncio.run(run())

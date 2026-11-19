@@ -784,9 +784,8 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Ders:** Bir bağımlılık kaldırılmadan önce kod içi import araması yetmez. Paketi kaldırıp
   testleri uyarılarla birlikte çalıştırmak ve kilitteki dolaylı kullanımına bakmak gerekir.
 
-### Docker paketi sunucu için kalır; denenmedi
-- **Ne zaman:** 0003.
-- **Neden:** Bu bilgisayarda Docker yok. Paketi yalnız CI'daki `services` işi sınıyor.
+### Docker paketi kaldırıldı (önce: sunucu için kalır; denenmedi)
+- **Ne zaman:** 0003'te kaldı; 2026-11-19'da kaldırıldı (karar 0017).
 - **Not:** nginx'teki güvenlik başlıkları ve hız sınırı yerelde yok (açık notlar).
 
 ### Yetki altyapısı kaldırıldı; giriş ağa açılmadan önce ayrıca ele alınacak
@@ -1293,3 +1292,22 @@ Fotoğraf ve ölçü föyü taraması Mac'ten 9–13 kat yavaş; okunan değerle
 **Bilinmeyen.** Verinin bir makineden ötekine taşınması denenmedi (yollar, Qdrant yerel klasörünün sürüm uyumu). Tech pack sayfalarının neden ölçü föyünden 6–20 kat yavaş olduğu ölçülmedi; görsel boyutu en olası neden (set B'de denenecek, karar 0010/0011 altındaki liste).
 
 **Yeniden düşünülür.** Görsel küçültme süreyi pratik düzeye indirirse ya da okuyucu için ekran kartlı bir sunucu gelirse.
+
+### 0017: Docker paketi kaldırıldı; sunucu gündeme gelince geri alınır
+Tarih: 2026-11-19. Ürün sahibi kararı.
+
+**Ne kalktı.** `Dockerfile`, `compose.yaml`, `.dockerignore`, `apps/web/Dockerfile`, `apps/web/.dockerignore`, `apps/web/nginx.conf`, CI'daki `services` işi, README'deki sunucu bölümü, ayrı işçi süreci (`apps/worker/main.py`'nin `main`'i; işleme işlevleri `apps/worker/run.py`'de kaldı) ve `VA_WORKER_IN_PROCESS` ayarı.
+
+**Neden.** Paket hiçbir bilgisayarda denenmemişti ve yerel kipten ayrışmıştı (mimari denetimi, 2026-11-19): compose'da okuyucu ayarı yoktu (taranmış belge sunucuda sonsuza dek beklerdi), imajda `libreoffice-calc` yoktu, docling modellerinin klasörü boş bir birime işaret ediyordu, okuyucu modelinin (3,6 GB) yeri tanımlı değildi. İşçinin kurulması iki yerde yazılıydı.
+
+**Geri alma.** Sunucu gündeme gelince bu commit'in sildiği dosyalar git geçmişinden geri alınır ve yukarıdaki eksikler giderilir. Qdrant sunucusu ayarı (`VA_QDRANT_URL`) duruyor; yerelde gömülü klasör kullanılır.
+
+### 0018: Eski OCR yolu (ocrmypdf, RapidOCR) kalıyor
+Tarih: 2026-11-19. Ürün sahibi kararı.
+
+**Ne.** Görünür ama zayıf metin katmanlı sayfalar ve büyük görselli dijital sayfalar (`WEAK`, `SCANNED`) ocrmypdf ile, dijital sayfalardaki gömülü görseller RapidOCR ve Tesseract ile okunmaya devam eder; bu yol silinmez.
+
+**Neden.** Bu (normal) bilgisayarda sayfa okuyucusu sayfa başına 50 sn ile 16 dakika arasında sürüyor (karar 0015); bu sayfaları okuyucuya göndermek pratik değil. Yüklü belgelerde bu türden sayfa şu an yok; eski yoldan kalan parça 0.
+
+**Bilinen zayıflık.** Bu yolun ikinci okuma karşılaştırması okuyucununkinden gevşek (harf-rakam eşdeğerliği, rakamsız kod denetlenmiyor; mimari denetimi B2) ve gömülü görsel tablolarında başlık kayması koruması yok (B3). İkisi yeniden işleme turunun planında.
+

@@ -1,4 +1,4 @@
-"""Yerel başlatma (Docker'sız, tek süreç): python -m apps.local, ya da baslat.bat.
+"""Yerel başlatma (tek süreç): python -m apps.local, ya da baslat.bat.
 
 Arayüz eskiyse derlenir, eksik araçlar bildirilir, API ve içindeki işçi yalnız bu
 bilgisayardan erişilebilen adreste açılır.

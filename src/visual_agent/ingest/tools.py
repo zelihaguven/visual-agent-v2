@@ -18,7 +18,12 @@ from PIL import Image, ImageOps
 from visual_agent.domain.document import Box, SourceLocation
 from visual_agent.ingest.docling_parser import parse_with_docling
 from visual_agent.ingest.elements import Element, ElementKind
-from visual_agent.ingest.external import ExternalTools, locate_tools, tesseract_language
+from visual_agent.ingest.external import (
+    ExternalTools,
+    locate_tools,
+    tesseract_language,
+    tesseract_text,
+)
 from visual_agent.ingest.images import (
     OcrSegment,
     group_lines,
@@ -27,6 +32,8 @@ from visual_agent.ingest.images import (
     with_uncertain_tokens,
 )
 from visual_agent.ingest.page_reader import (
+    POINTS_PER_INCH,
+    RENDER_DPI,
     ReadPage,
     is_ocr_layer,
     read_scanned_pages,
@@ -53,8 +60,6 @@ _OCR_FLAGS = {
     PageKind.SCANNED: "--redo-ocr",
     PageKind.WEAK: "--force-ocr",
 }
-_RENDER_DPI = 300
-_POINTS_PER_INCH = 72
 _MIN_IMAGE_AREA_RATIO = 0.02
 _MIN_IMAGE_SIDE_POINTS = 50.0
 _IMAGE_PAGE_DPI = 150
@@ -171,7 +176,7 @@ def _rapid_segments(engine: Any, image: Image.Image) -> list[tuple[str, tuple[fl
 
 
 def _render_page(document: Any, page_number: int) -> Image.Image:
-    bitmap = document[page_number - 1].render(scale=_RENDER_DPI / _POINTS_PER_INCH)
+    bitmap = document[page_number - 1].render(scale=RENDER_DPI / POINTS_PER_INCH)
     image: Image.Image = bitmap.to_pil().convert("RGB")
     return image
 
@@ -241,10 +246,6 @@ def _skip_reason(box: Box) -> str | None:
     return image_skip_reason(box, _MIN_IMAGE_AREA_RATIO, _MIN_IMAGE_SIDE_POINTS)
 
 
-def _is_meaningful_image(box: Box) -> bool:
-    return _skip_reason(box) is None
-
-
 def skipped_image_warnings(pages: list[PageInfo]) -> list[str]:
     """Boyut eşiğine takıldığı için okunmayan her görsel için bir uyarı."""
     return [
@@ -260,20 +261,14 @@ def _tesseract_text(image: Image.Image, language: str, work: str, executable: st
     """Tablolarda blok modu son sütunları kaçırır; seyrek mod da okunup birleştirilir."""
     source = Path(work) / "crop.png"
     image.save(source)
-    readings = [
-        subprocess.run(
-            [executable, str(source), "stdout", "-l", language, "--psm", mode],
-            check=True,
-            capture_output=True,
-            timeout=_OCR_TIMEOUT_SECONDS,
-        ).stdout.decode("utf-8", errors="replace")
+    return " ".join(
+        tesseract_text(executable, source, language, mode, _OCR_TIMEOUT_SECONDS)
         for mode in _TESSERACT_PAGE_MODES
-    ]
-    return " ".join(readings)
+    )
 
 
 def _crop(page_image: Image.Image, box: Box) -> Image.Image:
-    scale = _RENDER_DPI / _POINTS_PER_INCH
+    scale = RENDER_DPI / POINTS_PER_INCH
     return page_image.crop(
         (
             int(box.left * scale),
@@ -287,7 +282,7 @@ def _crop(page_image: Image.Image, box: Box) -> Image.Image:
 def _segments_in_page_points(
     raw: Iterable[tuple[str, tuple[float, ...]]], box: Box
 ) -> list[OcrSegment]:
-    scale = _POINTS_PER_INCH / _RENDER_DPI
+    scale = POINTS_PER_INCH / RENDER_DPI
     return [
         OcrSegment(
             text=text,
@@ -324,7 +319,7 @@ def read_embedded_images(
         for info in pages
         if info.kind is PageKind.TEXT
         for box in info.image_boxes
-        if _is_meaningful_image(box)
+        if _skip_reason(box) is None
     ]
     if not targets:
         return []
