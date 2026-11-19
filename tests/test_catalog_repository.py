@@ -1,6 +1,6 @@
 import asyncio
 import sqlite3
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import pytest
 
@@ -10,6 +10,7 @@ from visual_agent.catalog.repository import (
     StoredDocument,
     connect,
     open_repository,
+    stored_relative,
 )
 from visual_agent.domain.document import Chunk, ChunkKind, FrozenModel, SourceLocation
 
@@ -431,3 +432,87 @@ def test_failure_is_written_for_a_document_being_processed(tmp_path: Path) -> No
         return await repository.mark_failed("a", "bozuk")
 
     assert asyncio.run(run()) is True
+
+
+WINDOWS_ROW = "data\\documents\\abc\\original.pdf"
+WINDOWS_DISPLAY = "data\\documents\\abc\\display.pdf"
+
+
+@pytest.mark.parametrize(
+    ("path", "expected"),
+    [
+        (WINDOWS_ROW, "abc/original.pdf"),
+        ("C:\\Users\\x\\va\\data\\documents\\abc\\original.pdf", "abc/original.pdf"),
+        ("/Users/x/va/data/documents/abc/display.pdf", "abc/display.pdf"),
+        ("data/documents/abc/original.pdf", "abc/original.pdf"),
+        ("abc/original.pdf", "abc/original.pdf"),
+        ("/baska/yer/original.pdf", "/baska/yer/original.pdf"),
+    ],
+)
+def test_stored_path_is_relative_to_the_document_folder(path: str, expected: str) -> None:
+    assert stored_relative(path, "abc") == expected
+
+
+def _windows_database(path: Path) -> None:
+    """Bu değişiklikten önce Windows'ta yazılmış bir kayıt (ters eğik çizgili göreli yol)."""
+    asyncio.run(open_repository(path).migrate())
+    with connect(path) as connection:
+        connection.execute(
+            "INSERT INTO documents (doc_id, title, filename, status, stored_path, display_pdf)"
+            " VALUES ('abc', 'föy', 'föy.pdf', 'ready', ?, ?)",
+            (WINDOWS_ROW, WINDOWS_DISPLAY),
+        )
+
+
+def test_record_written_on_windows_resolves_on_a_mac_after_migration(tmp_path: Path) -> None:
+    """Windows'ta işlenmiş veri Mac'e taşınınca ters eğik çizgi ayırıcı sayılmıyordu: yol tek
+    dosya adı oluyor, belge dosyası açılmıyordu. Kayıt açılışta bir kez dönüştürülür."""
+    database = tmp_path / "data" / "visual_agent.db"
+    _windows_database(database)
+    storage = tmp_path / "data" / "documents"
+    repository = open_repository(database, storage)
+
+    asyncio.run(repository.migrate())
+    asyncio.run(repository.migrate())  # ikinci açılış hiçbir şeyi değiştirmez
+
+    with connect(database) as connection:
+        stored, display = connection.execute(
+            "SELECT stored_path, display_pdf FROM documents WHERE doc_id = 'abc'"
+        ).fetchone()
+    assert (stored, display) == ("abc/original.pdf", "abc/display.pdf")
+    mac = PurePosixPath("/Users/x/visual-agent-v2/data/documents") / stored
+    windows = PureWindowsPath("C:\\Users\\x\\visual-agent-v2\\data\\documents") / stored
+    assert mac.parts[-2:] == ("abc", "original.pdf")
+    assert windows.parts[-2:] == ("abc", "original.pdf")
+    document = asyncio.run(repository.get_document("abc"))
+    assert document is not None
+    assert Path(document.stored_path) == storage / "abc" / "original.pdf"
+    assert document.display_pdf is not None
+    assert Path(document.display_pdf) == storage / "abc" / "display.pdf"
+
+
+def test_new_document_path_is_written_relative_to_the_document_folder(tmp_path: Path) -> None:
+    database = tmp_path / "data" / "visual_agent.db"
+    storage = tmp_path / "data" / "documents"
+    repository = open_repository(database, storage)
+    asyncio.run(repository.migrate())
+    document = _document("abc").model_copy(
+        update={"stored_path": str(storage / "abc" / "original.pdf")}
+    )
+
+    async def run() -> StoredDocument | None:
+        await repository.create_document(document)
+        assert await repository.claim_next() is not None
+        display = str(storage / "abc" / "display.pdf")
+        await repository.mark_ready("abc", "tr", [_chunk("abc", 0)], Report(pages=1), display)
+        return await repository.get_document("abc")
+
+    stored = asyncio.run(run())
+
+    with connect(database) as connection:
+        row = connection.execute(
+            "SELECT stored_path, display_pdf FROM documents WHERE doc_id = 'abc'"
+        ).fetchone()
+    assert tuple(row) == ("abc/original.pdf", "abc/display.pdf")
+    assert stored is not None
+    assert Path(stored.stored_path) == storage / "abc" / "original.pdf"

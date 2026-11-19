@@ -72,20 +72,26 @@ _ADDED_COLUMNS = {"topic": "TEXT"}
 _VISIBLE = "status != 'deleting'"
 
 
-def _to_document(row: sqlite3.Row) -> StoredDocument:
-    report = row["report"]
-    return StoredDocument(
-        doc_id=row["doc_id"],
-        title=row["title"],
-        filename=row["filename"],
-        status=DocumentStatus(row["status"]),
-        stored_path=row["stored_path"],
-        language=row["language"],
-        display_pdf=row["display_pdf"],
-        report=json.loads(report) if report else None,
-        error=row["error"],
-        topic=row["topic"],
-    )
+def stored_relative(path: str, doc_id: str) -> str:
+    """Belge dosyasının kayıttaki yolu: belge klasörüne göre, düz eğik çizgiyle
+    ("<doc_id>/original.pdf"). Windows'ta yazılmış "data\\documents\\<doc_id>\\..." ve mutlak
+    yollar da böyle olur: yol belge kimliğinden itibaren alınır. Veri bilgisayarlar arasında
+    taşınabilir (ters eğik çizgi Mac'te ayırıcı değildir)."""
+    parts = [part for part in path.replace("\\", "/").split("/") if part]
+    return "/".join(parts[parts.index(doc_id) :]) if doc_id in parts else path
+
+
+def _relocate_paths(connection: sqlite3.Connection) -> None:
+    """Eski kayıtların yolları bir kez dönüştürülür; dönüşmüş kayıt değişmez."""
+    rows = connection.execute("SELECT doc_id, stored_path, display_pdf FROM documents").fetchall()
+    for row in rows:
+        stored = stored_relative(row["stored_path"], row["doc_id"])
+        display = row["display_pdf"] and stored_relative(row["display_pdf"], row["doc_id"])
+        if (stored, display) != (row["stored_path"], row["display_pdf"]):
+            connection.execute(
+                "UPDATE documents SET stored_path = ?, display_pdf = ? WHERE doc_id = ?",
+                (stored, display, row["doc_id"]),
+            )
 
 
 def _add_missing_columns(connection: sqlite3.Connection) -> None:
@@ -146,12 +152,43 @@ def _transaction[T](connection: sqlite3.Connection, work: Callable[[sqlite3.Conn
 
 
 class DocumentRepository:
-    def __init__(self, database: SqliteDatabase) -> None:
+    """storage: belge klasörü. Verilirse dosya yolları kayıtta ona göre (düz eğik çizgiyle)
+    tutulur ve okunurken onunla birleştirilir; verilmezse yollar olduğu gibi kalır (testler)."""
+
+    def __init__(self, database: SqliteDatabase, storage: Path | None = None) -> None:
         self._db = database
+        self._storage = storage
 
     async def migrate(self) -> None:
         await self._db.migrate(_SCHEMA)
         await self._db.run(_add_missing_columns)
+        if self._storage is not None:
+            await self._db.run(lambda connection: _transaction(connection, _relocate_paths))
+
+    def _stored(self, path: str | None, doc_id: str) -> str | None:
+        if path is None or self._storage is None:
+            return path
+        return stored_relative(path, doc_id)
+
+    def _resolved(self, path: str | None) -> str | None:
+        if path is None or self._storage is None:
+            return path
+        return str(self._storage / path)
+
+    def _document(self, row: sqlite3.Row) -> StoredDocument:
+        report = row["report"]
+        return StoredDocument(
+            doc_id=row["doc_id"],
+            title=row["title"],
+            filename=row["filename"],
+            status=DocumentStatus(row["status"]),
+            stored_path=self._resolved(row["stored_path"]) or "",
+            language=row["language"],
+            display_pdf=self._resolved(row["display_pdf"]),
+            report=json.loads(report) if report else None,
+            error=row["error"],
+            topic=row["topic"],
+        )
 
     async def topics(self) -> list[str]:
         """Verilmiş konular, çok kullanılandan aza."""
@@ -174,7 +211,7 @@ class DocumentRepository:
                 tuple(skip),
             ).fetchone()
         )
-        return _to_document(row) if row else None
+        return self._document(row) if row else None
 
     async def headings(self, doc_id: str, max_chars: int) -> str:
         """Belgenin bölüm başlıkları, belgedeki sırasıyla (konu adı için). Buluta yalnız bunlar
@@ -226,7 +263,7 @@ class DocumentRepository:
                     document.title,
                     document.filename,
                     document.status.value,
-                    document.stored_path,
+                    self._stored(document.stored_path, document.doc_id),
                     document.language,
                 ),
             )
@@ -239,7 +276,7 @@ class DocumentRepository:
                 " ORDER BY created_at DESC, rowid DESC"
             ).fetchall()
         )
-        return [_to_document(row) for row in rows]
+        return [self._document(row) for row in rows]
 
     async def get_document(self, doc_id: str) -> StoredDocument | None:
         row = await self._db.run(
@@ -248,7 +285,7 @@ class DocumentRepository:
                 (doc_id,),
             ).fetchone()
         )
-        return _to_document(row) if row else None
+        return self._document(row) if row else None
 
     async def get_chunk(self, chunk_id: str) -> Chunk | None:
         row = await self._db.run(
@@ -300,7 +337,7 @@ class DocumentRepository:
                 f" RETURNING {_COLUMNS}"
             ).fetchone()
         )
-        return _to_document(row) if row else None
+        return self._document(row) if row else None
 
     async def mark_ready(
         self,
@@ -322,7 +359,7 @@ class DocumentRepository:
                 "UPDATE documents SET status = 'ready', language = ?, report = ?,"  # noqa: S608
                 f" display_pdf = ?, error = NULL, updated_at = {_NOW}"
                 " WHERE doc_id = ? AND status = 'processing'",
-                (language, report_json, display_pdf, doc_id),
+                (language, report_json, self._stored(display_pdf, doc_id), doc_id),
             ).rowcount
             if not updated:
                 return False
@@ -360,7 +397,7 @@ class DocumentRepository:
                 (doc_id,),
             ).fetchone()
         )
-        return _to_document(row) if row else None
+        return self._document(row) if row else None
 
     async def mark_deleting(self, doc_id: str) -> StoredDocument | None:
         """Silme ilk adımda kayda yazılır: belge listeden, katalogdan ve aramadan hemen çıkar."""
@@ -371,7 +408,7 @@ class DocumentRepository:
                 (doc_id,),
             ).fetchone()
         )
-        return _to_document(row) if row else None
+        return self._document(row) if row else None
 
     async def deleting_documents(self) -> list[StoredDocument]:
         """Temizliği yarım kalan silmeler; açılışta yeniden denenir."""
@@ -380,7 +417,7 @@ class DocumentRepository:
                 f"SELECT {_COLUMNS} FROM documents WHERE status = 'deleting'"  # noqa: S608
             ).fetchall()
         )
-        return [_to_document(row) for row in rows]
+        return [self._document(row) for row in rows]
 
     async def purge(self, doc_id: str) -> None:
         """Vektörler ve dosyalar silindikten sonra kayıt parçalarıyla birlikte kalkar."""
@@ -438,5 +475,5 @@ def _transaction_read[T](
         connection.execute("COMMIT")
 
 
-def open_repository(path: Path) -> DocumentRepository:
-    return DocumentRepository(SqliteDatabase(path))
+def open_repository(path: Path, storage: Path | None = None) -> DocumentRepository:
+    return DocumentRepository(SqliteDatabase(path), storage)
