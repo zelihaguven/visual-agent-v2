@@ -69,7 +69,6 @@ _COLUMNS = (
 )
 _ADDED_COLUMNS = {"topic": "TEXT"}
 """Sonradan eklenen sütunlar: var olan veritabanına açılışta eklenir."""
-_EXCERPT_CHUNKS = 8
 _VISIBLE = "status != 'deleting'"
 
 
@@ -177,16 +176,18 @@ class DocumentRepository:
         )
         return _to_document(row) if row else None
 
-    async def excerpt(self, doc_id: str, max_chars: int) -> str:
-        """Belgenin ilk parçalarından kısa alıntı (konu adı için); buluta yalnız bu gider."""
+    async def headings(self, doc_id: str, max_chars: int) -> str:
+        """Belgenin bölüm başlıkları, belgedeki sırasıyla (konu adı için). Buluta yalnız bunlar
+        gider, parçaların metni gitmez (karar kaydı: konu adlandırıcı)."""
         rows = await self._db.run(
             lambda connection: connection.execute(
-                "SELECT payload FROM chunks WHERE doc_id = ? ORDER BY position LIMIT ?",
-                (doc_id, _EXCERPT_CHUNKS),
+                "SELECT payload FROM chunks WHERE doc_id = ? ORDER BY position", (doc_id,)
             ).fetchall()
         )
-        text = " ".join(_to_chunk(row["payload"]).text for row in rows)
-        return " ".join(text.split())[:max_chars]
+        sections = dict.fromkeys(
+            section for row in rows if (section := _to_chunk(row["payload"]).section)
+        )
+        return "\n".join(sections)[:max_chars]
 
     async def topic_counts(self) -> list[tuple[str, int]]:
         rows = await self._db.run(

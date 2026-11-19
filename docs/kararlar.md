@@ -1295,3 +1295,14 @@ Fotoğraf ve ölçü föyü taraması Mac'ten 9–13 kat yavaş; okunan değerle
 **Bilinmeyen.** Verinin bir makineden ötekine taşınması denenmedi (yollar, Qdrant yerel klasörünün sürüm uyumu). Tech pack sayfalarının neden ölçü föyünden 6–20 kat yavaş olduğu ölçülmedi; görsel boyutu en olası neden (set B'de denenecek, karar 0010/0011 altındaki liste).
 
 **Yeniden düşünülür.** Görsel küçültme süreyi pratik düzeye indirirse ya da okuyucu için ekran kartlı bir sunucu gelirse.
+
+### 0016: Konu adlandırıcıya yalnız belge başlığı ve bölüm başlıkları gider (kural 4'e istisna)
+Tarih: 2026-11-19. Ürün sahibi kararı.
+
+**Önce.** Belge hazır olunca yardımcı model (ZDR, `apps/worker/topics.py`) belgeye konu adı veriyordu; modele başlık ve ilk 8 parçanın en fazla 1500 karakteri gidiyordu. Kısa belgede bu belgenin tamamıydı ve çağrı soru anında değil yüklemede yapılıyordu; karar kaydında yoktu (mimari denetimi, 2026-11-19).
+
+**Karar.** Modele yalnız belgenin başlığı ve bölüm başlıkları (parçaların bölüm adları, belgedeki sırasıyla, tekrarsız, en fazla 1500 karakter) gider; parça metni ve değerler gitmez. Bu, kural 4'e ("buluta yalnızca parçalar gider") bilinçli bir istisnadır: çağrı yüklemede yapılır ve parça değil başlık gönderir. Sağlayıcı yine ZDR süzgecinden geçer.
+
+**Bedeli.** Başlığı olmayan belgeler (ör. tek paragraflık Word dosyası) yalnız belge adıyla adlandırılır; konu adı zayıflayabilir. Konu adı yalnız arayüzdeki gruplamayı etkiler, cevabı etkilemez. Var olan konular değişmez; yeni yüklenen ya da konusu olmayan belgeler yeni kuralla adlandırılır.
+
+**Yeniden düşünülür.** Gruplama kullanılamayacak kadar bozulursa.
