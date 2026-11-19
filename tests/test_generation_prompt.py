@@ -52,7 +52,15 @@ def test_prompt_has_no_size_specific_or_dead_figure_rule(removed: str) -> None:
 
 
 def test_prompt_allows_a_unit_only_when_the_source_states_it() -> None:
-    assert "Birimi yalnız kaynakta yazılıysa yaz" in load_answer_prompt()
+    prompt = load_answer_prompt()
+
+    assert "Değere birim EKLEME" in prompt
+    assert "yalnız o değerin yanında ya da kendi sütun başlığında yazıyorsa" in prompt
+    # Modelin birim uydurduğu iki yer adıyla yazılı: sorunun kendisi ve başka sütunun başlığı.
+    assert "Soru birimle sorulsa da" in prompt and "BAŞKA bir sütunun başlığında" in prompt
+    # İki yön de örnekli: kendi başlığındaki birim yazılır, başka sütununki yazılmaz.
+    assert 'Kaynak "Tolerans (cm): 2,4" ise cevap "2,4 cm"' in prompt
+    assert 'soru L bedeni soruyorsa cevap "61,3"' in prompt
 
 
 def test_prompt_tells_the_model_not_to_repeat_a_wrong_user_value() -> None:
