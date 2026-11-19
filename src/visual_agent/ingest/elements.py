@@ -11,6 +11,17 @@ SECTION_SEPARATOR = " · "
 """Bölüm yolundaki başlıkların ayırıcısı (Excel sayfası · başlık satırı, başlık · alt başlık)."""
 NUMERIC_TEXT_RE = re.compile(r"^[\d.,\s%±/-]+$")
 """Yalnız sayıdan oluşan hücre: tablo başlığı sayılmaz."""
+_DIGIT_RE = re.compile(r"\d")
+_LIST_NUMBER_RE = re.compile(r"^\s*(?:\d+|[a-zA-Z])[.)]\s+")
+
+
+def carries_value(heading: str) -> bool:
+    """Liste numarası dışında sayı taşıyan başlık: "1. Hood crossover should be 7/8"" evet,
+    "3. Kurulum" hayır. Böyle başlık metin olarak da kalır (docling ve okuyucu yolu): yoksa
+    yalnız bölüm adı olur, aranamaz ve alıntılanamaz."""
+    return bool(_DIGIT_RE.search(_LIST_NUMBER_RE.sub("", heading, count=1)))
+
+
 EMPTY_CELL = "(boş)"
 """Boş hücre işareti. Tire ya da çizgi gerçek belgelerde kendisi bir değer olabilir ("—", "-");
 açık bir sözcük hücrenin boş olduğunu söyler (ürün sahibi kararı, 2026-11-17)."""

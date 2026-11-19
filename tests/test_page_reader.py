@@ -492,3 +492,36 @@ def test_empty_cells_keep_their_place_only_inside_rows_read_as_is() -> None:
     ]
     # Başlıklı tabloda boş hücre zaten yazılmaz; biçim değişmez.
     assert _table_texts(measure) == ["Dim: BL005 | M: 25", "Dim: SL005 | S: 26 | M: 27"]
+
+
+def _heading_page(title: str) -> dict[str, Any]:
+    return {
+        "width": 600,
+        "height": 800,
+        "parsing_res_list": [
+            {
+                "block_id": 0,
+                "block_label": "paragraph_title",
+                "block_content": title,
+                "block_bbox": [0, 0, 300, 20],
+            }
+        ],
+    }
+
+
+def test_reader_heading_that_carries_a_value_stays_searchable_as_text() -> None:
+    """B7: docling yolundaki kural okuyucu yolunda da: değer taşıyan başlık yalnız bölüm adı
+    olursa aranamaz ve alıntılanamazdı."""
+    elements = page_reader.page_elements(
+        _heading_page('1. Hood crossover should be 7/8"'), 1, (600.0, 800.0), {}
+    )
+
+    assert [element.kind for element in elements] == [ElementKind.HEADING, ElementKind.TEXT]
+    assert elements[1].text == elements[0].text
+    assert elements[1].from_ocr
+
+
+def test_reader_heading_with_only_a_list_number_stays_a_heading() -> None:
+    elements = page_reader.page_elements(_heading_page("3. Kurulum"), 1, (600.0, 800.0), {})
+
+    assert [element.kind for element in elements] == [ElementKind.HEADING]

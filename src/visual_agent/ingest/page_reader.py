@@ -16,7 +16,7 @@ import re
 import tempfile
 from collections import Counter
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, cast
@@ -31,6 +31,7 @@ from visual_agent.domain.document import Box, SourceLocation
 from visual_agent.ingest.elements import (
     Element,
     ElementKind,
+    carries_value,
     header_fits,
     with_empty_cells_marked,
 )
@@ -306,16 +307,18 @@ def page_elements(
             continue
         text = canonical(content)
         heading = block.get("block_label") in _HEADING_LABELS
-        elements.append(
-            Element(
-                ElementKind.HEADING if heading else ElementKind.TEXT,
-                text,
-                location,
-                from_ocr=True,
-                ocr_uncertain=_uncertain(text, tokens),
-                ocr_checked=True,
-            )
+        element = Element(
+            ElementKind.HEADING if heading else ElementKind.TEXT,
+            text,
+            location,
+            from_ocr=True,
+            ocr_uncertain=_uncertain(text, tokens),
+            ocr_checked=True,
         )
+        elements.append(element)
+        # Değer taşıyan başlık metin olarak da kalır (docling yolundaki kural).
+        if heading and carries_value(text):
+            elements.append(replace(element, kind=ElementKind.TEXT))
     return elements
 
 

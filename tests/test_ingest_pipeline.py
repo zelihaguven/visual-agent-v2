@@ -6,8 +6,8 @@ import pytest
 from visual_agent.domain.answer import ModelItem, PromptSource, Quote
 from visual_agent.domain.document import Box, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.chunking import build_chunks
-from visual_agent.ingest.docling_parser import carries_value, page_header_identifies
-from visual_agent.ingest.elements import Element, ElementKind
+from visual_agent.ingest.docling_parser import page_header_identifies
+from visual_agent.ingest.elements import Element, ElementKind, carries_value
 from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.images import (
     OcrSegment,

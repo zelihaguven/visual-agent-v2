@@ -68,9 +68,10 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     #    belirsiz listesine girer (yalnız OCR'lı sayfalar).
     # 17 (PDF, Office): gömülü görselin öğeleri sayfadaki yerine girer (sona değil).
     # 18 (PDF, Office): docling'in sayfa üst bilgisi de gezilir; kod taşıyan üst bilgi bölüm olur.
-    InputFormat.PDF: 18,
-    InputFormat.OFFICE: 18,
-    InputFormat.IMAGE: 14,
+    # 19 (PDF, Office; görsel 15): okuyucu yolunda değer taşıyan başlık metin olarak da kalır.
+    InputFormat.PDF: 19,
+    InputFormat.OFFICE: 19,
+    InputFormat.IMAGE: 15,
     InputFormat.SPREADSHEET: 4,
     InputFormat.LEGACY_SPREADSHEET: 4,
     InputFormat.SQL: 2,
@@ -111,6 +112,7 @@ _CHANGED_PAGE_KINDS = {
     11: ("none", "scanned"),
     12: ("none", "scanned"),
     15: ("none", "weak", "scanned"),
+    18: ("none", "scanned"),
 }
 """Bu sürümden bir sonrakine geçiş yalnız bu tür sayfası olan belgelerin çıktısını değiştirdi:
 7→8 taranmış sayfalar sayfa okuyucusuna gitti ("scanned": OCR katmanlı tarama öyle kaydedilmiş
