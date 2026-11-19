@@ -237,6 +237,29 @@ def test_malformed_reader_setting_is_refused(value: str) -> None:
         parse_reader_setting(value)
 
 
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://127.0.0.1:8111/",
+        "http://192.168.1.20:8111/",
+        "http://10.0.0.5:8111/",
+        "http://mac-studio.local:8111/",
+        "http://[::1]:8111/",
+    ],
+)
+def test_reader_server_on_this_machine_or_local_network_is_accepted(url: str) -> None:
+    assert parse_reader_setting(f"mlx-vlm-server@{url}") == ReaderConfig("mlx-vlm-server", url)
+
+
+@pytest.mark.parametrize(
+    "url", ["https://ocr.example.com/", "http://8.8.8.8:8111/", "http://reader:8111/"]
+)
+def test_remote_reader_server_is_refused(url: str) -> None:
+    """Sayfa görüntüsü bütün sayfadır; ZDR denetimi olmayan uzak sunucuya gitmez (kural 4)."""
+    with pytest.raises(ValueError, match="yerel ağ"):
+        parse_reader_setting(f"mlx-vlm-server@{url}")
+
+
 def _scan(path: Path, blank: bool = False, dpi: float = 72.0) -> Path:
     image = Image.new("RGB", (600, 800), "white")
     if not blank:

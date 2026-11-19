@@ -104,6 +104,39 @@ def test_uncertain_value_itself_is_still_hidden() -> None:
     assert "OCR" in check.problems[0]
 
 
+LABEL_ROW = "Beden: M | Etiket kodu: ETK-3392"
+UNCERTAIN_HEADING_SOURCES = {
+    1: PromptSource(
+        number=1,
+        text=LABEL_ROW,
+        context="GML-6473 ölçü föyü · Etiket kodları",
+        ocr_uncertain=("GML-6473",),
+        from_ocr=True,
+        is_table_row=True,
+    )
+}
+"""Okuyucu başlıktaki kodu belirsiz okudu ("iGML-6473"); kod satırın bağlamında duruyor."""
+
+
+def test_uncertain_code_from_the_row_context_is_hidden_in_the_sentence() -> None:
+    check = verify_item(
+        item("GML-6473 M beden etiket kodu ETK-3392.", quote=LABEL_ROW),
+        UNCERTAIN_HEADING_SOURCES,
+        "tr",
+    )
+
+    assert not check.ok
+    assert any("OCR" in problem for problem in check.problems)
+
+
+def test_sentence_without_the_uncertain_code_still_passes() -> None:
+    check = verify_item(
+        item("M beden etiket kodu ETK-3392.", quote=LABEL_ROW), UNCERTAIN_HEADING_SOURCES, "tr"
+    )
+
+    assert check.ok, check.problems
+
+
 @pytest.mark.parametrize(
     ("source", "text"),
     [

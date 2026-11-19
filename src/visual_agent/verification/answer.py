@@ -89,12 +89,19 @@ def code_source_number(item: ModelItem, sources: Sources) -> int | None:
 
 
 def _ocr_problems(item: ModelItem, sources: Sources) -> list[str]:
-    uncertain = []
-    for quote in item.quotes:
-        source = sources.get(quote.source_no)
-        tokens = source.ocr_uncertain if source is not None else ()
-        normalized = normalize(quote.text)
-        uncertain += [token for token in tokens if contains_token(normalized, normalize(token))]
+    """Belirsiz okunan değer ne alıntıda ne cümlede geçebilir: satırın bağlamından ya da
+    başlıktan gelen kod alıntılanmadan cümleye yazılabiliyor (satır bağlamı ve bölüm adı
+    cümlenin teknik adlarına izin verir)."""
+    numbers = [quote.source_no for quote in item.quotes]
+    if item.code_source_no is not None:
+        numbers.append(item.code_source_no)
+    tokens = {
+        token for number in numbers if number in sources for token in sources[number].ocr_uncertain
+    }
+    texts = [normalize(text) for text in (item.text, *(quote.text for quote in item.quotes))]
+    uncertain = sorted(
+        token for token in tokens if any(contains_token(text, normalize(token)) for text in texts)
+    )
     return [f"OCR değeri belirsiz: {uncertain}"] if uncertain else []
 
 

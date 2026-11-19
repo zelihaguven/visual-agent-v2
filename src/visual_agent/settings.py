@@ -61,3 +61,12 @@ class Settings(BaseSettings):
     def empty_path_means_server(cls, value: object) -> object:
         """Boş yol verilmemiş sayılır: Qdrant sunucusu, arayüzsüz API, araçlar PATH'ten."""
         return None if isinstance(value, str) and not value.strip() else value
+
+    @field_validator("page_reader")
+    @classmethod
+    def reader_setting_is_valid(cls, value: str | None) -> str | None:
+        """Geçersiz okuyucu ayarı açılışta durdurur; işçinin içinde sessizce düşmez."""
+        from visual_agent.ingest.page_reader import parse_reader_setting
+
+        parse_reader_setting(value)
+        return value
