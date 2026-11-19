@@ -27,13 +27,13 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 - Gerçek okuyucuyla deneme (2026-11-17, Mac, MLX; set A dışı üç örnek, okuma katmanı, cevap modeli çalıştırılmadı): `dikim-tarama.pdf` 3 sayfa 16,4 sn, `dikim-foto.jpg` 4,3 sn, `strickland-tarama.pdf` 2 sayfa 14,2 sn (model yüklüyken). İki ölçü tablosunun ve etiket tablosunun bütün değerleri doğru okundu ve ikinci okumayla uyuştu (belirsiz 0). Strickland'de düz yazıdaki 17 kesir ve sayı belirsiz kaldı (gizlenir); doğru olup olmadıkları tek tek sayılmadı.
 - Sayı içermeyen yanlış okuma gizlenmiyor: fotoğrafın başlığı "MNT-8598 Ổlộcũ fōyũ", taramanın 3. sayfa başlığı "olçü föyü" okundu. Karşılaştırma yalnız sayı ve kodlara bakıyor.
 - Model boyutu: PaddleOCR-VL-1.6 3,6 GB (Hugging Face önbelleği), düzen modeli 126 MB.
-- `local` kipi Windows'ta ve işlemcide denenmedi; hız ürün sahibinin makinesinde ölçülecek.
+- `local` kipi Windows'ta işlemcide ölçüldü (2026-11-19, karar 0015): fotoğraf 57,6 sn/sayfa (model yükleme dahil 165,6 sn), ölçü föyü taraması ≈ 50 sn/sayfa, 6013448 tech pack sayfa 1–3: 16 dk 12 sn, 5 dk 47 sn, 5 dk 7 sn. Mac'ten 9–13 kat yavaş. Taranmış tech pack'ler hızlı makinede işlenip veri taşınacak; görsel küçültmenin etkisi set B'de denenecek.
 - Tarama okuyucuya kendi çözünürlüğünde verilir. İlk denemede 300 dpi'ye büyütülen 120 dpi taramada Tesseract tablodaki 13 değerin hiçbirini doğrulayamadı (hepsi gizlendi); kendi çözünürlüğünde hepsi uyuştu. Çok düşük ya da çok yüksek çözünürlüklü gerçek taramalarda davranış ölçülmedi.
 - OCR katmanlı taramalar okuyucuya gidiyor (0011). Görünür ama zayıf metin katmanı (`WEAK`) ve büyük görselli dijital sayfa (`SCANNED`) eski yolda. Kuralın eşiği (%90 gizli metin nesnesi) gerçek tarayıcı çıktılarında denenmedi: yalnız eski hattın ürettiği 252 ocrmypdf sayfasında (hepsi yakalandı) ve üretilmiş test sayfalarında denendi. Yüklü belgelerde bu türden sayfa yok.
 - Fotoğraf doğrudan okutulunca (2026-11-17, `dikim-foto.jpg`, iki koşu) sayılar aynı ve doğru kaldı, ama etiketler bozuldu: "Ổḷc̃u noktasi", "Toierans". PDF'e çevrilmiş kopyadan okunurken "Ölçü noktası", "Tolerans" okunmuştu. Tek örnek; neden ve yaygınlık incelenmedi. Sayı içermeyen yanlış gizlenmediği için arama ve cevap metnini etkiler. Düzeltme yapılmadı (ürün sahibi kararı, 2026-11-17); gerçek fotoğraflarla bakılacak. Türkçe harfli etiketlerde (ö, ç, ü, ı) görülüyor.
 - OCR katmanlı taramada (`dikim-tarama`'nın ocrmypdf çıktısı) değerlerin hepsi doğru okundu; ikisi (74,5 ve 36,0) ikinci okumayla uyuşmadığı için gizlendi, başlık "iGML-6473" okundu ve belirsiz işaretlendi.
 - Karışık belgede (metinli + taranmış sayfa) okuyucu yokken metinli sayfalar da aranamıyor.
-- Yüklü taranmış belgeler eski kuralla duruyor ("Eski kural"); yeniden işlenmedi.
+- Yüklü taranmış belgeler (2026-11-19, bu Windows bilgisayarı): `dikim-foto` ve `dikim-tarama` okuyucuyla yeniden işlendi; 6013448 tech pack silindi (karar 0015). Eski OCR yolundan kalan parça 0; "Eski kural" belge yok.
 
 ## Markdown belgeler
 
