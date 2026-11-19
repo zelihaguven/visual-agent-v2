@@ -7,6 +7,7 @@ belgeyi anlaşılır bir mesajla durdurur; diğer belgeler işlenmeye devam eder
 import os
 import shutil
 import subprocess
+import tempfile
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -14,6 +15,7 @@ from pathlib import Path
 from visual_agent.domain.document import UNDETECTED_LANGUAGE
 
 _LIST_LANGUAGES_TIMEOUT_SECONDS = 30
+_CONVERT_TIMEOUT_SECONDS = 180
 _EXPECTED_LANGUAGES = {"tur": "Türkçe", "eng": "İngilizce"}
 _TESSERACT_LANGUAGES = {
     UNDETECTED_LANGUAGE: "tur+eng",
@@ -52,6 +54,10 @@ class MissingTool(RuntimeError):
     """Belgeyi işlemek için gereken dış araç kurulu değil."""
 
 
+class ConversionFailed(RuntimeError):
+    """LibreOffice dönüştürmesi çıktı dosyası üretmedi; belge eksik işlenmez, işlenemedi olur."""
+
+
 class ReaderUnavailable(RuntimeError):
     """Taranmış sayfaların okuyucusu ayarlı değil ya da ulaşılamıyor; belge okuyucuyu bekler."""
 
@@ -87,6 +93,38 @@ class ExternalTools:
         if self.soffice is None:
             raise MissingTool(SOFFICE_MISSING)
         return self.soffice
+
+    def convert(self, path: Path, work: Path, target: str) -> Path:
+        """LibreOffice ile `target` biçimine çevirir; her çağrının kendi geçici profili var.
+
+        LibreOffice çıktı yazmadan 0 koduyla çıkabiliyor (Windows, 26.8; nedeni bilinmiyor,
+        docs/acik-notlar.md). Çıktı yoksa belge eksik işlenmez, açıkça işlenemedi olur.
+        """
+        executable = self.require_soffice()
+        profile = Path(tempfile.mkdtemp(prefix="lo-profile-", dir=work))
+        command = [
+            executable,
+            f"-env:UserInstallation={profile.resolve().as_uri()}",
+            "--headless",
+            "--convert-to",
+            target,
+            "--outdir",
+            str(work),
+            str(path),
+        ]
+        try:
+            subprocess.run(
+                command, check=True, capture_output=True, timeout=_CONVERT_TIMEOUT_SECONDS
+            )
+        finally:
+            shutil.rmtree(profile, ignore_errors=True)
+        output = work / f"{path.stem}.{target}"
+        if not output.exists():
+            raise ConversionFailed(
+                f"LibreOffice {path.name} dosyasını {target.upper()} biçimine çeviremedi;"
+                " belge işlenemedi. Yeniden işlemeyi deneyin."
+            )
+        return output
 
     def require_tesseract(self, language: str) -> str:
         if self.tesseract is None:

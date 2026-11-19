@@ -1,7 +1,6 @@
 """Dış araçlar: LibreOffice, Tesseract, RapidOCR ve Docling. İşçide çalışır (yerel ya da imaj)."""
 
 import logging
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -49,7 +48,6 @@ from visual_agent.ingest.two_reading import (
 
 logger = logging.getLogger(__name__)
 
-_CONVERT_TIMEOUT_SECONDS = 180
 _OCR_TIMEOUT_SECONDS = 600
 _OCR_FLAGS = {
     PageKind.SCANNED: "--redo-ocr",
@@ -63,29 +61,12 @@ _IMAGE_PAGE_DPI = 150
 _TESSERACT_PAGE_MODES = ("6", "11")
 
 
-def _soffice(path: Path, work: Path, target: str, executable: str) -> Path:
-    profile = Path(tempfile.mkdtemp(prefix="lo-profile-", dir=work))
-    command = [
-        executable,
-        f"-env:UserInstallation={profile.resolve().as_uri()}",
-        "--headless",
-        "--convert-to",
-        target,
-        "--outdir",
-        str(work),
-        str(path),
-    ]
-    subprocess.run(command, check=True, capture_output=True, timeout=_CONVERT_TIMEOUT_SECONDS)
-    shutil.rmtree(profile, ignore_errors=True)
-    return work / f"{path.stem}.{target}"
-
-
 def office_to_pdf(path: Path, work: Path, external: ExternalTools) -> Path:
-    return _soffice(path, work, "pdf", external.require_soffice())
+    return external.convert(path, work, "pdf")
 
 
 def legacy_spreadsheet_to_xlsx(path: Path, work: Path, external: ExternalTools) -> Path:
-    return _soffice(path, work, "xlsx", external.require_soffice())
+    return external.convert(path, work, "xlsx")
 
 
 def image_to_pdf(path: Path, work: Path) -> Path:
