@@ -115,7 +115,13 @@ def main() -> None:
     since = datetime.now(UTC).isoformat(timespec="milliseconds")
     arguments.output.parent.mkdir(parents=True, exist_ok=True)
     with (
-        httpx.Client(base_url=arguments.url, timeout=_TIMEOUT_SECONDS) as client,
+        # Her soru yeni bağlantıyla: uvicorn boştaki bağlantıyı 5 sn sonra kapatıyor; bekleme
+        # (--pause) aynı sürede bitince istemci kapanan bağlantıyı kullanıp düşüyordu.
+        httpx.Client(
+            base_url=arguments.url,
+            timeout=_TIMEOUT_SECONDS,
+            limits=httpx.Limits(max_keepalive_connections=0),
+        ) as client,
         arguments.output.open("w", encoding="utf-8") as output,
     ):
         for run in range(1, arguments.runs + 1):
