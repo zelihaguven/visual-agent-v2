@@ -12,6 +12,7 @@ from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.external import (
     SOFFICE_MISSING,
+    ConversionFailed,
     MissingTool,
     ReaderUnavailable,
     tesseract_language,
@@ -279,15 +280,19 @@ def test_snapshot_exposes_catalog_and_identifiers() -> None:
     assert snapshot.identifiers.lookup("PNT-4417") == ("d:0",)
 
 
-def test_missing_tool_is_reported_with_its_own_message(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "error",
+    [MissingTool(SOFFICE_MISSING), ConversionFailed("LibreOffice a.docx dosyasını çeviremedi")],
+)
+def test_tool_failure_is_reported_with_its_own_message(tmp_path: Path, error: RuntimeError) -> None:
     repository = FakeRepository(queued=[document(tmp_path)])
 
     def ingest(path: Path, meta: DocumentMeta, work: Path) -> IngestResult:
-        raise MissingTool(SOFFICE_MISSING)
+        raise error
 
     asyncio.run(DocumentProcessor(repository, FakeIndexer(), ingest).process_next())
 
-    assert repository.failed == [("d", SOFFICE_MISSING)]
+    assert repository.failed == [("d", str(error))]
 
 
 def test_document_deleted_while_processing_leaves_no_vectors_or_files(tmp_path: Path) -> None:

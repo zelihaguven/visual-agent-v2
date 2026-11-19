@@ -12,7 +12,7 @@ from apps.worker.topics import TopicAssigner
 from visual_agent.ask.language import document_language
 from visual_agent.catalog.repository import StoredDocument
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk, DocumentMeta
-from visual_agent.ingest.external import MissingTool, ReaderUnavailable
+from visual_agent.ingest.external import ConversionFailed, MissingTool, ReaderUnavailable
 from visual_agent.ingest.formats import UnsupportedFormat
 from visual_agent.ingest.pipeline import IngestReport, IngestResult
 
@@ -84,7 +84,7 @@ class DocumentProcessor:
         except ReaderUnavailable as error:
             # Belge bozuk değil: okuyucu gelince "Yeniden işle" ile okunur.
             await self._fail(document, str(error), waiting=True)
-        except (UnsupportedFormat, MissingTool) as error:
+        except (UnsupportedFormat, MissingTool, ConversionFailed) as error:
             await self._fail(document, str(error))
         except Exception:
             logger.exception("Belge işlenemedi: %s", document.doc_id)

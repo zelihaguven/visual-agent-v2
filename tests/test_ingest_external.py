@@ -9,6 +9,7 @@ from visual_agent.domain.document import UNDETECTED_LANGUAGE
 from visual_agent.ingest.external import (
     SOFFICE_MISSING,
     TESSERACT_MISSING,
+    ConversionFailed,
     ExternalTools,
     MissingTool,
     find_tool,
@@ -60,6 +61,49 @@ def test_missing_language_data_is_explained_at_startup() -> None:
 
     assert any("Türkçe" in problem and "tur.traineddata" in problem for problem in problems)
     assert not any("İngilizce" in problem for problem in problems)
+
+
+def _fake_soffice(monkeypatch: pytest.MonkeyPatch, writes_output: bool) -> list[list[str]]:
+    """LibreOffice yerine geçer: çağrıları kaydeder, istenirse dönüştürmenin çıktısını yazar."""
+    calls: list[list[str]] = []
+
+    def run(command: list[str], **_: object) -> subprocess.CompletedProcess[bytes]:
+        calls.append(command)
+        if writes_output and "--convert-to" in command:
+            source = Path(command[-1])
+            outdir = Path(command[command.index("--outdir") + 1])
+            (outdir / f"{source.stem}.{command[command.index('--convert-to') + 1]}").write_bytes(
+                b"x"
+            )
+        return subprocess.CompletedProcess(command, 0, b"", b"")
+
+    monkeypatch.setattr(subprocess, "run", run)
+    return calls
+
+
+def test_conversion_uses_its_own_profile_and_returns_the_output(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _fake_soffice(monkeypatch, writes_output=True)
+    source = tmp_path / "föy.docx"
+
+    output = ExternalTools("soffice", None).convert(source, tmp_path, "pdf")
+
+    assert output == tmp_path / "föy.pdf"
+    [command] = calls
+    assert command[1].startswith("-env:UserInstallation=file:")
+    assert not list(tmp_path.glob("lo-profile-*"))
+
+
+def test_conversion_without_output_fails_instead_of_continuing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _fake_soffice(monkeypatch, writes_output=False)
+
+    with pytest.raises(ConversionFailed, match="föy.docx dosyasını PDF biçimine çeviremedi"):
+        ExternalTools("soffice", None).convert(tmp_path / "föy.docx", tmp_path, "pdf")
+
+    assert not list(tmp_path.glob("lo-profile-*"))
 
 
 def test_office_documents_fail_with_a_clear_message_without_libreoffice() -> None:
