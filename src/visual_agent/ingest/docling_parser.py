@@ -129,10 +129,23 @@ def _item_elements(document: Any, item: Any) -> list[Element]:
     return []
 
 
+_BODY, _FURNITURE = "body", "furniture"
+"""Docling'in içerik katmanları (ContentLayer bir dizgi enum'u; docling burada yüklenmez)."""
+
+
+def _kept(item: Any) -> bool:
+    """Gövde öğeleri ve yalnız sayfa üst bilgisi: üst bilgi FURNITURE katmanındadır."""
+    return getattr(item, "content_layer", _BODY) != _FURNITURE or _label(item) == _PAGE_HEADER_LABEL
+
+
 def parse_with_docling(path: Path) -> list[Element]:
+    """Sayfa üst bilgisi de gezilir: docling belgenin ilk satırını ("CKT-7308 ölçü föyü") üst
+    bilgi sayıyordu ve yalnız gövde gezildiği için kod taşıyan üst bilgi kuralı hiç çalışmıyor,
+    model kodu hiçbir parçaya geçmiyordu."""
     document = _converter().convert(str(path)).document
     return [
         element
-        for item, _level in document.iterate_items()
+        for item, _level in document.iterate_items(included_content_layers={_BODY, _FURNITURE})
+        if _kept(item)
         for element in _item_elements(document, item)
     ]
