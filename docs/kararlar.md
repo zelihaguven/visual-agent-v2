@@ -1208,6 +1208,8 @@ Tarih: 2026-11-16. Ölçüm: set A benzetimi (0009), 5 taranmış belge (30 sayf
 
 **Set B'de ayrıca ölçülecek: hücre sayısı uyuşmayan tablo (2026-11-18).** Başlık sayılan ilk satırın hücre sayısı bir veri satırınınkinden farklıysa tablo başlıksız, okunduğu gibi yazılıyor. Yüklü 17 föyün saklı ham okumalarında 446 tablonun 6'sını etkiliyor: 3 kapak formu (başlık 6 hücre, satırlar 5/4/2; bunlar zaten kaymış yazılıyordu) ve 6013448'in 3 ölçü karşılaştırma tablosu (iki katlı başlık; alt başlık satırı 4 hücre, 45 değer satırı etiketini kaybediyor). Başlık satırı satırlarla aynı sayıda hücre taşıdığı hâlde kaymışsa (düşen hücrenin yerine boş hücre gelmişse) bu kural yakalamaz; fotoğrafta görülen kaymanın hangi türden olduğu saptanamadı.
 
+**Set B'de ayrıca denenecek: büyük sayfa görselini küçültmek (2026-11-19).** Okuyucu taramayı kendi çözünürlüğünde alıyor. Windows'ta işlemcide bir tech pack sayfası 5–16 dakika sürdü (karar 0015); 16,7 MB'lık 29 sayfalık föyün sayfa görselleri büyük. Görseli belli bir kenar uzunluğuna küçültmenin süreye ve okumaya etkisi set B ile ölçülecek. Dikkat: 120 dpi taramayı 300 dpi'ye büyütmek Tesseract'ın bütün değerleri doğrulayamamasına yol açmıştı (açık notlar, Sayfa okuyucusu); küçültme ikinci okumayı da etkileyebilir. Şimdilik değiştirilmedi.
+
 **Kayıt.** Rapor (`rapor.json`), mevcut hattın okuması (`hat_cikti.json`) ve PaddleOCR-VL + Tesseract ham okumaları (`paddle/`): `evals/results/2026-11-16-set-a-benzetim/` (1 MB). Okuyucuları yeniden çalıştırmadan yeniden puanlama ve gerçek taramalarla yan yana karşılaştırma için repoda tutulur. Ölçümü yapan dört betik (`hat.py`, `paddle_calistir.py`, `tesseract.py`, `puanla.py`) aynı klasörde, ölçüldükleri haliyle durur; gerçek taramalar bunlarla, değiştirilmeden ölçülür. Bu yüzden klasör ruff ve mypy denetiminin dışındadır. `paddle_calistir.py` MLX sunucusunu `http://localhost:8111/` adresinde bekler.
 
 ### 0011: PaddleOCR-VL + Tesseract hatta alındı; okuyucu yoksa belge bekler
@@ -1272,3 +1274,22 @@ Tarih: 2026-11-18. Ürün sahibi kararı.
 **Karar.** Tur bu sonuçla kapandı. Kilitli 8 soru (A3, A6, B2, B7, C4, C7, D5, D8) artık görülmüş sayılır: cevaplarına bakıldı, bundan sonra kural geliştirirken kullanılabilirler ama kilitli ölçüm yerine geçmezler. Sonraki tur için yeni kilitli sorular yazılacak.
 
 **Açık kalan.** Birim ekleme (A3, A4: istem kuralı var, model yine ekliyor); sorgu çevirisinin süre sınırı; D2 (fotoğrafta bölüm yok); D4 ve D6 (seçeneksiz netleştirme).
+
+### 0015: Taranmış tech pack'ler normal bilgisayarda okunmaz; hızlı makinede işlenip veri taşınır
+Tarih: 2026-11-19. Ürün sahibi kararı.
+
+**Ölçüm (Windows 11, 12 mantıksal işlemci, paddlepaddle işlemci paketi, `VA_PAGE_READER=local`).** PaddleOCR-VL-1.6 + Tesseract ikinci okuması, sayfa başı:
+
+| Belge | Bu bilgisayar | Mac (MLX, 2026-11-17) |
+|---|---|---|
+| `dikim-foto.jpg` (1 sayfa) | 57,6 sn; model yükleme dahil 165,6 sn | 4,3 sn |
+| `dikim-tarama.pdf` (3 sayfa) | ≈ 50 sn (toplam 149,6 sn; uygulamada 38 ve 47 sn) | 5,5 sn |
+| 6013448 tech pack, sayfa 1–3 | 16 dk 12 sn, 5 dk 47 sn, 5 dk 7 sn | ölçülmedi |
+
+Fotoğraf ve ölçü föyü taraması Mac'ten 9–13 kat yavaş; okunan değerler Mac'tekiyle aynı (fotoğraf iki okumada birebir aynı). 29 sayfalık tech pack bu hızla 2,5–3 saat sürerdi; işlem 3. sayfadan sonra durduruldu ve belge silindi (dosya repoda değil; ürün sahibinde).
+
+**Karar.** Taranmış tech pack'ler normal bilgisayarda okuyucuyla işlenmez; hızlı bir makinede işlenip veri (`data/`: veritabanı, Qdrant klasörü, belge dosyaları) taşınır. Küçük taramalar (1–3 sayfalık ölçü föyü, fotoğraf) bu bilgisayarda da işlenebilir. Eski OCR yolundan kalan parça bırakılmadı: bu bilgisayardaki yüklü belgelerde 0.
+
+**Bilinmeyen.** Verinin bir makineden ötekine taşınması denenmedi (yollar, Qdrant yerel klasörünün sürüm uyumu). Tech pack sayfalarının neden ölçü föyünden 6–20 kat yavaş olduğu ölçülmedi; görsel boyutu en olası neden (set B'de denenecek, karar 0010/0011 altındaki liste).
+
+**Yeniden düşünülür.** Görsel küçültme süreyi pratik düzeye indirirse ya da okuyucu için ekran kartlı bir sunucu gelirse.
