@@ -91,6 +91,8 @@ class AskOutcome(FrozenModel):
     first_verified_seconds: float | None = None
     provider_attempts: int = 0
     provider_seconds: float = 0.0
+    provider_errors: tuple[tuple[str, str], ...] = ()
+    """Cevap sağlayıcısı denemeleri sırayla: (sağlayıcı, hata metni; başarılıysa boş)."""
     question: str = ""
     context: ConversationContext | None = None
     scope_inherited: bool = False

@@ -669,6 +669,7 @@ def test_provider_attempts_and_wait_reach_the_outcome() -> None:
 
     assert outcome.provider_attempts == 2
     assert outcome.provider_seconds == 3.75
+    assert outcome.provider_errors == (("alpha", "zaman aşımı"), ("beta", ""))
 
 
 def test_attempts_are_kept_when_every_provider_fails() -> None:
@@ -678,6 +679,7 @@ def test_attempts_are_kept_when_every_provider_fails() -> None:
     outcome = ask(make_deps(client), "soru nedir")
 
     assert (outcome.provider_attempts, outcome.provider_seconds) == (1, 0.5)
+    assert outcome.provider_errors == (("alpha", "500"),)
 
 
 def test_sentence_hidden_only_for_its_unit_keeps_its_source_quote() -> None:
