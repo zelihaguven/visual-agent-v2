@@ -25,7 +25,7 @@ from visual_agent.settings import Settings
 
 logger = logging.getLogger(__name__)
 
-_EXCERPT_CHARS = 1500
+_HEADINGS_CHARS = 1500
 _NAME_SECONDS = 20.0
 _MERGE_SECONDS = 60.0
 _MIN_TOPICS_TO_MERGE = 3
@@ -36,7 +36,7 @@ class TopicRepository(Protocol):
 
     async def without_topic(self, skip: Sequence[str] = ()) -> StoredDocument | None: ...
 
-    async def excerpt(self, doc_id: str, max_chars: int) -> str: ...
+    async def headings(self, doc_id: str, max_chars: int) -> str: ...
 
     async def set_topic(self, doc_id: str, topic: str) -> None: ...
 
@@ -62,10 +62,10 @@ class TopicAssigner:
     async def assign(self, document: StoredDocument) -> bool:
         """Belgeye konu verildiyse True. Hata işçiyi durdurmaz."""
         try:
-            excerpt = await self._repository.excerpt(document.doc_id, _EXCERPT_CHARS)
+            headings = await self._repository.headings(document.doc_id, _HEADINGS_CHARS)
             existing = await self._repository.topics()
             topic = await asyncio.wait_for(
-                self._namer(document.title, excerpt, existing), _NAME_SECONDS
+                self._namer(document.title, headings, existing), _NAME_SECONDS
             )
         except Exception:
             logger.warning("Belgeye konu verilemedi: %s", document.doc_id, exc_info=True)

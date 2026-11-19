@@ -21,8 +21,8 @@ class Namer:
         self.fails = fails
         self.calls: list[tuple[str, str, tuple[str, ...]]] = []
 
-    async def __call__(self, title: str, excerpt: str, existing: Sequence[str]) -> str | None:
-        self.calls.append((title, excerpt, tuple(existing)))
+    async def __call__(self, title: str, headings: str, existing: Sequence[str]) -> str | None:
+        self.calls.append((title, headings, tuple(existing)))
         if self.fails:
             raise RuntimeError("model yanıt vermedi")
         return self.topics.get(title)
@@ -93,7 +93,30 @@ def test_ready_documents_without_a_topic_are_named_one_by_one(tmp_path: Path) ->
     assert asyncio.run(repository.topics()) == ["Ürün ölçü föyleri"]
     # İkinci belge sorulurken ilk belgenin konusu seçenek olarak verildi.
     assert namer.calls[1][2] == ("Ürün ölçü föyleri",)
-    assert "Satır 0" in namer.calls[0][1]
+
+
+def test_only_title_and_section_headings_reach_the_namer(tmp_path: Path) -> None:
+    """Konu adı için buluta parça metni gitmez; başlık ve bölüm adları gider (karar kaydı)."""
+    repository = _repository(tmp_path)
+    chunks = [
+        _chunk("a", index).model_copy(update={"section": section, "text": f"Bel | M: 4{index},5"})
+        for index, section in enumerate(["Ölçü tablosu", "Ölçü tablosu", "Etiket kodları"])
+    ]
+
+    async def run() -> None:
+        await repository.create_document(_document("a"))
+        assert await repository.claim_next() is not None
+        await repository.mark_ready("a", "tr", chunks, Report(pages=1), None)
+
+    asyncio.run(run())
+    namer = Namer({})
+
+    asyncio.run(TopicAssigner(repository, namer).assign_next_missing())
+
+    [(title, headings, _)] = namer.calls
+    assert title == "Belge a"
+    assert headings == "Ölçü tablosu\nEtiket kodları"
+    assert "M:" not in headings and "40,5" not in headings
 
 
 def test_failed_naming_is_not_retried_in_a_loop(tmp_path: Path) -> None:

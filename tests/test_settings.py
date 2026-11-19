@@ -42,3 +42,10 @@ def test_qdrant_folder_is_read_from_environment(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setenv("VA_QDRANT_PATH", "data/qdrant")
 
     assert make_settings().qdrant_path == "data/qdrant"
+
+
+def test_remote_page_reader_stops_startup() -> None:
+    with pytest.raises(ValidationError, match="yerel ağ"):
+        make_settings(page_reader="mlx-vlm-server@https://ocr.example.com/")
+
+    assert make_settings(page_reader="local").page_reader == "local"

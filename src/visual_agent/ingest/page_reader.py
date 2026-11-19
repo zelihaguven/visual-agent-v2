@@ -10,6 +10,7 @@ paketinden içe aktarmaz. İki kopyanın aynı sonucu verdiğini `tests/test_pag
 kaydı üzerinde sınar; biri değişirse test kırılır.
 """
 
+import ipaddress
 import logging
 import re
 import tempfile
@@ -19,6 +20,7 @@ from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, cast
+from urllib.parse import urlsplit
 
 import httpx
 import pypdfium2
@@ -337,6 +339,18 @@ class ReaderConfig:
     url: str | None = None
 
 
+def _on_local_network(url: str) -> bool:
+    """Bu makine ya da yerel ağ: localhost, ".local" adı ya da özel/yerel IP adresi."""
+    host = urlsplit(url).hostname or ""
+    if host == "localhost" or host.endswith(".local"):
+        return True
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return address.is_private or address.is_loopback or address.is_link_local
+
+
 def parse_reader_setting(value: str | None) -> ReaderConfig | None:
     """`VA_PAGE_READER`: "local" (model bu süreçte; GPU varsa onu, yoksa işlemciyi kullanır) ya
     da "<arka uç>@<adres>" (ör. "mlx-vlm-server@http://localhost:8111/"). Boşsa okuyucu yoktur."""
@@ -348,6 +362,12 @@ def parse_reader_setting(value: str | None) -> ReaderConfig | None:
     if not backend or backend == LOCAL_BACKEND or not url.startswith(("http://", "https://")):
         raise ValueError(
             f'VA_PAGE_READER "local" ya da "<arka uç>@http://adres/" biçiminde olmalı: {value!r}'
+        )
+    if not _on_local_network(url):
+        # Okuyucuya bütün sayfa görüntüsü gider; ZDR denetimi yok (kural 4).
+        raise ValueError(
+            f"VA_PAGE_READER sunucusu bu makinede ya da yerel ağda olmalı "
+            f"(localhost, .local adı ya da özel IP): {url!r}"
         )
     return ReaderConfig(backend, url)
 
