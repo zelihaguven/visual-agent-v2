@@ -79,11 +79,11 @@ def test_page_ranges_compacts_pages() -> None:
     ("primary", "second", "expected"),
     [
         ("Değer 12,5 cm", "Değer 12,5 cm", []),
-        ("Değer 112 cm", "Değer /12 cm", []),
+        ("Değer 112 cm", "Değer /12 cm", ["112"]),  # eğik çizgi "1" sayılmaz (okuyucu kuralı)
         ("Kol 318 ölçü", "Kol 3/8 ölçü", ["318"]),  # kesir çizgisi "1" okuması değildir
         ("Kol 3/8 ölçü", "Kol 318 ölçü", ["3/8"]),
         ("Tolerans ±1/2", "Tolerans +1/2", ["±1/2"]),
-        ("40lbs yük", "40 lbs yük", []),
+        ("40lbs yük", "40 lbs yük", ["40lbs"]),  # farklı bölünen parça da uyuşmaz
         ("43-3/8 ölçü", "43.3/8 ölçü", ["43-3/8"]),
         ("Değer 299.999%", "Değer", ["299.999%"]),
         ("metin", "başka metin", []),
@@ -166,8 +166,21 @@ def test_table_line_next_to_a_value_does_not_make_it_uncertain() -> None:
     assert unconfirmed_tokens("Uzunluk 59", "Uzunluk | 59|") == []
 
 
-def test_decimal_comma_and_point_are_the_same_reading() -> None:
-    assert unconfirmed_tokens("İç paça 77.0", "İç paça 77,0") == []
+def test_decimal_comma_and_point_are_different_readings() -> None:
+    """Virgül ve nokta farklı değer olabilir ("1.500" / "1,500"; karar 0008)."""
+    assert unconfirmed_tokens("İç paça 77.0", "İç paça 77,0") == ["77.0"]
+
+
+@pytest.mark.parametrize(("primary", "second"), [("Ölçü 812", "Ölçü B12"), ("Ölçü 50", "Ölçü SO")])
+def test_letter_read_as_a_digit_does_not_confirm_the_value(primary: str, second: str) -> None:
+    """B2: eski yol "B"yi "8", "S"yi "5", "O"yu "0" sayıyordu; ikinci okumada harf olan değer
+    doğrulanmış geçiyordu. Artık okuyucu yolundaki gibi aynı parça olmalı."""
+    assert unconfirmed_tokens(primary, second) == [primary.split()[1]]
+
+
+def test_code_without_digits_is_compared_too() -> None:
+    """B2: "4XL"in "AXL" okunması (karar 0007) rakamsız kodda da yakalanır."""
+    assert unconfirmed_tokens("Beden XS-AXL", "Beden XS-4XL") == ["XS-AXL"]
 
 
 def test_missing_decimal_separator_stays_uncertain() -> None:

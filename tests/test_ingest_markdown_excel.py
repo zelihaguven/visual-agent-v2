@@ -273,12 +273,12 @@ def test_removing_cell_rereading_only_outdates_documents_read_by_the_old_ocr(
 
 
 def test_docling_table_guards_outdate_every_pdf_and_office_document() -> None:
-    """13→14 docling tablolarını değiştirdi: yalnız metin sayfalı belge de eskir."""
+    """14→15 gömülü görsellerin ikinci okumasını değiştirdi (metin sayfası): her belge eskir."""
     for input_format, name in (("pdf", "belge.pdf"), ("office", "belge.docx")):
         report = {
             **_old_report(),
             "input_format": input_format,
-            "rules_version": 13,
+            "rules_version": 14,
             "page_kinds": {"text": 3},
         }
         assert is_outdated(report, name)
