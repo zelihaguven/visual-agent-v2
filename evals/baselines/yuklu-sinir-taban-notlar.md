@@ -27,4 +27,6 @@ Uygulama açıkken (`python -m apps.local`), birkaç soruyla ısıtıldıktan so
 
     python -m evals.sinir_seti --url http://127.0.0.1:8080 --runs 5 --output evals/output/sinir.jsonl
 
+Sorular arasında varsayılan 5 sn beklenir (`--pause`): art arda sorulunca Makora istek sınırına takılıyor (açık notlar, 2026-11-19). Özet, ölçüm sırasında yedeğe geçen soru sayısını ve sağlayıcı hatalarını soru günlüğünden okur; sayı 0 değilse süre karşılaştırması sağlayıcıyı ölçer.
+
 Betik kilitsiz soruları `/api/ask` yolundan sorar ve her cevabı (tür, gösterilen doğrulanmış cümleler, gizlenen cümle sayısı, netleştirme sorusu ve seçenekleri, ilk doğrulanmış cümleye kadar süre) bir satıra yazar; özette ilk doğrulanmış cümlenin ortancası ve p95'i var. Soru günlüğü özeti (`python -m apps.api.question_log`) de aynı p95 tanımını kullanır. Sınıflar (doğru / güvenli / yanlış) cevap metni okunarak elle verilir.

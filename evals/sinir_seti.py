@@ -5,25 +5,33 @@ isteğin gönderilmesinden ilk doğrulanmış cümleye. Sınıflar (doğru / gü
 metni okunarak elle verilir; betik vermez. Kilitli sorular varsayılan olarak sorulmaz (karar
 0014). Uygulama önce açılır ve birkaç soruyla ısıtılır (ilk soru modelleri yükler).
 
+Sorular arasında beklenir: art arda sorulunca cevap sağlayıcısı istek sınırına takılıyor ve
+yedeğe geçiliyor (2026-11-19: yarım saatte 366 soruda Makora 6 kez 429); o zaman süre ölçümü
+sağlayıcıyı ölçer. Özet, ölçüm sırasında yedeğe geçen soru sayısını soru günlüğünden okur.
+
     python -m evals.sinir_seti --runs 5 --output evals/output/sinir.jsonl
 """
 
 import argparse
+import asyncio
 import json
 import statistics
 import time
 from collections import Counter
 from collections.abc import Iterator, Sequence
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
 
-from apps.api.question_log import percentile
+from apps.api.question_log import QuestionRecord, percentile, read_records
+from visual_agent.settings import Settings
 
 DEFAULT_SET = Path("evals/sinir_yuklu_belgeler.json")
 DEFAULT_URL = "http://127.0.0.1:8080"
 _TIMEOUT_SECONDS = 120.0
+DEFAULT_PAUSE_SECONDS = 5.0
 
 
 def _events(response: httpx.Response) -> Iterator[dict[str, Any]]:
@@ -57,8 +65,14 @@ def ask(client: httpx.Client, question: str) -> dict[str, Any]:
     }
 
 
-def summary(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
+def summary(
+    rows: Sequence[dict[str, Any]], records: Sequence[QuestionRecord] = ()
+) -> dict[str, Any]:
+    """records: ölçüm sırasında soru günlüğüne yazılan kayıtlar (sağlayıcı denemeleri için)."""
     times = [row["first_verified"] for row in rows if row["first_verified"] is not None]
+    errors = Counter(
+        provider for record in records for provider, error in record.provider_errors if error
+    )
     return {
         "cevap": len(rows),
         "tür": dict(Counter(row["kind"] for row in rows)),
@@ -67,7 +81,14 @@ def summary(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
             "p95": round(percentile(times, 0.95), 2) if times else None,
             "n": len(times),
         },
+        "yedeğe geçen soru": sum(1 for record in records if record.provider_attempts > 1),
+        "sağlayıcı hataları": dict(errors),
     }
+
+
+def measured_records(records: Sequence[QuestionRecord], since: str) -> list[QuestionRecord]:
+    """Ölçüm başladıktan sonra yazılan kayıtlar (ısınma soruları ölçümden önce sorulur)."""
+    return [record for record in records if record.created_at >= since]
 
 
 def main() -> None:
@@ -77,13 +98,21 @@ def main() -> None:
     parser.add_argument("--runs", type=int, default=5)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--with-locked", action="store_true", help="kilitli soruları da sor")
+    parser.add_argument(
+        "--pause",
+        type=float,
+        default=DEFAULT_PAUSE_SECONDS,
+        help=f"sorular arasında bekleme, sn (varsayılan {DEFAULT_PAUSE_SECONDS:g})",
+    )
+    parser.add_argument("--database", type=Path, help="soru günlüğü; varsayılan: VA_DATABASE_PATH")
     arguments = parser.parse_args()
     questions = [
         question
         for question in json.loads(arguments.set.read_text(encoding="utf-8"))
         if arguments.with_locked or not question["locked"]
     ]
-    rows = []
+    rows: list[dict[str, Any]] = []
+    since = datetime.now(UTC).isoformat(timespec="milliseconds")
     arguments.output.parent.mkdir(parents=True, exist_ok=True)
     with (
         httpx.Client(base_url=arguments.url, timeout=_TIMEOUT_SECONDS) as client,
@@ -91,12 +120,17 @@ def main() -> None:
     ):
         for run in range(1, arguments.runs + 1):
             for question in questions:
+                if rows:
+                    time.sleep(arguments.pause)
                 row = {"run": run, "id": question["id"], **ask(client, question["question"])}
                 rows.append(row)
                 output.write(json.dumps(row, ensure_ascii=False) + "\n")
                 output.flush()
                 print(run, row["id"], row["kind"], row["first_verified"], flush=True)
-    print(json.dumps(summary(rows), ensure_ascii=False, indent=1))
+    database = arguments.database or Path(Settings().database_path)
+    time.sleep(1.0)  # uygulama son kaydı arka planda yazıyor
+    records = measured_records(asyncio.run(read_records(database, len(rows) * 2)), since)
+    print(json.dumps(summary(rows, records), ensure_ascii=False, indent=1))
 
 
 if __name__ == "__main__":

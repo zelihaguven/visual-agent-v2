@@ -394,7 +394,7 @@ def open_log(path: Path) -> QuestionLog:
     return QuestionLog(SqliteDatabase(path))
 
 
-async def _read(path: Path, count: int) -> list[QuestionRecord]:
+async def read_records(path: Path, count: int) -> list[QuestionRecord]:
     """Yalnız okur: açık uygulamanın tablosunu değiştirmez (göç uygulama açılırken yapılır)."""
     if not path.exists():
         return []
@@ -412,7 +412,7 @@ def main() -> None:
     parser.add_argument("--database", type=Path, help="varsayılan: VA_DATABASE_PATH")
     arguments = parser.parse_args()
     path = arguments.database or Path(Settings().database_path)
-    records = asyncio.run(_read(path, arguments.last))
+    records = asyncio.run(read_records(path, arguments.last))
     print("\n".join([*record_lines(records), "", *summary_lines(records)]))
 
 
