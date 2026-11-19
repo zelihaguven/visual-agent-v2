@@ -29,10 +29,9 @@ Tahmini yeniden işleme süresi (Mac'te ölçülmedi): Windows'ta 379 dijital ve
 
 **Mac'ten Windows'a veri taşıma** (2026-11-19, Windows'ta sınandı)
 
-- Veritabanında mutlak yol yok: belge dosyaları (`stored_path`, `display_pdf`) `data/documents/...` diye göreli tutuluyor; Qdrant yerel klasöründe yol yok; parçalarda yol yok. Göreli yollar uygulamanın çalışma klasörüne göre çözülür: uygulama repo kökünden açılmalı (`baslat.bat` ve `python -m apps.local` öyle açar).
-- Sınama: `data/`'nın kopyası başka bir klasöre kondu, uygulama o klasörden açıldı; 4 soru (dikim-tarama, dikim-word, dikim-pdf, sql-notlar) doğru cevaplandı, kaynakların metni ve sayfa görüntüsü açıldı (dikim-tarama 3. sayfa, vurgulu tablo). Asıl `data/` değişmedi (414 dosya özeti aynı).
+- Veritabanında mutlak yol yok: belge dosyaları (`stored_path`, `display_pdf`) belge klasörüne göre, düz eğik çizgiyle tutuluyor (`<doc_id>/original.pdf`; dal `belge-yollari`). Eski kayıtlar (Windows'ta `data\documents\...`) açılışta bir kez dönüştürülür; ikinci açılış bir şey değiştirmez. Qdrant yerel klasöründe ve parçalarda yol yok. Belge klasörü (`VA_STORAGE_DIRECTORY`, varsayılan `data/documents`) çalışma klasörüne göre çözülür: uygulama repo kökünden açılmalı (`baslat.bat` ve `python -m apps.local` öyle açar). Veri iki yönde de taşınabilir.
+- Sınama (iki kez): `data/`'nın kopyası başka bir klasöre kondu, uygulama o klasörden açıldı; 4 soru (dikim-tarama, dikim-word, dikim-pdf, sql-notlar) doğru cevaplandı, kaynakların metni ve sayfa görüntüsü açıldı (dikim-tarama 3. sayfa, vurgulu tablo). İkinci sınamada (`belge-yollari` koduyla) açılışta 380 belge yolu ve 12 gösterim PDF'i dönüştü; 392 yolun hepsi dosyasını buluyor. Asıl `data/` iki sınamada da değişmedi (414 dosya özeti aynı).
 - Adımlar: (1) iki bilgisayarda aynı commit (kural sürümleri aynı olmalı; yoksa Windows'ta "Eski kural" çıkar ve taranmış föyleri yeniden işlemek saatler sürer, karar 0015); (2) Mac'te uygulamayı kapat (Qdrant klasörü kilitlidir); (3) Mac'in `data/`'sını kopyala; `data/models` gerekmez, Windows'ta zaten var; (4) Windows'ta uygulama kapalıyken mevcut `data/`'yı yeniden adlandırıp sakla, Mac'inkini repo köküne koy; (5) `baslat.bat` ile aç; belge sayısını, "Eski kural" olmadığını ve birkaç soruyu kaynağıyla denetle. Windows'un soru günlüğü Mac'inkiyle değişir; gerekirse saklanan kopyada kalır.
-- Açık sorun (düzeltme önerildi, uygulanmadı): Windows yolları ters eğik çizgiyle yazıyor (`data\documents\...`). Mac → Windows sorunsuz (Windows düz eğik çizgiyi okur), ama Windows'ta işlenmiş veri Mac'e taşınırsa yollar tek dosya adı sayılır ve belge dosyaları açılmaz. Öneri: yolları `as_posix()` ile ve belge klasörüne göre yazmak, eski kayıtlar için bir kerelik dönüştürme (≈ 10 satır ve göç; yeniden işleme gerekmez).
 
 **Biten (#84–#101)**
 
@@ -56,8 +55,7 @@ Tahmini yeniden işleme süresi (Mac'te ölçülmedi): Windows'ta 379 dijital ve
 
 1. Mac'te güncelleme, yeniden işleme ve sınır seti (yukarıdaki adımlar).
 2. Mac'teki verinin Windows'a taşınması.
-3. Yol biçimi düzeltmesi için karar (Windows → Mac taşıma).
-4. Set B: büyük sayfa görselini küçültmenin süreye etkisi (karar 0010/0011 altındaki liste).
+3. Set B: büyük sayfa görselini küçültmenin süreye etkisi (karar 0010/0011 altındaki liste).
 
 ## Doğrulama
 

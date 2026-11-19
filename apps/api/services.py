@@ -155,7 +155,7 @@ async def _retry_deletions(
 
 @asynccontextmanager
 async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
-    repository = open_repository(Path(settings.database_path))
+    repository = open_repository(Path(settings.database_path), Path(settings.storage_directory))
     await repository.migrate()
     question_log = open_log(Path(settings.database_path))
     await question_log.migrate()
