@@ -1,11 +1,10 @@
 """Docling çıktısını ortak öğe biçimine çevirir."""
 
-import re
 from pathlib import Path
 from typing import Any
 
 from visual_agent.domain.document import Box, SourceLocation
-from visual_agent.ingest.elements import Element, ElementKind
+from visual_agent.ingest.elements import Element, ElementKind, carries_value
 from visual_agent.ingest.pdf_tables import TableCell, group_table_rows
 from visual_agent.verification.text import identifiers_in
 
@@ -14,14 +13,6 @@ _TEXT_LABELS = {"text", "paragraph", "list_item", "caption", "footnote", "formul
 _CODE_LABELS = {"code"}
 _TABLE_LABEL = "table"
 _PAGE_HEADER_LABEL = "page_header"
-_DIGIT_RE = re.compile(r"\d")
-_LIST_NUMBER_RE = re.compile(r"^\s*(?:\d+|[a-zA-Z])[.)]\s+")
-
-
-def carries_value(heading: str) -> bool:
-    """Liste numarası dışında sayı taşıyan başlık: "1. Hood crossover should be 7/8"" evet,
-    "3. Kurulum" hayır."""
-    return bool(_DIGIT_RE.search(_LIST_NUMBER_RE.sub("", heading, count=1)))
 
 
 def page_header_identifies(text: str) -> bool:
