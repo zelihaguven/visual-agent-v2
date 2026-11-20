@@ -75,11 +75,13 @@ def contains_whole(haystack: str, needle: str) -> bool:
     return False
 
 
-def labeled_cells(line: str) -> list[tuple[str, str]]:
-    """Tablo satırının "Başlık: değer" hücreleri."""
+def labeled_cells(line: str, last: bool = False) -> list[tuple[str, str]]:
+    """Tablo satırının "Başlık: değer" hücreleri. last: başlığın kendisinde ": " olabilir
+    ("100: White // Venom Red: Venom Red 690"); değer son ": "den sonrasıdır."""
     cells = []
     for part in (piece.strip() for piece in line.split(_CELL_SEPARATOR)):
-        label, separator, value = part.partition(_LABEL_SEPARATOR)
+        split = part.rpartition if last else part.partition
+        label, separator, value = split(_LABEL_SEPARATOR)
         if separator and len(label) <= _MAX_LABEL_LENGTH:
             cells.append((label.strip(), value.strip()))
     return cells
