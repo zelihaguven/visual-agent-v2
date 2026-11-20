@@ -313,6 +313,64 @@ describe("App", () => {
     expect(document.querySelector(".answer-value")).toBeNull();
   });
 
+  // Sayının bir parçasını büyük göstermek yanlış değer olur: bu yazımlarda büyük değer yok.
+  it.each([
+    "Aralık 1-5 mm.",
+    "Aralık 0,5–1 mm.",
+    "M8x1,25 vida kullanılır.",
+    "Ölçü 10x20.",
+    "Değer 27½.",
+    "Tolerans 3⅜ inç.",
+    "Sıcaklık −5 °C.",
+    "Tolerans ±0,5.",
+    "Oran %15.",
+    "Sürüm v1.2.3.",
+    "Kesir -3/8.",
+    "Tarih 20.11.2026.",
+    "Tutar 1.200,50 TL.",
+  ])("shows no large value for the partial number in %s", async (text) => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([answeredWith([{ ...shown, text }], "verified")]),
+    });
+    render(<App />);
+
+    await ask("Değer kaç?");
+
+    await screen.findByText(text);
+    expect(document.querySelector(".answer-value")).toBeNull();
+  });
+
+  it.each([
+    ["an answer cut short", { status: "partial", problems: ["Cevap tamamlanamadı, kaynağa bakın."] }],
+    ["conflicting sources", { status: "verified", has_conflict: true }],
+  ])("shows no large value for %s", async (_name, change) => {
+    const result = { ...answered.result, ...change, items: [{ ...shown, text: "Bel 38,0." }] };
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([{ ...answered, result }]),
+    });
+    render(<App />);
+
+    await ask("Bel kaç?");
+
+    await screen.findByText("Bel 38,0.");
+    expect(document.querySelector(".answer-value")).toBeNull();
+  });
+
+  it("shows the value of a verified answer read from a scan large", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([answeredWith([{ ...shown, text: "M beden bel 38,0'dır.", from_ocr: true }], "partial")]),
+    });
+    render(<App />);
+
+    await ask("GML-6473 M bel kaç?");
+
+    expect(await screen.findByText("38,0", { selector: ".answer-value" })).toBeInTheDocument();
+  });
+
   it("opens the highlighted page of a citation", async () => {
     stubApi({
       "/api/documents": () => jsonResponse([]),

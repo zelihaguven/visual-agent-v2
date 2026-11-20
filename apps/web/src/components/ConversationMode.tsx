@@ -45,7 +45,7 @@ function withCodes(text: string) {
     .split(CODE_RE)
     .map((part, index) => (index % 2 === 1 ? <code key={index}>{part}</code> : part));
 }
-const VOICE_FAILED = "Ses servisine ulaşılamadı. Bitir'e basıp yazarak sorabilirsiniz.";
+const VOICE_FAILED = "Ses servisine ulaşılamadı. \"Yazarak sor\"a basıp yazarak sorabilirsiniz.";
 const NO_MICROPHONE = "Mikrofona erişilemedi. Tarayıcı iznini kontrol edin.";
 
 /** Ekrandaki netleştirme ya da "Tüm belgelerde ara" seçimi: soru o belgelerde yeniden sorulur. */
@@ -74,6 +74,7 @@ export function ConversationMode(props: Props) {
   const [phase, setPhase] = useState<Phase>("starting");
   const [isNotHeard, setIsNotHeard] = useState(false);
   const notHeard = useRef(false);
+  const typedTurnId = useRef(lastTurn?.id ?? null);
   const [error, setError] = useState<string | null>(null);
   const [canChoose, setCanChoose] = useState(false);
   const bars = useRef<HTMLButtonElement>(null);
@@ -239,6 +240,8 @@ export function ConversationMode(props: Props) {
 
   const canInterrupt = error === null && (phase === "thinking" || phase === "speaking");
   const ring: Ring = isNotHeard && phase === "listening" ? "not-heard" : phase;
+  // Sesli mod açılmadan önce yazılmış soru "duyulmuş" gösterilmez.
+  const heard = lastTurn !== null && lastTurn.id !== typedTurnId.current ? lastTurn : null;
   const icon = ring === "speaking" ? "speaker" : "mic";
   return (
     <section className="talk" aria-label="Konuşma modu">
@@ -247,9 +250,9 @@ export function ConversationMode(props: Props) {
           <Icon name="home" />
           Ana sayfa
         </button>
-        <p className="talk-title">
+        <h2 className="talk-title">
           Sesli mod <span>· eller serbest</span>
-        </p>
+        </h2>
         <button type="button" className="talk-nav" onClick={onWrite}>
           <Icon name="keyboard" />
           Yazarak sor
@@ -286,20 +289,20 @@ export function ConversationMode(props: Props) {
             </p>
           ) : (
             <>
-              <h2 className="talk-status" role="status">
+              <p className="talk-status" role="status">
                 {STATUS[ring]}
-              </h2>
+              </p>
               <p className="talk-hint">{HINTS[ring]}</p>
             </>
           )}
         </div>
         <div className="talk-side">
-          <section className="talk-heard" aria-label="Duyduğum">
-            <h3>Duyduğum</h3>
+          <section className="talk-heard" aria-labelledby="talk-heard-title">
+            <h3 id="talk-heard-title">Duyduğum</h3>
             {ring === "not-heard" ? (
               <p className="talk-heard-empty">Ses geldi ama sözcükler çıkarılamadı.</p>
-            ) : lastTurn !== null ? (
-              <p className="talk-heard-text">{withCodes(lastTurn.question)}</p>
+            ) : heard !== null ? (
+              <p className="talk-heard-text">{withCodes(heard.question)}</p>
             ) : (
               <p className="talk-heard-empty">Henüz bir şey duymadım.</p>
             )}

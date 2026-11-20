@@ -20,16 +20,21 @@ const OCR_BADGE = { label: "Taramadan okundu · kaynaktan kontrol edin", tone: "
 
 type AnsweredResult = Extract<AskResult, { kind: "answered" }>;
 
-/** Kısmi durumun tek nedeni taranmış kaynaksa (gizlenen ya da eksik cümle yok) rozet bunu söyler;
- * akışı yarıda kalan cevap sorun taşır ve "Kısmen doğrulandı" kalır. Doğrulanamayan cevapta en az
- * bir cümle gösterildiyse rozet gizlenen cümle sayısını söyler (yalnız görünüm; durum aynı). */
-function badgeFor(result: AnsweredResult) {
-  const onlyScanned =
+/** Kısmi durumun tek nedeni taranmış kaynak mı (gizlenen ya da eksik cümle yok). */
+function isOnlyScanned(result: AnsweredResult): boolean {
+  return (
     result.status === "partial" &&
     result.problems.length === 0 &&
     result.items.every((item) => item.verified) &&
-    result.items.some((item) => item.from_ocr);
-  if (onlyScanned) {
+    result.items.some((item) => item.from_ocr)
+  );
+}
+
+/** Kısmi durumun tek nedeni taranmış kaynaksa rozet bunu söyler; akışı yarıda kalan cevap sorun
+ * taşır ve "Kısmen doğrulandı" kalır. Doğrulanamayan cevapta en az bir cümle gösterildiyse rozet
+ * gizlenen cümle sayısını söyler (yalnız görünüm; durum aynı). */
+function badgeFor(result: AnsweredResult) {
+  if (isOnlyScanned(result)) {
     return OCR_BADGE;
   }
   const hidden = result.items.filter((item) => !item.verified).length;
@@ -39,16 +44,39 @@ function badgeFor(result: AnsweredResult) {
   return BADGES[result.status];
 }
 
-/** Cümledeki değer sayıları; kodun içindeki rakam ("GML-6473") ve aralığın ikinci ucu sayılmaz. */
-const VALUE_RE = /(?<![\p{L}\d_-])-?\d+(?:[.,]\d+)?/gu;
+/** Düz sayı ("38,0", "1200"); işaretli, aralıklı, kesirli ya da ayraçlı yazım değil. */
+const PLAIN_NUMBER = /^\d+(?:[.,]\d+)?$/;
+/** Harfle başlayıp tire ya da alt çizgiyle bağlı kod: GML-6473, TT-100156, MUSTERI_KODU. */
+const JOINED_CODE = /^\p{L}[\p{L}\d]*(?:[-_][\p{L}\d]+)+$/u;
+/** Sözcüğün çevresindeki noktalama ve Türkçe ek ("94'tür", "(38,0)"). */
+const WORD_EDGES = /^[("“'‘[]+|['’]\p{L}*[.,;:!?)"”\]]*$|[.,;:!?)"”\]]+$/gu;
 
-/** Tek doğrulanmış cümlede tek değer varsa büyük gösterilir; doğrulanmamış değer hiç büyümez. */
-export function headlineValue(result: AnsweredResult): string | null {
+/** Tek doğrulanmış cümlede tek düz sayı varsa büyük gösterilir. Tutucu: rakam taşıyan her sözcük
+ * ya düz sayı ya kod olmalı; "1-5", "M8x1,25", "27½", "−5", "%15", "10x20" gibi bir yazım varsa
+ * hiç büyük değer gösterilmez (sayının bir parçasını büyük göstermek yanlış değer olur).
+ * Akışı yarıda kalan ya da kaynakları çelişen cevapta gösterilmez; doğrulanmamış değer hiç
+ * büyümez. */
+function headlineValue(result: AnsweredResult): string | null {
   const [only, ...rest] = result.items;
-  if (only === undefined || rest.length > 0 || !only.verified || only.code !== null) {
+  const settled = result.status === "verified" || isOnlyScanned(result);
+  if (!settled || result.has_conflict || only === undefined || rest.length > 0) {
     return null;
   }
-  const values = only.text.match(VALUE_RE) ?? [];
+  if (!only.verified || only.code !== null) {
+    return null;
+  }
+  const values: string[] = [];
+  for (const word of only.text.split(/\s+/)) {
+    const core = word.replace(WORD_EDGES, "");
+    if (!/\d/.test(word)) {
+      continue;
+    }
+    if (PLAIN_NUMBER.test(core)) {
+      values.push(core);
+    } else if (!JOINED_CODE.test(core)) {
+      return null;
+    }
+  }
   return values.length === 1 ? values[0] : null;
 }
 
