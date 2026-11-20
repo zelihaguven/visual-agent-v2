@@ -133,6 +133,9 @@ def test_units_come_from_the_shared_unit_list(text: str, expected: str) -> None:
         "Kumaş 190gm/m2 ağırlığında.",
         "Eksi tolerans -3/8.",
         "Kullanım 7ABC örneğinde.",
+        "Değer %5-10 arası.",
+        "Ölçü 27 ½ inç.",
+        "Ölçü ½ inç.",
     ],
 )
 def test_number_glued_to_letters_or_fractions_is_left_on_screen(text: str) -> None:

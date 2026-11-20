@@ -79,24 +79,27 @@ _TOKEN_RE = re.compile(
 )
 
 
-# Sesin bütün olarak okuduğu yazımlar: düz sayı, yüzde, aralık, işaretli sayı, Türkçe binlik.
+# Sesin bütün olarak okuduğu yazımlar (_TOKEN_RE ile aynı): düz sayı, yüzde, aralık, işaretli
+# sayı, Türkçe binlik. Baştaki % yalnız tek sayıyla okunur ("%5-10" yarım okunurdu).
 _READABLE_NUMBER_RE = re.compile(
-    rf"%?[{MINUS_SIGNS}±]?{NUMBER}(?:[-–]{NUMBER})?%?|{_TURKISH_GROUPED_RE.pattern}"
+    rf"%{NUMBER}|[{MINUS_SIGNS}±]?{NUMBER}(?:[-–]{NUMBER})?%?|{_TURKISH_GROUPED_RE.pattern}"
 )
 # Harf harf okunan kod: büyük harfle başlayan (E050, XL, M8) ya da tireyle bağlı (tt-100157).
 _CODE_WORD_RE = re.compile(
     rf"[{UPPER}][{UPPER}0-9]*(?:[-_][{UPPER}0-9]+)*|[^\W\d_][^\W_]*(?:[-_][^\W_]+)+"
 )
+# Sözcük uçları web'deki büyük değer kuralıyla aynı (apps/web/src/components/TurnView.tsx).
 _WORD_EDGES_RE = re.compile(r"^[(\"“'‘\[]+|['’][^\W\d_]*[.,;:!?)\"”\]]*$|[.,;:!?)\"”\]]+$")
 
 
 def _has_unreadable_number(text: str) -> bool:
     """Rakam taşıyan sözcük bütün okunabilir bir sayı ya da kod değil mi ("x1.500", "2,5x3,5",
     "M8x1,25", "27½", "190gm/m2", "3/8", tarih). Böyle sözcüğü TTS kendi yorumlar ve sayının
-    bir parçasını okuyabilir; cümle okunmaz, değer ekranda kalır (kural 1)."""
+    bir parçasını okuyabilir; cümle okunmaz, değer ekranda kalır (kural 1). Kesir ve üs
+    karakterleri ("½", "²") de sayı sayılır: tek başına yazılsa da okunmaz."""
     for word in text.split():
         core = _WORD_EDGES_RE.sub("", word)
-        if any(c.isdigit() for c in core) and not (
+        if any(c.isnumeric() for c in core) and not (
             _READABLE_NUMBER_RE.fullmatch(core) or _CODE_WORD_RE.fullmatch(core)
         ):
             return True
