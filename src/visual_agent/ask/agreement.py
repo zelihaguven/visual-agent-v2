@@ -70,12 +70,15 @@ def shared_answer(
     language: str,
     language_of: LanguageOf,
     asked: str = "",
+    previous: str = "",
 ) -> Answered | None:
     """İlk belgeden gelen cevap bütün aday belgelerde birebir geçiyorsa cevap; yoksa None."""
     parsed = parse_answer(content, finish)
     if isinstance(parsed, ParseFailure) or parsed.kind is not AnswerKind.ANSWER:
         return None
-    verification = verify_answer(parsed, to_prompt_sources(first, language_of), language, asked)
+    verification = verify_answer(
+        parsed, to_prompt_sources(first, language_of), language, asked, previous
+    )
     if verification.status is not VerificationStatus.VERIFIED:
         return None
     items = []
@@ -99,6 +102,7 @@ async def agreed_answer(
     deps: AskDeps,
     cite: Cite,
     asked: str = "",
+    previous: str = "",
 ) -> tuple[Answered | None, float]:
     """Aday belgeler aynı cevabı veriyorsa cevap ve ek isteğin maliyeti; vermiyorsa None."""
     if len(documents) < 2:
@@ -117,6 +121,14 @@ async def agreed_answer(
     if stream.incomplete:
         return None, stream.cost_usd
     shared = shared_answer(
-        stream.content, stream.finish, first, others, cite, language, deps.catalog.language, asked
+        stream.content,
+        stream.finish,
+        first,
+        others,
+        cite,
+        language,
+        deps.catalog.language,
+        asked,
+        previous,
     )
     return shared, stream.cost_usd

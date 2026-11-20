@@ -310,14 +310,14 @@ def _final_status(checks: tuple[ItemCheck, ...]) -> VerificationStatus:
 
 
 def verify_answer(
-    answer: ModelAnswer, sources: Sources, language: str, asked: str = ""
+    answer: ModelAnswer, sources: Sources, language: str, asked: str = "", previous: str = ""
 ) -> AnswerVerification:
-    """asked: kullanıcının kendi metni (bu tur ve önceki turun doğrulanmış sözcükleri)."""
+    """asked: kullanıcının bu turdaki sorusu; previous: önceki turun doğrulanmış sözcükleri."""
     if answer.kind is AnswerKind.NOT_FOUND:
         return AnswerVerification(status=VerificationStatus.NOT_FOUND)
     if answer.kind is AnswerKind.CLARIFY:
         return _verify_clarification(answer, sources)
-    qualifiers = build_qualifiers(sources, asked)
+    qualifiers = build_qualifiers(sources, asked, previous)
     checks = tuple(verify_item(item, sources, language, qualifiers) for item in answer.items)
     problems = [problem for check in checks for problem in check.problems]
     if not checks:

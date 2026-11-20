@@ -246,12 +246,12 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     return replace(state, hits=hits)
 
 
-def user_text(state: AskState) -> str:
+def user_text(state: AskState) -> tuple[str, str]:
     """Kullanıcının kendi metni: bu turun sorusu ve önceki turdan yalnız kullanıcıdan geldiği
     denetlenmiş sözcükler (kod, sayı, beden; is_grounded). Modelin tamamladığı soru girmez."""
     context = state.request.context
     previous = sorted(marked_tokens(context.question)) if context is not None else []
-    return " ".join([state.request.question, *previous])
+    return state.request.question, " ".join(previous)
 
 
 def _stream_callbacks(
@@ -259,7 +259,7 @@ def _stream_callbacks(
 ) -> tuple[StreamAssembler | None, StreamCallbacks | None]:
     if state.request.on_event is None:
         return None, None
-    assembler = StreamAssembler(sources, state.language, state.request.on_event, user_text(state))
+    assembler = StreamAssembler(sources, state.language, state.request.on_event, *user_text(state))
     return assembler, StreamCallbacks(
         on_delta=assembler.feed, may_retry=assembler.may_retry, on_reset=assembler.reset
     )
@@ -392,15 +392,23 @@ async def verify(state: AskState, deps: AskDeps) -> AskState:
     assert state.answer is not None
     answer = state.answer
     sources = to_prompt_sources(state.hits, deps.catalog.language)
-    verification = verify_answer(answer, sources, state.language, user_text(state))
+    verification = verify_answer(answer, sources, state.language, *user_text(state))
     if verification.status is VerificationStatus.NOT_FOUND:
         return replace(state, result=NotFound())
     if verification.status is VerificationStatus.CLARIFY:
         documents = _relevant_documents(
             candidate_documents(state.hits, verification.clarify_options), state, deps
         )
+        asked, previous = user_text(state)
         agreed, cost = await agreed_answer(
-            state.question, state.language, state.hits, documents, deps, _citation, user_text(state)
+            state.question,
+            state.language,
+            state.hits,
+            documents,
+            deps,
+            _citation,
+            asked=asked,
+            previous=previous,
         )
         result = agreed or _clarification(answer, documents, state, deps)
         return replace(state, result=result, cost_usd=state.cost_usd + cost)

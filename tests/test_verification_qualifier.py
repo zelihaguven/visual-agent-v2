@@ -59,11 +59,15 @@ def _item(text: str, quote: str, source_no: int = 1) -> ModelItem:
 
 
 def _check(
-    text: str, quote: str, sources: dict[int, PromptSource], source_no: int = 1, asked: str = ""
+    text: str,
+    quote: str,
+    sources: dict[int, PromptSource],
+    source_no: int = 1,
+    asked: str = "",
+    previous: str = "",
 ) -> ItemCheck:
-    return verify_item(
-        _item(text, quote, source_no), sources, "tr", build_qualifiers(sources, asked)
-    )
+    qualifiers = build_qualifiers(sources, asked, previous)
+    return verify_item(_item(text, quote, source_no), sources, "tr", qualifiers)
 
 
 D6 = _sources(SIZE_RANGE, CHART_SIZE_RANGE)
@@ -197,9 +201,9 @@ def test_section_path_does_not_vouch_for_a_name() -> None:
 def test_qualifiers_built_once_per_answer(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[str] = []
 
-    def counted(sources: dict[int, PromptSource], asked: str) -> Qualifiers:
+    def counted(sources: dict[int, PromptSource], asked: str, previous: str = "") -> Qualifiers:
         calls.append(asked)
-        return build_qualifiers(sources, asked)
+        return build_qualifiers(sources, asked, previous)
 
     monkeypatch.setattr("visual_agent.verification.answer.build_qualifiers", counted)
     answer = ModelAnswer(
@@ -224,10 +228,10 @@ def test_user_text_takes_only_grounded_words_from_the_previous_turn() -> None:
         "peki kalça?", context=ConversationContext(question="CKT-7308 L beden bel kaç?")
     )
     state = AskState(request=request, resolved_question="CKT-7308 M beden kalça kaç?")
-    text = user_text(state)
-    assert "peki kalça?" in text and "l" in text.split()
-    assert "m" not in text.split()  # modelin tamamladığı soru girmez
-    assert "bel" not in text.split()  # önceki turdan yalnız kod, sayı, beden
+    question, previous = user_text(state)
+    assert question == "peki kalça?" and "l" in previous.split()
+    assert "m" not in previous.split()  # modelin tamamladığı soru girmez
+    assert "bel" not in previous.split()  # önceki turdan yalnız kod, sayı, beden
 
 
 SIZES_WITH_PREFIX = _sources(
@@ -277,3 +281,36 @@ def test_colorway_number_inside_the_value_does_not_name_the_colorway() -> None:
     )
     assert not check.ok
     assert any("varyantı yok" in problem for problem in check.problems)
+
+
+# --- Önceki turun bedeni: bu tur gruptan ad söylüyorsa önceki turun adı sayılmaz ---
+
+PREVIOUS = "ckt-7308 l"  # önceki tur "CKT-7308 L beden bel kaç?" (is_grounded sözcükleri)
+
+
+def test_previous_size_does_not_vouch_when_this_turn_names_another_size() -> None:
+    check = _check("Bel 42,0.", "L: 42,0", SIZES, asked="peki M?", previous=PREVIOUS)
+    assert not check.ok
+    assert any("varyantı yok" in problem for problem in check.problems)
+
+
+def test_this_turns_size_vouches_for_its_own_value() -> None:
+    assert _check("Bel 40,0.", "M: 40,0", SIZES, asked="peki M?", previous=PREVIOUS).ok
+
+
+def test_previous_size_still_counts_when_this_turn_names_no_size() -> None:
+    assert _check(
+        "Kalça 52,5.",
+        "L: 52,5",
+        _sources("Ebat: Kalça | S: 48,5 | M: 50,5 | L: 52,5 | Tolerans (cm): 1,0", language="tr"),
+        asked="peki kalça?",
+        previous=PREVIOUS,
+    ).ok
+
+
+def test_previous_colorway_does_not_vouch_when_this_turn_names_a_header_sibling() -> None:
+    quote = "100: White // Venom Red: Venom Red 690"
+    for asked in ("peki 001?", "peki Black / Blue Haze?"):
+        check = _check("Göğüs logosu Venom Red 690.", quote, LOGO, asked=asked, previous="100")
+        assert not check.ok, asked
+    assert _check("Göğüs logosu Venom Red 690.", quote, LOGO, asked="peki?", previous="100").ok
