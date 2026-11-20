@@ -1254,9 +1254,9 @@ button.status-card {
    sesle oynayan çubuklar), bakıyor (dönen kesikli çerçeve, üç nokta), konuşuyor (dolu krem
    daire, ses dalgası), anlayamadı (gri çerçeve). */
 .talk {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 3;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 8px;
@@ -1570,10 +1570,22 @@ button.status-card {
   display: none;
 }
 
+/* Geniş ekranda açık belge ve kaynak panelleri sesli modun yanında kalır (çalışma alanı). */
+@media (min-width: 1080px) {
+  .layout:has(.drawer.is-left:not([hidden])) .talk {
+    left: var(--rail-width);
+  }
+
+  .layout:has(.drawer.is-right:not([hidden])) .talk {
+    right: var(--source-width);
+  }
+}
+
 /* Tablet dikey ve dar ekran: iki sütun alt alta, halka küçülür. */
 @media (max-width: 1000px) {
   .talk-body {
     grid-template-columns: minmax(0, 1fr);
+    align-content: start;
     align-items: start;
     gap: 24px;
   }

@@ -284,6 +284,18 @@ describe("App", () => {
     expect(await screen.findByText("38,0", { selector: ".answer-value" })).toBeInTheDocument();
   });
 
+  it("does not repeat a sentence that is only the value", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([answeredWith([{ ...shown, text: "38,0" }], "verified")]),
+    });
+    render(<App />);
+
+    await ask("CKT-7308 S bel kaç?");
+
+    expect(await screen.findAllByText("38,0")).toHaveLength(1);
+  });
+
   it.each([
     ["two values in the sentence", [{ ...shown, text: "S 72,0 ve M 74,0." }], "verified"],
     ["two sentences", [shown, { ...shown, text: "Kalça 52,5." }], "verified"],

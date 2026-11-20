@@ -305,7 +305,10 @@ function FinalAnswer({
                 fromOcr={item.from_ocr}
               />
             )}
-            {item.verified && item.text.trim() !== item.code?.trim() && item.text}
+            {item.verified &&
+              item.text.trim() !== item.code?.trim() &&
+              item.text.trim().replace(/\.$/, "") !== value &&
+              item.text}
             {item.code !== null && (
               <pre className="code-block">
                 <code>{item.code}</code>
