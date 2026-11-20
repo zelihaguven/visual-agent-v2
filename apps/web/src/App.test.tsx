@@ -300,6 +300,7 @@ describe("App", () => {
     ["two values in the sentence", [{ ...shown, text: "S 72,0 ve M 74,0." }], "verified"],
     ["two sentences", [shown, { ...shown, text: "Kalça 52,5." }], "verified"],
     ["a hidden sentence", [hidden], "failed"],
+    ["a verified sentence read from a scan", [{ ...shown, from_ocr: true }], "verified"],
   ])("shows no large value with %s", async (_name, items, status) => {
     stubApi({
       "/api/documents": () => jsonResponse([]),
