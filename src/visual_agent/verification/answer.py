@@ -206,6 +206,23 @@ def _asked_model_numbers(item: ModelItem, sources: Sources, user: str) -> set[st
     return {head for head in heads if head and model_numbers(head) == {head}} & numbers_in(user)
 
 
+def _asked_cell_labels(item: ModelItem, sources: Sources, user: str) -> set[str]:
+    """Alıntıyı içeren tablo hücresinin başlığındaki sayı (varyant adı: renk yolu "001", sayısal
+    beden "38"), kullanıcı da söylediyse cümlede alıntısız geçebilir: değer değil, hangi sütundan
+    söz edildiğidir. Aynı satırın başka hücresinin başlığı ya da kullanıcının söylemediği başlık
+    sayısı yine reddedilir."""
+    labels: set[str] = set()
+    for quote in item.quotes:
+        source, wanted = sources.get(quote.source_no), normalize(quote.text)
+        if source is None or not wanted:
+            continue
+        for line in source.text.splitlines():
+            for label, value in labeled_cells(line, last=True):
+                if wanted in normalize(value):
+                    labels |= numbers_in(label)
+    return labels & numbers_in(user)
+
+
 def _first_name_part(title: str) -> str:
     """Adın ilk tire ya da alt çizgisinden önceki parçası; ayraç yoksa boş."""
     joiner = _NAME_JOINERS.search(title)
@@ -218,7 +235,8 @@ def _token_problems(
     """user: kullanıcının kendi metni (bu turun sorusu ve önceki turun denetlenmiş sözcükleri)."""
     problems = []
     joined = " ".join(text for text, _ in evidence)
-    backed = numbers_in(joined) | word_numbers(joined) | _asked_model_numbers(item, sources, user)
+    backed = numbers_in(joined) | word_numbers(joined)
+    backed |= _asked_model_numbers(item, sources, user) | _asked_cell_labels(item, sources, user)
     stray_numbers = (
         (numbers_in(item.text) - backed)
         | (word_numbers(item.text) - _ARTICLE_NUMBERS - backed)

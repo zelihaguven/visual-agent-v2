@@ -736,3 +736,47 @@ def test_title_number_outside_the_first_part_is_hidden(title: str, value: str) -
 
     assert result.status is VerificationStatus.FAILED
     assert number in result.problems[0]
+
+
+# Alıntıyı içeren hücrenin başlığındaki sayı (renk yolu, sayısal beden), kullanıcı söylediyse.
+@pytest.mark.parametrize(
+    ("text", "quote", "asked", "passes"),
+    [
+        # a. renk yolu soruda, değer "Black" alıntılandı
+        ("İplik 001 kodunda Black renktedir.", "Black", "TT-100157 001 hangi renk?", True),
+        # b. renk yolu soruda yok
+        ("İplik 001 kodunda Black renktedir.", "Black", "TT-100157 hangi renk?", False),
+        # c. sayı başka hücrenin (100) başlığı
+        ("İplik 100 kodunda Black renktedir.", "Black", "TT-100157 100 hangi renk?", False),
+        # f. cümlede 001, alıntı 100 sütunundan (niteleyici kuralıyla birlikte)
+        ("İplik 001 kodunda White renktedir.", "White", "TT-100157 001 hangi renk?", False),
+    ],
+)
+def test_number_from_the_quoted_cell_label_passes_when_the_user_said_it(
+    text: str, quote: str, asked: str, passes: bool
+) -> None:
+    result = verify_answer(answer(item(text, quote=quote)), BOM_SOURCES, "tr", asked)
+
+    assert (result.status is VerificationStatus.VERIFIED) is passes, result.problems
+    if not passes:
+        assert any("sayı" in problem for problem in result.problems)
+
+
+SIZE_ROW = "Ölçü noktası: Bel | 36: 72,0 | 38: 76,0 | 40: 80,0"
+SIZE_SOURCES = {1: PromptSource(number=1, text=SIZE_ROW, title="Föy", is_table_row=True)}
+
+
+@pytest.mark.parametrize(
+    ("text", "asked", "passes"),
+    [
+        # d. sayısal beden sütunu: soruda 38 var / yok
+        ("38 beden bel 76,0.", "38 beden bel kaç?", True),
+        ("38 beden bel 76,0.", "bel kaç?", False),
+        # e. sütun adı alıntılanan hücrenin değil, aynı satırdaki başka hücrenin başlığı
+        ("36 beden bel 76,0.", "36 beden bel kaç?", False),
+    ],
+)
+def test_numeric_size_label_of_the_quoted_cell(text: str, asked: str, passes: bool) -> None:
+    result = verify_answer(answer(item(text, quote="76,0")), SIZE_SOURCES, "tr", asked)
+
+    assert (result.status is VerificationStatus.VERIFIED) is passes, result.problems
