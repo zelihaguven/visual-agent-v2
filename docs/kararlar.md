@@ -869,12 +869,28 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   yüzeyde (koyu zemin üstünde açık kart; ayrı bir açık tema yok).
 - **Ne:** 1080 px ve üstünde belgeler solda, kaynak sağda sabit panel; sohbet ortada kullanılır
   kalır (karartma yok), belgeler paneli açık başlar. Dar ekranda eskisi gibi çekmece. Açılışta
-  bento karolar (büyük mercan "Sesli sor", krem "Yazarak sor", beyaz "Belge ekle"); konuşma
-  modunda ses düzeyiyle büyüyen küre.
+  bento karolar (büyük mercan "Sesli sor", krem "Yazarak sor", beyaz "Belge ekle"). Konuşma
+  modundaki küre 2026-11-20'de ses halkasıyla değişti (aşağıda).
 - **Nasıl:** `App.css`, `App.tsx`'te açılış durumu, `LandingActions.tsx`'te karo sınıfı ve ok
   simgesi. Metinler ve erişilebilirlik adları değişmedi. Harici yazı tipi yok.
 - **Denenmedi:** atölye ışığında koyu zeminin okunurluğu; konuşma modu yalnız stil olarak
   değişti, mikrofonla denenmedi.
+
+### Sesli mod ve cevap kartı tasarımı
+- **Ne zaman:** 2026-11-20, `arayuz-sesli-tasarim` dalı; ürün sahibinin tasarımı ve kararları.
+- **Ne:** Sesli mod tam ekran, iki sütun (dar ekranda alt alta): ses halkası (dinliyor, bakıyor,
+  konuşuyor, anlayamadı) ve "Duyduğum" paneliyle cevap kartı. Yazı tipi sistem, tema yalnız
+  koyu (16 Kasım kararı aynı).
+- **Kurallar (yalnız görünüm; doğrulama, arka uç durumu ve ses akışı aynı):**
+  - "Anlayamadı" akış durumu değil: dinlerken son kayıt yazıya çevrilemediyse görünür; dinleme
+    sürdüğü için mikrofon kapalı çizilmez, "Tekrar dinle" düğmesi yok.
+  - Büyük değer yalnız doğrulanmış ya da yalnız taramadan okunmuş, çelişkisiz cevabın tek
+    cümlesinde tek düz sayı varsa. Rakam taşıyan sözcüklerden biri düz sayı ya da tireli kod
+    değilse ("1-5", "M8x1,25", "27½", "−5", "%15") büyük değer gösterilmez.
+  - Doğrulanamayan cevapta en az bir cümle gösterildiyse rozet "Kısmen doğrulandı · N cümle
+    gizlendi"; hiçbiri gösterilmediyse "Doğrulanamadı".
+- **Bilinen sınır:** Cümledeki tek düz sayı cevabın kendisi olmayabilir ("Rev 2", boşluklu kod
+  "GML 6473"); değer büyük, cümle altında görünür.
 
 ### İnternetsiz açılış: VA_MODELS_OFFLINE; BM25 önbelleği kalıcı klasörde
 - **Ne zaman:** 2026-11-13, `cevrimdisi-acilis` dalı; ürün sahibi isteği (fabrika ağında

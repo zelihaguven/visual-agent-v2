@@ -239,6 +239,138 @@ describe("App", () => {
     expect(screen.queryByText(/Taramadan okundu/)).not.toBeInTheDocument();
   });
 
+  function answeredWith(items: object[], status = "failed") {
+    return { ...answered, result: { ...answered.result, status, items } };
+  }
+
+  const shown = answered.result.items[0];
+  const hidden = { ...shown, text: "", verified: false, problems: ["cümlede kaynakta olmayan kod"] };
+
+  it("says how many sentences were hidden when the rest of the answer is shown", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([answeredWith([shown, hidden, hidden])]),
+    });
+    render(<App />);
+
+    await ask("İç paça kaç?");
+
+    expect(await screen.findByText("Kısmen doğrulandı · 2 cümle gizlendi")).toBeInTheDocument();
+    expect(screen.queryByText("Doğrulanamadı")).not.toBeInTheDocument();
+  });
+
+  it("keeps the unverified badge when every sentence was hidden", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([answeredWith([hidden])]),
+    });
+    render(<App />);
+
+    await ask("İç paça kaç?");
+
+    expect(await screen.findByText("Doğrulanamadı")).toBeInTheDocument();
+  });
+
+  it("shows the value of a single verified sentence large", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([answeredWith([{ ...shown, text: "GML-6473 modelinde M beden bel 38,0." }], "verified")]),
+    });
+    render(<App />);
+
+    await ask("GML-6473 M bel kaç?");
+
+    expect(await screen.findByText("38,0", { selector: ".answer-value" })).toBeInTheDocument();
+  });
+
+  it("does not repeat a sentence that is only the value", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([answeredWith([{ ...shown, text: "38,0" }], "verified")]),
+    });
+    render(<App />);
+
+    await ask("CKT-7308 S bel kaç?");
+
+    expect(await screen.findAllByText("38,0")).toHaveLength(1);
+  });
+
+  it.each([
+    ["two values in the sentence", [{ ...shown, text: "S 72,0 ve M 74,0." }], "verified"],
+    ["two sentences", [shown, { ...shown, text: "Kalça 52,5." }], "verified"],
+    ["a hidden sentence", [hidden], "failed"],
+  ])("shows no large value with %s", async (_name, items, status) => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([answeredWith(items, status)]),
+    });
+    render(<App />);
+
+    await ask("İç paça kaç?");
+
+    await screen.findByText(status === "verified" ? "Doğrulandı" : "Doğrulanamadı");
+    expect(document.querySelector(".answer-value")).toBeNull();
+  });
+
+  // Sayının bir parçasını büyük göstermek yanlış değer olur: bu yazımlarda büyük değer yok.
+  it.each([
+    "Aralık 1-5 mm.",
+    "Aralık 0,5–1 mm.",
+    "M8x1,25 vida kullanılır.",
+    "Ölçü 10x20.",
+    "Değer 27½.",
+    "Tolerans 3⅜ inç.",
+    "Sıcaklık −5 °C.",
+    "Tolerans ±0,5.",
+    "Oran %15.",
+    "Sürüm v1.2.3.",
+    "Kesir -3/8.",
+    "Tarih 20.11.2026.",
+    "Tutar 1.200,50 TL.",
+  ])("shows no large value for the partial number in %s", async (text) => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([answeredWith([{ ...shown, text }], "verified")]),
+    });
+    render(<App />);
+
+    await ask("Değer kaç?");
+
+    await screen.findByText(text);
+    expect(document.querySelector(".answer-value")).toBeNull();
+  });
+
+  it.each([
+    ["an answer cut short", { status: "partial", problems: ["Cevap tamamlanamadı, kaynağa bakın."] }],
+    ["conflicting sources", { status: "verified", has_conflict: true }],
+  ])("shows no large value for %s", async (_name, change) => {
+    const result = { ...answered.result, ...change, items: [{ ...shown, text: "Bel 38,0." }] };
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([{ ...answered, result }]),
+    });
+    render(<App />);
+
+    await ask("Bel kaç?");
+
+    await screen.findByText("Bel 38,0.");
+    expect(document.querySelector(".answer-value")).toBeNull();
+  });
+
+  it("shows the value of a verified answer read from a scan large", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([answeredWith([{ ...shown, text: "M beden bel 38,0'dır.", from_ocr: true }], "partial")]),
+    });
+    render(<App />);
+
+    await ask("GML-6473 M bel kaç?");
+
+    expect(await screen.findByText("38,0", { selector: ".answer-value" })).toBeInTheDocument();
+  });
+
   it("opens the highlighted page of a citation", async () => {
     stubApi({
       "/api/documents": () => jsonResponse([]),
@@ -911,6 +1043,7 @@ describe("App", () => {
     render(<App />);
     await ask("GML-6473 kalibrasyon nasıl yapılır?");
 
+    expect(await screen.findByText("Bu bilgi bu kodun geçtiği belgelerde yok.")).toBeInTheDocument();
     fireEvent.click(await screen.findByRole("button", { name: "Tüm belgelerde ara" }));
 
     await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
@@ -1195,7 +1328,7 @@ describe("App", () => {
       await open(fetchMock);
       await screen.findByText("Dinliyorum");
       expect(create).toHaveBeenCalledTimes(1);
-      fireEvent.click(screen.getByRole("button", { name: "Bitir" }));
+      fireEvent.click(screen.getByRole("button", { name: "Ana sayfa" }));
       await waitFor(() => expect(listening.close).toHaveBeenCalled());
       expect(screen.queryByText("Dinliyorum")).not.toBeInTheDocument();
 
@@ -1342,7 +1475,7 @@ describe("App", () => {
 
       expect(await screen.findByRole("alert")).toHaveTextContent("Ses servisine ulaşılamadı");
       expect(listening.close).toHaveBeenCalled();
-      expect(screen.queryByText("Anlayamadım, tekrar söyler misiniz?")).not.toBeInTheDocument();
+      expect(screen.queryByText("Anlayamadım")).not.toBeInTheDocument();
       expect(listening.listen).toHaveBeenCalledTimes(1);
       expect(askBodiesOf(fetchMock)).toHaveLength(0);
     });
@@ -1382,9 +1515,24 @@ describe("App", () => {
 
       await open(fetchMock);
 
-      expect(await screen.findByText("Anlayamadım, tekrar söyler misiniz?")).toBeInTheDocument();
+      expect(await screen.findByText("Anlayamadım")).toBeInTheDocument();
       await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(2));
       expect(askBodiesOf(fetchMock)).toHaveLength(0);
+    });
+
+    it("shows what it heard and leaves for the text box on request", async () => {
+      stubAudio();
+      hearInTurn("birinci");
+      const fetchMock = conversationApi(["GML-6473 bel kaç"]);
+
+      await open(fetchMock);
+
+      const heard = await screen.findByRole("region", { name: "Duyduğum" });
+      expect(await within(heard).findByText("GML-6473", { selector: "code" })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Yazarak sor" }));
+      await waitFor(() => expect(listening.close).toHaveBeenCalled());
+      expect(screen.queryByRole("region", { name: "Konuşma modu" })).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Sorunuz")).toHaveFocus();
     });
 
     it("stops talking and listens again when interrupted", async () => {
@@ -1451,7 +1599,7 @@ describe("App", () => {
       );
       await open(conversationApi([]));
 
-      fireEvent.click(screen.getByRole("button", { name: "Bitir" }));
+      fireEvent.click(screen.getByRole("button", { name: "Ana sayfa" }));
       finishOpening({ stream: {}, level: () => 0, close: listening.close });
 
       await waitFor(() => expect(listening.close).toHaveBeenCalled());

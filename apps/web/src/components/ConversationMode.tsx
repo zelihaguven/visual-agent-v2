@@ -15,16 +15,37 @@ const LEVEL_GAIN = 7;
 export const WAITING_DELAY_MS = 2000;
 
 type Phase = "starting" | "listening" | "thinking" | "speaking";
+/** Halkanın görünümü: akışın evresi, ya da dinlerken son kaydın yazıya çevrilememesi. */
+type Ring = Phase | "not-heard";
 
-const STATUS: Record<Phase, string> = {
+const STATUS: Record<Ring, string> = {
   starting: "Mikrofon açılıyor",
   listening: "Dinliyorum",
   thinking: "Bakıyorum",
   speaking: "Konuşuyorum",
+  "not-heard": "Anlayamadım",
 };
 
-const NOT_HEARD = "Anlayamadım, tekrar söyler misiniz?";
-const VOICE_FAILED = "Ses servisine ulaşılamadı. Bitir'e basıp yazarak sorabilirsiniz.";
+const HINTS: Record<Ring, string> = {
+  starting: "Bir saniye.",
+  listening: "Sorunuzu bekliyorum.",
+  thinking: "Kaynaklarda arıyorum, bir saniye.",
+  speaking: "Araya girip konuşursanız susarım.",
+  "not-heard": "Bir daha söyler misiniz? Kodları harf harf söylemek işe yarar.",
+};
+
+/** Yeni konuşma başladı sayılan ses düzeyi: "Anlayamadım" görünümü kalkar. */
+const SPEECH_LEVEL = 0.3;
+const RING_BARS = [0.35, 0.6, 0.85, 0.5, 1, 0.55, 0.8, 0.6, 0.4];
+const CODE_RE = /([A-ZÇĞİÖŞÜ]{1,6}[-_]\d[\w-]*|[A-ZÇĞİÖŞÜ]+(?:_[A-ZÇĞİÖŞÜ0-9]+)+|\d{5,})/u;
+
+/** Sorudaki kodlar (GML-6473, MUSTERI_KODU, 6029322) tek aralıklı yazılır; yalnız görünüm. */
+function withCodes(text: string) {
+  return text
+    .split(CODE_RE)
+    .map((part, index) => (index % 2 === 1 ? <code key={index}>{part}</code> : part));
+}
+const VOICE_FAILED = "Ses servisine ulaşılamadı. \"Yazarak sor\"a basıp yazarak sorabilirsiniz.";
 const NO_MICROPHONE = "Mikrofona erişilemedi. Tarayıcı iznini kontrol edin.";
 
 /** Ekrandaki netleştirme ya da "Tüm belgelerde ara" seçimi: soru o belgelerde yeniden sorulur. */
@@ -44,12 +65,16 @@ type Props = {
   ) => Promise<void>;
   onOpenSource: (citation: Citation) => void;
   onClose: () => void;
+  /** Sesli moddan çıkıp yazı kutusuna geçer. */
+  onWrite: () => void;
 };
 
 export function ConversationMode(props: Props) {
-  const { audio, lastTurn, onOpenSource, onClose } = props;
+  const { audio, lastTurn, onOpenSource, onClose, onWrite } = props;
   const [phase, setPhase] = useState<Phase>("starting");
-  const [notice, setNotice] = useState<string | null>(null);
+  const [isNotHeard, setIsNotHeard] = useState(false);
+  const notHeard = useRef(false);
+  const typedTurnId = useRef(lastTurn?.id ?? null);
   const [error, setError] = useState<string | null>(null);
   const [canChoose, setCanChoose] = useState(false);
   const bars = useRef<HTMLButtonElement>(null);
@@ -66,8 +91,17 @@ export function ConversationMode(props: Props) {
     const session = new AbortController();
     let microphone: Microphone | null = null;
 
-    const showLevel = (level: number) =>
-      bars.current?.style.setProperty("--level", String(Math.min(1, level * LEVEL_GAIN)));
+    const markNotHeard = (value: boolean) => {
+      notHeard.current = value;
+      setIsNotHeard(value);
+    };
+    const showLevel = (level: number) => {
+      const scaled = Math.min(1, level * LEVEL_GAIN);
+      bars.current?.style.setProperty("--level", String(scaled));
+      if (notHeard.current && scaled > SPEECH_LEVEL) {
+        markNotHeard(false);
+      }
+    };
 
     /** Cevabı verir; kullanıcı araya girdiyse onun kaydını döndürür. */
     async function handleTurn(
@@ -76,7 +110,7 @@ export function ConversationMode(props: Props) {
       choice: Choice | null,
     ): Promise<Blob | null> {
       setPhase("thinking");
-      setNotice(null);
+      markNotHeard(false);
       const control = new AbortController();
       const monitorEnd = new AbortController();
       let hasBargedIn = false;
@@ -97,7 +131,7 @@ export function ConversationMode(props: Props) {
         throw error;
       }
       if (!text && !control.signal.aborted && !session.signal.aborted) {
-        setNotice(NOT_HEARD);
+        markNotHeard(true);
       }
       if (text && !control.signal.aborted && !session.signal.aborted) {
         let waitingTimer: number | undefined;
@@ -205,45 +239,121 @@ export function ConversationMode(props: Props) {
   }
 
   const canInterrupt = error === null && (phase === "thinking" || phase === "speaking");
+  const ring: Ring = isNotHeard && phase === "listening" ? "not-heard" : phase;
+  // Sesli mod açılmadan önce yazılmış soru "duyulmuş" gösterilmez.
+  const heard = lastTurn !== null && lastTurn.id !== typedTurnId.current ? lastTurn : null;
+  const icon = ring === "speaking" ? "speaker" : "mic";
   return (
     <section className="talk" aria-label="Konuşma modu">
-      <div className="talk-stage">
-        <button
-          ref={bars}
-          type="button"
-          className={`talk-bars is-${phase}`}
-          aria-label={canInterrupt ? "Sözünü kes" : STATUS[phase]}
-          disabled={!canInterrupt}
-          onClick={interrupt}
-        >
-          {[0.55, 0.85, 1, 0.85, 0.55].map((weight, index) => (
-            <span key={index} style={{ "--weight": weight } as React.CSSProperties} />
-          ))}
+      <header className="talk-top">
+        <button type="button" className="talk-nav" onClick={onClose}>
+          <Icon name="home" />
+          Ana sayfa
         </button>
-        {error !== null ? (
-          <p className="notice is-bad" role="alert">
-            {error}
-          </p>
-        ) : (
-          <p className="talk-status" role="status">
-            {STATUS[phase]}
-          </p>
-        )}
-        {notice !== null && <p className="muted">{notice}</p>}
+        <h2 className="talk-title">
+          Sesli mod <span>· eller serbest</span>
+        </h2>
+        <button type="button" className="talk-nav" onClick={onWrite}>
+          <Icon name="keyboard" />
+          Yazarak sor
+        </button>
+      </header>
+      <div className="talk-body">
+        <div className="talk-stage">
+          <button
+            ref={bars}
+            type="button"
+            className={`talk-ring is-${ring}`}
+            aria-label={canInterrupt ? "Sözünü kes" : STATUS[ring]}
+            disabled={!canInterrupt}
+            onClick={interrupt}
+          >
+            <Icon name={icon} />
+            <span className="talk-wave" aria-hidden="true">
+              {RING_BARS.map((weight, index) => (
+                <span
+                  key={index}
+                  style={{ "--weight": weight, "--i": index } as React.CSSProperties}
+                />
+              ))}
+            </span>
+            <span className="talk-dots" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+          </button>
+          {error !== null ? (
+            <p className="notice is-bad" role="alert">
+              {error}
+            </p>
+          ) : (
+            <>
+              <p className="talk-status" role="status">
+                {STATUS[ring]}
+              </p>
+              <p className="talk-hint">{HINTS[ring]}</p>
+            </>
+          )}
+        </div>
+        <div className="talk-side">
+          <section className="talk-heard" aria-labelledby="talk-heard-title">
+            <h3 id="talk-heard-title">Duyduğum</h3>
+            {ring === "not-heard" ? (
+              <p className="talk-heard-empty">Ses geldi ama sözcükler çıkarılamadı.</p>
+            ) : heard !== null ? (
+              <p className="talk-heard-text">{withCodes(heard.question)}</p>
+            ) : (
+              <p className="talk-heard-empty">Henüz bir şey duymadım.</p>
+            )}
+            {canInterrupt && (
+              <button type="button" className="talk-again" onClick={interrupt}>
+                Tekrar söyleyeceğim
+              </button>
+            )}
+          </section>
+          {lastTurn !== null && (
+            <div className="talk-turn">
+              <TurnView
+                turn={lastTurn}
+                onOpenSource={onOpenSource}
+                onAskAgain={choose}
+                isBusy={!canChoose}
+              />
+            </div>
+          )}
+        </div>
       </div>
-      <div className="talk-turn">
-        {lastTurn !== null && (
-          <TurnView
-            turn={lastTurn}
-            onOpenSource={onOpenSource}
-            onAskAgain={choose}
-            isBusy={!canChoose}
-          />
-        )}
-      </div>
-      <button type="button" className="ghost talk-end" onClick={onClose}>
-        Bitir
-      </button>
     </section>
+  );
+}
+
+const ICONS = {
+  home: ["M3 11l9-7 9 7", "M5 10v10h14V10"],
+  keyboard: [
+    "M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z",
+    "M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10",
+  ],
+  mic: ["M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3Z", "M5 11a7 7 0 0 0 14 0", "M12 18v3"],
+  speaker: ["M11 5 6 9H3v6h3l5 4Z", "M15.5 8.5a5 5 0 0 1 0 7", "M18.5 5.5a9 9 0 0 1 0 13"],
+};
+
+/** Çizgi simgeler; renk metinden gelir. "Anlayamadım"da mikrofon üstü çizili değil: dinleme sürer. */
+function Icon({ name }: { name: keyof typeof ICONS }) {
+  return (
+    <svg
+      className="talk-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {ICONS[name].map((d) => (
+        <path key={d} d={d} />
+      ))}
+    </svg>
   );
 }

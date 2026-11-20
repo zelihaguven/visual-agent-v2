@@ -163,7 +163,7 @@ h2 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--touch-size);
   padding: 0 16px;
   border: 1px solid var(--color-line);
   border-radius: 999px;
@@ -284,8 +284,8 @@ h2 {
 .action-icon {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: var(--touch-size);
+  height: var(--touch-size);
   border-radius: 50%;
   background: rgb(10 18 48 / 12%);
 }
@@ -338,7 +338,7 @@ h2 {
 }
 
 button.status-card {
-  min-height: 44px;
+  min-height: var(--touch-size);
   cursor: pointer;
 }
 
@@ -537,7 +537,7 @@ button.status-card {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--touch-size);
 }
 
 .stage {
@@ -583,8 +583,8 @@ button.status-card {
 .speak-button {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: var(--touch-size);
+  height: var(--touch-size);
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -606,6 +606,15 @@ button.status-card {
 .speak-button.is-loading {
   opacity: 0.5;
   cursor: progress;
+}
+
+.answer-value {
+  margin: 4px 0 0;
+  font-family: var(--font-mono);
+  font-size: clamp(4rem, 3rem + 4vw, 6.5rem);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
 }
 
 .answer-items {
@@ -676,7 +685,7 @@ button.status-card {
   gap: 8px;
   max-width: 100%;
   min-width: 0;
-  min-height: 44px;
+  min-height: var(--touch-size);
   padding: 0 14px 0 6px;
   border: 0;
   border-radius: 999px;
@@ -771,6 +780,19 @@ button.status-card {
   cursor: not-allowed;
 }
 
+.clarify .choices {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clarify .choice {
+  min-height: 72px;
+  padding: 0 22px;
+  border-radius: 18px;
+  font-size: 1.375rem;
+  text-align: left;
+}
+
 .small-talk {
   margin: 0;
   font-size: 1.125rem;
@@ -836,7 +858,7 @@ button.status-card {
 }
 
 .ghost {
-  min-height: 44px;
+  min-height: var(--touch-size);
   padding: 0 16px;
   border: 1px solid var(--color-line);
   border-radius: 999px;
@@ -1124,7 +1146,7 @@ button.status-card {
 }
 
 .document-actions button {
-  min-height: 44px;
+  min-height: var(--touch-size);
   padding: 0;
   border: 0;
   background: transparent;
@@ -1227,143 +1249,350 @@ button.status-card {
   color: var(--color-text);
 }
 
-/* Konuşma modu: ortada ses düzeyiyle büyüyen küre, altta büyük bitir düğmesi. */
+/* Sesli mod: üstte gezinme, solda ses halkası ve durum, sağda duyulan soru ve cevap kartı.
+   Dar ekranda (tablet dikey) iki sütun alt alta. Halkanın dört hali: dinliyor (mercan çerçeve,
+   sesle oynayan çubuklar), bakıyor (dönen kesikli çerçeve, üç nokta), konuşuyor (dolu krem
+   daire, ses dalgası), anlayamadı (gri çerçeve). */
 .talk {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 3;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 12px;
-  padding: clamp(16px, 4vw, 40px);
-  background:
-    radial-gradient(50vmax 36vmax at 50% -10%, rgb(255 111 79 / 16%), transparent 65%),
-    var(--color-page);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 16px clamp(16px, 3vw, 40px) clamp(16px, 3vw, 40px);
+  overflow-y: auto;
+  background: var(--color-page);
   animation: fade var(--ease);
+}
+
+.talk-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.talk-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 22px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-raised);
+  color: var(--color-text);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.talk-nav:hover,
+.talk-nav:focus-visible {
+  background: var(--color-raised-hover);
+}
+
+.talk-nav .talk-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.talk-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.talk-title::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--coral);
+}
+
+.talk-title span {
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.talk-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
+  align-items: center;
+  gap: 40px;
+  min-height: 0;
 }
 
 .talk-stage {
   display: grid;
   justify-items: center;
-  gap: 18px;
-  padding-top: clamp(8px, 4vh, 40px);
+  gap: 10px;
+  text-align: center;
 }
 
-.talk-bars {
+.talk-ring {
   --level: 0;
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: clamp(168px, 34vmin, 240px);
+  gap: 18px;
+  width: clamp(220px, 28vw, 340px);
   aspect-ratio: 1;
+  margin-bottom: 22px;
   padding: 0;
-  border: 0;
+  border: 10px solid var(--coral);
   border-radius: 50%;
-  background: transparent;
+  background: var(--color-raised);
+  color: var(--coral);
   cursor: pointer;
 }
 
-.talk-bars::before,
-.talk-bars::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%;
-}
-
-.talk-bars::before {
-  background: conic-gradient(
-    from 210deg,
-    var(--coral),
-    var(--cream),
-    #7f9cff,
-    var(--navy-600),
-    var(--coral)
-  );
-  filter: blur(2px);
-  transform: scale(calc(0.9 + var(--level) * 0.16));
-  transition: transform 120ms linear;
-  animation: orb-turn 14s linear infinite;
-}
-
-.talk-bars::after {
-  inset: 16%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, var(--navy-600), var(--navy-900) 70%);
-}
-
-.talk-bars:disabled {
+.talk-ring:disabled {
   cursor: default;
 }
 
-.talk-bars span {
-  position: relative;
-  z-index: 1;
+.talk-ring::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.talk-ring .talk-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.talk-wave,
+.talk-dots {
+  display: flex;
+  align-items: center;
+  height: 64px;
+}
+
+.talk-wave {
+  gap: 6px;
+}
+
+.talk-wave span {
   display: block;
   width: 8px;
-  height: 34%;
+  height: calc(var(--weight) * 64px);
   border-radius: 4px;
+  background: currentcolor;
+  transform: scaleY(calc(0.25 + var(--level) * 0.75));
+  transition: transform 80ms linear;
+}
+
+.talk-dots {
+  display: none;
+  gap: 14px;
+}
+
+.talk-dots span {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-text);
+  animation: talk-dot 1.2s ease-in-out infinite;
+}
+
+.talk-dots span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.talk-dots span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+/* Dinliyor: dışarı açılan halka. */
+.talk-ring.is-listening::before,
+.talk-ring.is-starting::before {
+  border: 4px solid var(--coral);
+  animation: talk-pulse 1.8s ease-out infinite;
+}
+
+.talk-ring.is-starting {
+  opacity: 0.6;
+}
+
+/* Bakıyor: çerçeve kesikli ve döner; çubuk yerine üç nokta. */
+.talk-ring.is-thinking {
+  border-color: transparent;
+  color: var(--color-muted);
+}
+
+.talk-ring.is-thinking::before {
+  border: 8px dashed var(--color-muted);
+  animation: talk-spin 6s linear infinite;
+}
+
+.talk-ring.is-thinking .talk-icon,
+.talk-ring.is-thinking .talk-wave {
+  display: none;
+}
+
+.talk-ring.is-thinking .talk-dots {
+  display: flex;
+}
+
+/* Konuşuyor: dolu krem daire, kendi kendine oynayan dalga. */
+.talk-ring.is-speaking {
+  border-color: var(--cream);
   background: var(--cream);
-  transform: scaleY(calc(0.14 + var(--level) * var(--weight) * 0.86));
-  transition: transform var(--duration-bars, 80ms) linear;
+  color: var(--navy-900);
 }
 
-.talk-bars.is-thinking span {
-  opacity: 0.55;
-  transform: scaleY(0.2);
-}
-
-.talk-bars.is-speaking span {
+.talk-ring.is-speaking .talk-wave span {
   animation: talk-wave 900ms ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * 110ms);
 }
 
-.talk-bars.is-speaking span:nth-child(2) {
-  animation-delay: 120ms;
+/* Anlayamadı: gri çerçeve; dinleme sürdüğü için mikrofon kapalı çizilmez. */
+.talk-ring.is-not-heard {
+  border-color: var(--color-muted);
+  color: var(--color-muted);
 }
 
-.talk-bars.is-speaking span:nth-child(3) {
-  animation-delay: 240ms;
+.talk-ring.is-not-heard .talk-wave {
+  display: none;
 }
 
-.talk-bars.is-speaking span:nth-child(4) {
-  animation-delay: 360ms;
-}
-
-.talk-bars.is-speaking span:nth-child(5) {
-  animation-delay: 480ms;
+.talk-ring.is-not-heard .talk-icon {
+  width: 64px;
+  height: 64px;
 }
 
 .talk-status {
   margin: 0;
-  padding: 6px 18px;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 1.4rem + 1.8vw, 3rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.talk-hint {
+  max-width: 520px;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 1.375rem;
+  line-height: 1.4;
+}
+
+.talk-side {
+  display: grid;
+  align-content: center;
+  gap: 20px;
+  min-height: 0;
+}
+
+.talk-heard {
+  display: grid;
+  gap: 16px;
+  padding: 28px;
+  border: 1px solid var(--color-line);
+  border-radius: 24px;
+  background: var(--color-raised);
+}
+
+.talk-heard h3 {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.talk-heard-text {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.talk-heard-text code {
+  padding: 2px 12px;
+  border-radius: 10px;
+  background: var(--navy-600);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  font-weight: 600;
+}
+
+.talk-heard-empty {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 1.5rem;
+  line-height: 1.4;
+}
+
+.talk-again {
+  justify-self: start;
+  min-height: 52px;
+  padding: 0 22px;
+  border: 1px solid var(--color-line);
   border-radius: 999px;
-  background: var(--coral);
-  color: var(--color-on-accent);
-  font-weight: 700;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.talk-again:hover,
+.talk-again:focus-visible {
+  background: var(--color-raised-hover);
 }
 
 .talk-turn {
   min-height: 0;
-  overflow-y: auto;
 }
 
 .talk-turn .turn {
-  margin: 0 auto;
+  max-width: none;
+  animation: none;
 }
 
-.talk-end {
-  justify-self: center;
-  min-width: 160px;
-  min-height: 56px;
-  border: 0;
-  background: var(--cream);
-  color: var(--navy-900);
-  font-weight: 700;
-  box-shadow:
-    0 0 0 10px rgb(247 238 221 / 8%),
-    0 0 0 22px rgb(247 238 221 / 4%);
+/* Sesli modda soru "Duyduğum" panelinde; kartta yinelenmez. */
+.talk-turn .question {
+  display: none;
+}
+
+/* Geniş ekranda açık belge ve kaynak panelleri sesli modun yanında kalır (çalışma alanı). */
+@media (min-width: 1080px) {
+  .layout:has(.drawer.is-left:not([hidden])) .talk {
+    left: var(--rail-width);
+  }
+
+  .layout:has(.drawer.is-right:not([hidden])) .talk {
+    right: var(--source-width);
+  }
+}
+
+/* Tablet dikey ve dar ekran: iki sütun alt alta, halka küçülür. */
+@media (max-width: 1000px) {
+  .talk-body {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    align-items: start;
+    gap: 24px;
+  }
+
+  .talk-ring {
+    width: clamp(200px, 40vw, 280px);
+  }
 }
 
 /* Hareket: yalnız opaklık ve dönüşüm; azaltılmış harekette kapalı. */
@@ -1396,17 +1625,42 @@ button.status-card {
 
 @keyframes talk-wave {
   from {
-    transform: scaleY(0.2);
+    transform: scaleY(0.25);
   }
 
   to {
-    transform: scaleY(calc(var(--weight) * 0.9));
+    transform: scaleY(1);
   }
 }
 
-@keyframes orb-turn {
+@keyframes talk-pulse {
+  from {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.16);
+  }
+}
+
+@keyframes talk-spin {
   to {
     rotate: 1turn;
+  }
+}
+
+@keyframes talk-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-6px);
   }
 }
 
@@ -1418,7 +1672,7 @@ button.status-card {
     transition: none !important;
   }
 
-  .talk-bars span {
+  .talk-wave span {
     transform: scaleY(0.5);
   }
 }
