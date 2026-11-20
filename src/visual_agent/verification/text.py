@@ -227,6 +227,16 @@ def canonical_number(raw: str) -> str:
     return sign + (value.rstrip("0").rstrip(".") if "." in value else value)
 
 
+_MODEL_NUMBER_RE = re.compile(r"(?<![\d.,])\d{5,}(?![\d]|[.,]\d)")
+
+
+def model_numbers(text: str) -> set[str]:
+    """Sayısal model ya da sipariş numaraları: en az 5 haneli, bağımsız sayılar. Ölçü değeri
+    ("76,5"), yıl ("2027") ve adet ("1500 adet") bu kadar uzun değildir; ondalık ya da binlik
+    ayraçlı sayının parçası da sayılmaz."""
+    return set(_MODEL_NUMBER_RE.findall(text))
+
+
 def numbers_in(text: str) -> set[str]:
     """Değer sayıları: atıf, liste numarası ve kod içindeki rakamlar hariç."""
     cleaned = strip_citations(_LINE_BREAK_RE.sub("\n", canon_chars(text)))

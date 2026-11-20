@@ -642,3 +642,97 @@ def test_source_talk_from_the_source_itself_passes() -> None:
     )
 
     assert check.ok
+
+
+BOM_ROW = (
+    "Material Details: TT-100157/ECO100 Recycled Thread | Qty: 60.0000 | "
+    "100: White // Venom Red: White 100 | 001: Black // Blue Haze: Black 001"
+)
+BOM_SOURCES = {
+    1: PromptSource(
+        number=1, text=BOM_ROW, title="6029322-SS27-6029322-US-TORCH", is_table_row=True
+    ),
+    2: PromptSource(number=2, text="Season: SS27", title="6013448-SS26-6013448-US-NEXUS"),
+}
+BLACK = "001: Black // Blue Haze: Black 001"
+
+
+def _bom_check(
+    text: str, asked: str, previous: str = "", source_no: int = 1
+) -> tuple[VerificationStatus, tuple[str, ...]]:
+    result = verify_answer(
+        answer(item(text, quote=BLACK, source_no=source_no)), BOM_SOURCES, "tr", asked, previous
+    )
+    return result.status, result.problems
+
+
+def test_model_number_of_the_cited_document_passes_when_the_user_said_it() -> None:
+    status, problems = _bom_check(
+        "6029322 modelinde TT-100157 ipliği 001 kodunda Black 001 renktedir.",
+        asked="6029322'de TT-100157 ipliği 001 kodunda hangi renk",
+    )
+
+    assert (status, problems) == (VerificationStatus.VERIFIED, ())
+
+
+def test_model_number_from_the_previous_turn_passes() -> None:
+    status, _ = _bom_check(
+        "6029322 modelinde TT-100157 ipliği 001 renk yolunda Black 001'dir.",
+        asked="peki 001?",
+        previous="001 6029322 tt-100157",
+    )
+
+    assert status is VerificationStatus.VERIFIED
+
+
+def test_model_number_the_user_did_not_say_is_hidden() -> None:
+    status, problems = _bom_check(
+        "6029322 modelinde TT-100157 ipliği 001 kodunda Black 001 renktedir.",
+        asked="TT-100157 ipliği 001 kodunda hangi renk",
+    )
+
+    assert status is VerificationStatus.FAILED
+    assert "6029322" in problems[0]
+
+
+def test_other_number_than_the_title_model_number_is_hidden() -> None:
+    status, problems = _bom_check(
+        "6029322 modelinde TT-100157 ipliği Black 001 renktedir; miktarı 60.",
+        asked="6029322'de TT-100157 ipliği 001 kodunda hangi renk",
+    )
+
+    assert status is VerificationStatus.FAILED
+    assert problems == ("cümlede kendi alıntısında olmayan sayı: ['60']",)
+
+
+def test_model_number_of_another_document_is_hidden() -> None:
+    status, problems = _bom_check(
+        "6013448 modelinde TT-100157 ipliği 001 kodunda Black 001 renktedir.",
+        asked="6013448'de TT-100157 ipliği 001 kodunda hangi renk",
+    )
+
+    assert status is VerificationStatus.FAILED
+    assert "6013448" in problems[0]
+
+
+@pytest.mark.parametrize(
+    ("title", "value"),
+    [
+        ("Klima 12000 BTU Kılavuzu", "12000 BTU"),
+        ("Sipariş 45000", "45000 adet"),
+        ("Klima-12000-BTU", "12000 BTU"),
+        ("Sipariş-45000", "45000 adet"),
+    ],
+)
+def test_title_number_outside_the_first_part_is_hidden(title: str, value: str) -> None:
+    number = value.split()[0]
+    sources = {1: PromptSource(number=1, text="Renk: Black 001", title=title)}
+    result = verify_answer(
+        answer(item(f"Miktar {value}, renk Black 001.", quote="Renk: Black 001")),
+        sources,
+        "tr",
+        asked=f"{number} için renk ne?",
+    )
+
+    assert result.status is VerificationStatus.FAILED
+    assert number in result.problems[0]

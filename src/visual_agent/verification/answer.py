@@ -24,6 +24,7 @@ from visual_agent.verification.text import (
     header_units,
     identifiers_in,
     measures_in,
+    model_numbers,
     normalize,
     numbers_in,
     numbers_with_next_word,
@@ -34,6 +35,7 @@ from visual_agent.verification.text import (
 )
 
 Sources = Mapping[int, PromptSource]
+_NAME_JOINERS = re.compile(r"[-_]")
 ABSENCE_CLAIM = "cümle belgede olmayan bir bilgiyi iddia ediyor"
 _NEGATED = r"(?:m[ae][mdy]\w*|m[ıiuü]yor\w*)"
 """Türkçe olumsuzluk eki ve ardından gelen ek: -memiş, -medi, -meyen, -miyor. Olumlu
@@ -191,12 +193,32 @@ def _stray_tens(text: str, language: str, backed: set[str], evidence: Evidence) 
     }
 
 
+def _asked_model_numbers(item: ModelItem, sources: Sources, user: str) -> set[str]:
+    """Alıntılanan kaynağın belge adındaki model numarası ("6029322"), kullanıcı da söylediyse
+    cümlede alıntısız geçebilir: değer değil, hangi belgeden söz edildiğidir.
+
+    Yalnız adın tire ya da alt çizgiyle ayrılmış ilk parçası numaranın kendisiyse sayılır
+    ("6029322-SS27-..."). Adın başka yerindeki sayı ("Klima-12000-BTU", "Sipariş-45000",
+    "Klima 12000 BTU") bir değer olabilir. Başka belgenin numarası ya da kullanıcının
+    söylemediği numara yine reddedilir."""
+    titles = (sources[q.source_no].title for q in item.quotes if q.source_no in sources)
+    heads = {_first_name_part(title) for title in titles}
+    return {head for head in heads if head and model_numbers(head) == {head}} & numbers_in(user)
+
+
+def _first_name_part(title: str) -> str:
+    """Adın ilk tire ya da alt çizgisinden önceki parçası; ayraç yoksa boş."""
+    joiner = _NAME_JOINERS.search(title)
+    return title[: joiner.start()].strip() if joiner else ""
+
+
 def _token_problems(
-    item: ModelItem, evidence: Evidence, sources: Sources, language: str
+    item: ModelItem, evidence: Evidence, sources: Sources, language: str, user: str = ""
 ) -> list[str]:
+    """user: kullanıcının kendi metni (bu turun sorusu ve önceki turun denetlenmiş sözcükleri)."""
     problems = []
     joined = " ".join(text for text, _ in evidence)
-    backed = numbers_in(joined) | word_numbers(joined)
+    backed = numbers_in(joined) | word_numbers(joined) | _asked_model_numbers(item, sources, user)
     stray_numbers = (
         (numbers_in(item.text) - backed)
         | (word_numbers(item.text) - _ARTICLE_NUMBERS - backed)
@@ -245,7 +267,8 @@ def verify_item(
         problems.append(f"kod kaynağı [{item.code_source_no}] geçersiz")
     evidence = _evidence(item, sources, code_source)
     problems += _ocr_problems(item, sources)
-    problems += _token_problems(item, evidence, sources, language)
+    user = f"{qualifiers.asked} {qualifiers.previous}"
+    problems += _token_problems(item, evidence, sources, language, user)
     problems += _tolerance_problems(item.text, " ".join(text for text, _ in evidence))
     problems += _absence_problems(item, language)
     problems += qualifier_problems(item, sources, qualifiers)
