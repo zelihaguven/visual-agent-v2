@@ -57,6 +57,13 @@ Tahmini yeniden işleme süresi (Mac'te ölçülmedi): Windows'ta 379 dijital ve
 2. Mac'teki verinin Windows'a taşınması.
 3. Set B: büyük sayfa görselini küçültmenin süreye etkisi (karar 0010/0011 altındaki liste).
 
+**Kod temizliğinden sonra** (2026-11-20 teşhisi; tek belge 6029322, Windows soru günlüğü 19 Kasım)
+
+1. Tek belge içindeki varyantlar için netleştirme seçenekleri: D6 (6013448 Size Range; s.1 "XS-4XL, SMT-4XLT", s.24 "Apparel (XS-5XL)") ve 6029322 göğüs logosu (renk yoluna göre s.9 Blue Haze 425, s.10 Venom Red 690). Bugün düğmeler yalnız en az iki aday belgede üretiliyor (`steps.py:350`, `_clarification`); tek belgede netleştirme seçeneksiz kalıyor.
+2. Doğrulayıcı: OCR belirsizlik denetimi alıntının tamamına değil, cümlede kullanılan parçalara baksın. Bu, aşağıdaki A5 kararını (Doğrulama, 2026-11-19) yeniden açar. Önce test: model belirsiz hücreyi kendi sözleriyle anlatırsa cümle yine gizlenmeli; sonra ürün sahibi kararı. Kanıt: 19 Kasım teşhisinde soru 1 (DEPO_KODU 59; belirsiz parça satırdaki "VARCHAR") ve soru 3 (BG-CV0007 Clear 960; belirsiz parça "Inc./TR0001/Approved/ea"): değer belirsiz değil, bütün satır alıntılanınca ilgisiz belirsiz parça cümleyi gizliyor.
+3. Yalnız inceleme: taranmış tablolarda satır vurgusu için Tesseract kelime kutularının kullanılabilirliği. Bugün okuyucu yolunda satırın kutusu tablonun kutusu (`page_reader.py:284`, `page_elements`); 6029322 s.7–9'da her sayfanın bütün satırları aynı kutuyu taşıyor, vurgu bütün tabloyu kapsıyor.
+4. Bir sonraki planlı yeniden işlemede: sayfaya devam eden tablo satırlarına sütun başlığı (6029322 s.9 satırları başlıksız: "Clear 960 | Clear 960" hangi renk yoluna ait belli değil) ve yanlış iç içe bölüm yolu (`chunking.py:82`, `_next_path`: düzeyi bilinmeyen başlık ilk başlığın altına giriyor; 6029322'nin 89 parçasının 87'si "Cover Sheet Properties · …", örn. "Cover Sheet Properties · BOM").
+
 ## Doğrulama
 
 - A5'teki gizleme kabul edildi (2026-11-19, ürün sahibi kararı): `sql-ekran.docx`'in görselinden okunan satırda "VARCHAR" iki okumada aynı sayıda geçmediği için belirsiz (#94'ten beri rakamsız kodlar da denetleniyor); model satırı "Tip: VARCHAR | Uzunluk: 19" diye alıntılayınca cümle gizleniyor, doğru değer 19 da gösterilmiyor. Doğrulayıcı kuralı değiştirilmedi: belirsiz hücre alıntıda olup cümlede geçmese de cümle gizlenir. Gevşetilirse açık doğar: model belirsiz hücreyi kendi sözleriyle anlatabilir ("tipi VARCHAR değil metin", "uzunluğu on dokuz") ve cümle belirsiz parçayı birebir içermediği için denetimden geçer.
