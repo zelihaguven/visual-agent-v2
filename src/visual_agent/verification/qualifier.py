@@ -1,15 +1,17 @@
 """Niteleyici denetimi: cümledeki ad ve varyant, değerin kendi satırıyla eşleşmeli.
 
-Kural A: kaynaklardan birinin hücre adı ("Chart Size Range", "Black // Blue Haze") cümlede
-geçiyorsa cümlenin alıntı yaptığı kaynağın metninde de geçmeli; başka kaynağın adı bir değere
-yapıştırılamaz. Yalnız parçanın metni sayılır; bölüm yolu sayılmaz (yanlış iç içe olabilir).
+Kural A: kaynakların tablo satırlarındaki çok sözcüklü bir ad ("Chart Size Range", "Black //
+Blue Haze") cümlede geçiyorsa cümlenin alıntı yaptığı kaynağın metninde de geçmeli; başka
+kaynağın adı bir değere yapıştırılamaz. Yalnız parçanın metni sayılır; bölüm yolu sayılmaz
+(yanlış iç içe olabilir). Düz yazı satırları ad kaynağı değildir.
 
 Kural B: alıntılanan değer bir varyant sütununun altındaysa (beden, renk yolu) o sütunun adı
 cümlede ya da kullanıcının kendi sorusunda geçmeli; değer bütün varyantlarda aynıysa gerekmez.
-Varyant sütunu: aynı satırda aynı biçimde en az iki etiket (kısa kod, numaralı ad ya da yalnız
-son sözcüğü kısa kod olarak değişen ad: "Beden S", "Beden M") ve aynı türde değer; ya da
-kaynaklardan birinin başlık satırında birden çok geçen numaralı ad ("100: White // Venom Red").
-Yapısı anlaşılmayan satır (başlıksız) bu kuralın dışında kalır.
+Varyant sütunu: aynı satırda aynı gruptan en az iki etiket ve aynı türde değer. Grup: kaynakta
+büyük harfle yazılmış kısa kod ("S", "XL", "4XLT"), son sözcüğü böyle kod olan ortak başlı ad
+("Beden S", "Beden M"), rakamlı ad ("100: White // Venom Red", "Seviye 2"). Kaynaklardan birinin
+başlık satırında birden çok geçen numaralı ad da, satırda tek kalsa varyanttır. Yapısı
+anlaşılmayan satır (başlıksız) bu kuralın dışında kalır.
 
 Kurallar cümleyi yeniden yazmaz: geçemeyen cümle gizlenir.
 """
@@ -17,19 +19,19 @@ Kurallar cümleyi yeniden yazmaz: geçemeyen cümle gizlenir.
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from functools import lru_cache
 
 from visual_agent.domain.answer import ModelItem, PromptSource
+from visual_agent.verification.quote import labeled_cells
 from visual_agent.verification.text import normalize, numbers_in, turkish_lower
 
 _CELL_SEPARATOR = "|"
-_LABEL_SEPARATOR = ":"
-_SHORT_CODE_LENGTH = 4
+_NUMBER_SEPARATOR = ":"
 _MIN_NAME_WORDS = 2
-_NUMERIC_VALUE_RE = re.compile(r"[\d\s.,/+\-−]+")
+_CODE_RE = re.compile(r"[A-ZÇĞİÖŞÜ0-9]{1,4}")
+_NUMERIC_VALUE_RE = re.compile(r"[\d\s.,:/+\-−]+")
 _SLASHES_RE = re.compile(r"\s*(?:/\s*)+")
 _SAME_VALUE = "sayı"
-
-Cell = tuple[str, str]
 
 
 def _norm(text: str) -> str:
@@ -37,6 +39,7 @@ def _norm(text: str) -> str:
     return _SLASHES_RE.sub("/", normalize(turkish_lower(text, merge_dotless_i=True)))
 
 
+@lru_cache(maxsize=4096)
 def _pattern(name: str) -> re.Pattern[str]:
     """Sözcük sınırıyla: "m" "m.code" ya da "smt-4xlt" içinde eşleşmez; cümle sonu noktası olur."""
     return re.compile(rf"(?<![\w./-]){re.escape(name)}(?![\w/-]|\.\w)")
@@ -44,6 +47,10 @@ def _pattern(name: str) -> re.Pattern[str]:
 
 def _mentions(text: str, name: str) -> bool:
     return bool(name) and _pattern(name).search(text) is not None
+
+
+def _without(text: str, name: str) -> str:
+    return _pattern(name).sub(lambda m: " " * len(m.group(0)), text) if name else text
 
 
 def _shape(text: str) -> str:
@@ -54,49 +61,55 @@ def _value_kind(value: str) -> str:
     return _SAME_VALUE if _NUMERIC_VALUE_RE.fullmatch(value) else _shape(value)
 
 
-def _cells(line: str) -> list[str]:
-    return [cell.strip() for cell in line.split(_CELL_SEPARATOR) if cell.strip()]
-
-
-def _labeled(cell: str) -> Cell | None:
-    """ "Etiket: değer". Etiketin kendisinde ":" olabilir ("100: White // Venom Red: Venom Red
-    690"); değer son ":"ten sonrasıdır."""
-    label, separator, value = cell.rpartition(_LABEL_SEPARATOR)
-    if not separator or not label.strip() or not value.strip():
-        return None
-    return _norm(label), _norm(value)
-
-
-def _name_parts(label: str) -> set[str]:
-    """Adın kendisi; numaralı adın numarası ve adı ("100", "white/venom red"); son sözcüğü
-    kısa kod olan adın kodu ("beden s" → "s")."""
-    parts = {label}
-    number, separator, name = label.partition(_LABEL_SEPARATOR)
-    if separator and number.strip().isdigit():
-        parts |= {number.strip(), name.strip()}
-    words = label.split()
-    if len(words) > 1 and len(words[-1]) <= _SHORT_CODE_LENGTH and not _has_digit(label):
-        parts.add(words[-1])
-    return {part for part in parts if part}
-
-
 def _has_digit(text: str) -> bool:
     return any(c.isdigit() for c in text)
 
 
-def _numbered(label: str) -> bool:
-    return _has_digit(label) and any(c.isalpha() for c in label)
+def _has_letter(text: str) -> bool:
+    return any(c.isalpha() for c in text)
 
 
-def _variant_key(label: str) -> str | None:
-    """Varyant olabilecek etiketin grubu: kısa kodlar ve numaralı adlar biçimleriyle; çok
-    sözcüklü adlar ortak başlarıyla ("beden s", "beden m" → "beden")."""
-    if _has_digit(label):
-        return _shape(label)
-    words = label.split()
-    if len(words) > 1:
-        return " ".join(words[:-1]) if len(words[-1]) <= _SHORT_CODE_LENGTH else None
-    return _shape(label) if len(label) <= _SHORT_CODE_LENGTH else None
+def _is_code(word: str) -> bool:
+    return bool(_CODE_RE.fullmatch(word)) and _has_letter(word)
+
+
+def _number_parts(label: str) -> set[str]:
+    """Numaralı ad: "100: white/venom red" → "100", "white/venom red"."""
+    number, separator, name = label.partition(_NUMBER_SEPARATOR)
+    if separator and number.strip().isdigit():
+        return {number.strip(), name.strip()} - {""}
+    return set()
+
+
+@dataclass(frozen=True)
+class _Column:
+    label: str
+    value: str
+    key: str | None
+    parts: frozenset[str]
+
+
+def _column(raw_label: str, raw_value: str) -> _Column:
+    """Sütunun varyant grubu ve cümlede adı sayılan parçaları; etiket kaynaktaki yazımıyla."""
+    label, value = _norm(raw_label), _norm(raw_value)
+    words = raw_label.split()
+    parts = {label} | _number_parts(label)
+    key: str | None = None
+    numbered = _has_digit(label) and _has_letter(label)
+    if numbered or (len(words) == 1 and _is_code(words[0])):
+        key = _shape(label)
+    elif len(words) > 1 and _is_code(words[-1]):
+        key = _norm(" ".join(words[:-1]))
+        parts.add(_norm(words[-1]))
+    return _Column(label, value, key, frozenset(parts))
+
+
+def _columns(line: str) -> list[_Column]:
+    return [_column(label, value) for label, value in labeled_cells(line, last=True) if value]
+
+
+def _is_table_line(line: str, source: PromptSource) -> bool:
+    return source.is_table_row or _CELL_SEPARATOR in line
 
 
 @dataclass(frozen=True)
@@ -114,18 +127,17 @@ def build_qualifiers(sources: Mapping[int, PromptSource], asked: str) -> Qualifi
     headers: set[str] = set()
     for source in sources.values():
         for line in source.text.splitlines():
-            cells = [_norm(cell) for cell in _cells(line)]
-            pairs = [pair for cell in _cells(line) if (pair := _labeled(cell))]
+            if not _is_table_line(line, source):
+                continue
+            cells = [_norm(cell) for cell in line.split(_CELL_SEPARATOR) if cell.strip()]
+            columns = _columns(line)
             # Etiketli hücrede ölçünün adı değer tarafında olabilir ("Ebat: Dış paça"); rakamsız
             # değer ad sayılır. Rakamlı değer ad değildir, sayısı sayı kuralıyla denetlenir.
-            words = [value for _, value in pairs if not _has_digit(value)]
-            for text in {*cells, *(label for label, _ in pairs), *words}:
-                names |= {
-                    part
-                    for part in _name_parts(text)
-                    if len(part.split()) >= _MIN_NAME_WORDS and any(c.isalpha() for c in part)
-                }
-            numbered = [cell for cell in cells if _numbered(cell)]
+            texts = {*cells, *(c.label for c in columns)}
+            texts |= {c.value for c in columns if not _has_digit(c.value)}
+            texts |= {part for text in set(texts) for part in _number_parts(text)}
+            names |= {t for t in texts if len(t.split()) >= _MIN_NAME_WORDS and _has_letter(t)}
+            numbered = [cell for cell in cells if _has_digit(cell) and _has_letter(cell)]
             shapes = [_shape(cell) for cell in numbered]
             headers |= {
                 cell for cell, s in zip(numbered, shapes, strict=True) if shapes.count(s) > 1
@@ -146,7 +158,7 @@ def _foreign_names(sentence: str, own: str, qualifiers: Qualifiers) -> list[str]
         if match is None:
             continue
         text = text[: match.start()] + " " * (match.end() - match.start()) + text[match.end() :]
-        if not _mentions(own, name):
+        if pattern.search(own) is None:
             foreign.append(name)
     return foreign
 
@@ -158,18 +170,17 @@ def _occurs(value: str, sentence: str) -> bool:
     return _mentions(sentence, value)
 
 
-def _variant_groups(line: str, headers: frozenset[str]) -> list[list[Cell]]:
+def _variant_groups(line: str, headers: frozenset[str]) -> list[list[_Column]]:
     """Satırdaki varyant grupları: aynı gruptan etiket ve aynı türde değer taşıyan kardeşler;
     satırda tek kalan ama başlık satırında numaralı ad olan sütun da varyanttır."""
-    cells = [pair for cell in _cells(line) if (pair := _labeled(cell))]
-    groups: dict[tuple[str, str], list[Cell]] = {}
-    for label, value in cells:
-        key = _variant_key(label)
-        if key is not None:
-            groups.setdefault((key, _value_kind(value)), []).append((label, value))
-    found = [group for group in groups.values() if len({label for label, _ in group}) > 1]
-    grouped = {cell for group in found for cell in group}
-    return found + [[cell] for cell in cells if cell[0] in headers and cell not in grouped]
+    columns = _columns(line)
+    groups: dict[tuple[str, str], list[_Column]] = {}
+    for column in columns:
+        if column.key is not None:
+            groups.setdefault((column.key, _value_kind(column.value)), []).append(column)
+    found = [group for group in groups.values() if len({c.label for c in group}) > 1]
+    grouped = {column for group in found for column in group}
+    return found + [[c] for c in columns if c.label in headers and c not in grouped]
 
 
 def _missing_variants(
@@ -178,21 +189,24 @@ def _missing_variants(
     missing: set[str] = set()
     for source in cited:
         for line in source.text.splitlines():
-            if not any(quote and quote in _norm(line) for quote in quotes):
+            normalized = _norm(line)
+            if not any(quote and quote in normalized for quote in quotes):
                 continue
             for group in _variant_groups(line, q.numbered_headers):
-                if len(group) > 1 and len({value for _, value in group}) == 1:
+                if len(group) > 1 and len({c.value for c in group}) == 1:
                     continue  # bütün varyantlarda aynı değer
-                for value in {value for _, value in group if _occurs(value, sentence)}:
-                    labels = [label for label, v in group if v == value]
+                for value in {c.value for c in group if _occurs(c.value, sentence)}:
+                    # Değerin kendisi ad sayılmaz: "Black 001"deki 001 renk yolunu söylemez.
+                    rest = _without(sentence, value)
+                    owners = [c for c in group if c.value == value]
                     named = any(
                         _mentions(text, part)
-                        for label in labels
-                        for part in _name_parts(label)
-                        for text in (sentence, q.asked)
+                        for column in owners
+                        for part in column.parts
+                        for text in (rest, q.asked)
                     )
                     if not named:
-                        missing.update(labels)
+                        missing.update(c.label for c in owners)
     return sorted(missing)
 
 

@@ -240,3 +240,40 @@ def test_size_labels_with_shared_prefix_are_variants() -> None:
     asked = "PNT-1126 modelinde iç paça kaç?"
     assert not _check("İç paça 74,0.", "Beden M: 74,0", SIZES_WITH_PREFIX, asked=asked).ok
     assert _check("M beden iç paça 74,0.", "Beden M: 74,0", SIZES_WITH_PREFIX, asked=asked).ok
+
+
+# --- İnceleme bulguları: doğru cümle gizlenmez, renk yolu numarası ad sayılmaz ---
+
+
+@pytest.mark.parametrize(
+    ("row", "text", "quote"),
+    [
+        ("Min: 10 | Max: 20", "Minimum basınç 10 bar.", "Min: 10"),
+        ("Adet: 4 | Kod: 12", "Vidadan 4 tane kullanılır.", "Adet: 4"),
+        ("Volt: 220 | Amp: 16", "Gerilim 220 V.", "Volt: 220"),
+        ("Ön: 3 | Arka: 4", "Arkada 4 vida var.", "Arka: 4"),
+        ("Karışım: 1:4 | Süre: 10:30", "Karışım oranı 1:4, süre 10:30.", "Karışım: 1:4"),
+    ],
+)
+def test_attribute_columns_are_not_variants(row: str, text: str, quote: str) -> None:
+    check = _check(text, quote, _sources(row, language="tr"))
+    assert not any("varyant" in problem for problem in check.problems)
+
+
+def test_prose_lines_are_not_names() -> None:
+    sources = {
+        1: PromptSource(number=1, text="Cihazı kapatın ve fişi çekin; bekleme süresi 5 dakika."),
+        2: PromptSource(number=2, text="Cihazı kapatın"),
+        3: PromptSource(number=3, text="Çalışma sıcaklığı"),
+    }
+    text = "Cihazı kapatın ve fişi çekin; bekleme süresi 5 dakika."
+    assert _check(text, text, sources).ok
+
+
+def test_colorway_number_inside_the_value_does_not_name_the_colorway() -> None:
+    sources = _sources(THREAD, BOM_HEADER)
+    check = _check(
+        "TT-100156 ipliğinin rengi Black 001.", "001: Black // Blue Haze: Black 001", sources
+    )
+    assert not check.ok
+    assert any("varyantı yok" in problem for problem in check.problems)
