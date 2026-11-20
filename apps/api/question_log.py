@@ -3,7 +3,9 @@
 Kaydedilenler: zaman, kullanıcının sorusu ve tamamlanmış hali, sonuç türü, doğrulama durumu ve
 sorunlar, atıf yapılan belgeler, sağlayıcı, maliyet, ilk doğrulanmış cümleye kadar geçen süre,
 cevap sağlayıcısı denemeleri (sağlayıcı ve hata metni), sesli ya da yazılı oluşu ve adım adım
-süreler. Ses ve cevap metninin tamamı yazılmaz.
+süreler. Ses ve cevap metninin tamamı yazılmaz. Sorunlar iki biçimde tutulur: `problems`
+yalnız türleri (özet ve sayım için), `problem_details` tam tanıyı (gizlenen cümlenin hangi
+sayısı, adı ya da alıntısı; teşhis için). Cümlenin kendisi ikisine de yazılmaz.
 Kayıt başarısız olursa cevap etkilenmez. Okumak için HTTP ucu yoktur:
 
     python -m apps.api.question_log --last 20
@@ -60,7 +62,8 @@ CREATE TABLE IF NOT EXISTS question_log (
     provider_wait_seconds REAL,
     translation_failed INTEGER NOT NULL DEFAULT 0,
     helper_providers TEXT NOT NULL DEFAULT '[]',
-    provider_errors TEXT NOT NULL DEFAULT '[]'
+    provider_errors TEXT NOT NULL DEFAULT '[]',
+    problem_details TEXT NOT NULL DEFAULT '[]'
 );
 CREATE INDEX IF NOT EXISTS question_log_time_idx ON question_log (created_at);
 """
@@ -68,7 +71,7 @@ _SOURCE_NUMBER = re.compile(r"\[\d+\]")
 
 
 def problem_kind(problem: str) -> str:
-    """Tanının yalnız türü kalır: cevaptaki sayı, kod ya da alıntı kayda girmez."""
+    """Tanının yalnız türü: cevaptaki sayı, kod ya da alıntı `problems` sütununa girmez."""
     return _SOURCE_NUMBER.sub("[n]", problem.split(":", 1)[0]).strip()
 
 
@@ -80,7 +83,7 @@ _COLUMNS = (
     "created_at, question, resolved_question, input_mode, result_kind, verification_status,"
     " problems, cited_doc_ids, provider, cost_usd, first_verified_seconds, total_seconds, timings,"
     " provider_attempts, provider_wait_seconds, translation_failed,"
-    " helper_providers, provider_errors"
+    " helper_providers, provider_errors, problem_details"
 )
 _ADDED_COLUMNS = {
     "provider_attempts": "INTEGER NOT NULL DEFAULT 0",
@@ -88,6 +91,7 @@ _ADDED_COLUMNS = {
     "translation_failed": "INTEGER NOT NULL DEFAULT 0",
     "helper_providers": "TEXT NOT NULL DEFAULT '[]'",
     "provider_errors": "TEXT NOT NULL DEFAULT '[]'",
+    "problem_details": "TEXT NOT NULL DEFAULT '[]'",
 }
 
 
@@ -112,6 +116,7 @@ class QuestionRecord(BaseModel):
     translation_failed: bool = False
     helper_providers: tuple[str, ...] = ()
     provider_errors: tuple[tuple[str, str], ...] = ()
+    problem_details: tuple[str, ...] = ()
 
 
 def _now() -> str:
@@ -175,6 +180,7 @@ def record_for(
         translation_failed=outcome.translation_failed,
         helper_providers=outcome.helper_providers,
         provider_errors=outcome.provider_errors,
+        problem_details=tuple(dict.fromkeys(problems)),
     )
 
 
@@ -198,6 +204,7 @@ def _row_values(record: QuestionRecord) -> tuple[object, ...]:
         int(record.translation_failed),
         json.dumps(list(record.helper_providers)),
         json.dumps([list(attempt) for attempt in record.provider_errors], ensure_ascii=False),
+        json.dumps(list(record.problem_details), ensure_ascii=False),
     )
 
 
@@ -223,6 +230,7 @@ def _from_row(row: sqlite3.Row) -> QuestionRecord:
         provider_errors=tuple(
             (provider, error) for provider, error in json.loads(row["provider_errors"])
         ),
+        problem_details=tuple(json.loads(row["problem_details"])),
     )
 
 

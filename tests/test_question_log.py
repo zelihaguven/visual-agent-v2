@@ -279,7 +279,7 @@ def test_only_the_kind_of_a_diagnosis_is_kept(problem: str, kind: str) -> None:
     assert problem_kind(problem) == kind
 
 
-def test_repeated_diagnoses_are_kept_once_and_carry_no_answer_values() -> None:
+def test_repeated_diagnoses_are_kept_once_and_only_details_carry_answer_values() -> None:
     outcome = ANSWERED.model_copy(
         update={
             "result": Answered(
@@ -302,6 +302,25 @@ def test_repeated_diagnoses_are_kept_once_and_carry_no_answer_values() -> None:
     assert record.problems == ("cümlede kaynakta olmayan teknik ad",)
     stored = json.dumps(record.problems, ensure_ascii=False).lower()
     assert "pnt-1162" not in stored and "80" not in stored
+    assert record.problem_details == ("cümlede kaynakta olmayan teknik ad: ['pnt-1162']",)
+    assert "PNT-1162 L beden bel 80 cm." not in json.dumps(record.model_dump(), ensure_ascii=False)
+
+
+def test_problem_details_are_stored_and_read_back(tmp_path: Path) -> None:
+    log = open_log(tmp_path / "va.db")
+
+    async def run() -> list[QuestionRecord]:
+        await log.migrate()
+        await log.add(record_for("Soru?", "text", "answered", ANSWERED, 2.0, 1.0))
+        return await log.last(1)
+
+    stored = asyncio.run(run())[0]
+
+    assert stored.problem_details == (
+        "aynı cümle tekrar ediyor",
+        "cümlede kendi alıntısında olmayan sayı: ['98']",
+    )
+    assert stored.problems == ("aynı cümle tekrar ediyor", "cümlede kendi alıntısında olmayan sayı")
 
 
 def test_existing_records_are_reduced_to_diagnosis_kinds(tmp_path: Path) -> None:
@@ -501,3 +520,4 @@ def test_older_log_table_gains_the_new_columns(tmp_path: Path) -> None:
         None,
     )
     assert oldest.provider_errors == ()
+    assert oldest.problem_details == ()
