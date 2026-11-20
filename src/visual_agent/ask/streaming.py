@@ -172,9 +172,10 @@ class StreamAssembler:
         language: str,
         emit: EventSink,
         asked: str = "",
+        previous: str = "",
     ) -> None:
         self._sources = sources
-        self._qualifiers = build_qualifiers(sources, asked)
+        self._qualifiers = build_qualifiers(sources, asked, previous)
         self._language = language
         self._emit = emit
         self.first_verified_seconds: float | None = None

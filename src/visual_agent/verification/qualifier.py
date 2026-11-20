@@ -115,14 +115,18 @@ def _is_table_line(line: str, source: PromptSource) -> bool:
 @dataclass(frozen=True)
 class Qualifiers:
     """Cevap başına bir kez hesaplanır: kaynakların adları (en uzun önce, derlenmiş), başlık
-    satırlarındaki numaralı adlar ve kullanıcının kendi metni."""
+    satırlarındaki numaralı adlar, kullanıcının bu turdaki sorusu ve önceki turdan yalnız
+    kullanıcıdan geldiği denetlenmiş sözcükler."""
 
     names: tuple[tuple[str, re.Pattern[str]], ...]
     numbered_headers: frozenset[str]
     asked: str
+    previous: str = ""
 
 
-def build_qualifiers(sources: Mapping[int, PromptSource], asked: str) -> Qualifiers:
+def build_qualifiers(
+    sources: Mapping[int, PromptSource], asked: str, previous: str = ""
+) -> Qualifiers:
     names: set[str] = set()
     headers: set[str] = set()
     for source in sources.values():
@@ -147,6 +151,7 @@ def build_qualifiers(sources: Mapping[int, PromptSource], asked: str) -> Qualifi
         names=tuple((name, _pattern(name)) for name in ordered),
         numbered_headers=frozenset(headers),
         asked=_norm(asked),
+        previous=_norm(previous),
     )
 
 
@@ -195,6 +200,10 @@ def _missing_variants(
             for group in _variant_groups(line, q.numbered_headers):
                 if len(group) > 1 and len({c.value for c in group}) == 1:
                     continue  # bütün varyantlarda aynı değer
+                # Bu turun sorusu gruptan bir ad söylüyorsa ("peki M?") önceki turun o gruptaki
+                # adı ("L") geçersizdir; söylemiyorsa ("peki kalça?") önceki tur geçerlidir.
+                renamed = any(_mentions(q.asked, part) for c in group for part in c.parts)
+                asked = (q.asked,) if renamed else (q.asked, q.previous)
                 for value in {c.value for c in group if _occurs(c.value, sentence)}:
                     # Değerin kendisi ad sayılmaz: "Black 001"deki 001 renk yolunu söylemez.
                     rest = _without(sentence, value)
@@ -203,7 +212,7 @@ def _missing_variants(
                         _mentions(text, part)
                         for column in owners
                         for part in column.parts
-                        for text in (rest, q.asked)
+                        for text in (rest, *asked)
                     )
                     if not named:
                         missing.update(c.label for c in owners)
