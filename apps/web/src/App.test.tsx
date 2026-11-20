@@ -300,6 +300,7 @@ describe("App", () => {
     ["two values in the sentence", [{ ...shown, text: "S 72,0 ve M 74,0." }], "verified"],
     ["two sentences", [shown, { ...shown, text: "Kalça 52,5." }], "verified"],
     ["a hidden sentence", [hidden], "failed"],
+    ["a verified sentence read from a scan", [{ ...shown, from_ocr: true }], "verified"],
   ])("shows no large value with %s", async (_name, items, status) => {
     stubApi({
       "/api/documents": () => jsonResponse([]),
@@ -358,7 +359,7 @@ describe("App", () => {
     expect(document.querySelector(".answer-value")).toBeNull();
   });
 
-  it("shows the value of a verified answer read from a scan large", async () => {
+  it("keeps the value of an answer read from a scan at sentence size", async () => {
     stubApi({
       "/api/documents": () => jsonResponse([]),
       "/api/ask": () =>
@@ -368,7 +369,9 @@ describe("App", () => {
 
     await ask("GML-6473 M bel kaç?");
 
-    expect(await screen.findByText("38,0", { selector: ".answer-value" })).toBeInTheDocument();
+    expect(await screen.findByText("Taramadan okundu · kaynaktan kontrol edin")).toBeInTheDocument();
+    expect(screen.getByText("M beden bel 38,0'dır.")).toBeInTheDocument();
+    expect(document.querySelector(".answer-value")).toBeNull();
   });
 
   it("opens the highlighted page of a citation", async () => {
