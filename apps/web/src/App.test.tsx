@@ -190,6 +190,55 @@ describe("App", () => {
     expect(screen.queryByText(/▒/)).not.toBeInTheDocument();
   });
 
+  function scannedAnswer(problems: string[]) {
+    const item = { ...answered.result.items[0], from_ocr: true };
+    return { ...answered, result: { ...answered.result, status: "partial", problems, items: [item] } };
+  }
+
+  it("says a fully verified answer read from a scan comes from a scan", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([scannedAnswer([])]),
+    });
+    render(<App />);
+
+    await ask("İç paça kaç?");
+
+    expect(
+      await screen.findByText("Taramadan okundu · kaynaktan kontrol edin"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Kısmen doğrulandı")).not.toBeInTheDocument();
+  });
+
+  it("keeps the partial badge when a scanned answer was cut short", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([scannedAnswer(["Cevap tamamlanamadı, kaynağa bakın."])]),
+    });
+    render(<App />);
+
+    await ask("İç paça kaç?");
+
+    expect(await screen.findByText("Kısmen doğrulandı")).toBeInTheDocument();
+    expect(screen.queryByText(/Taramadan okundu/)).not.toBeInTheDocument();
+  });
+
+  it("keeps the unverified badge when a scanned answer has a hidden sentence", async () => {
+    const hidden = { ...answered.result.items[0], text: "", verified: false, from_ocr: true };
+    const failed = scannedAnswer(["OCR değeri belirsiz"]);
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([{ ...failed, result: { ...failed.result, status: "failed", items: [hidden] } }]),
+    });
+    render(<App />);
+
+    await ask("İç paça kaç?");
+
+    expect(await screen.findByText("Doğrulanamadı")).toBeInTheDocument();
+    expect(screen.queryByText(/Taramadan okundu/)).not.toBeInTheDocument();
+  });
+
   it("opens the highlighted page of a citation", async () => {
     stubApi({
       "/api/documents": () => jsonResponse([]),
