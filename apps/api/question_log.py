@@ -389,13 +389,17 @@ def _optional_seconds(value: float | None) -> str:
 
 
 def record_lines(records: Sequence[QuestionRecord]) -> list[str]:
-    return [
-        f"{r.created_at}  {r.input_mode:<5}  {r.result_kind:<10}"
-        f"  {r.verification_status or '-':<9}  {r.total_seconds:5.2f} sn"
-        f"  ilk {_optional_seconds(r.first_verified_seconds)}  {r.provider or '-':<10}"
-        f"  {r.question[:70]}"
-        for r in records
-    ]
+    """Kayıt başına bir satır; tanısı olan kaydın tanıları altında girintili."""
+    lines = []
+    for r in records:
+        lines.append(
+            f"{r.created_at}  {r.input_mode:<5}  {r.result_kind:<10}"
+            f"  {r.verification_status or '-':<9}  {r.total_seconds:5.2f} sn"
+            f"  ilk {_optional_seconds(r.first_verified_seconds)}  {r.provider or '-':<10}"
+            f"  {r.question[:70]}"
+        )
+        lines += [f"    {detail}" for detail in r.problem_details]
+    return lines
 
 
 def open_log(path: Path) -> QuestionLog:

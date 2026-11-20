@@ -260,6 +260,18 @@ def test_record_line_shows_missing_first_sentence_and_provider() -> None:
     assert "deepinfra" in line
 
 
+def test_record_lines_show_each_diagnosis_under_its_record() -> None:
+    record = record_for("Soru?", "text", "answered", ANSWERED, 2.0, 1.0)
+
+    lines = record_lines([record, _record()])
+
+    assert lines[1:3] == [
+        "    aynı cümle tekrar ediyor",
+        "    cümlede kendi alıntısında olmayan sayı: ['98']",
+    ]
+    assert len(lines) == 4
+
+
 @pytest.mark.parametrize(
     ("problem", "kind"),
     [
