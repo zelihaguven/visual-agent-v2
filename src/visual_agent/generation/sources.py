@@ -25,6 +25,7 @@ def to_prompt_sources(
             is_table_row=hit.chunk.kind is ChunkKind.TABLE_ROW,
             from_ocr=hit.chunk.from_ocr,
             language=language_of(hit.chunk.doc_id),
+            title=hit.chunk.title,
         )
         for number, hit in enumerate(hits, start=1)
     }

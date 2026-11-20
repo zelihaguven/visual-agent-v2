@@ -82,6 +82,8 @@ class PromptSource(_Frozen):
     from_ocr: bool = False
     language: str = ""
     """Belgenin katalogdaki dili; kaynaktaki yazıyla sayılar bu dile göre okunur."""
+    title: str = ""
+    """Belgenin adı; adındaki model numarası kullanıcı da söylediyse cümlede geçebilir."""
 
 
 class ItemCheck(_Frozen):

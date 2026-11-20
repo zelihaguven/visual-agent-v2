@@ -24,6 +24,7 @@ from visual_agent.verification.text import (
     header_units,
     identifiers_in,
     measures_in,
+    model_numbers,
     normalize,
     numbers_in,
     numbers_with_next_word,
@@ -191,12 +192,21 @@ def _stray_tens(text: str, language: str, backed: set[str], evidence: Evidence) 
     }
 
 
+def _asked_model_numbers(item: ModelItem, sources: Sources, user: str) -> set[str]:
+    """Alıntılanan kaynağın belge adındaki model numarası ("6029322"), kullanıcı da söylediyse
+    cümlede alıntısız geçebilir: değer değil, hangi belgeden söz edildiğidir. Başka belgenin
+    adındaki numara ya da kullanıcının söylemediği numara yine reddedilir."""
+    titles = " ".join(sources[q.source_no].title for q in item.quotes if q.source_no in sources)
+    return model_numbers(titles) & numbers_in(user)
+
+
 def _token_problems(
-    item: ModelItem, evidence: Evidence, sources: Sources, language: str
+    item: ModelItem, evidence: Evidence, sources: Sources, language: str, user: str = ""
 ) -> list[str]:
+    """user: kullanıcının kendi metni (bu turun sorusu ve önceki turun denetlenmiş sözcükleri)."""
     problems = []
     joined = " ".join(text for text, _ in evidence)
-    backed = numbers_in(joined) | word_numbers(joined)
+    backed = numbers_in(joined) | word_numbers(joined) | _asked_model_numbers(item, sources, user)
     stray_numbers = (
         (numbers_in(item.text) - backed)
         | (word_numbers(item.text) - _ARTICLE_NUMBERS - backed)
@@ -245,7 +255,8 @@ def verify_item(
         problems.append(f"kod kaynağı [{item.code_source_no}] geçersiz")
     evidence = _evidence(item, sources, code_source)
     problems += _ocr_problems(item, sources)
-    problems += _token_problems(item, evidence, sources, language)
+    user = f"{qualifiers.asked} {qualifiers.previous}"
+    problems += _token_problems(item, evidence, sources, language, user)
     problems += _tolerance_problems(item.text, " ".join(text for text, _ in evidence))
     problems += _absence_problems(item, language)
     problems += qualifier_problems(item, sources, qualifiers)

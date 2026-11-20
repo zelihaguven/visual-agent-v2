@@ -4,14 +4,10 @@ import re
 from collections.abc import Iterable
 
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, DocumentMeta
-from visual_agent.verification.text import identifiers_in, turkish_lower
+from visual_agent.verification.text import identifiers_in, model_numbers, turkish_lower
 
 _MIN_TITLE_WORDS_FOR_MATCH = 2
 _SQUASH_RE = re.compile(r"[\s\-_.]+")
-_MODEL_NUMBER_RE = re.compile(r"(?<![\d.,])\d{5,}(?![\d]|[.,]\d)")
-"""Sayısal model ya da sipariş numarası: en az 5 haneli, bağımsız bir sayı. Ölçü değeri
-("76,5"), yıl ("2027") ve adet ("1500 adet") bu kadar uzun değildir; ondalık ya da binlik
-ayraçlı sayının parçası da sayılmaz."""
 
 
 def squash(text: str) -> str:
@@ -54,12 +50,12 @@ class DocumentCatalog:
         """Soruda başlığı, başlığındaki kodu ya da başlığındaki sayısal model numarası (harfsiz,
         en az 5 haneli; ör. dosya adındaki "6013448") birebir geçen belgeler."""
         target = squash(question)
-        numbers = set(_MODEL_NUMBER_RE.findall(question))
+        numbers = model_numbers(question)
         return tuple(
             doc_id
             for doc_id in allowed
             if any(squash(name) in target for name in self._names(self._documents[doc_id]))
-            or numbers & set(_MODEL_NUMBER_RE.findall(self._documents[doc_id].title))
+            or numbers & model_numbers(self._documents[doc_id].title)
         )
 
     def is_document_name(self, identifier: str, doc_ids: Iterable[str]) -> bool:
