@@ -801,6 +801,17 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Sonra:** Giriş ve departman bazlı yetki, arayüz ağa açılmadan önce ayrıca tasarlanacak
   (açık notlar, "Yayına almadan önce").
 
+### Soru kaydı: tanının türü ve ayrıntısı ayrı sütunlarda
+- **Ne zaman:**
+  1. `57d4e77` (2026-11-10): tanılar yalnız türleriyle yazıldı; eski kayıtlar türe indirildi.
+  2. 2026-11-20, `gunluk-sorun-ayrintisi` dalı; ekip kararı.
+- **Ne:** `problems` yalnız türleri tutar (özet ve sayım). `problem_details` tam tanıyı
+  tutar: gizlenen cümlenin doğrulanamayan sayısı, adı, kodu ya da kaynak numarası.
+- **Neden:** 20 Kasım teşhisinde hangi sayının gizlemeye yol açtığı kayıttan okunamadı;
+  cevap yeniden kurguyla bulundu.
+- **Sınır:** Cevap cümlesi yine yazılmaz (ayrı karar). İstemciye yalnız türler gider; kaydın
+  HTTP ucu yok. Saklama süresi açık notlarda ("Yayına almadan önce").
+
 ## Arayüz
 
 ### Tek açık tema; koyu tema kaldırıldı
