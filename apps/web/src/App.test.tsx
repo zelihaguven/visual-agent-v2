@@ -223,6 +223,22 @@ describe("App", () => {
     expect(screen.queryByText(/Taramadan okundu/)).not.toBeInTheDocument();
   });
 
+  it("keeps the unverified badge when a scanned answer has a hidden sentence", async () => {
+    const hidden = { ...answered.result.items[0], text: "", verified: false, from_ocr: true };
+    const failed = scannedAnswer(["OCR değeri belirsiz"]);
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([{ ...failed, result: { ...failed.result, status: "failed", items: [hidden] } }]),
+    });
+    render(<App />);
+
+    await ask("İç paça kaç?");
+
+    expect(await screen.findByText("Doğrulanamadı")).toBeInTheDocument();
+    expect(screen.queryByText(/Taramadan okundu/)).not.toBeInTheDocument();
+  });
+
   it("opens the highlighted page of a citation", async () => {
     stubApi({
       "/api/documents": () => jsonResponse([]),
