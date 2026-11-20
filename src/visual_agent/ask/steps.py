@@ -184,7 +184,27 @@ async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
     missing = [item for item in identifiers if not deps.identifiers.lookup(item, domain)]
     if missing and len(missing) == len(identifiers):
         return replace(current, result=_code_not_found(missing, current, deps))
+    if scope is None:
+        current = replace(current, scope=_code_documents(identifiers, allowed, deps))
     return replace(current, exact_chunks=_exact_chunks(identifiers, current, deps))
+
+
+def _code_documents(
+    identifiers: Sequence[str], allowed: Sequence[str], deps: AskDeps
+) -> tuple[str, ...] | None:
+    """Sorudaki kodların geçtiği belgeler: arama bunlara daralır.
+
+    Netleştirme düğmesi sınırından çok belgede geçen kod (ortak bileşen kodu, ör. bütün tech
+    pack'lerdeki iplik) daraltmaz; daraltan kodların belgeleri birleşir, birleşim de sınırı
+    aşarsa ya da hiçbir kod daraltmıyorsa kapsam bütün belgeler kalır (None).
+    """
+    found: list[str] = []
+    for identifier in identifiers:
+        having = [doc for doc in deps.identifiers.documents_with(identifier) if doc in allowed]
+        if len(having) <= _MAX_CLARIFY_DOCUMENTS:
+            found += having
+    documents = tuple(dict.fromkeys(found))
+    return documents if 0 < len(documents) <= _MAX_CLARIFY_DOCUMENTS else None
 
 
 async def _bm25_query(state: AskState, deps: AskDeps) -> tuple[str, float | None, bool]:
