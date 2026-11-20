@@ -16,6 +16,21 @@ const BADGES = {
   failed: { label: "Doğrulanamadı", tone: "bad" },
 } as const;
 
+const OCR_BADGE = { label: "Taramadan okundu · kaynaktan kontrol edin", tone: "warn" } as const;
+
+type AnsweredResult = Extract<AskResult, { kind: "answered" }>;
+
+/** Kısmi durumun tek nedeni taranmış kaynaksa (gizlenen ya da eksik cümle yok) rozet bunu söyler;
+ * akışı yarıda kalan cevap sorun taşır ve "Kısmen doğrulandı" kalır. */
+function badgeFor(result: AnsweredResult) {
+  const onlyScanned =
+    result.status === "partial" &&
+    result.problems.length === 0 &&
+    result.items.every((item) => item.verified) &&
+    result.items.some((item) => item.from_ocr);
+  return onlyScanned ? OCR_BADGE : BADGES[result.status];
+}
+
 export type SpeechStatus = "idle" | "loading" | "playing";
 
 const SPEECH_LABELS: Record<SpeechStatus, string> = {
@@ -240,7 +255,7 @@ function FinalAnswer({
   speechStatus?: SpeechStatus;
   onSpeak?: Props["onSpeak"];
 }) {
-  const badge = BADGES[result.status];
+  const badge = badgeFor(result);
   const spoken = result.items.flatMap((item) => {
     if (item.verified) {
       return [{ text: item.text, has_code: item.code !== null }];

@@ -30,6 +30,8 @@ export type AskResult =
       status: "verified" | "partial" | "failed";
       items: AnsweredItem[];
       has_conflict: boolean;
+      /** Cevabın tanılarının türleri; akışı yarıda kalan cevapta "Cevap tamamlanamadı…". */
+      problems: string[];
     }
   | { kind: "clarify"; question: string; options: DocumentChoice[] }
   | { kind: "not_found"; reason: string; suggestions: DocumentChoice[] }
