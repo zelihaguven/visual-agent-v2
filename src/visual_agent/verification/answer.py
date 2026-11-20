@@ -197,17 +197,19 @@ def _asked_model_numbers(item: ModelItem, sources: Sources, user: str) -> set[st
     """Alıntılanan kaynağın belge adındaki model numarası ("6029322"), kullanıcı da söylediyse
     cümlede alıntısız geçebilir: değer değil, hangi belgeden söz edildiğidir.
 
-    Yalnız adın tire ya da alt çizgiyle bağlı bir parçasındaki numara sayılır
-    ("6029322-SS27-..."): boşlukla ayrılmış sayı ("Klima 12000 BTU", "Sipariş 45000") bir değer
-    olabilir. Başka belgenin numarası ya da kullanıcının söylemediği numara yine reddedilir."""
-    parts = (
-        part
-        for q in item.quotes
-        if q.source_no in sources
-        for part in sources[q.source_no].title.split()
-        if _NAME_JOINERS.search(part)
-    )
-    return model_numbers(" ".join(parts)) & numbers_in(user)
+    Yalnız adın tire ya da alt çizgiyle ayrılmış ilk parçası numaranın kendisiyse sayılır
+    ("6029322-SS27-..."). Adın başka yerindeki sayı ("Klima-12000-BTU", "Sipariş-45000",
+    "Klima 12000 BTU") bir değer olabilir. Başka belgenin numarası ya da kullanıcının
+    söylemediği numara yine reddedilir."""
+    titles = (sources[q.source_no].title for q in item.quotes if q.source_no in sources)
+    heads = {_first_name_part(title) for title in titles}
+    return {head for head in heads if head and model_numbers(head) == {head}} & numbers_in(user)
+
+
+def _first_name_part(title: str) -> str:
+    """Adın ilk tire ya da alt çizgisinden önceki parçası; ayraç yoksa boş."""
+    joiner = _NAME_JOINERS.search(title)
+    return title[: joiner.start()].strip() if joiner else ""
 
 
 def _token_problems(

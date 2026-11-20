@@ -717,9 +717,14 @@ def test_model_number_of_another_document_is_hidden() -> None:
 
 @pytest.mark.parametrize(
     ("title", "value"),
-    [("Klima 12000 BTU Kılavuzu", "12000 BTU"), ("Sipariş 45000", "45000 adet")],
+    [
+        ("Klima 12000 BTU Kılavuzu", "12000 BTU"),
+        ("Sipariş 45000", "45000 adet"),
+        ("Klima-12000-BTU", "12000 BTU"),
+        ("Sipariş-45000", "45000 adet"),
+    ],
 )
-def test_number_standing_apart_in_the_title_is_not_a_model_number(title: str, value: str) -> None:
+def test_title_number_outside_the_first_part_is_hidden(title: str, value: str) -> None:
     number = value.split()[0]
     sources = {1: PromptSource(number=1, text="Renk: Black 001", title=title)}
     result = verify_answer(
