@@ -780,3 +780,48 @@ def test_numeric_size_label_of_the_quoted_cell(text: str, asked: str, passes: bo
     result = verify_answer(answer(item(text, quote="76,0")), SIZE_SOURCES, "tr", asked)
 
     assert (result.status is VerificationStatus.VERIFIED) is passes, result.problems
+
+
+@pytest.mark.parametrize(
+    ("row", "quotes", "asked", "text"),
+    [
+        # alıntı başka hücrenin sayısının parçası ("72" / "72,5")
+        ("Ölçü: Bel | 36: 72 | 38: 72,5", ["72"], "38 beden bel kaç?", "38 beden bel 72."),
+        # alıntı birden çok hücrede geçiyor ("Black" / "Jet Black")
+        (
+            "001: Navy: Black 001 | 100: Red: Jet Black 690",
+            ["Black"],
+            "100 hangi renk?",
+            "100 kodunda Black renktedir.",
+        ),
+        # iki alıntı iki ayrı hücreden
+        (
+            "Ölçü: Bel | 36: 72,0 | 38: 76,0",
+            ["72,0", "76,0"],
+            "38 beden bel kaç?",
+            "38 beden bel 72,0, 76,0 değil.",
+        ),
+        # başlık sayısı değerin yerine yazılmış
+        ("Ölçü: Bel | 36: 72,0 | 38: 76,0", ["76,0"], "38 beden bel kaç?", "Bel ölçüsü 38."),
+    ],
+)
+def test_cell_label_exemption_stays_closed_when_the_cell_is_not_certain(
+    row: str, quotes: list[str], asked: str, text: str
+) -> None:
+    sources = {1: PromptSource(number=1, text=row, title="Föy", is_table_row=True)}
+    model_item = ModelItem(text=text, quotes=tuple(Quote(source_no=1, text=q) for q in quotes))
+
+    result = verify_answer(answer(model_item), sources, "tr", asked)
+
+    assert result.status is VerificationStatus.FAILED
+    assert any("sayı" in problem for problem in result.problems)
+
+
+def test_cell_label_exemption_does_not_apply_to_prose() -> None:
+    sources = {1: PromptSource(number=1, text="Adım 2: Vida 4 tur çevrilir.", title="Kılavuz")}
+
+    result = verify_answer(
+        answer(item("Vida 2 tur çevrilir.", quote="Vida")), sources, "tr", "adım 2'de vida kaç tur?"
+    )
+
+    assert result.status is VerificationStatus.FAILED

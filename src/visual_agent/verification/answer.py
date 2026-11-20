@@ -14,7 +14,7 @@ from visual_agent.domain.answer import (
     VerificationStatus,
 )
 from visual_agent.verification.qualifier import Qualifiers, build_qualifiers, qualifier_problems
-from visual_agent.verification.quote import labeled_cells, quote_matches
+from visual_agent.verification.quote import contains_whole, labeled_cells, quote_matches
 from visual_agent.verification.text import (
     FOREIGN_SCRIPT_RE,
     TOLERANCE_RE,
@@ -207,20 +207,28 @@ def _asked_model_numbers(item: ModelItem, sources: Sources, user: str) -> set[st
 
 
 def _asked_cell_labels(item: ModelItem, sources: Sources, user: str) -> set[str]:
-    """Alıntıyı içeren tablo hücresinin başlığındaki sayı (varyant adı: renk yolu "001", sayısal
-    beden "38"), kullanıcı da söylediyse cümlede alıntısız geçebilir: değer değil, hangi sütundan
-    söz edildiğidir. Aynı satırın başka hücresinin başlığı ya da kullanıcının söylemediği başlık
-    sayısı yine reddedilir."""
-    labels: set[str] = set()
+    """Alıntılanan tablo hücresinin başlığındaki sayı (varyant adı: renk yolu "001", sayısal beden
+    "38"), kullanıcı da söylediyse cümlede alıntısız geçebilir: değer değil, hangi sütundan söz
+    edildiğidir. Tutucu: her alıntı kaynağın tablo satırlarında tek bir hücrenin değerinde bütün
+    sayı olarak geçmeli, bütün alıntılar aynı hücreye çıkmalı ve alıntılanan değer cümlede de
+    yazılı olmalı (başlık sayısı değerin yerine yazılamaz). Aksi hâlde muafiyet yoktur."""
+    sentence = normalize(item.text)
+    cells: set[str] = set()
     for quote in item.quotes:
         source, wanted = sources.get(quote.source_no), normalize(quote.text)
-        if source is None or not wanted:
-            continue
-        for line in source.text.splitlines():
-            for label, value in labeled_cells(line, last=True):
-                if wanted in normalize(value):
-                    labels |= numbers_in(label)
-    return labels & numbers_in(user)
+        if source is None or not wanted or not contains_whole(sentence, wanted):
+            return set()
+        labels = [
+            label
+            for line in source.text.splitlines()
+            if source.is_table_row or "|" in line
+            for label, value in labeled_cells(line, last=True)
+            if contains_whole(normalize(value), wanted)
+        ]
+        if len(labels) != 1:
+            return set()
+        cells.add(labels[0])
+    return numbers_in(cells.pop()) & numbers_in(user) if len(cells) == 1 else set()
 
 
 def _first_name_part(title: str) -> str:
