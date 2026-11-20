@@ -2,7 +2,7 @@
 
 import pytest
 
-from visual_agent.voice.reading import CODE_ON_SCREEN, spoken_text
+from visual_agent.voice.reading import CODE_ON_SCREEN, VALUE_ON_SCREEN, spoken_text
 
 
 @pytest.mark.parametrize(
@@ -95,7 +95,8 @@ def test_plain_sentence_about_a_command_is_read_then_points_to_the_screen() -> N
         ),
         ("Aralık 5-10 mm.", "Aralık beş tire on milimetre."),
         ("Sıcaklık -1.500 derece.", "Sıcaklık eksi bir nokta beş sıfır sıfır derece."),
-        ("Kod x1.500 ve 2,5x3,5.", "Kod x1.500 ve 2,5x3,5."),
+        # Harfe ya da çarpıya bitişik sayı TTS'e gitmez; değer ekranda kalır.
+        ("Kod x1.500 ve 2,5x3,5.", VALUE_ON_SCREEN),
         ("Oran %1.500.", "Oran yüzde bir nokta beş sıfır sıfır."),
     ],
 )
@@ -119,3 +120,46 @@ def test_grouped_numbers_never_change_value(text: str, expected: str) -> None:
 )
 def test_units_come_from_the_shared_unit_list(text: str, expected: str) -> None:
     assert spoken_text(text, "tr") == expected
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Paket x1.500 adettir.",
+        "Etiket ölçüsü 2,5x3,5 cm.",
+        "M8x1,25 vida kullanılır.",
+        "Çözünürlük 1024x768.",
+        "Ölçü 27½ inç.",
+        "Kumaş 190gm/m2 ağırlığında.",
+        "Eksi tolerans -3/8.",
+        "Kullanım 7ABC örneğinde.",
+        "Değer %5-10 arası.",
+        "Ölçü 27 ½ inç.",
+        "Ölçü ½ inç.",
+    ],
+)
+def test_number_glued_to_letters_or_fractions_is_left_on_screen(text: str) -> None:
+    """TTS bitişik yazımı kendi yorumlar ve sayının bir parçasını okuyabilir (kural 1)."""
+    assert spoken_text(text, "tr") == VALUE_ON_SCREEN
+    assert spoken_text(text, "en") == VALUE_ON_SCREEN
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("Tolerans ±0,5 cm.", "Tolerans artı eksi sıfır virgül beş santimetre."),
+        ("Sıcaklık −5 °C.", "Sıcaklık eksi beş santigrat derece."),
+        ("1-5 yıl kıdemde izin 15 gündür.", "bir tire beş yıl kıdemde izin on beş gündür."),
+        ("Fire oranı 5%.", "Fire oranı yüzde beş."),
+        ("Hata E050 oldu.", "Hata e sıfır beş sıfır oldu."),
+        ("Renk Black 001.", "Renk Black sıfır sıfır bir."),
+    ],
+)
+def test_forms_the_voice_reads_whole_are_still_read(text: str, expected: str) -> None:
+    assert spoken_text(text, "tr") == expected
+
+
+def test_command_answer_with_a_glued_number_says_both_are_on_screen() -> None:
+    assert spoken_text("Boyut 2,5x3,5 olur.", "tr", has_code=True) == (
+        f"{VALUE_ON_SCREEN} {CODE_ON_SCREEN}"
+    )

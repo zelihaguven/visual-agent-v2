@@ -12,6 +12,7 @@ from visual_agent.verification.text import (
 )
 
 CODE_ON_SCREEN = "Komut ekranda gösteriliyor."
+VALUE_ON_SCREEN = "Değer ekranda gösteriliyor."
 
 _DIGITS = ["sıfır", "bir", "iki", "üç", "dört", "beş", "altı", "yedi", "sekiz", "dokuz"]
 _TENS = ["", "on", "yirmi", "otuz", "kırk", "elli", "altmış", "yetmiş", "seksen", "doksan"]
@@ -76,6 +77,33 @@ _TOKEN_RE = re.compile(
     rf"|(?<![\w-])(?P<code>[{UPPER}][{UPPER}0-9]*(?:[-_][{UPPER}0-9]+)*)(?![\w-])"
     rf"(?P<code_suffix>'\w+)?"
 )
+
+
+# Sesin bütün olarak okuduğu yazımlar (_TOKEN_RE ile aynı): düz sayı, yüzde, aralık, işaretli
+# sayı, Türkçe binlik. Baştaki % yalnız tek sayıyla okunur ("%5-10" yarım okunurdu).
+_READABLE_NUMBER_RE = re.compile(
+    rf"%{NUMBER}|[{MINUS_SIGNS}±]?{NUMBER}(?:[-–]{NUMBER})?%?|{_TURKISH_GROUPED_RE.pattern}"
+)
+# Harf harf okunan kod: büyük harfle başlayan (E050, XL, M8) ya da tireyle bağlı (tt-100157).
+_CODE_WORD_RE = re.compile(
+    rf"[{UPPER}][{UPPER}0-9]*(?:[-_][{UPPER}0-9]+)*|[^\W\d_][^\W_]*(?:[-_][^\W_]+)+"
+)
+# Sözcük uçları web'deki büyük değer kuralıyla aynı (apps/web/src/components/TurnView.tsx).
+_WORD_EDGES_RE = re.compile(r"^[(\"“'‘\[]+|['’][^\W\d_]*[.,;:!?)\"”\]]*$|[.,;:!?)\"”\]]+$")
+
+
+def _has_unreadable_number(text: str) -> bool:
+    """Rakam taşıyan sözcük bütün okunabilir bir sayı ya da kod değil mi ("x1.500", "2,5x3,5",
+    "M8x1,25", "27½", "190gm/m2", "3/8", tarih). Böyle sözcüğü TTS kendi yorumlar ve sayının
+    bir parçasını okuyabilir; cümle okunmaz, değer ekranda kalır (kural 1). Kesir ve üs
+    karakterleri ("½", "²") de sayı sayılır: tek başına yazılsa da okunmaz."""
+    for word in text.split():
+        core = _WORD_EDGES_RE.sub("", word)
+        if any(c.isnumeric() for c in core) and not (
+            _READABLE_NUMBER_RE.fullmatch(core) or _CODE_WORD_RE.fullmatch(core)
+        ):
+            return True
+    return False
 
 
 def _below_thousand(value: int) -> list[str]:
@@ -153,12 +181,14 @@ def _replace(match: re.Match[str]) -> str:
 
 
 def _read_turkish(text: str) -> str:
-    return _TOKEN_RE.sub(_replace, text.replace("±", "artı eksi"))
+    return _TOKEN_RE.sub(_replace, re.sub(r"±\s*", "artı eksi ", text))
 
 
 def spoken_text(text: str, language: str, *, has_code: bool = False) -> str:
     """Komutlar sesle okunmaz; dinleyen kişi birebir metni ekrandan alır."""
     if has_code and identifiers_in(text):
         return CODE_ON_SCREEN
+    if _has_unreadable_number(text):
+        return f"{VALUE_ON_SCREEN} {CODE_ON_SCREEN}" if has_code else VALUE_ON_SCREEN
     body = _read_turkish(text) if language == "tr" else text
     return f"{body} {CODE_ON_SCREEN}" if has_code else body

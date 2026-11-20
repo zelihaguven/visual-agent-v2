@@ -75,7 +75,7 @@ UNITS: dict[str, tuple[str, str]] = {
     "h": ("h", ""),
     "saat": ("h", ""),
     "gün": ("gün", ""),
-    "°c": ("°c", ""),
+    "°c": ("°c", "santigrat derece"),
     "°f": ("°f", ""),
     "°": ("°", ""),
     "%": ("%", ""),
