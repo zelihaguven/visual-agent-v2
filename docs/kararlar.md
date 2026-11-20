@@ -738,7 +738,23 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Neden:** 20 Kasım teşhisi: "GML-6473 modelinde M beden bel kaç" sorusunda kod yalnız
   dikim-tarama'da geçtiği hâlde arama bütün belgelerde yapıldı; ilk 8 parçaya PNT-1126'nın bel
   satırı girdi ve model iki ürünün değerini "çelişki" diye birlikte yazdı.
+- **Ölçüm (2026-11-20):**
+  - n11 önbelleğinden çevrimdışı: kapsamı değişen yalnız SQL soruları (set başına 7; kolon
+    adları SQL belgelerine daraltıyor). Kumaş, dikim ve FastReact soruları değişmedi.
+  - Canlı: taban 39/40 ve 39/40 (yalnız bilinen `dikim-sohbet-1-t4`), FastReact 17 sorunun
+    cevabı n11 ile aynı, doğrulanmış yanlış 0; `sql-netlestir` iki sette de netleştirme.
+  - "GML-6473 modelinde M beden bel kaç?" 5/5 yalnız dikim-tarama'dan, 38,0, çelişki notu yok.
+  - Sınır seti 24 × 5: D2 (MNT-8598, fotoğraf) "bulunamadı"dan 5/5 doğru değere (40,0); A4 bir
+    gizlenen koşudan 5/5 doğruya. Diğer sorular n12 ile aynı sınıfta.
+  - D1 ("SRT-4294 M beden bel kaç?"), sınır setinde 3/5 netleştirme, 2/5 yalnız Rev B'nin
+    değeri (revizyon adı yok). Aynı soru sırayla 10'ar kez: daraltmalı 9 netleştirme, 1 iki
+    revizyon birlikte (Rev B cümlesi revizyon adı taşımıyordu); "tüm belgelerde" 3 netleştirme,
+    6 iki revizyon birlikte, 1 servis hatası. İki kipte de tek revizyon 0. Sonuç: daraltma D1'i
+    kötüleştirmiyor; sınır setindeki atlama model değişkenliği.
+  - Maliyet: canlı ölçümler toplamı ~0,038 $.
 - **Bilinen sınırlar:**
+  - Revizyon belirtilmeyen soruda netleştirme bazen atlanıyor (PR öncesinde de var): model
+    tek revizyonun değerini revizyon adı olmadan verebiliyor (D1, sınır setinde 2/5).
   - Kod bir belgede, cevap başka bir belgedeyse ilk tur "bulunamadı" der; kullanıcı "Tüm
     belgelerde ara"ya basmalıdır.
   - Kod sayılan her ad daraltır: SQL kolon adları (`MUSTERI_KODU`), küçük harfli alt çizgili
