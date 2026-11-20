@@ -13,6 +13,12 @@ büyük harfle yazılmış kısa kod ("S", "XL", "4XLT"), son sözcüğü böyle
 başlık satırında birden çok geçen numaralı ad da, satırda tek kalsa varyanttır. Yapısı
 anlaşılmayan satır (başlıksız) bu kuralın dışında kalır.
 
+Kural C (hücre eşleşmesi): alıntı birden çok etiketli hücre taşıyorsa ve cümle bu hücrelerden
+birinin adını anıyorsa, cümledeki değer alıntıda adı anılan hücrede olmalı ("38: 72,0 | 40: 74,0"
+alıntısıyla "40 beden 72,0" gizlenir). Varyant ya da öznitelik ayrımı yapılmaz; adı anılmayan
+cümleyi bu kural etkilemez. Yalnız rakam taşıyan hücre değerleri değer sayılır; rakamsız değer
+("Ebat: İç paça") addır.
+
 Kurallar cümleyi yeniden yazmaz: geçemeyen cümle gizlenir.
 """
 
@@ -224,6 +230,23 @@ def _missing_variants(
     return sorted(missing)
 
 
+def _misplaced_values(sentence: str, quotes: Sequence[str]) -> list[str]:
+    """Kural C: cümlenin andığı hücrenin dışında kalan değerler (çok hücreli alıntılarda)."""
+    misplaced: list[str] = []
+    for quote in quotes:
+        cells = [c for c in _columns(quote) if c.value]
+        if len(cells) < 2:
+            continue
+        stated = [c for c in cells if _has_digit(c.value) and _occurs(c.value, sentence)]
+        rest = sentence
+        for cell in stated:
+            rest = _without(rest, cell.value)
+        named = [c for c in cells if any(_mentions(rest, part) for part in c.parts)]
+        if named:
+            misplaced += [c.value for c in stated if c not in named]
+    return sorted(set(misplaced))
+
+
 def qualifier_problems(
     item: ModelItem, sources: Mapping[int, PromptSource], qualifiers: Qualifiers
 ) -> list[str]:
@@ -238,4 +261,7 @@ def qualifier_problems(
     missing = _missing_variants(sentence, quotes, cited, qualifiers)
     if missing:
         problems.append(f"cümlede değerin varyantı yok: {missing}")
+    misplaced = _misplaced_values(sentence, [quote.text for quote in item.quotes])
+    if misplaced:
+        problems.append(f"cümlede adı geçen hücrenin değeri değil: {misplaced}")
     return problems
