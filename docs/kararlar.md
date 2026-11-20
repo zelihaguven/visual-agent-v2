@@ -1351,5 +1351,6 @@ Tarih: 2026-11-20. Ürün sahibi kararı. Dal: `niteleyici-denetimi`. Kod: `src/
 - Kısa kod yalnız kaynakta büyük harfle yazılmış harf/rakam kodudur ("S", "XL", "4XLT"); "Min", "Adet", "Volt" varyant sayılmaz. Büyük harfle yazılmış kısa öznitelik başlıkları ("ID", "NO") aynı satırda sayısal değerle yan yana gelirse varyant sayılır ve doğru cümle gizlenebilir.
 - Bu turda sorulan varyant alıntılanan satırda ve başlık satırlarında yoksa ("peki XL?", satırda yalnız S/M/L) önceki turun adı sayılmaya devam eder.
 - Başlıksız satır alıntılanıp sütun adı başka parçadaki başlık satırından yazılırsa ("Material Details") Kural A cümleyi gizler (gizleme yönünde).
+- Model numarası muafiyeti (#110): belge adının ilk tire/alt çizgi parçası 5+ haneli bir sayıysa, kullanıcı da söylediyse cümlede alıntısız geçebilir. Ad bir değerle başlıyorsa ("12000-BTU-Klima") o değer de muaf sayılır; gerçek belgeler gelince adlar kontrol edilecek.
 
 **Karar.** Gerçek belgeler gelene kadar doğrulayıcıya yeni doğrulama kuralı eklenmez. Yeni kural ancak gerçek belgelerle görülen bir yanlış ya da gizlenen doğru cümle örüntüsüne dayanarak, ürün sahibi kararıyla eklenir.
