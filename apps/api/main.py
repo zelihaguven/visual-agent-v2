@@ -105,6 +105,8 @@ class AskBody(BaseModel):
     question: str = Field(max_length=MAX_QUESTION_CHARS)
     doc_ids: tuple[str, ...] | None = None
     context: ConversationContext | None = None
+    all_documents: bool = False
+    """"Tüm belgelerde ara": sorudaki kod aramayı kodun belgelerine daraltmaz."""
     speak: bool = False
     input_mode: InputMode = "text"
 
@@ -259,6 +261,7 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
                         question=request.question,
                         doc_ids=request.doc_ids,
                         context=request.context,
+                        all_documents=request.all_documents,
                         on_event=clock,
                     )
                 )
@@ -267,6 +270,7 @@ async def _answer_events(request: AskBody, services: ApiServices) -> AsyncIterat
                         "type": "done",
                         "result": _result_payload(outcome.result),
                         "scope_inherited": outcome.scope_inherited,
+                        "scope_narrowed": outcome.scope_narrowed,
                         "context": outcome.context.model_dump(mode="json")
                         if outcome.context is not None
                         else None,

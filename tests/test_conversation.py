@@ -287,11 +287,15 @@ def test_follow_up_after_a_hidden_turn_with_a_new_code_searches_where_it_was_ask
     hidden = answer_payload("Dış paça 99.", "Dış paça 99")
     second = ask_with(deps_with(follows("E050 hatası nedir?"), FakeClient(hidden)), "E050 nedir?")
     rewriter = follows("E050 hatası ne zaman görülür?")
+    retriever = FakeRetriever()
 
-    third = ask_with(deps_with(rewriter, FakeClient(VERIFIED)), "peki ne zaman?", second.context)
+    third = ask_with(
+        deps_with(rewriter, FakeClient(VERIFIED), retriever), "peki ne zaman?", second.context
+    )
 
     assert rewriter.calls == [("E050 hatası nedir?", "peki ne zaman?")]
     assert third.scope_inherited  # gizlenen turun arandığı belge: kodun belgesi ("b")
+    assert retriever.calls[0]["doc_ids"] == ("b",)
     assert not (isinstance(third.result, NotFound) and "geçmiyor" in third.result.reason)
 
 

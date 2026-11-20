@@ -210,7 +210,9 @@ def test_search_without_a_scope_covers_only_catalogued_documents() -> None:
     assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
 
 
-def _scope_for(question: str, texts: dict[str, str]) -> tuple[str, ...]:
+def _scope_for(
+    question: str, texts: dict[str, str], all_documents: bool = False
+) -> tuple[str, ...]:
     """Belge başına tek parça; arama hangi belgelerle çağrıldı."""
     chunks = [chunk(f"{doc}:1", doc, text, ChunkKind.TEXT) for doc, text in texts.items()]
     catalog = DocumentCatalog()
@@ -222,7 +224,7 @@ def _scope_for(question: str, texts: dict[str, str]) -> tuple[str, ...]:
         catalog=catalog,
         identifiers=build_identifier_index(chunks),
     )
-    ask(deps, question)
+    asyncio.run(answer_question(AskRequest(question, all_documents=all_documents), deps))
     scope = retriever.calls[0]["doc_ids"]
     assert isinstance(scope, tuple)
     return scope
@@ -252,7 +254,7 @@ def test_component_code_in_many_documents_does_not_narrow() -> None:
 def test_two_codes_narrow_to_the_documents_of_both() -> None:
     texts = {"d1": "GML-6473 bel 38,0", "d2": "PNT-1162 bel 42,5", "d3": "Genel bilgi"}
 
-    assert set(_scope_for("GML-6473 ile PNT-1162 bel farkı?", texts)) == {"d1", "d2"}
+    assert _scope_for("PNT-1162 ile GML-6473 bel farkı?", texts) == ("d1", "d2")  # katalog sırası
 
 
 def test_component_code_beside_a_narrowing_code_is_left_out() -> None:
@@ -1013,3 +1015,23 @@ def test_search_is_limited_to_the_document_named_by_its_number() -> None:
     ask(deps, "6013448'in beden aralığı nedir?")
 
     assert retriever.calls[0]["doc_ids"] == ("p1",)
+
+
+def test_all_documents_choice_is_not_narrowed_by_the_code() -> None:
+    texts = {"d1": "GML-6473 bel 38,0", "d2": "Kalibrasyon kılavuzu", "d3": "Genel bilgi"}
+
+    assert _scope_for("GML-6473 kalibrasyon?", texts, all_documents=True) == ("d1", "d2", "d3")
+
+
+def test_only_the_codes_that_exist_narrow_the_search() -> None:
+    texts = {"d1": "GML-6473 bel 38,0", "d2": "Genel bilgi"}
+
+    assert _scope_for("GML-6473 ve XYZ-9999 bel?", texts) == ("d1",)
+
+
+def test_outcome_says_whether_the_code_narrowed_the_search() -> None:
+    deps = make_deps(FakeClient(answer_payload("Motor arızası.", quote="motor arızası")))
+
+    assert ask(deps, "E050 nedir?").scope_narrowed
+    assert not ask(deps, "iç paça kaç?").scope_narrowed
+    assert not ask(deps, "E050 nedir?", ("b",)).scope_narrowed

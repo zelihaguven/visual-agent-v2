@@ -42,6 +42,8 @@ class AskRequest:
     doc_ids: tuple[str, ...] | None = None
     on_event: EventSink | None = None
     context: ConversationContext | None = None
+    all_documents: bool = False
+    """Sorudaki kod aramayı kodun belgelerine daraltmaz ("Tüm belgelerde ara")."""
 
 
 @dataclass(frozen=True)

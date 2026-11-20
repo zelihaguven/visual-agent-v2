@@ -48,6 +48,8 @@ logger = logging.getLogger(__name__)
 _MAX_EXACT_CHUNKS_PER_IDENTIFIER = 2
 _MIN_CLARIFY_DOCUMENTS = 2
 _MAX_CLARIFY_DOCUMENTS = 4
+"""Netleştirmede en çok bu kadar belge düğmesi; sorudaki kod da en çok bu kadar belgeye daraltır
+(kapsam netleştirilebilir kalır)."""
 _SERVICE_DOWN = "Cevap servisi şu an kullanılamıyor. Bulunan kaynak sayfaları aşağıda."
 _MODEL_FAILED = "Model güvenilir bir cevap üretemedi. Değeri kaynaktan kontrol edin."
 
@@ -68,6 +70,7 @@ class AskState:
     resolved_question: str | None = None
     inherited_doc_ids: tuple[str, ...] = ()
     scope_inherited: bool = False
+    scope_narrowed: bool = False
     context_resolved: bool = True
     translate_seconds: float | None = None
     translation_failed: bool = False
@@ -184,8 +187,9 @@ async def resolve_scope(state: AskState, deps: AskDeps) -> AskState:
     missing = [item for item in identifiers if not deps.identifiers.lookup(item, domain)]
     if missing and len(missing) == len(identifiers):
         return replace(current, result=_code_not_found(missing, current, deps))
-    if scope is None:
-        current = replace(current, scope=_code_documents(identifiers, allowed, deps))
+    if scope is None and not request.all_documents:
+        narrowed = _code_documents(identifiers, allowed, deps)
+        current = replace(current, scope=narrowed, scope_narrowed=narrowed is not None)
     return replace(current, exact_chunks=_exact_chunks(identifiers, current, deps))
 
 
@@ -198,12 +202,12 @@ def _code_documents(
     pack'lerdeki iplik) daraltmaz; daraltan kodların belgeleri birleşir, birleşim de sınırı
     aşarsa ya da hiçbir kod daraltmıyorsa kapsam bütün belgeler kalır (None).
     """
-    found: list[str] = []
+    found: set[str] = set()
     for identifier in identifiers:
-        having = [doc for doc in deps.identifiers.documents_with(identifier) if doc in allowed]
+        having = {doc for doc in deps.identifiers.documents_with(identifier) if doc in allowed}
         if len(having) <= _MAX_CLARIFY_DOCUMENTS:
-            found += having
-    documents = tuple(dict.fromkeys(found))
+            found |= having
+    documents = tuple(doc for doc in allowed if doc in found)  # katalog sırası
     return documents if 0 < len(documents) <= _MAX_CLARIFY_DOCUMENTS else None
 
 

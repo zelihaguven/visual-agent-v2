@@ -691,8 +691,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - Gizlenen ya da doğrulanmamış cevap bağlama girmez. Cevabın kendisi zaten hiç girmiyor;
     belgeler yalnız doğrulanmış cümlelerin kaynaklarından gelir.
   - Cevap gizlense de kullanıcının o turdaki (tamamlanmış) sorusu bağlama girer. Belgeler o
-    turda gerçekten aranan belgelerdir: tur yeni bir kodla bütün belgelerde arandıysa kapsam
-    boştur.
+    turda gerçekten aranan belgelerdir: tur yeni bir kodla arandıysa kodun belgeleri
+    (aşağıdaki "Sorudaki kod aramayı kodun belgelerine daraltır"), kod çok belgede geçtiği için
+    bütün belgelerde arandıysa kapsam boştur.
   - Önce, tümü gizlenen cevapta bağlam bir önceki turda kalıyordu.
   - **Düzeltme (`kapsam-mesaji` dalı, 2026-11-12):** İlk sürümde gizlenen turda belgeler
     önceki bağlamdan kalıyordu. Ürün sahibinin denemesinde şu oldu:
@@ -718,6 +719,30 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - `main`e göre kötüleşen soru yok; iyileşen takip sorusu seed 7'de 1, seed 11'de 3.
 - **Yeniden düşünülür:** Gizlenen turun sorusu yanlış tamamlanmışsa, sonraki tur bu yanlışı
   taşır. Böyle bir durum görülürse yeniden ele alınır.
+
+### Sorudaki kod aramayı kodun belgelerine daraltır
+- **Ne zaman:** 2026-11-20, `kod-kapsami` dalı; ekip kararı (tasarım onaylı).
+- **Kural:**
+  - Belge seçilmemiş, soruda belge adı geçmiyor ve önceki turdan kapsam gelmiyorsa, sorudaki
+    kodların geçtiği belgeler kapsam olur (`resolve_scope`, `_code_documents`).
+  - En çok 4 belgede geçen kod daraltır: netleştirme düğmesi sınırıyla aynı
+    (`_MAX_CLARIFY_DOCUMENTS`), kapsam netleştirilebilir kalır. Daha çok belgede geçen kod
+    (ortak bileşen kodu, ör. bütün tech pack'lerdeki iplik) daraltmaz.
+  - Birden çok kodda daraltan kodların belgeleri birleşir; birleşim 4'ü aşarsa daraltma yok.
+    Hiçbir belgede olmayan kodun davranışı aynı ("X belgelerde geçmiyor").
+  - Daraltma önceki turdan miras değildir (`scope_inherited` değişmez); sonuç
+    `scope_narrowed` taşır.
+  - Kodla daraltılan turda "bulunamadı" çıkarsa arayüz mevcut "Tüm belgelerde ara" düğmesini
+    gösterir. Düğme `all_documents` işaretiyle gönderilir; o soruda kod daraltmaz. Kendiliğinden
+    yeniden arama yok.
+- **Neden:** 20 Kasım teşhisi: "GML-6473 modelinde M beden bel kaç" sorusunda kod yalnız
+  dikim-tarama'da geçtiği hâlde arama bütün belgelerde yapıldı; ilk 8 parçaya PNT-1126'nın bel
+  satırı girdi ve model iki ürünün değerini "çelişki" diye birlikte yazdı.
+- **Bilinen sınırlar:**
+  - Kod bir belgede, cevap başka bir belgedeyse ilk tur "bulunamadı" der; kullanıcı "Tüm
+    belgelerde ara"ya basmalıdır.
+  - Kod sayılan her ad daraltır: SQL kolon adları (`MUSTERI_KODU`), küçük harfli alt çizgili
+    adlar, "A4", "UTF-8" gibi terimler de.
 
 ### Gerekçesiz "bulunamadı"da en yakın başlıklar gösterilir
 - **Ne zaman:** `#0e60352` (PR #14), `ask/related.py`.

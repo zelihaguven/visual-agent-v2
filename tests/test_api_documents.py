@@ -126,6 +126,26 @@ def test_context_reaches_the_pipeline_and_the_next_context_is_returned(tmp_path:
     assert events[-1]["context"] == context
 
 
+def test_all_documents_choice_reaches_the_pipeline_and_narrowing_is_reported(
+    tmp_path: Path,
+) -> None:
+    received: list[AskRequest] = []
+
+    async def ask(request: AskRequest) -> AskOutcome:
+        received.append(request)
+        return AskOutcome(result=NotFound(), timings={}, scope_narrowed=True)
+
+    services = ApiServices(repository=FakeRepository(), ask=ask, storage_directory=tmp_path)
+    client = TestClient(create_app(Settings(_env_file=None), services))
+
+    events = _events(
+        client.post("/api/ask", json={"question": "E050?", "all_documents": True}).text
+    )
+
+    assert received[0].all_documents
+    assert events[-1]["scope_narrowed"] is True
+
+
 @pytest.mark.parametrize(
     "context", [{"question": ""}, {"question": "x" * 2001}, {"doc_ids": ["a"]}]
 )

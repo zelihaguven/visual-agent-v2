@@ -37,6 +37,7 @@ type AskOptions = {
   signal?: AbortSignal;
   onAudio?: () => void;
   onSearching?: () => void;
+  allDocuments?: boolean;
 };
 
 /** Cevabın tamamı gizlendiyse (değer doğrulanamadı) ilk kaynağı: panelde kendiliğinden açılır. */
@@ -132,7 +133,15 @@ export function App() {
   async function ask(
     question: string,
     docIds: string[] | null,
-    { context: turnContext, speak = false, dictated = false, signal, onAudio, onSearching }: AskOptions,
+    {
+      context: turnContext,
+      speak = false,
+      dictated = false,
+      signal,
+      onAudio,
+      onSearching,
+      allDocuments = false,
+    }: AskOptions,
   ) {
     nextId.current += 1;
     const id = String(nextId.current);
@@ -174,6 +183,7 @@ export function App() {
         },
         control.signal,
         dictated,
+        allDocuments,
       );
     } catch {
       updateTurn((turn) => {
@@ -330,7 +340,9 @@ export function App() {
                 key={turn.id}
                 turn={turn}
                 onOpenSource={setSource}
-                onAskAgain={(question, docIds) => void ask(question, docIds, { context: null })}
+                onAskAgain={(question, docIds, allDocuments) =>
+                  void ask(question, docIds, { context: null, allDocuments })
+                }
                 isBusy={isAsking}
                 speechStatus={speech?.turnId === turn.id ? speech.status : "idle"}
                 onSpeak={(items) => void speakAnswer(turn.id, items)}
@@ -421,6 +433,7 @@ export function App() {
                 signal,
                 onAudio,
                 onSearching,
+                allDocuments: choice?.allDocuments,
               })
             }
             onOpenSource={setSource}

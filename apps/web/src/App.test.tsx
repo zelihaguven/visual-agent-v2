@@ -885,7 +885,51 @@ describe("App", () => {
     fireEvent.click(screen.getByRole("button", { name: "Tüm belgelerde ara" }));
 
     await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
-    expect(askBodies(fetchMock)[1]).toEqual({ question: "PNT-4417 kordon boyu kaç?" });
+    expect(askBodies(fetchMock)[1]).toEqual({
+      question: "PNT-4417 kordon boyu kaç?",
+      all_documents: true,
+    });
+  });
+
+  function notFoundAfterCodeSearch(scopeNarrowed: boolean) {
+    return {
+      type: "done",
+      timings: {},
+      question: "GML-6473 kalibrasyon nasıl yapılır?",
+      scope_inherited: false,
+      scope_narrowed: scopeNarrowed,
+      context: null,
+      result: { kind: "not_found", reason: "", suggestions: [] },
+    };
+  }
+
+  it("offers a search in all documents when a code-narrowed search finds nothing", async () => {
+    const fetchMock = stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([notFoundAfterCodeSearch(true)]),
+    });
+    render(<App />);
+    await ask("GML-6473 kalibrasyon nasıl yapılır?");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Tüm belgelerde ara" }));
+
+    await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
+    expect(askBodies(fetchMock)[1]).toEqual({
+      question: "GML-6473 kalibrasyon nasıl yapılır?",
+      all_documents: true,
+    });
+  });
+
+  it("offers no wider search when the search already covered all documents", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([notFoundAfterCodeSearch(false)]),
+    });
+    render(<App />);
+    await ask("GML-6473 kalibrasyon nasıl yapılır?");
+
+    expect(await screen.findByText("Bu bilgi belgelerde bulunamadı.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tüm belgelerde ara" })).not.toBeInTheDocument();
   });
 
   it("offers the documents that contain the asked code as choices", async () => {
