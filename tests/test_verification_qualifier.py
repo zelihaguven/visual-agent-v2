@@ -382,3 +382,47 @@ def test_year_columns_with_a_single_cell_sentence_pass() -> None:
     assert _check("2025 satışı 140.", "2025: 140", sources).ok
     assert _check("2025 satışı 140.", "2024: 120 | 2025: 140", sources).ok
     assert not _check("2025 satışı 120.", "2024: 120 | 2025: 140", sources).ok
+
+
+@pytest.mark.parametrize(
+    ("row", "text", "quote", "ok"),
+    [
+        # Satırın anahtarı (rakamsız) adı anılan hücre sayılmaz (n25'te gizlenen doğru cümleler).
+        (
+            "Beden: S | Etiket kodu: ETK-6154",
+            "PNT-1126 S beden için ETK-6154 etiket kodu.",
+            "Beden: S | Etiket kodu: ETK-6154",
+            True,
+        ),
+        (
+            "Beden: L | Etiket kodu: ETK-7827",
+            "L beden etiketi ETK-7827'dir.",
+            "Beden: L | Etiket kodu: ETK-7827",
+            True,
+        ),
+        # Adı anılan hücrenin değeri de söylenince yan bilgi geçer.
+        (WAIST, "M beden bel 40,0, tolerans 1,0.", WAIST, True),
+        ("Volt: 220 | Amp: 5", "Volt 220, akım 5.", "Volt: 220 | Amp: 5", True),
+        # İki hücreyi kendi değerleriyle anan cümle geçer.
+        (
+            "Ebat: İç paça | S: 72,0 | M: 74,0",
+            "S beden 72,0, M beden 74,0.",
+            "S: 72,0 | M: 74,0",
+            True,
+        ),
+        (
+            "Ebat: İç paça | 38: 72,0 | 40: 74,0",
+            "38 beden 72,0, 40 beden 74,0.",
+            "38: 72,0 | 40: 74,0",
+            True,
+        ),
+        # Renk yolu: etiket numarası değerin içinde de geçer.
+        (THREAD, "100 renk yolunda iplik White 100.", THREAD, True),
+        (THREAD, "100 renk yolunda iplik Black 001.", THREAD, False),
+        # Rakamsız ad hücresi ("Ebat: Bel") tek başına kuralı tetiklemez.
+        (WAIST, "Ebat bel, M beden 40,0.", WAIST, True),
+    ],
+)
+def test_correct_sentences_pass_the_cell_rule(row: str, text: str, quote: str, ok: bool) -> None:
+    check = _check(text, quote, _sources(row, language="tr"))
+    assert (not any(CELL_PROBLEM in problem for problem in check.problems)) is ok, check.problems
