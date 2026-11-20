@@ -35,6 +35,7 @@ from visual_agent.verification.text import (
 )
 
 Sources = Mapping[int, PromptSource]
+_NAME_JOINERS = re.compile(r"[-_]")
 ABSENCE_CLAIM = "cümle belgede olmayan bir bilgiyi iddia ediyor"
 _NEGATED = r"(?:m[ae][mdy]\w*|m[ıiuü]yor\w*)"
 """Türkçe olumsuzluk eki ve ardından gelen ek: -memiş, -medi, -meyen, -miyor. Olumlu
@@ -194,10 +195,19 @@ def _stray_tens(text: str, language: str, backed: set[str], evidence: Evidence) 
 
 def _asked_model_numbers(item: ModelItem, sources: Sources, user: str) -> set[str]:
     """Alıntılanan kaynağın belge adındaki model numarası ("6029322"), kullanıcı da söylediyse
-    cümlede alıntısız geçebilir: değer değil, hangi belgeden söz edildiğidir. Başka belgenin
-    adındaki numara ya da kullanıcının söylemediği numara yine reddedilir."""
-    titles = " ".join(sources[q.source_no].title for q in item.quotes if q.source_no in sources)
-    return model_numbers(titles) & numbers_in(user)
+    cümlede alıntısız geçebilir: değer değil, hangi belgeden söz edildiğidir.
+
+    Yalnız adın tire ya da alt çizgiyle bağlı bir parçasındaki numara sayılır
+    ("6029322-SS27-..."): boşlukla ayrılmış sayı ("Klima 12000 BTU", "Sipariş 45000") bir değer
+    olabilir. Başka belgenin numarası ya da kullanıcının söylemediği numara yine reddedilir."""
+    parts = (
+        part
+        for q in item.quotes
+        if q.source_no in sources
+        for part in sources[q.source_no].title.split()
+        if _NAME_JOINERS.search(part)
+    )
+    return model_numbers(" ".join(parts)) & numbers_in(user)
 
 
 def _token_problems(

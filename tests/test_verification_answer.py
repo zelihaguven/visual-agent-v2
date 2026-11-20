@@ -713,3 +713,21 @@ def test_model_number_of_another_document_is_hidden() -> None:
 
     assert status is VerificationStatus.FAILED
     assert "6013448" in problems[0]
+
+
+@pytest.mark.parametrize(
+    ("title", "value"),
+    [("Klima 12000 BTU Kılavuzu", "12000 BTU"), ("Sipariş 45000", "45000 adet")],
+)
+def test_number_standing_apart_in_the_title_is_not_a_model_number(title: str, value: str) -> None:
+    number = value.split()[0]
+    sources = {1: PromptSource(number=1, text="Renk: Black 001", title=title)}
+    result = verify_answer(
+        answer(item(f"Miktar {value}, renk Black 001.", quote="Renk: Black 001")),
+        sources,
+        "tr",
+        asked=f"{number} için renk ne?",
+    )
+
+    assert result.status is VerificationStatus.FAILED
+    assert number in result.problems[0]
