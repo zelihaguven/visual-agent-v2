@@ -55,7 +55,7 @@ Tahmini yeniden işleme süresi (Mac'te ölçülmedi): Windows'ta 379 dijital ve
 1. Mac'te güncelleme, yeniden işleme ve sınır seti (yukarıdaki adımlar).
 2. Set B: büyük sayfa görselini küçültmenin süreye etkisi (karar 0010/0011 altındaki liste).
 
-**Sıradaki işler (2026-11-20 teşhisi)** (tek belge 6029322, Windows soru günlüğü 19 Kasım)
+**Sıradaki işler (2026-11-20 teşhisi)** (6013448 ve 6029322; Windows soru günlüğü, 19 Kasım)
 
 1. Tek belge içindeki varyantlar için netleştirme seçenekleri: D6 (6013448 Size Range; s.1 "XS-4XL, SMT-4XLT", s.24 "Apparel (XS-5XL)") ve 6029322 göğüs logosu (renk yoluna göre s.9 Blue Haze 425, s.10 Venom Red 690). Bugün düğmeler yalnız en az iki aday belgede üretiliyor (`steps.py:350`, `_clarification`); tek belgede netleştirme seçeneksiz kalıyor.
 2. Doğrulayıcı: OCR belirsizlik denetimi alıntının tamamına değil, cümlede kullanılan parçalara baksın. Bu, aşağıdaki A5 kararını (Doğrulama, 2026-11-19) yeniden açar. Önce test: model belirsiz hücreyi kendi sözleriyle anlatırsa cümle yine gizlenmeli; sonra ürün sahibi kararı. Kanıt: 19 Kasım teşhisinde soru 1 (DEPO_KODU 59; belirsiz parça satırdaki "VARCHAR") ve soru 3 (BG-CV0007 Clear 960; belirsiz parça "Inc./TR0001/Approved/ea"): değer belirsiz değil, bütün satır alıntılanınca ilgisiz belirsiz parça cümleyi gizliyor.
