@@ -54,15 +54,14 @@ const WORD_EDGES = /^[("“'‘[]+|['’]\p{L}*[.,;:!?)"”\]]*$|[.,;:!?)"”\]]
 /** Tek doğrulanmış cümlede tek düz sayı varsa büyük gösterilir. Tutucu: rakam taşıyan her sözcük
  * ya düz sayı ya kod olmalı; "1-5", "M8x1,25", "27½", "−5", "%15", "10x20" gibi bir yazım varsa
  * hiç büyük değer gösterilmez (sayının bir parçasını büyük göstermek yanlış değer olur).
- * Akışı yarıda kalan ya da kaynakları çelişen cevapta gösterilmez; doğrulanmamış değer hiç
- * büyümez. */
+ * Yalnız doğrulanmış dijital cevapta: taramadan okunan değer (iki okuyucu aynı yanlışı okuyabilir),
+ * akışı yarıda kalan ya da kaynakları çelişen cevap büyümez; doğrulanmamış değer hiç büyümez. */
 function headlineValue(result: AnsweredResult): string | null {
   const [only, ...rest] = result.items;
-  const settled = result.status === "verified" || isOnlyScanned(result);
-  if (!settled || result.has_conflict || only === undefined || rest.length > 0) {
+  if (result.status !== "verified" || result.has_conflict || only === undefined || rest.length > 0) {
     return null;
   }
-  if (!only.verified || only.code !== null) {
+  if (!only.verified || only.from_ocr || only.code !== null) {
     return null;
   }
   const values: string[] = [];

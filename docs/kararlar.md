@@ -884,8 +884,10 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Kurallar (yalnız görünüm; doğrulama, arka uç durumu ve ses akışı aynı):**
   - "Anlayamadı" akış durumu değil: dinlerken son kayıt yazıya çevrilemediyse görünür; dinleme
     sürdüğü için mikrofon kapalı çizilmez, "Tekrar dinle" düğmesi yok.
-  - Büyük değer yalnız doğrulanmış ya da yalnız taramadan okunmuş, çelişkisiz cevabın tek
-    cümlesinde tek düz sayı varsa. Rakam taşıyan sözcüklerden biri düz sayı ya da tireli kod
+  - Büyük değer yalnız doğrulanmış dijital, çelişkisiz cevabın tek cümlesinde tek düz sayı
+    varsa. Taramadan okunan cevapta değer cümlede normal boyutta kalır (2026-11-20, ürün sahibi:
+    iki okuyucunun ortak hatası doğrulayıcıdan geçebilir; büyük punto kontrol edilmemiş güven
+    verir). Rakam taşıyan sözcüklerden biri düz sayı ya da tireli kod
     değilse ("1-5", "M8x1,25", "27½", "−5", "%15") büyük değer gösterilmez.
   - Doğrulanamayan cevapta en az bir cümle gösterildiyse rozet "Kısmen doğrulandı · N cümle
     gizlendi"; hiçbiri gösterilmediyse "Doğrulanamadı".

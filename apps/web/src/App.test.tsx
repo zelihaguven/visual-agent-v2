@@ -358,7 +358,7 @@ describe("App", () => {
     expect(document.querySelector(".answer-value")).toBeNull();
   });
 
-  it("shows the value of a verified answer read from a scan large", async () => {
+  it("keeps the value of an answer read from a scan at sentence size", async () => {
     stubApi({
       "/api/documents": () => jsonResponse([]),
       "/api/ask": () =>
@@ -368,7 +368,9 @@ describe("App", () => {
 
     await ask("GML-6473 M bel kaç?");
 
-    expect(await screen.findByText("38,0", { selector: ".answer-value" })).toBeInTheDocument();
+    expect(await screen.findByText("Taramadan okundu · kaynaktan kontrol edin")).toBeInTheDocument();
+    expect(screen.getByText("M beden bel 38,0'dır.")).toBeInTheDocument();
+    expect(document.querySelector(".answer-value")).toBeNull();
   });
 
   it("opens the highlighted page of a citation", async () => {
