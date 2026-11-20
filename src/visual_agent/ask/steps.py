@@ -399,6 +399,7 @@ async def verify(state: AskState, deps: AskDeps) -> AskState:
         documents = _relevant_documents(
             candidate_documents(state.hits, verification.clarify_options), state, deps
         )
+        asked, previous = user_text(state)
         agreed, cost = await agreed_answer(
             state.question,
             state.language,
@@ -406,7 +407,8 @@ async def verify(state: AskState, deps: AskDeps) -> AskState:
             documents,
             deps,
             _citation,
-            *user_text(state),
+            asked=asked,
+            previous=previous,
         )
         result = agreed or _clarification(answer, documents, state, deps)
         return replace(state, result=result, cost_usd=state.cost_usd + cost)

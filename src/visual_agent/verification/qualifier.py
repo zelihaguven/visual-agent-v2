@@ -202,7 +202,12 @@ def _missing_variants(
                     continue  # bütün varyantlarda aynı değer
                 # Bu turun sorusu gruptan bir ad söylüyorsa ("peki M?") önceki turun o gruptaki
                 # adı ("L") geçersizdir; söylemiyorsa ("peki kalça?") önceki tur geçerlidir.
-                renamed = any(_mentions(q.asked, part) for c in group for part in c.parts)
+                # Başlıktan gelen tek sütunlu grupta kardeşler başlık satırındadır.
+                shapes = {_shape(c.label) for c in group}
+                siblings = {h for h in q.numbered_headers if _shape(h) in shapes}
+                names = {p for c in group for p in c.parts}
+                names |= {p for h in siblings for p in {h} | _number_parts(h)}
+                renamed = any(_mentions(q.asked, name) for name in names)
                 asked = (q.asked,) if renamed else (q.asked, q.previous)
                 for value in {c.value for c in group if _occurs(c.value, sentence)}:
                     # Değerin kendisi ad sayılmaz: "Black 001"deki 001 renk yolunu söylemez.

@@ -1338,6 +1338,7 @@ Tarih: 2026-11-20. Ürün sahibi kararı. Dal: `niteleyici-denetimi`. Kod: `src/
 - Başlıksız satırlarda (taranmış tablonun sayfaya devam eden satırları, 6029322 s.9) değerin hangi varyanta ait olduğu parçada yok; Kural B uygulanamaz. Başlık satırı ilk 8 parçaya girmezse tek renk yolu sütunu da varyant olarak tanınmaz. Açık notlar, Sıradaki işler madde 4'e bağlı.
 - Etiketler İngilizce, cümleler Türkçe olduğunda adın çevirisi ("Size Range" → "beden aralığı") Kural A'ya görünmez; çevrilmiş ad başka kaynağın adıysa yakalanmaz.
 - Kısa kod yalnız kaynakta büyük harfle yazılmış harf/rakam kodudur ("S", "XL", "4XLT"); "Min", "Adet", "Volt" varyant sayılmaz. Büyük harfle yazılmış kısa öznitelik başlıkları ("ID", "NO") aynı satırda sayısal değerle yan yana gelirse varyant sayılır ve doğru cümle gizlenebilir.
+- Bu turda sorulan varyant alıntılanan satırda ve başlık satırlarında yoksa ("peki XL?", satırda yalnız S/M/L) önceki turun adı sayılmaya devam eder.
 - Başlıksız satır alıntılanıp sütun adı başka parçadaki başlık satırından yazılırsa ("Material Details") Kural A cümleyi gizler (gizleme yönünde).
 
 **Karar.** Gerçek belgeler gelene kadar doğrulayıcıya yeni doğrulama kuralı eklenmez. Yeni kural ancak gerçek belgelerle görülen bir yanlış ya da gizlenen doğru cümle örüntüsüne dayanarak, ürün sahibi kararıyla eklenir.

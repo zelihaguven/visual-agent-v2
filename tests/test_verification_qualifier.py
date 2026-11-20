@@ -306,3 +306,11 @@ def test_previous_size_still_counts_when_this_turn_names_no_size() -> None:
         asked="peki kalça?",
         previous=PREVIOUS,
     ).ok
+
+
+def test_previous_colorway_does_not_vouch_when_this_turn_names_a_header_sibling() -> None:
+    quote = "100: White // Venom Red: Venom Red 690"
+    for asked in ("peki 001?", "peki Black / Blue Haze?"):
+        check = _check("Göğüs logosu Venom Red 690.", quote, LOGO, asked=asked, previous="100")
+        assert not check.ok, asked
+    assert _check("Göğüs logosu Venom Red 690.", quote, LOGO, asked="peki?", previous="100").ok
