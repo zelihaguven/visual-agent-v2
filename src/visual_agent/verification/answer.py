@@ -13,6 +13,7 @@ from visual_agent.domain.answer import (
     PromptSource,
     VerificationStatus,
 )
+from visual_agent.verification.qualifier import Qualifiers, build_qualifiers, qualifier_problems
 from visual_agent.verification.quote import labeled_cells, quote_matches
 from visual_agent.verification.text import (
     FOREIGN_SCRIPT_RE,
@@ -229,8 +230,15 @@ def _rests_on_ocr(item: ModelItem, sources: Sources) -> bool:
     return any(number in sources and sources[number].from_ocr for number in numbers)
 
 
-def verify_item(item: ModelItem, sources: Sources, language: str) -> ItemCheck:
-    """Her sayı ve teknik ad, cümlenin kendi dayanağında bulunmalıdır; language cevabın dili."""
+def verify_item(
+    item: ModelItem, sources: Sources, language: str, qualifiers: Qualifiers | None = None
+) -> ItemCheck:
+    """Her sayı ve teknik ad, cümlenin kendi dayanağında bulunmalıdır; language cevabın dili.
+
+    qualifiers cevap başına bir kez hesaplanır (kullanıcının sorusuyla); verilmezse soru
+    bilinmiyor sayılır ve varyant adı yalnız cümlede aranır."""
+    if qualifiers is None:
+        qualifiers = build_qualifiers(sources, asked="")
     problems = _quote_problems(item, sources)
     code_source = _code_source(item, sources)
     if item.code_source_no is not None and code_source is None:
@@ -240,6 +248,7 @@ def verify_item(item: ModelItem, sources: Sources, language: str) -> ItemCheck:
     problems += _token_problems(item, evidence, sources, language)
     problems += _tolerance_problems(item.text, " ".join(text for text, _ in evidence))
     problems += _absence_problems(item, language)
+    problems += qualifier_problems(item, sources, qualifiers)
     others = len(problems)
     problems += _unit_problems(item, evidence, sources)
     if FOREIGN_SCRIPT_RE.search(item.text):
@@ -300,12 +309,16 @@ def _final_status(checks: tuple[ItemCheck, ...]) -> VerificationStatus:
     return VerificationStatus.VERIFIED
 
 
-def verify_answer(answer: ModelAnswer, sources: Sources, language: str) -> AnswerVerification:
+def verify_answer(
+    answer: ModelAnswer, sources: Sources, language: str, asked: str = ""
+) -> AnswerVerification:
+    """asked: kullanıcının kendi metni (bu tur ve önceki turun doğrulanmış sözcükleri)."""
     if answer.kind is AnswerKind.NOT_FOUND:
         return AnswerVerification(status=VerificationStatus.NOT_FOUND)
     if answer.kind is AnswerKind.CLARIFY:
         return _verify_clarification(answer, sources)
-    checks = tuple(verify_item(item, sources, language) for item in answer.items)
+    qualifiers = build_qualifiers(sources, asked)
+    checks = tuple(verify_item(item, sources, language, qualifiers) for item in answer.items)
     problems = [problem for check in checks for problem in check.problems]
     if not checks:
         problems.append("cevap listesi boş")

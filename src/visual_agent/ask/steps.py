@@ -11,6 +11,7 @@ from visual_agent.ask.agreement import agreed_answer, candidate_documents
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.language import detect_language
 from visual_agent.ask.streaming import INCOMPLETE_MESSAGE, StreamAssembler
+from visual_agent.conversation.grounding import marked_tokens
 from visual_agent.domain.answer import (
     AnswerKind,
     ItemCheck,
@@ -245,12 +246,20 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     return replace(state, hits=hits)
 
 
+def user_text(state: AskState) -> str:
+    """Kullanıcının kendi metni: bu turun sorusu ve önceki turdan yalnız kullanıcıdan geldiği
+    denetlenmiş sözcükler (kod, sayı, beden; is_grounded). Modelin tamamladığı soru girmez."""
+    context = state.request.context
+    previous = sorted(marked_tokens(context.question)) if context is not None else []
+    return " ".join([state.request.question, *previous])
+
+
 def _stream_callbacks(
     state: AskState, sources: Sources
 ) -> tuple[StreamAssembler | None, StreamCallbacks | None]:
     if state.request.on_event is None:
         return None, None
-    assembler = StreamAssembler(sources, state.language, state.request.on_event)
+    assembler = StreamAssembler(sources, state.language, state.request.on_event, user_text(state))
     return assembler, StreamCallbacks(
         on_delta=assembler.feed, may_retry=assembler.may_retry, on_reset=assembler.reset
     )
@@ -383,7 +392,7 @@ async def verify(state: AskState, deps: AskDeps) -> AskState:
     assert state.answer is not None
     answer = state.answer
     sources = to_prompt_sources(state.hits, deps.catalog.language)
-    verification = verify_answer(answer, sources, state.language)
+    verification = verify_answer(answer, sources, state.language, user_text(state))
     if verification.status is VerificationStatus.NOT_FOUND:
         return replace(state, result=NotFound())
     if verification.status is VerificationStatus.CLARIFY:
@@ -391,7 +400,7 @@ async def verify(state: AskState, deps: AskDeps) -> AskState:
             candidate_documents(state.hits, verification.clarify_options), state, deps
         )
         agreed, cost = await agreed_answer(
-            state.question, state.language, state.hits, documents, deps, _citation
+            state.question, state.language, state.hits, documents, deps, _citation, user_text(state)
         )
         result = agreed or _clarification(answer, documents, state, deps)
         return replace(state, result=result, cost_usd=state.cost_usd + cost)

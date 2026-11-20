@@ -1323,3 +1323,19 @@ Tarih: 2026-11-19. Ürün sahibi kararı.
 **Neden.** Bu (normal) bilgisayarda sayfa okuyucusu sayfa başına 50 sn ile 16 dakika arasında sürüyor (karar 0015); bu sayfaları okuyucuya göndermek pratik değil. Yüklü belgelerde bu türden sayfa şu an yok; eski yoldan kalan parça 0.
 
 **Bilinen zayıflık.** Bu yolun ikinci okuma karşılaştırması okuyucununkinden gevşek (harf-rakam eşdeğerliği, rakamsız kod denetlenmiyor; mimari denetimi B2) ve gömülü görsel tablolarında başlık kayması koruması yok (B3). İkisi yeniden işleme turunun planında.
+
+### 0019: Niteleyici denetimi; gerçek belgeler gelene kadar doğrulayıcıya son kural
+Tarih: 2026-11-20. Ürün sahibi kararı. Dal: `niteleyici-denetimi`. Kod: `src/visual_agent/verification/qualifier.py`.
+
+**Ne.** Doğrulayıcı sayı ve kodları denetliyordu, sayı içermeyen niteleyicileri denetlemiyordu. Bugünkü parçalarla yerelde gösterildi (19 Kasım teşhisi): "Chart Size Range değeri XS-4XL, SMT-4XLT" (değer s.1'deki Size Range'in), "Black / Blue Haze renk yolunda göğüs logosu Venom Red 690" (değer öbür renk yolunun) ve "Göğüs logosunun rengi Venom Red 690" (renk yolu düşmüş) doğrulanmış gösteriliyordu. İki genel kural eklendi; ikisi de cümleyi yeniden yazmaz, geçemeyen cümle gizlenir:
+- **Kural A:** kaynaklardan birinin en az iki sözcüklü hücre adı (etiket, ayraçlı hücre ya da rakamsız değer) cümlede geçiyorsa, cümlenin alıntı yaptığı kaynağın metninde de geçmeli. En uzun ad esas alınır. Bölüm yolu sayılmaz (yollar yanlış iç içe olabilir; açık notlar, Sıradaki işler madde 4).
+- **Kural B:** alıntılanan değer bir varyant sütununun altındaysa o sütunun adı cümlede ya da kullanıcının kendi sorusunda geçmeli; değer bütün varyantlarda aynıysa gerekmez. Varyant sütunu: aynı satırda aynı gruptan en az iki etiket (kısa kod "S/M/L", ortak başlı ad "Beden S/Beden M", numaralı ad "100: White // Venom Red") ve aynı türde değer; ya da kaynaklardan birinin başlık satırında birden çok geçen numaralı ad.
+- Soru olarak modelin tamamladığı soru değil, kullanıcının bu turdaki metni ve önceki turdan yalnız kullanıcıdan geldiği denetlenmiş sözcükler (kod, sayı, beden; `is_grounded`) kullanılır.
+- Eşleşme Türkçe büyük-küçük harften ve ı/i farkından bağımsız; "Black / Blue Haze", "Black // Blue Haze", "Black / / Blue Haze" aynı; kısa kodlar sözcük sınırıyla ("M" "M.CODE" ya da "SMT-4XLT" içinde eşleşmez). Ad kümesi cevap başına bir kez hesaplanır.
+
+**Bilinen sınırlar.**
+- Tek sözcüklü adlar Kural A'nın dışında ("Regular", "Fleece"): bunları ad saymak doğru cümleleri de gizlerdi.
+- Başlıksız satırlarda (taranmış tablonun sayfaya devam eden satırları, 6029322 s.9) değerin hangi varyanta ait olduğu parçada yok; Kural B uygulanamaz. Başlık satırı ilk 8 parçaya girmezse tek renk yolu sütunu da varyant olarak tanınmaz. Açık notlar, Sıradaki işler madde 4'e bağlı.
+- Etiketler İngilizce, cümleler Türkçe olduğunda adın çevirisi ("Size Range" → "beden aralığı") Kural A'ya görünmez; çevrilmiş ad başka kaynağın adıysa yakalanmaz.
+
+**Karar.** Gerçek belgeler gelene kadar doğrulayıcıya yeni doğrulama kuralı eklenmez. Yeni kural ancak gerçek belgelerle görülen bir yanlış ya da gizlenen doğru cümle örüntüsüne dayanarak, ürün sahibi kararıyla eklenir.

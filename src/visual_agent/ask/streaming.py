@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from visual_agent.domain.answer import ItemCheck, ModelItem, PromptSource
 from visual_agent.verification.answer import code_source_number, verify_item
+from visual_agent.verification.qualifier import build_qualifiers
 from visual_agent.verification.text import UNIT_PATTERN, identifier_spans, word_number_spans
 
 Event = dict[str, object]
@@ -165,8 +166,15 @@ def _complete_words(text: str, is_open: bool) -> str:
 class StreamAssembler:
     """Metin hemen akar; öğeler sırayla ve yalnız doğrulandıktan sonra açılır."""
 
-    def __init__(self, sources: Mapping[int, PromptSource], language: str, emit: EventSink) -> None:
+    def __init__(
+        self,
+        sources: Mapping[int, PromptSource],
+        language: str,
+        emit: EventSink,
+        asked: str = "",
+    ) -> None:
         self._sources = sources
+        self._qualifiers = build_qualifiers(sources, asked)
         self._language = language
         self._emit = emit
         self.first_verified_seconds: float | None = None
@@ -206,7 +214,11 @@ class StreamAssembler:
         while len(self._checked) < len(bounds):
             start, end = bounds[len(self._checked)]
             item = self._parse_item(content[start:end])
-            check = verify_item(item, self._sources, self._language) if item is not None else None
+            check = (
+                verify_item(item, self._sources, self._language, self._qualifiers)
+                if item is not None
+                else None
+            )
             self._checked.append((item, check))
 
     def _reveal(self, seconds: float) -> None:
