@@ -78,6 +78,7 @@ export type AskEvent =
       type: "done";
       result: AskResult;
       scope_inherited: boolean;
+      scope_narrowed: boolean;
       context: ConversationContext | null;
     }
   | { type: "error"; message: string };
@@ -133,6 +134,7 @@ export async function askQuestion(
   onEvent: (event: AskEvent) => void,
   signal?: AbortSignal,
   dictated = false,
+  allDocuments = false,
 ): Promise<void> {
   const response = await fetch("/api/ask", {
     method: "POST",
@@ -144,6 +146,7 @@ export async function askQuestion(
       ...(context ? { context } : {}),
       ...(speak ? { speak } : {}),
       ...(dictated ? { input_mode: "voice" } : {}),
+      ...(allDocuments ? { all_documents: true } : {}),
     }),
   });
   if (!response.ok || response.body === null) {

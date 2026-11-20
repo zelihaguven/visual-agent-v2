@@ -691,8 +691,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - Gizlenen ya da doğrulanmamış cevap bağlama girmez. Cevabın kendisi zaten hiç girmiyor;
     belgeler yalnız doğrulanmış cümlelerin kaynaklarından gelir.
   - Cevap gizlense de kullanıcının o turdaki (tamamlanmış) sorusu bağlama girer. Belgeler o
-    turda gerçekten aranan belgelerdir: tur yeni bir kodla bütün belgelerde arandıysa kapsam
-    boştur.
+    turda gerçekten aranan belgelerdir: tur yeni bir kodla arandıysa kodun belgeleri
+    (aşağıdaki "Sorudaki kod aramayı kodun belgelerine daraltır"), kod çok belgede geçtiği için
+    bütün belgelerde arandıysa kapsam boştur.
   - Önce, tümü gizlenen cevapta bağlam bir önceki turda kalıyordu.
   - **Düzeltme (`kapsam-mesaji` dalı, 2026-11-12):** İlk sürümde gizlenen turda belgeler
     önceki bağlamdan kalıyordu. Ürün sahibinin denemesinde şu oldu:
@@ -718,6 +719,46 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - `main`e göre kötüleşen soru yok; iyileşen takip sorusu seed 7'de 1, seed 11'de 3.
 - **Yeniden düşünülür:** Gizlenen turun sorusu yanlış tamamlanmışsa, sonraki tur bu yanlışı
   taşır. Böyle bir durum görülürse yeniden ele alınır.
+
+### Sorudaki kod aramayı kodun belgelerine daraltır
+- **Ne zaman:** 2026-11-20, `kod-kapsami` dalı; ekip kararı (tasarım onaylı).
+- **Kural:**
+  - Belge seçilmemiş, soruda belge adı geçmiyor ve önceki turdan kapsam gelmiyorsa, sorudaki
+    kodların geçtiği belgeler kapsam olur (`resolve_scope`, `_code_documents`).
+  - En çok 4 belgede geçen kod daraltır: netleştirme düğmesi sınırıyla aynı
+    (`_MAX_CLARIFY_DOCUMENTS`), kapsam netleştirilebilir kalır. Daha çok belgede geçen kod
+    (ortak bileşen kodu, ör. bütün tech pack'lerdeki iplik) daraltmaz.
+  - Birden çok kodda daraltan kodların belgeleri birleşir; birleşim 4'ü aşarsa daraltma yok.
+    Hiçbir belgede olmayan kodun davranışı aynı ("X belgelerde geçmiyor").
+  - Daraltma önceki turdan miras değildir (`scope_inherited` değişmez); sonuç
+    `scope_narrowed` taşır.
+  - Kodla daraltılan turda "bulunamadı" çıkarsa arayüz mevcut "Tüm belgelerde ara" düğmesini
+    gösterir. Düğme `all_documents` işaretiyle gönderilir; o soruda kod daraltmaz. Kendiliğinden
+    yeniden arama yok.
+- **Neden:** 20 Kasım teşhisi: "GML-6473 modelinde M beden bel kaç" sorusunda kod yalnız
+  dikim-tarama'da geçtiği hâlde arama bütün belgelerde yapıldı; ilk 8 parçaya PNT-1126'nın bel
+  satırı girdi ve model iki ürünün değerini "çelişki" diye birlikte yazdı.
+- **Ölçüm (2026-11-20):**
+  - n11 önbelleğinden çevrimdışı: kapsamı değişen yalnız SQL soruları (set başına 7; kolon
+    adları SQL belgelerine daraltıyor). Kumaş, dikim ve FastReact soruları değişmedi.
+  - Canlı: taban 39/40 ve 39/40 (yalnız bilinen `dikim-sohbet-1-t4`), FastReact 17 sorunun
+    cevabı n11 ile aynı, doğrulanmış yanlış 0; `sql-netlestir` iki sette de netleştirme.
+  - "GML-6473 modelinde M beden bel kaç?" 5/5 yalnız dikim-tarama'dan, 38,0, çelişki notu yok.
+  - Sınır seti 24 × 5: D2 (MNT-8598, fotoğraf) "bulunamadı"dan 5/5 doğru değere (40,0); A4 bir
+    gizlenen koşudan 5/5 doğruya. Diğer sorular n12 ile aynı sınıfta.
+  - D1 ("SRT-4294 M beden bel kaç?"), sınır setinde 3/5 netleştirme, 2/5 yalnız Rev B'nin
+    değeri (revizyon adı yok). Aynı soru sırayla 10'ar kez: daraltmalı 9 netleştirme, 1 iki
+    revizyon birlikte (Rev B cümlesi revizyon adı taşımıyordu); "tüm belgelerde" 3 netleştirme,
+    6 iki revizyon birlikte, 1 servis hatası. İki kipte de tek revizyon 0. Sonuç: daraltma D1'i
+    kötüleştirmiyor; sınır setindeki atlama model değişkenliği.
+  - Maliyet: canlı ölçümler toplamı ~0,038 $.
+- **Bilinen sınırlar:**
+  - Revizyon belirtilmeyen soruda netleştirme bazen atlanıyor (PR öncesinde de var): model
+    tek revizyonun değerini revizyon adı olmadan verebiliyor (D1, sınır setinde 2/5).
+  - Kod bir belgede, cevap başka bir belgedeyse ilk tur "bulunamadı" der; kullanıcı "Tüm
+    belgelerde ara"ya basmalıdır.
+  - Kod sayılan her ad daraltır: SQL kolon adları (`MUSTERI_KODU`), küçük harfli alt çizgili
+    adlar, "A4", "UTF-8" gibi terimler de.
 
 ### Gerekçesiz "bulunamadı"da en yakın başlıklar gösterilir
 - **Ne zaman:** `#0e60352` (PR #14), `ask/related.py`.
@@ -1351,5 +1392,6 @@ Tarih: 2026-11-20. Ürün sahibi kararı. Dal: `niteleyici-denetimi`. Kod: `src/
 - Kısa kod yalnız kaynakta büyük harfle yazılmış harf/rakam kodudur ("S", "XL", "4XLT"); "Min", "Adet", "Volt" varyant sayılmaz. Büyük harfle yazılmış kısa öznitelik başlıkları ("ID", "NO") aynı satırda sayısal değerle yan yana gelirse varyant sayılır ve doğru cümle gizlenebilir.
 - Bu turda sorulan varyant alıntılanan satırda ve başlık satırlarında yoksa ("peki XL?", satırda yalnız S/M/L) önceki turun adı sayılmaya devam eder.
 - Başlıksız satır alıntılanıp sütun adı başka parçadaki başlık satırından yazılırsa ("Material Details") Kural A cümleyi gizler (gizleme yönünde).
+- Model numarası muafiyeti (#110): belge adının ilk tire/alt çizgi parçası 5+ haneli bir sayıysa, kullanıcı da söylediyse cümlede alıntısız geçebilir. Ad bir değerle başlıyorsa ("12000-BTU-Klima") o değer de muaf sayılır; gerçek belgeler gelince adlar kontrol edilecek.
 
 **Karar.** Gerçek belgeler gelene kadar doğrulayıcıya yeni doğrulama kuralı eklenmez. Yeni kural ancak gerçek belgelerle görülen bir yanlış ya da gizlenen doğru cümle örüntüsüne dayanarak, ürün sahibi kararıyla eklenir.

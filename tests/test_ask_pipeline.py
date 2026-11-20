@@ -210,6 +210,66 @@ def test_search_without_a_scope_covers_only_catalogued_documents() -> None:
     assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
 
 
+def _scope_for(
+    question: str, texts: dict[str, str], all_documents: bool = False
+) -> tuple[str, ...]:
+    """Belge başına tek parça; arama hangi belgelerle çağrıldı."""
+    chunks = [chunk(f"{doc}:1", doc, text, ChunkKind.TEXT) for doc, text in texts.items()]
+    catalog = DocumentCatalog()
+    for doc in texts:
+        catalog.add(DocumentMeta(doc_id=doc, title=f"Belge {doc}", language="tr"))
+    retriever = FakeRetriever(hits=chunks[:1])
+    deps = replace(
+        make_deps(FakeClient(answer_payload("Yok.")), retriever),
+        catalog=catalog,
+        identifiers=build_identifier_index(chunks),
+    )
+    asyncio.run(answer_question(AskRequest(question, all_documents=all_documents), deps))
+    scope = retriever.calls[0]["doc_ids"]
+    assert isinstance(scope, tuple)
+    return scope
+
+
+THREAD = "İplik TT-100156 beyaz."
+
+
+def test_code_narrows_the_search_to_its_document() -> None:
+    texts = {"d1": "GML-6473 bel 38,0", "d2": "PNT-1126 bel 38,5", "d3": "Genel bilgi"}
+
+    assert _scope_for("GML-6473 M beden bel kaç?", texts) == ("d1",)
+
+
+def test_code_in_a_few_documents_keeps_all_of_them_for_clarification() -> None:
+    texts = {"d1": "SRT-4294 bel 38,5", "d2": "SRT-4294 bel 39,5", "d3": "PNT-1126 bel 38,5"}
+
+    assert _scope_for("SRT-4294 M beden bel kaç?", texts) == ("d1", "d2")
+
+
+def test_component_code_in_many_documents_does_not_narrow() -> None:
+    texts = {f"d{n}": THREAD for n in range(1, 6)} | {"d6": "Genel bilgi"}
+
+    assert _scope_for("TT-100156 ipliğinin rengi ne?", texts) == tuple(texts)
+
+
+def test_two_codes_narrow_to_the_documents_of_both() -> None:
+    texts = {"d1": "GML-6473 bel 38,0", "d2": "PNT-1162 bel 42,5", "d3": "Genel bilgi"}
+
+    assert _scope_for("PNT-1162 ile GML-6473 bel farkı?", texts) == ("d1", "d2")  # katalog sırası
+
+
+def test_component_code_beside_a_narrowing_code_is_left_out() -> None:
+    texts = {f"d{n}": THREAD for n in range(1, 6)} | {"d1": "GML-6473 bel. " + THREAD}
+
+    assert _scope_for("GML-6473 TT-100156 ipliği ne renk?", texts) == ("d1",)
+
+
+def test_codes_spread_over_too_many_documents_do_not_narrow() -> None:
+    codes = ["AB-1001", "AB-1002", "AB-1003", "AB-1004", "AB-1005"]
+    texts = {f"d{n}": code for n, code in enumerate(codes, start=1)} | {"d6": "Genel"}
+
+    assert _scope_for(" ".join(codes) + " nedir?", texts) == tuple(texts)
+
+
 CODE_CHUNK = chunk("a:9", "a", "Model GML-6473 kalça 48,0", ChunkKind.TEXT, title="Föy")
 
 
@@ -955,3 +1015,23 @@ def test_search_is_limited_to_the_document_named_by_its_number() -> None:
     ask(deps, "6013448'in beden aralığı nedir?")
 
     assert retriever.calls[0]["doc_ids"] == ("p1",)
+
+
+def test_all_documents_choice_is_not_narrowed_by_the_code() -> None:
+    texts = {"d1": "GML-6473 bel 38,0", "d2": "Kalibrasyon kılavuzu", "d3": "Genel bilgi"}
+
+    assert _scope_for("GML-6473 kalibrasyon?", texts, all_documents=True) == ("d1", "d2", "d3")
+
+
+def test_only_the_codes_that_exist_narrow_the_search() -> None:
+    texts = {"d1": "GML-6473 bel 38,0", "d2": "Genel bilgi"}
+
+    assert _scope_for("GML-6473 ve XYZ-9999 bel?", texts) == ("d1",)
+
+
+def test_outcome_says_whether_the_code_narrowed_the_search() -> None:
+    deps = make_deps(FakeClient(answer_payload("Motor arızası.", quote="motor arızası")))
+
+    assert ask(deps, "E050 nedir?").scope_narrowed
+    assert not ask(deps, "iç paça kaç?").scope_narrowed
+    assert not ask(deps, "E050 nedir?", ("b",)).scope_narrowed

@@ -123,25 +123,25 @@ def test_follow_up_stays_in_the_documents_of_the_last_answer() -> None:
     assert outcome.scope_inherited
 
 
-def test_new_code_in_the_message_lifts_the_inherited_scope() -> None:
+def test_new_code_in_the_message_moves_the_scope_to_its_document() -> None:
     retriever = FakeRetriever(hits=[CHUNKS[1]])
     rewriter = follows("E050 M beden iç paça kaç?")
     payload = answer_payload("E050 motor arızasıdır.", "Hata E050 motor arızasıdır.")
 
     outcome = ask_with(deps_with(rewriter, FakeClient(payload), retriever), "Peki E050 için?")
 
-    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
+    assert retriever.calls[0]["doc_ids"] == ("b",)  # kodun belgesi; önceki konu "a" değil
     assert not outcome.scope_inherited
 
 
-def test_spoken_new_code_lifts_the_inherited_scope() -> None:
+def test_spoken_new_code_moves_the_scope_to_its_document() -> None:
     retriever = FakeRetriever(hits=[CHUNKS[1]])
     rewriter = follows("e050 M beden iç paça kaç?")
     payload = answer_payload("E050 motor arızasıdır.", "Hata E050 motor arızasıdır.")
 
     outcome = ask_with(deps_with(rewriter, FakeClient(payload), retriever), "Peki e050 için?")
 
-    assert retriever.calls[0]["doc_ids"] == ("a", "b", "c")
+    assert retriever.calls[0]["doc_ids"] == ("b",)  # kodun belgesi; önceki konu "a" değil
     assert not outcome.scope_inherited
 
 
@@ -271,13 +271,15 @@ def test_follow_up_after_a_hidden_answer_is_completed_from_the_hidden_turn() -> 
 
 
 def test_hidden_turn_with_a_new_code_does_not_keep_the_old_documents() -> None:
-    """Önceki konu "a"; yeni kodlu soru bütün belgelerde arandı, cevabı gizlendi."""
+    """Önceki konu "a"; yeni kodlu soru kodun belgesinde ("b") arandı, cevabı gizlendi."""
     hidden = answer_payload("Dış paça 99.", "Dış paça 99")
     outcome = ask_with(deps_with(follows("E050 hatası nedir?"), FakeClient(hidden)), "E050 nedir?")
 
     assert isinstance(outcome.result, Answered)
     assert outcome.result.status is VerificationStatus.FAILED
-    assert outcome.context == ConversationContext(question="E050 hatası nedir?")
+    assert outcome.context is not None
+    assert outcome.context.question == "E050 hatası nedir?"
+    assert outcome.context.doc_ids == ("b",)
 
 
 def test_follow_up_after_a_hidden_turn_with_a_new_code_searches_where_it_was_asked() -> None:
@@ -285,11 +287,15 @@ def test_follow_up_after_a_hidden_turn_with_a_new_code_searches_where_it_was_ask
     hidden = answer_payload("Dış paça 99.", "Dış paça 99")
     second = ask_with(deps_with(follows("E050 hatası nedir?"), FakeClient(hidden)), "E050 nedir?")
     rewriter = follows("E050 hatası ne zaman görülür?")
+    retriever = FakeRetriever()
 
-    third = ask_with(deps_with(rewriter, FakeClient(VERIFIED)), "peki ne zaman?", second.context)
+    third = ask_with(
+        deps_with(rewriter, FakeClient(VERIFIED), retriever), "peki ne zaman?", second.context
+    )
 
     assert rewriter.calls == [("E050 hatası nedir?", "peki ne zaman?")]
-    assert not third.scope_inherited
+    assert third.scope_inherited  # gizlenen turun arandığı belge: kodun belgesi ("b")
+    assert retriever.calls[0]["doc_ids"] == ("b",)
     assert not (isinstance(third.result, NotFound) and "geçmiyor" in third.result.reason)
 
 

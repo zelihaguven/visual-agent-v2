@@ -14,6 +14,8 @@ export type Turn = {
   question: string;
   resolvedQuestion: string | null;
   scopeInherited: boolean;
+  /** Arama sorudaki kodun belgelerine daraltıldı. */
+  scopeNarrowed: boolean;
   stage: string | null;
   sources: Citation[];
   items: Record<number, TurnItem>;
@@ -28,6 +30,7 @@ export function newTurn(id: string, question: string): Turn {
     question,
     resolvedQuestion: null,
     scopeInherited: false,
+    scopeNarrowed: false,
     stage: null,
     sources: [],
     items: {},
@@ -81,7 +84,13 @@ export function applyEvent(turn: Turn, event: AskEvent): Turn {
     case "incomplete":
       return { ...turn, notice: event.message };
     case "done":
-      return { ...turn, result: event.result, scopeInherited: event.scope_inherited, stage: null };
+      return {
+        ...turn,
+        result: event.result,
+        scopeInherited: event.scope_inherited,
+        scopeNarrowed: event.scope_narrowed,
+        stage: null,
+      };
     case "error":
       // Gelmiş cevap geri alınmaz; sonradan gelen hata yalnız uyarı olur.
       return turn.result !== null

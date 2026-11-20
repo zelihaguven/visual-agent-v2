@@ -96,6 +96,8 @@ class AskOutcome(FrozenModel):
     question: str = ""
     context: ConversationContext | None = None
     scope_inherited: bool = False
+    scope_narrowed: bool = False
+    """Arama sorudaki kodun belgelerine daraltıldı; bulunamadıysa tüm belgelerde aranabilir."""
     translation_failed: bool = False
     helper_providers: tuple[str, ...] = ()
     """Sorgu çevirisi gerekti ama süresinde gelmedi; arama özgün soruyla yapıldı."""

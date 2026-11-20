@@ -74,8 +74,8 @@ def _scope_context(state: AskState, catalog: DocumentCatalog) -> ConversationCon
     """Bağlama o turun sorusu ve kapsamı girer; her belgenin adıyla.
 
     Ad katalogdan, katalogda yoksa (silinmiş belge) aramadan ya da önceki bağlamdan gelir.
-    Tur yeni bir kodla bütün belgelerde arandıysa kapsam boştur; önceki konunun belgeleri
-    taşınmaz.
+    Tur yeni bir kodla arandıysa kapsam kodun belgeleridir, kod çok belgede geçtiği için bütün
+    belgelerde arandıysa boştur; önceki konunun belgeleri taşınmaz.
     """
     previous = state.request.context
     # İstemcinin gönderdiği bağlamda ad olmayabilir; eksik ad boş sayılır.

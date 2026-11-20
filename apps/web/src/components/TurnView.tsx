@@ -44,7 +44,8 @@ type Props = {
   speechStatus?: SpeechStatus;
   onSpeak?: (items: SpokenItem[]) => void;
   onOpenSource: (citation: Citation) => void;
-  onAskAgain: (question: string, docIds: string[] | null) => void;
+  /** allDocuments: "Tüm belgelerde ara"; sorudaki kod aramayı daraltmaz. */
+  onAskAgain: (question: string, docIds: string[] | null, allDocuments?: boolean) => void;
   /** Bir soru sürerken yeniden sorma düğmeleri kilitlenir; eski turlardakiler dahil. */
   isBusy?: boolean;
 };
@@ -395,13 +396,13 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak, isB
             isBusy={isBusy}
             onChoose={(docId) => onAskAgain(fullQuestion, [docId])}
           />
-          {turn.scopeInherited && (
+          {(turn.scopeInherited || turn.scopeNarrowed) && (
             <div className="choices">
               <button
                 type="button"
                 className="choice"
                 disabled={isBusy}
-                onClick={() => onAskAgain(fullQuestion, null)}
+                onClick={() => onAskAgain(fullQuestion, null, true)}
               >
                 Tüm belgelerde ara
               </button>

@@ -28,7 +28,7 @@ const VOICE_FAILED = "Ses servisine ulaşılamadı. Bitir'e basıp yazarak sorab
 const NO_MICROPHONE = "Mikrofona erişilemedi. Tarayıcı iznini kontrol edin.";
 
 /** Ekrandaki netleştirme ya da "Tüm belgelerde ara" seçimi: soru o belgelerde yeniden sorulur. */
-export type Choice = { question: string; docIds: string[] | null };
+export type Choice = { question: string; docIds: string[] | null; allDocuments?: boolean };
 
 type Props = {
   audio: AudioQueue;
@@ -192,9 +192,9 @@ export function ConversationMode(props: Props) {
     };
   }, [audio]);
 
-  function choose(question: string, docIds: string[] | null) {
+  function choose(question: string, docIds: string[] | null, allDocuments = false) {
     if (listenControl.current !== null) {
-      pendingChoice.current = { question, docIds };
+      pendingChoice.current = { question, docIds, allDocuments };
       listenControl.current.abort();
     }
   }

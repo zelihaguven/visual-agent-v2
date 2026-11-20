@@ -74,6 +74,7 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
         question=final.question,
         context=next_context(final, deps.catalog),
         scope_inherited=final.scope_inherited,
+        scope_narrowed=final.scope_narrowed,
         translation_failed=final.translation_failed,
         helper_providers=tuple(helper_providers),
     )
