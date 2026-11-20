@@ -1227,7 +1227,7 @@ Tarih: 2026-11-16. Ürün sahibi kararı; yeni bağımlılık (`paddleocr[doc-pa
 - Tabloda hücre konumu yok: kaynak panelinde satır yerine tablonun tamamı vurgulanır.
 - 0010'daki ortak hata sürüyor: "⅞" iki okuyucuda da "%" okunursa gizlenmez.
 - Eski OCR'ın telafi kodu (çizgili tablo, hücre okuma, deskew notları) silinmedi; metin katmanlı taranmış sayfalar onu hâlâ kullanıyor. Ayrı PR.
-- `evals/results/2026-11-16-set-a-benzetim/hat.py` uygulamanın hattını çağırır: bu karardan sonra "mevcut hat" adayını değil yeni hattı ölçer. Gerçek taramalarda eski hattı ölçmek için `c79e4ce` kullanılmalı.
+- `evals/results/2026-11-16-set-a-benzetim/hat.py` 2026-11-17'den (`28e1be3`, hücre okuyucu silindi) beri bugünkü kodla çalışmaz; dondurulmuş olduğu için düzeltilmez. Gerçek taramalarda: eski aday `c79e4ce`'de `hat.py` ile; PaddleOCR-VL + Tesseract adayı `paddle_calistir.py` + `tesseract.py` + `puanla.py` ile, değiştirilmeden ölçülür. Bugünkü hattın kendisi (kural 19) bu betiklerle ölçülmez; ölçülecekse `hat_cikti.json` biçiminde çıktı üreten ayrı bir betik gerekir (ekip kararı).
 - Kural sürümü 8, yalnız taranmış sayfası olan belgeleri eskitir: 7. sürümle işlenmiş ve kaydında `none` ya da `scanned` sayfa olmayan belge "Eski kural" görünmez (`is_outdated`).
 - Ölçüm MLX arka ucuyla yapıldı; `local` kipinin okuması ve hızı ölçülmedi.
 - Tarama kendi çözünürlüğünde okunur (büyütülmez): büyütülmüş görüntüde Tesseract'ın ikinci okuması bozuluyor (açık notlar, 2026-11-17 denemesi).
