@@ -21,14 +21,35 @@ const OCR_BADGE = { label: "Taramadan okundu · kaynaktan kontrol edin", tone: "
 type AnsweredResult = Extract<AskResult, { kind: "answered" }>;
 
 /** Kısmi durumun tek nedeni taranmış kaynaksa (gizlenen ya da eksik cümle yok) rozet bunu söyler;
- * akışı yarıda kalan cevap sorun taşır ve "Kısmen doğrulandı" kalır. */
+ * akışı yarıda kalan cevap sorun taşır ve "Kısmen doğrulandı" kalır. Doğrulanamayan cevapta en az
+ * bir cümle gösterildiyse rozet gizlenen cümle sayısını söyler (yalnız görünüm; durum aynı). */
 function badgeFor(result: AnsweredResult) {
   const onlyScanned =
     result.status === "partial" &&
     result.problems.length === 0 &&
     result.items.every((item) => item.verified) &&
     result.items.some((item) => item.from_ocr);
-  return onlyScanned ? OCR_BADGE : BADGES[result.status];
+  if (onlyScanned) {
+    return OCR_BADGE;
+  }
+  const hidden = result.items.filter((item) => !item.verified).length;
+  if (result.status === "failed" && hidden > 0 && hidden < result.items.length) {
+    return { label: `Kısmen doğrulandı · ${hidden} cümle gizlendi`, tone: "warn" } as const;
+  }
+  return BADGES[result.status];
+}
+
+/** Cümledeki değer sayıları; kodun içindeki rakam ("GML-6473") ve aralığın ikinci ucu sayılmaz. */
+const VALUE_RE = /(?<![\p{L}\d_-])-?\d+(?:[.,]\d+)?/gu;
+
+/** Tek doğrulanmış cümlede tek değer varsa büyük gösterilir; doğrulanmamış değer hiç büyümez. */
+export function headlineValue(result: AnsweredResult): string | null {
+  const [only, ...rest] = result.items;
+  if (only === undefined || rest.length > 0 || !only.verified || only.code !== null) {
+    return null;
+  }
+  const values = only.text.match(VALUE_RE) ?? [];
+  return values.length === 1 ? values[0] : null;
 }
 
 export type SpeechStatus = "idle" | "loading" | "playing";
@@ -257,6 +278,7 @@ function FinalAnswer({
   onSpeak?: Props["onSpeak"];
 }) {
   const badge = badgeFor(result);
+  const value = headlineValue(result);
   const spoken = result.items.flatMap((item) => {
     if (item.verified) {
       return [{ text: item.text, has_code: item.code !== null }];
@@ -272,6 +294,7 @@ function FinalAnswer({
         )}
       </div>
       {result.has_conflict && <p className="notice">Kaynaklar birbiriyle çelişiyor.</p>}
+      {value !== null && <p className="answer-value">{value}</p>}
       <ol className="answer-items">
         {mergeHidden(result.items).map((item, index) => (
           <li key={index} className={`answer-item ${item.verified ? "is-verified" : "is-unverified"}`}>
@@ -384,7 +407,11 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak, isB
       return (
         <div>
           <p className="notice">
-            {turn.scopeInherited ? "Bu bilgi bu belgede yok." : "Bu bilgi belgelerde bulunamadı."}
+            {turn.scopeInherited
+              ? "Bu bilgi bu belgede yok."
+              : turn.scopeNarrowed
+                ? "Bu bilgi bu kodun geçtiği belgelerde yok."
+                : "Bu bilgi belgelerde bulunamadı."}
           </p>
           {result.reason ? (
             <p className="muted">{result.reason}</p>

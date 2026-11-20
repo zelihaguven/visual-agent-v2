@@ -438,6 +438,10 @@ export function App() {
             }
             onOpenSource={setSource}
             onClose={closeConversation}
+            onWrite={() => {
+              closeConversation();
+              draftInput.current?.focus();
+            }}
           />
         )}
       </main>
