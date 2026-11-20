@@ -13,6 +13,11 @@ büyük harfle yazılmış kısa kod ("S", "XL", "4XLT"), son sözcüğü böyle
 başlık satırında birden çok geçen numaralı ad da, satırda tek kalsa varyanttır. Yapısı
 anlaşılmayan satır (başlıksız) bu kuralın dışında kalır.
 
+Kural C (hücre eşleşmesi): alıntı birden çok rakamlı hücre taşıyorsa ve cümle bunlardan birinin
+adını anıp kendi değerini söylemeden başka hücrenin değerini söylüyorsa cümle gizlenir
+("38: 72,0 | 40: 74,0" alıntısıyla "40 beden 72,0"). Varyant ya da öznitelik ayrımı yapılmaz;
+adı anılmayan cümleyi bu kural etkilemez. Rakamsız değer ("Ebat: İç paça", "Beden: S") addır.
+
 Kurallar cümleyi yeniden yazmaz: geçemeyen cümle gizlenir.
 """
 
@@ -224,6 +229,28 @@ def _missing_variants(
     return sorted(missing)
 
 
+def _misplaced_values(sentence: str, quotes: Sequence[str]) -> list[str]:
+    """Kural C: cümle bir değer hücresinin adını anıp o hücrenin değerini söylemiyor, alıntının
+    başka hücresinin değerini söylüyorsa o değerler (çok hücreli alıntılarda).
+
+    Yalnız değeri rakamlı hücre "adı anılan" sayılır: "Beden: S | Etiket kodu: ETK-6154"
+    satırında "S beden" bir anahtardır, değer hücresi değil. Adı anılan hücrenin kendi değeri de
+    cümledeyse başka hücrenin değeri yan bilgidir ("M beden 40,0, tolerans 1,0")."""
+    misplaced: list[str] = []
+    for quote in quotes:
+        cells = [c for c in _columns(quote) if _has_digit(c.value)]
+        if len(cells) < 2:
+            continue
+        stated = [c for c in cells if _occurs(c.value, sentence)]
+        rest = sentence
+        for cell in stated:
+            rest = _without(rest, cell.value)
+        named = [c for c in cells if any(_mentions(rest, part) for part in c.parts)]
+        if named and not any(c in stated for c in named):
+            misplaced += [c.value for c in stated]
+    return sorted(set(misplaced))
+
+
 def qualifier_problems(
     item: ModelItem, sources: Mapping[int, PromptSource], qualifiers: Qualifiers
 ) -> list[str]:
@@ -238,4 +265,7 @@ def qualifier_problems(
     missing = _missing_variants(sentence, quotes, cited, qualifiers)
     if missing:
         problems.append(f"cümlede değerin varyantı yok: {missing}")
+    misplaced = _misplaced_values(sentence, [quote.text for quote in item.quotes])
+    if misplaced:
+        problems.append(f"cümlede adı geçen hücrenin değeri değil: {misplaced}")
     return problems

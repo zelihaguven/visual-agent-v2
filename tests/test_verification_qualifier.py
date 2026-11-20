@@ -314,3 +314,115 @@ def test_previous_colorway_does_not_vouch_when_this_turn_names_a_header_sibling(
         check = _check("Göğüs logosu Venom Red 690.", quote, LOGO, asked=asked, previous="100")
         assert not check.ok, asked
     assert _check("Göğüs logosu Venom Red 690.", quote, LOGO, asked="peki?", previous="100").ok
+
+
+# --- Kural C: çok hücreli alıntıda adı anılan hücrenin değeri ---
+
+CELL_PROBLEM = "cümlede adı geçen hücrenin değeri değil"
+
+
+@pytest.mark.parametrize(
+    ("row", "text", "quote", "ok"),
+    [
+        # Sayısal ve tek sözcüklü etiketler (Kural B görmez): yanlış hücrenin değeri gizlenir.
+        (
+            "Ebat: İç paça | 38: 72,0 | 40: 74,0 | 42: 76,0",
+            "40 beden iç paça 72,0.",
+            "38: 72,0 | 40: 74,0",
+            False,
+        ),
+        (
+            "Ebat: İç paça | Small: 72,0 | Medium: 74,0",
+            "Medium iç paça 72,0.",
+            "Small: 72,0 | Medium: 74,0",
+            False,
+        ),
+        ("Ebat: İç paça | S: 72,0 | M: 74,0", "M beden iç paça 72,0.", "S: 72,0 | M: 74,0", False),
+        # Tek hücre alıntısı ve kendi hücresinin değeri geçer.
+        ("Ebat: İç paça | 38: 72,0 | 40: 74,0", "40 beden iç paça 74,0.", "40: 74,0", True),
+        (
+            "Ebat: İç paça | 38: 72,0 | 40: 74,0",
+            "40 beden iç paça 74,0.",
+            "Ebat: İç paça | 38: 72,0 | 40: 74,0",
+            True,
+        ),
+        # Öznitelik karışması da yakalanır; doğru eşleşme geçer.
+        ("Min: 5 | Max: 10", "Max 5.", "Min: 5 | Max: 10", False),
+        ("Min: 5 | Max: 10", "Max 10.", "Min: 5 | Max: 10", True),
+    ],
+)
+def test_value_must_sit_in_the_cell_the_sentence_names(
+    row: str, text: str, quote: str, ok: bool
+) -> None:
+    check = _check(text, quote, _sources(row, language="tr"), asked="iç paça kaç?")
+    assert check.ok is ok, check.problems
+
+
+def test_sentence_naming_no_cell_is_left_to_the_other_rules() -> None:
+    """Ad anılmayan çok hücreli alıntı bu kurala girmez (bilinen açık: etiketsiz değer)."""
+    sources = _sources("Ebat: İç paça | 38: 72,0 | 40: 74,0", language="tr")
+    check = _check("İç paça 72,0.", "38: 72,0 | 40: 74,0", sources, asked="38 beden iç paça?")
+    assert not any(CELL_PROBLEM in problem for problem in check.problems)
+
+
+def test_short_code_inside_another_word_does_not_name_a_cell() -> None:
+    sources = _sources("Kod: X | S: 72,0 | M: 74,0", language="tr")
+    check = _check("M.CODE alanı 72,0.", "S: 72,0 | M: 74,0", sources)
+    assert not any(CELL_PROBLEM in problem for problem in check.problems)
+
+
+def test_non_numeric_attribute_cells_do_not_trigger_the_cell_rule() -> None:
+    sources = _sources("Renk: Siyah | Malzeme: Pamuk | Gramaj: 180", language="tr")
+    assert _check("Malzemesi pamuk.", "Renk: Siyah | Malzeme: Pamuk", sources).ok
+    assert _check("Gramaj 180.", "Malzeme: Pamuk | Gramaj: 180", sources).ok
+
+
+def test_year_columns_with_a_single_cell_sentence_pass() -> None:
+    sources = _sources("Satış: Toplam | 2024: 120 | 2025: 140", language="tr")
+    assert _check("2025 satışı 140.", "2025: 140", sources).ok
+    assert _check("2025 satışı 140.", "2024: 120 | 2025: 140", sources).ok
+    assert not _check("2025 satışı 120.", "2024: 120 | 2025: 140", sources).ok
+
+
+@pytest.mark.parametrize(
+    ("row", "text", "quote", "ok"),
+    [
+        # Satırın anahtarı (rakamsız) adı anılan hücre sayılmaz (n25'te gizlenen doğru cümleler).
+        (
+            "Beden: S | Etiket kodu: ETK-6154",
+            "PNT-1126 S beden için ETK-6154 etiket kodu.",
+            "Beden: S | Etiket kodu: ETK-6154",
+            True,
+        ),
+        (
+            "Beden: L | Etiket kodu: ETK-7827",
+            "L beden etiketi ETK-7827'dir.",
+            "Beden: L | Etiket kodu: ETK-7827",
+            True,
+        ),
+        # Adı anılan hücrenin değeri de söylenince yan bilgi geçer.
+        (WAIST, "M beden bel 40,0, tolerans 1,0.", WAIST, True),
+        ("Volt: 220 | Amp: 5", "Volt 220, akım 5.", "Volt: 220 | Amp: 5", True),
+        # İki hücreyi kendi değerleriyle anan cümle geçer.
+        (
+            "Ebat: İç paça | S: 72,0 | M: 74,0",
+            "S beden 72,0, M beden 74,0.",
+            "S: 72,0 | M: 74,0",
+            True,
+        ),
+        (
+            "Ebat: İç paça | 38: 72,0 | 40: 74,0",
+            "38 beden 72,0, 40 beden 74,0.",
+            "38: 72,0 | 40: 74,0",
+            True,
+        ),
+        # Renk yolu: etiket numarası değerin içinde de geçer.
+        (THREAD, "100 renk yolunda iplik White 100.", THREAD, True),
+        (THREAD, "100 renk yolunda iplik Black 001.", THREAD, False),
+        # Rakamsız ad hücresi ("Ebat: Bel") tek başına kuralı tetiklemez.
+        (WAIST, "Ebat bel, M beden 40,0.", WAIST, True),
+    ],
+)
+def test_correct_sentences_pass_the_cell_rule(row: str, text: str, quote: str, ok: bool) -> None:
+    check = _check(text, quote, _sources(row, language="tr"))
+    assert (not any(CELL_PROBLEM in problem for problem in check.problems)) is ok, check.problems
