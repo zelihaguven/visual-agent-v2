@@ -111,6 +111,7 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 - Ağdaki tabletlerden mikrofon için HTTPS gerekiyor.
 - ~~Kural 1 riski: harf ya da çarpı işaretine bitişik sayı ("x1.500", "2,5x3,5") seste TTS'e olduğu gibi gidiyordu.~~ Kapandı (2026-11-20, `ses-bitisik-sayi`): bitişik sayılı cümle okunmaz, "Değer ekranda gösteriliyor." söylenir (kararlar.md, "Bitişik sayı seste okunmaz").
 - ~~Kozmetik: "-5 °C" "eksi beş °ce" okunuyor.~~ Kapandı (2026-11-20, `ses-bitisik-sayi`): "−5 °C" "eksi beş santigrat derece". Bitişik yazılmış "−5°C" (ve "5mm", "3XL" gibi rakamla başlayan beden kodları) artık okunmuyor, "Değer ekranda gösteriliyor." söyleniyor; bitişik birimlerin ve beden kodlarının okunmasına izin vermek ayrı karar ister.
+- Kural 1 riski, seste (2026-11-20, `ses-bitisik-sayi` incelemesinde bulundu, düzeltilmedi): boşlukla gruplanmış binlik ("1 500"; bölünmez ya da dar boşlukla da) iki sözcüğe bölünüyor ve "bir beş yüz" okunuyor; dinleyen 1500 değil 1 ve 500 duyabilir. Yüklü 394 belgede bu yazım 0 kez, 0 belgede geçiyor (sayım: 1–3 rakam, ardından boşlukla 3'lü gruplar, harfe ya da koda bitişik olmayan; kodun sonundaki rakamla ardından gelen sayı, örn. "ECO100 100", sayılmadı). Gerçek belgeler gelince yeniden sayılacak; görülürse sesteki bitişik sayı kuralına bu yazım da eklenebilir.
 - Kozmetik: "1.500 TL'dir" "… Türk lirasıdir" okunuyor; ek, birimin okunuşuna ünlü uyumu gözetilmeden ekleniyor.
 
 ## Cevap kalitesi
