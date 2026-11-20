@@ -109,7 +109,7 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 - Söylenen kodlar yazıya çevrilirken bozulabiliyor ("PNT-1162" yerine "NT1162"). Konuşma modunda soru otomatik gönderildiği için gerçek konuşmacıyla ölçülecek.
 - Tablet Safari'de otomatik ses çalma denenmedi.
 - Ağdaki tabletlerden mikrofon için HTTPS gerekiyor.
-- **Kural 1 riski, bir sonraki ses işinde önce ele alınacak:** Harf ya da çarpı işaretine bitişik sayı ("x1.500", "2,5x3,5") seste dönüştürülmüyor, olduğu gibi TTS'e gidiyor; TTS onu kendi yorumlayabilir ("1.500" → 1,5 ya da 1500). Sayının parçası okunmasın diye bilerek dokunulmadı (`deger-dogrulugu`).
+- ~~Kural 1 riski: harf ya da çarpı işaretine bitişik sayı ("x1.500", "2,5x3,5") seste TTS'e olduğu gibi gidiyordu.~~ Kapandı (2026-11-20, `ses-bitisik-sayi`): bitişik sayılı cümle okunmaz, "Değer ekranda gösteriliyor." söylenir (kararlar.md, "Bitişik sayı seste okunmaz").
 - Kozmetik: "-5 °C" "eksi beş °ce" okunuyor (derece işareti okunmuyor, "C" harf olarak okunuyor).
 - Kozmetik: "1.500 TL'dir" "… Türk lirasıdir" okunuyor; ek, birimin okunuşuna ünlü uyumu gözetilmeden ekleniyor.
 

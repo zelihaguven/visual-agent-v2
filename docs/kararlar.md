@@ -927,6 +927,23 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Not:** Ses saklanmaz. Ses yalnız sabit cümlelerden ve doğrulanmış cümlelerden
   üretilir.
 
+### Bitişik sayı seste okunmaz; değer ekranda kalır
+- **Ne zaman:** 2026-11-20, `ses-bitisik-sayi` dalı; ürün sahibi kararı (gevşek a).
+- **Kural (`voice/reading.py`, `_has_unreadable_number`):** Cümlede rakam taşıyan her sözcük
+  sesin bütün okuduğu bir yazım olmalı: düz sayı, yüzde, aralık ("1-5"), işaretli sayı ("−5",
+  "±0,5"), Türkçe binlik ("1.234,50") ya da kod (E050, ETK-3353). Değilse ("x1.500",
+  "2,5x3,5", "M8x1,25", "27½", "190gm/m2", "3/8") cümle yerine "Değer ekranda gösteriliyor."
+  söylenir. Dilden bağımsız.
+- **Neden:** Bu yazımlar TTS'e olduğu gibi gidiyordu; TTS onları kendi yorumlayıp sayının bir
+  parçasını okuyabilir (kural 1). Okuma kuralı yazmak ("x" çarpı mı adet mi, "12/08" tarih mi
+  kesir mi) biçimden anlaşılmadığı için yanlış okuma riski taşır.
+- **Arayüzün büyük değer kuralından farkı:** Yüzde, aralık ve işaretli sayı seste bugün doğru
+  okunduğu için susturulmaz (arayüzde büyük gösterilmezler). Sıkı kural sınır setinde 97
+  cümlenin 5'ini (A8 "1-5 yıl…") susturuyordu, gevşek kural 0'ını; ölçüm cevaplarının 31
+  doğrulanmış cümlesinde 1'ini ("7ABC", değer değil).
+- **Okuma düzeltmeleri (aynı dal):** "±0,5" artık "artı eksi sıfır virgül beş" (önce "artı
+  eksi0,5" TTS'e gidiyordu); "°C" "santigrat derece" (önce "°ce").
+
 ## Ölçüm
 
 ### Geçerli taban bu bilgisayarda; 0002 sayıları yalnız referans
@@ -1410,7 +1427,7 @@ Tarih: 2026-11-20. Ürün sahibi kararı. Dal: `niteleyici-denetimi`. Kod: `src/
 - Kısa kod yalnız kaynakta büyük harfle yazılmış harf/rakam kodudur ("S", "XL", "4XLT"); "Min", "Adet", "Volt" varyant sayılmaz. Büyük harfle yazılmış kısa öznitelik başlıkları ("ID", "NO") aynı satırda sayısal değerle yan yana gelirse varyant sayılır ve doğru cümle gizlenebilir.
 - Bu turda sorulan varyant alıntılanan satırda ve başlık satırlarında yoksa ("peki XL?", satırda yalnız S/M/L) önceki turun adı sayılmaya devam eder.
 - Başlıksız satır alıntılanıp sütun adı başka parçadaki başlık satırından yazılırsa ("Material Details") Kural A cümleyi gizler (gizleme yönünde).
-- Model numarası muafiyeti (#110): belge adının ilk tire/alt çizgi parçası 5+ haneli bir sayıysa, kullanıcı da söylediyse cümlede alıntısız geçebilir. Ad bir değerle başlıyorsa ("12000-BTU-Klima") o değer de muaf sayılır; gerçek belgeler gelince adlar kontrol edilecek.
+- Model numarası muafiyeti (#110): belge adının ilk tire/alt çizgi parçası 5+ haneli bir sayıysa, kullanıcı da söylediyse cümlede alıntısız geçebilir. Ad bir değerle başlıyorsa ("12000-BTU-Klima") o değer de muaf sayılır; gerçek belgeler gelince adlar kontrol edilecek. Gerçek bir vakaya dayanmıyor; günlükte bu muafiyetin işe yaradığı bir durum görülmezse ileride kaldırılabilir.
 
 **Karar.** Gerçek belgeler gelene kadar doğrulayıcıya yeni doğrulama kuralı eklenmez. Yeni kural ancak gerçek belgelerle görülen bir yanlış ya da gizlenen doğru cümle örüntüsüne dayanarak, ürün sahibi kararıyla eklenir.
 
