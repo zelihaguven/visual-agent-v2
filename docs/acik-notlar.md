@@ -2,62 +2,39 @@
 
 Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 
-## Nerede kaldık: Mac'e geçiş (2026-11-19)
+## Nerede kaldık (2026-11-21)
 
-Mac'teki son çalışma #83'te (2026-11-18). Ondan bu yana #82, #84–#101 bu Windows bilgisayarında yapıldı ve `main`'e girdi.
+Kod iki bilgisayarda aynı: `main`, #117. Son işler Windows'ta yapıldı (#104–#117, 20 Kasım); Mac 21 Kasım'da güncellendi (bağımlılık değişmedi, `pytest` 1479 geçti).
 
-**Mac'i etkileyen değişiklikler**
+**Veri**
 
-- `.env`: `VA_WORKER_IN_PROCESS` kaldırıldı (Docker'la birlikte, karar 0017). `.env`'de kalırsa yok sayılır (ayarlar bilinmeyen değişkeni yok sayar). Başka değişken eklenmedi ya da yeniden adlandırılmadı; `.env.example` değişmedi.
-- Açılışta denetlenen ayar: `VA_PAGE_READER` artık açılışta doğrulanır. Sunucu adresi yalnız `localhost`, `.local` adı ya da özel/yerel IP olabilir (sayfa görüntüsü ZDR denetimsiz gider; karar 0011 altı). Geçersiz değerde uygulama açılmaz. Mac'teki `mlx-vlm-server@http://localhost:8111/` geçerli.
-- Varsayılan cevap sağlayıcısı sırası Makora, yedek DeepInfra (#85). `.env`'de `VA_ANSWER_PROVIDERS` verilmişse o geçerli kalır.
-- Bağımlılık değişikliği yok (`pyproject.toml`, `uv.lock`, `apps/web/package.json` aynı).
-- Docker paketi kalktı (karar 0017); Mac yerel kurulumla çalıştığı için etkisi yok.
-- Kural sürümleri arttı: PDF ve Office 13 → 19, görsel 13 → 15, Excel 3 → 4, Markdown 2 → 3. Mac'teki bütün belgeler "Eski kural" görünür.
+- Mac: 394 belgenin hepsi 19 Kasım'da bugünkü kurallarla yeniden işlendi (46 dakika; 17 taranmış föy dahil, 37 dakikası onlar). #104–#117 kural sürümlerini değiştirmedi; "Eski kural" belge yok.
+- Windows: kendi verisi 19 Kasım'da yeniden işlenmişti. Taranmış föyler (6013448 ve diğerleri) yalnız Mac'te işlenir (karar 0015); Mac'in `data/` klasörü 19 Kasım'da taşınmak üzere sıkıştırıldı (Mac masaüstü, `visual-agent-data-mac-2026-11-19.zip`). Windows'a alınıp alınmadığı bu nota yazılmadı.
+- Veri taşıma (iki yönde, Windows'ta sınandı): iki bilgisayar aynı commit'te olmalı (kural sürümleri farklıysa "Eski kural" çıkar); kaynak bilgisayarda uygulama kapalı (Qdrant klasörü kilitlidir); `data/` kopyalanır, `data/models` gerekmez; hedefte mevcut `data/` yeniden adlandırılıp saklanır; uygulama repo kökünden açılır ve belge sayısı, "Eski kural" olmadığı ve birkaç soru kaynağıyla denetlenir. Belge yolları belge klasörüne göre ve düz eğik çizgiyle tutulur (#103); eski kayıtlar açılışta bir kez dönüştürülür. Hedefin soru günlüğü kaynağınkiyle değişir.
 
-**Mac'te sırayla**
+**Biten (#104–#117, Windows, 20 Kasım)**
 
-1. Uygulama kapalıyken `data/` klasörünü yedekle (ör. `cp -R data ../data-yedek-$(date +%F)`).
-2. `git pull` (dal `main`).
-3. `uv sync --extra ingest --extra retrieval` (bağımlılık değişmedi; kilit dosyasıyla eşitler).
-4. `.env` kontrolü: `VA_PAGE_READER=mlx-vlm-server@http://localhost:8111/`; `VA_WORKER_IN_PROCESS` satırı varsa silinebilir.
-5. Ayrı bir pencerede okuyucu sunucusu: `uvx --from "mlx-vlm>=0.3.11" mlx_vlm.server --host 127.0.0.1 --port 8111` (README, Yerel kurulum).
-6. Uygulamayı aç (`python -m apps.local`), belgeler listesinde bütün "Eski kural" belgeleri yeniden işle.
-7. Sınır seti: `python -m evals.sinir_seti --url http://127.0.0.1:8080 --runs 5 --output evals/output/sinir.jsonl` (sorular arası 5 sn; özet yedeğe geçen soruları sayar). Mac'te 6013448 yüklü olduğu için C1, C2, D6 da ölçülür.
+- Niteleyici denetimi (karar 0019: Kural A, Kural B), önceki turun bedeni, Kural C (hücre eşleşmesi, #117), model numarası ve hücre başlığı muafiyetleri.
+- Sorudaki kod aramayı kodun belgelerine daraltır; taramada büyük değer; günlükte sorun ayrıntısı (`problem_details`); tarama rozeti.
+- Seste bitişik sayı; arayüzün sesli tasarımı (#112).
+- Süre ve servis teşhisi yapıldı (20 Kasım, ürün sahibi): servis hataları yalnız ölçüm koşularında görülüyor; düzeltme yapılmadı. Kalan iş değil. Ayrıntı: Cevap kalitesi bölümü.
+- Sınır seti Windows'ta 5 koşu ölçüldü (20 Kasım, n21). Kalan iş değil.
 
-Tahmini yeniden işleme süresi (Mac'te ölçülmedi): Windows'ta 379 dijital ve Markdown belge, iki küçük tarama dahil, 48 dakika sürdü; Mac'in işlemcisi daha hızlı. Taranmış tech pack sayfaları Mac'te MLX ile sayfa başına ≈ 4–10 sn (set A: 2,7–10 sn); yüklü 17 föy ≈ 500 sayfaysa ≈ 35–80 dk. Toplam tahmin 1–2 saat.
+**Ölçümler**
 
-**Mac'ten Windows'a veri taşıma** (2026-11-19, Windows'ta sınandı)
-
-- Veritabanında mutlak yol yok: belge dosyaları (`stored_path`, `display_pdf`) belge klasörüne göre, düz eğik çizgiyle tutuluyor (`<doc_id>/original.pdf`; dal `belge-yollari`). Eski kayıtlar (Windows'ta `data\documents\...`) açılışta bir kez dönüştürülür; ikinci açılış bir şey değiştirmez. Qdrant yerel klasöründe ve parçalarda yol yok. Belge klasörü (`VA_STORAGE_DIRECTORY`, varsayılan `data/documents`) çalışma klasörüne göre çözülür: uygulama repo kökünden açılmalı (`baslat.bat` ve `python -m apps.local` öyle açar). Veri iki yönde de taşınabilir.
-- Sınama (iki kez): `data/`'nın kopyası başka bir klasöre kondu, uygulama o klasörden açıldı; 4 soru (dikim-tarama, dikim-word, dikim-pdf, sql-notlar) doğru cevaplandı, kaynakların metni ve sayfa görüntüsü açıldı (dikim-tarama 3. sayfa, vurgulu tablo). İkinci sınamada (`belge-yollari` koduyla) açılışta 380 belge yolu ve 12 gösterim PDF'i dönüştü; 392 yolun hepsi dosyasını buluyor. Asıl `data/` iki sınamada da değişmedi (414 dosya özeti aynı).
-- Adımlar: (1) iki bilgisayarda aynı commit (kural sürümleri aynı olmalı; yoksa Windows'ta "Eski kural" çıkar ve taranmış föyleri yeniden işlemek saatler sürer, karar 0015); (2) Mac'te uygulamayı kapat (Qdrant klasörü kilitlidir); (3) Mac'in `data/`'sını kopyala; `data/models` gerekmez, Windows'ta zaten var; (4) Windows'ta uygulama kapalıyken mevcut `data/`'yı yeniden adlandırıp sakla, Mac'inkini repo köküne koy; (5) `baslat.bat` ile aç; belge sayısını, "Eski kural" olmadığını ve birkaç soruyu kaynağıyla denetle. Windows'un soru günlüğü Mac'inkiyle değişir; gerekirse saklanan kopyada kalır.
-
-**Biten (#84–#101)**
-
-- Soru günlüğü deneme başına sağlayıcı ve hata yazar; özet p95 verir; sınır seti betiği repoda (bekleme, yedeğe geçen soru sayısı).
-- Sağlayıcı sırası Makora → DeepInfra (karar notu).
-- Doğrulayıcı belirsiz OCR değerini cümlede de arar; okuyucu sunucusu yalnız yerel ağda.
-- Konu adlandırıcıya yalnız başlıklar gider (karar 0016).
-- LibreOffice çıktı üretmezse belge açıkça işlenemedi olur.
-- Docker kaldırıldı (0017); eski OCR yolu kalıyor (0018); taranmış tech pack'ler hızlı makinede işlenir (0015).
-- Yeniden işleme turu: ortak tablo korumaları, ikinci okuma sayımla, başlık belirsizliği parçada, gömülü görsel yerinde, docling üst bilgisi (CKT-7308), okuyucuda değer taşıyan başlık. Windows'taki veri bu kurallarla yeniden işlendi.
-- Sınır seti 24 × 5 (Windows, 2026-11-19, kural 19): 100 doğru / 20 güvenli / 0 yanlış; yedeğe geçen soru 4 (Makora 429); ilk doğrulanmış cümle ortanca 2,49, p95 3,40 sn. A4 ve B4 5/5 doğru (önce bulunamadı). A5 5/5 gizli (aşağıda).
+- Mac, 19 Kasım, yeniden işlemeden sonra: yalnız ilk iki koşu geçerli (21 doğru / 3 güvenli / 0 yanlış; güvenliler A5, D2, D6); sonraki koşularda bu bilgisayarın internet bağlantısı yavaşladı, 120 sorunun 51'i servis hatası aldı. Beş koşu Mac'te tamamlanmadı.
+- Windows, 20 Kasım (n21): beş koşu ölçüldü; sayılar bu nota yazılmadı.
 
 **Yarım kalan**
 
-- LibreOffice bu Windows'ta zaman zaman çıktı üretmiyor; kök neden bilinmiyor (Kurulum bölümü).
+- LibreOffice Windows'ta zaman zaman çıktı üretmiyor; kök neden bilinmiyor (Kurulum bölümü).
 - Makora yük altında 429 veriyor; bekleme 5 sn kaldı, yedeğe geçişler kabul (2026-11-19 kararı).
 - D2 (fotoğrafta bölüm yok), B8'de ara sıra "TL" eksik, yeni kilitli sorular (karar 0014).
-
-**Sıradaki**
-
-1. Mac'te güncelleme, yeniden işleme ve sınır seti (yukarıdaki adımlar).
-2. Set B: büyük sayfa görselini küçültmenin süreye etkisi (karar 0010/0011 altındaki liste).
+- Set B: büyük sayfa görselini küçültmenin süreye etkisi (karar 0010/0011 altındaki liste).
 
 **Sıradaki işler (2026-11-20 teşhisi)** (6013448 ve 6029322; Windows soru günlüğü, 19 Kasım)
 
-1. Tek belge içindeki varyantlar için netleştirme seçenekleri: D6 (6013448 Size Range; s.1 "XS-4XL, SMT-4XLT", s.24 "Apparel (XS-5XL)") ve 6029322 göğüs logosu (renk yoluna göre s.9 Blue Haze 425, s.10 Venom Red 690). Bugün düğmeler yalnız en az iki aday belgede üretiliyor (`steps.py:350`, `_clarification`); tek belgede netleştirme seçeneksiz kalıyor. İki belge arasında da netleştirme bazen atlanıyor: "SRT-4294 M beden bel kaç?" (D1) 2026-11-20 sınır setinde 5 koşunun 2'sinde yalnız Rev B'nin değerini revizyon adı olmadan verdi (PR öncesinde de var; kod kapsamı ölçümü, kararlar.md "Sorudaki kod aramayı kodun belgelerine daraltır").
+1. Tek belge içindeki varyantlar için netleştirme seçenekleri: D6 (6013448 Size Range; s.1 "XS-4XL, SMT-4XLT", s.24 "Apparel (XS-5XL)") ve 6029322 göğüs logosu (renk yoluna göre s.9 Blue Haze 425, s.10 Venom Red 690). Bugün düğmeler yalnız en az iki aday belgede üretiliyor (`steps.py:350`, `_clarification`); tek belgede netleştirme seçeneksiz kalıyor. İki belge arasında da netleştirme bazen atlanıyor: "SRT-4294 M beden bel kaç?" (D1) 2026-11-20 sınır setinde 5 koşunun 2'sinde yalnız Rev B'nin değerini revizyon adı olmadan verdi (PR öncesinde de var; kod kapsamı ölçümü, kararlar.md "Sorudaki kod aramayı kodun belgelerine daraltır"). **Karar (2026-11-20, ürün sahibi): A yolu (listeleme) seçildi.** Tek belgede en çok 3 varyant varsa her biri kaynaktaki adıyla, ayrı cümlede, kendi alıntısıyla verilir; fazlaysa bugünkü gibi netleştirme sorulur; iki ya da daha çok belge varsa netleştirme zorunludur. Düğme etiketli netleştirme reddedildi: kaynaktan türetilen etiketler kullanıcıya bir şey söylemiyordu, plan büyüktü, her tıklama ikinci bir model çağrısı istiyordu. (Mac'te 21 Kasım'da aynı plan yeniden önerildi ve bırakıldı; o günkü teşhis: model seçenek olarak yalnız kaynak numarası veriyor; D4'te tek satır, D6'da aynı bölümden iki satır, renk yolunda koşudan koşuya değişen liste.) Dal: `varyant-listeleme` (21 Kasım'da `origin`'de yok). Önce sayısal etiket PR'ı (Kural C'nin 1. bilinen sınırı, karar 0019).
 2. Doğrulayıcı: OCR belirsizlik denetimi alıntının tamamına değil, cümlede kullanılan parçalara baksın. Bu, aşağıdaki A5 kararını (Doğrulama, 2026-11-19) yeniden açar. Önce test: model belirsiz hücreyi kendi sözleriyle anlatırsa cümle yine gizlenmeli; sonra ürün sahibi kararı. Kanıt: 19 Kasım teşhisinde soru 1 (DEPO_KODU 59; belirsiz parça satırdaki "VARCHAR") ve soru 3 (BG-CV0007 Clear 960; belirsiz parça "Inc./TR0001/Approved/ea"): değer belirsiz değil, bütün satır alıntılanınca ilgisiz belirsiz parça cümleyi gizliyor.
 3. Yalnız inceleme: taranmış tablolarda satır vurgusu için Tesseract kelime kutularının kullanılabilirliği. Bugün okuyucu yolunda satırın kutusu tablonun kutusu (`page_reader.py:284`, `page_elements`); 6029322 s.7–9'da her sayfanın bütün satırları aynı kutuyu taşıyor, vurgu bütün tabloyu kapsıyor.
 4. Bir sonraki planlı yeniden işlemede: sayfaya devam eden tablo satırlarına sütun başlığı (6029322 s.9 satırları başlıksız: "Clear 960 | Clear 960" hangi renk yoluna ait belli değil) ve yanlış iç içe bölüm yolu (`chunking.py:82`, `_next_path`: düzeyi bilinmeyen başlık ilk başlığın altına giriyor; 6029322'nin 89 parçasının 87'si "Cover Sheet Properties · …", örn. "Cover Sheet Properties · BOM").
@@ -118,9 +95,9 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 
 - Belge içi netleştirmede düğme yok (2026-11-17, ertelendi): model aynı belgenin içinde bir seçim soruyorsa ("Hangi beden için?", "Hangi bölüm için?") aday tek belgedir ve belge düğmesi çıkmaz; kullanıcı cevabı yazar. Sınır setinde D4 ("PNT-1162 bel ölçüsü kaç?") ve "6026411 modelinde BL005 … SM bedende kaç?" böyle. Düşünülen yol: düğmeleri modelin gösterdiği kaynaktan türetmek (tek tablo satırıysa değer taşıyan sütun etiketleri, birden çok kaynaksa bölüm ve sayfa) ve basılınca etiketi takip sorusu olarak göndermek. Riskleri: fazladan düğme ("Tolerans (cm)" de bir sütun etiketi), bölüm seçiminde takip sorusunun doğru tabloya gidip gitmediği denenmedi.
 - Sorgu çevirisi süre sınırına takılınca İngilizce belgelerde arama zayıflıyor (2026-11-18): çeviri 1,2 sn içinde gelmezse arama özgün soruyla yapılır ve bu yalnız günlüğe yazılır. Kilitli set ölçümünde 40 sorunun 40'ında, #78 ölçümünde 134 sorunun 127'sinde düştü (bir gün önce 120'de 11). Sınır setinin C7 sorusu bu yüzden 5/5 "bulunamadı": beklenen cümle ("The above two 'Select…' options are mutually exclusive…") `09_Tools_Send_Collaborative_Package.md`'nin 5. parçasında; özgün Türkçe soruyla 11. sırada geliyor (modele 8 parça gider), elle yazılmış İngilizce sorguyla 1. sırada. Model doğru davrandı: önündeki 8 kaynakta cevap yoktu. Seçenekler (karar ister): süre sınırını uzatmak (cevap süresini uzatır), çeviriyi soru başına önbelleğe almak, çeviri düştüğünde kullanıcıya ya da ölçüme görünür kılmak. İngilizce sorgu elle yazıldı; modelin kendi çevirisiyle sıra ölçülmedi.
-- Makora yük altında istek sınırına takılıyor (2026-11-19): sınır seti ölçümlerinde yarım saatte 366 soru soruldu; son ölçümün ilk 5 dakikasında Makora 6 kez 429 (sağlayıcı sınırı) ve 3 kez ilk token süresi aşımı verdi, cevaplar DeepInfra'dan geldi. Cevap modeli adımının ortancası üç ölçümde 0,62 → 1,02 → 1,74 sn, ilk doğrulanmış cümle p95'i 3,08 → 4,13 → 5,25 sn; üretim öncesi adımlar aynı kaldı (≈ 1,45 sn). Kodla ilgisi yok (üç ölçümde kod farkı soru hattında yok denecek kadar). Gerçek kullanımda soru sıklığı çok daha düşük; ama ardışık ölçüm turlarında süre karşılaştırması güvenilmez. Seçenekler: ölçümler arasında bekleme, sağlayıcı sırasına bir ZDR yedek daha.
+- Makora yük altında istek sınırına takılıyor (2026-11-19): sınır seti ölçümlerinde yarım saatte 366 soru soruldu; son ölçümün ilk 5 dakikasında Makora 6 kez 429 (sağlayıcı sınırı) ve 3 kez ilk token süresi aşımı verdi, cevaplar DeepInfra'dan geldi. Cevap modeli adımının ortancası üç ölçümde 0,62 → 1,02 → 1,74 sn, ilk doğrulanmış cümle p95'i 3,08 → 4,13 → 5,25 sn; üretim öncesi adımlar aynı kaldı (≈ 1,45 sn). Kodla ilgisi yok (üç ölçümde kod farkı soru hattında yok denecek kadar). Gerçek kullanımda soru sıklığı çok daha düşük; ama ardışık ölçüm turlarında süre karşılaştırması güvenilmez. Seçenekler: ölçümler arasında bekleme, sağlayıcı sırasına bir ZDR yedek daha. Süre ve servis teşhisi (2026-11-20, ürün sahibi): servis hataları yalnız ölçüm koşularında görülüyor; düzeltme yapılmadı.
 - Sorgu çevirisi düzeltildi (2026-11-18): yardımcı model sağlayıcı sırası Parasail, Venice, NextBit (NextBit o gün aynı isteğe 2,0–5,6 sn'de cevap veriyordu; Parasail 0,75–1,28 sn); süre sınırı 1,2 → 1,5 sn; sorunun kendi diline çeviri istenmiyor; cevap veren sağlayıcı soru günlüğüne yazılıyor. Sonrasında 24 soru × 5 koşuda çeviri 120 sorunun 4'ünde düştü (%3; başarılıların ortancası 0,71 sn, p95 1,06 sn), C7 5 koşunun 4'ünde doğru cevaplandı. Açık kalan: sınır hâlâ tek sağlayıcının hızına bağlı; Parasail yavaşlarsa aynı durum yeniden olur ve artık özet satırı bunu gösterir. Çeviriyi niyet adımıyla aynı anda başlatmak gecikmeyi kaldırır, akışın sırasını değiştirir; yapılmadı.
-- İlk doğrulanmış cümle hedefin üstünde (2026-11-18, çeviri düzeltmesinden sonraki 24 soru × 5 koşu): ortanca 3,48 sn, p95 5,78 sn; hedef 3 sn. Sorgu çevirisi aramadan önce bekleniyor (ortanca 0,71 sn, sınır 1,5 sn) ve süresi doğrudan ilk cevaba ekleniyor. Sıradaki işler arasında: çeviriyi niyet adımıyla aynı anda başlatmak (niyet adımı zaten bekleniyor; çeviri onun arkasına saklanır). Akışın sırasını değiştirir; onayla yapılacak.
+- İlk doğrulanmış cümle hedefin üstünde (2026-11-18, çeviri düzeltmesinden sonraki 24 soru × 5 koşu): ortanca 3,48 sn, p95 5,78 sn; hedef 3 sn. Sorgu çevirisi aramadan önce bekleniyor (ortanca 0,71 sn, sınır 1,5 sn) ve süresi doğrudan ilk cevaba ekleniyor. Sıradaki işler arasında: çeviriyi niyet adımıyla aynı anda başlatmak (niyet adımı zaten bekleniyor; çeviri onun arkasına saklanır). Akışın sırasını değiştirir; onayla yapılacak. Güncel durum: sağlayıcı sırası Makora → DeepInfra olduktan sonra Windows'ta 19 Kasım'da ortanca 2,49 sn, p95 3,40 sn ölçüldü. Süre ve servis teşhisi 20 Kasım'da yapıldı, düzeltme yapılmadı; kalan iş değil.
 - Yeni kilitli sorular gerekiyor (2026-11-18): sınır setinin kilitli 8 sorusu ölçüldü ve cevaplarına bakıldı (karar 0014), artık görülmüş sayılır. Bir sonraki doğrulama turundan önce, kural geliştirirken bakılmayacak yeni kilitli sorular yazılmalı (set içeriği ürün sahibi onayı ister).
 - Birim istemi iki denemede oturdu (2026-11-18): ilk deneme ("Değere birim EKLEME … birim başka bir sütunun başlığında yazsa da … birimsiz ver", örnek yalnız "Tolerans (cm)") A3 ve A4'ü düzeltti ama birimin değerin kendi sütun başlığında yazdığı A2, A6 ve B8'de birimi de düşürdü (5/5). İkinci deneme iki yönü de örnekle gösteriyor (kendi başlığındaki birim yazılır, başka sütununki yazılmaz; örnek değerler yüklü hiçbir belgede geçmiyor: 2,4 / 61,3 / 0,6. İlk yazımda örnekler A2 ve A3'ün beklenen cevaplarıyla aynıydı, değiştirildi): A2, A3, A4, A6, B8 beşer koşunun beşinde beklenen cevap. Örnekler uydurma değerlerle değiştirildikten sonraki ölçümde A2, A3, A4 yine 5/5; B8 beş koşunun ikisinde yalnız "1200" dedi (TL düştü; değer doğru), A6 bu ölçümde sorulmadı. Yani kendi sütun başlığındaki birimin yazılması örneğe duyarlı ve tam oturmuş değil. İstemdeki örnek modelin davranışını kuraldan çok belirliyor; örnekler set sorularının belgelerine benziyor, görülmemiş tablolarda (ör. birim satır başlığında) ne yaptığı ölçülmedi.
 - B8 birimi ("TL") düşürüyor, açık (2026-11-18, `birim-istemi-2`): uydurma örnekli istemle beş koşunun ikisinde cevap "1200 TL" yerine yalnız "1200". Değer doğru, birim eksik; yanlış değer yok. Kendi sütun başlığındaki birimin yazılması istemdeki örneğe duyarlı; istem bu iş için daha fazla değiştirilmeyecek. İstemden bağımsız bir çözüm (ör. birim değerin kendi sütun başlığındaysa gösterirken eklemek) ayrı iş ve onay ister.
