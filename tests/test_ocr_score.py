@@ -367,6 +367,7 @@ def test_embedded_page_is_textual_and_keeps_the_image_at_its_own_size(tmp_path: 
     """Görsel sayfanın yarısından azını kaplar (sayfa metinli sayılır, okuyucuya gitmez) ve
     hattın çizdiği sayfada kendi piksel boyutunda durur: ölçülen şey okuma, küçültme değil.
     Pikseller bire bir aynı değildir (çizim yeniden örnekler); denetlenen boyut ve yerdir."""
+    pytest.importorskip("pikepdf")  # belge işleme eki CI'da kurulu değil
     from evals import run_embedded_images as runner
     from visual_agent.ingest.page_reader import POINTS_PER_INCH, RENDER_DPI
     from visual_agent.ingest.text_layer import PageKind
@@ -397,6 +398,7 @@ def test_embedded_page_is_textual_and_keeps_the_image_at_its_own_size(tmp_path: 
 
 
 def test_run_stops_when_a_page_would_go_to_the_page_reader() -> None:
+    pytest.importorskip("pikepdf")  # belge işleme eki CI'da kurulu değil
     from evals import run_embedded_images as runner
     from visual_agent.ingest.pipeline import PageInfo
     from visual_agent.ingest.text_layer import PageKind
@@ -409,6 +411,7 @@ def test_run_stops_when_a_page_would_go_to_the_page_reader() -> None:
 
 def test_run_stops_when_an_embedded_image_would_be_skipped(tmp_path: Path) -> None:
     """Boyut eşiğinin altındaki görsel okunmadan atlanır; ölçüm bunu sessizce geçmemeli."""
+    pytest.importorskip("pikepdf")  # belge işleme eki CI'da kurulu değil
     from evals import run_embedded_images as runner
     from visual_agent.ingest.tools import inspect_pdf
 
@@ -420,6 +423,7 @@ def test_run_stops_when_an_embedded_image_would_be_skipped(tmp_path: Path) -> No
 
 
 def test_report_table_has_the_rows_of_the_recorded_measurement() -> None:
+    pytest.importorskip("pikepdf")  # belge işleme eki CI'da kurulu değil
     from evals import run_embedded_images as runner
 
     recorded = json.loads((ocr_truth_record() / "rapor.json").read_text(encoding="utf-8"))
