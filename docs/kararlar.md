@@ -681,8 +681,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     kaldırıyor.
   - Bağlamın belgeleri silindiyse hangi belge olduğu soruluyor.
 - **Neden:** Commit mesajlarında davranış yazılı; ölçülmüş bir gerekçe yok.
-- **Ürün değişince beden taşınmaz (2026-11-21, ürün sahibi kararı; dal `urun-degisince-beden`).**
-  Takip sorusu başka bir ürünü ya da modeli adlandırıyorsa önceki turun bedeni tamamlanmış
+- **Ürün, model ya da sürüm değişince beden taşınmaz (2026-11-21, ürün sahibi kararı; dal
+  `urun-degisince-beden`).** Takip sorusu başka bir ürünü, modeli ya da sürümü adlandırıyorsa
+  ("Rev B M beden …" ardından "Peki Rev A?") önceki turun bedeni tamamlanmış
   soruya girmez; sistem bedeni sorar. Eski "bilinen kalan" (`dikim-sohbet-1-t4`, 10 tekrarın
   hiçbirinde geçmedi) bununla kapandı: beklenti değişti, davranış değil.
   - **Teşhis.** Tamamlama yalnız bağlamdaki tek soruyu ve yeni mesajı görür
@@ -712,15 +713,14 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     beklenti değişti. Öbür dokuz takip turunun tamamlanmış sorusu iki sette de main ile
     birebir aynı; konuşma dışı 30 sorunun cevabı da aynı (cevap modeli çağrıları önbellekten;
     yalnız tamamlama çağrıları canlı). Kalan tek soru iki sette de `sql-ekran-uzunluk` (ekran görüntüsünden okunan değer).
-  - **Bilinen sınırlar (inceleme turu).** (1) Davranış istemde yazılı değil: kalan iki cümle
-    ("yeni mesajın açık bıraktığını taşı: … beden", "yeni mesajdaki değer yalnız eşleşen
-    değerin yerine geçer") harfiyen okununca hâlâ bedeni taşıtır; bedenin düşmesi yardımcı
-    modelin eğilimine dayanıyor. Açık bir cümle ("yeni mesaj başka bir ürün ya da model
-    adlandırıyorsa bedeni taşıma") istem değişikliğidir, karar bekliyor. (2) Sürüm değişimi
-    ("Rev B M beden" ardından "Peki Rev A?") tanımsız: silinen cümle sürümü de kapsıyordu,
-    karar yalnız ürün ve modelden söz ediyor. (3) Bu tur artık her netleştirmeyle geçer;
+  - **İsteme açık cümle (ürün sahibi kararıyla ek, tek düzeltme turunun dışında).** İnceleme
+    bulgusu: cümle çıkınca davranış istemde yazılı kalmamıştı; kalan cümleler harfiyen
+    okununca bedeni taşıtıyordu ve bedenin düşmesi yardımcı modelin eğilimine dayanıyordu.
+    Eklendi: "When the new message names another product, model or version, do not carry over
+    the size of the previous question" ve örneği. Sürüm de kapsamda.
+  - **Bilinen sınırlar (inceleme turu).** (1) Bu tur artık her netleştirmeyle geçer;
     tamamlama hatasından gelen netleştirme de ("soruyu birleştiremedim") geçer sayılır.
-    Ölçümde tamamlanmış soru elle doğrulandı: iki sette de model var, beden yok. (4)
+    Ölçümde tamamlanmış soru elle doğrulandı: iki sette de model var, beden yok. (2)
     `evals/baselines/taban` altındaki eski özetler bu turu hâlâ kalan soru sayıyor; 38 → 39
     iyileşme değil, beklenti değişikliğidir.
 
