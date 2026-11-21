@@ -716,7 +716,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     Açık cümle eklendikten sonra yeniden ölçüldü: iki set yine 39/40, doğrulanmış yanlış 0.
     Takip turlarından birinin tamamlanmış sorusu sözcük düzeyinde değişti (`sql-sohbet-1-t2`:
     "yeni bir kolon eklerken" → "yeni kolon eklerken"); cevabı aynı komut, doğrulanmış.
-    Öbür turların tamamlanmış sorusu main ile aynı.
+    Öbür turların tamamlanmış sorusu main ile aynı. Daraltılmış cümleyle üçüncü ölçüm aynı
+    sonucu verdi (39/40, doğrulanmış yanlış 0; tek fark yine `sql-sohbet-1-t2`'deki sözcük,
+    kabul edildi).
   - **İsteme açık cümle (ürün sahibi kararıyla ek, tek düzeltme turunun dışında).** İnceleme
     bulgusu: cümle çıkınca davranış istemde yazılı kalmamıştı; kalan cümleler harfiyen
     okununca bedeni taşıtıyordu ve bedenin düşmesi yardımcı modelin eğilimine dayanıyordu.
@@ -743,7 +745,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     | EN ürün aynı | "What is the width of A-100 in size M?" → "And the height?" | "What is the height of A-100 in size M?" |
     | TR yalnız beden değişti | "CKT-7308 S beden bel kaç?" → "L beden?" | "CKT-7308 L beden bel kaç?" |
 
-    Daraltılmış cümleyle yeniden deneme: aşağıda, ölçümde.
+    Daraltılmış cümleyle aynı sekiz durum üçer kez yeniden denendi: çıktılar tablodakilerle
+    birebir aynı (24 çağrının 24'ü). Ürün değişince beden düşüyor, sürüm değişince ve ürün
+    aynıyken taşınıyor; istem ile davranış artık aynı.
   - **Bilinen sınırlar (inceleme turu).** (1) Bu tur artık her netleştirmeyle geçer;
     tamamlama hatasından gelen netleştirme de ("soruyu birleştiremedim") geçer sayılır.
     Ölçümde tamamlanmış soru elle doğrulandı: iki sette de model var, beden yok. (2)
