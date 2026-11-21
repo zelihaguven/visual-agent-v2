@@ -1440,3 +1440,30 @@ Tarih: 2026-11-20. Ürün sahibi kararı. Dal: `niteleyici-denetimi`. Kod: `src/
 **Ürün sahibi kararıyla ek düzeltme: yüklü 9 föyde haksız gizleme (2026-11-21, aynı dal; tek düzeltme turu bu kararla aşıldı).** İlk sürüm sayısal etiketi değeri sayı olmayan hücrelerde de varyant sayıyordu. Mac'in uygulama indeksinde 9 föyün malzeme tablosu başlık satırında ("… | 001: Black // White | 997: …") renk yolu numarası cümlede ve soruda yokken "Renk yolu Black // White." gizleniyordu; main'de geçiyordu. Kural daraltıldı: sayısal etiket yalnız değeri de sayı olan hücrelerde varyant sayılır ("38: 72,0", "2024: 120"); "001: Black // White" numaralı addır ve eskisi gibi başlık satırı kuralına kalır. Sonra 9 satırda üç cümle (etiketsiz, etiket cümlede, etiket soruda) yeniden denendi: 9 satırın 9'unda main ile aynı sonuç (hepsi geçti). Beden ve yıl davranışı değişmedi ("İç paça 72,0." ve "Toplam satış 120." yine gizlenir). **Bilinen sınır:** değeri kod olan sayısal beden sütunlarında ("38: ETK-6154 | 40: ETK-6155") bedensiz cümle geçer. Daraltmadan sonra ölçüm (Mac main tabanının önbelleğinden, ağa gitmeden; ıska 0, maliyet 0): 98 sorunun 98'inde cevap main ile birebir aynı; taban 7 ve taban 11 38/40, doğrulanmış yanlış 0, haksız ret 0. Windows'taki n21 ile doğrudan karşılaştırılamaz (okuyucu, set 11'in görüntüleri ve önbellek farklı).
 
 **Not: gerçek tanı günlükten okunmadan düzeltme yapılmaz.** PR 3 (#110, model numarası muafiyeti) bir yeniden kurguya dayanıyordu: o gün günlükte sorun ayrıntısı yoktu ve gizlemenin 6029322'den geldiği varsayıldı; asıl neden 001'di. Ayrıntı artık `problem_details`'te (#108).
+
+### 0020: Tek belge varyantlarını listeleme (A yolu) denendi, geri çekildi
+Tarih: 2026-11-20 (karar), 2026-11-21 (deneme ve geri çekme). Ürün sahibi kararı. Dal: `varyant-listeleme` (`d6109d6`; birleştirilmedi, referans olarak `origin`'de duruyor).
+
+**Sorun.** Soru bir varyantı (beden, renk yolu, kıdem dilimi) söylemediğinde model netleştirme soruyor. İki belge arasında seçenekler belge adıyla düğme oluyor; tek belgenin içinde seçenekler bir satırın sütunları ya da aynı bölümün satırları olduğu için düğme üretilemiyor ve kullanıcı seçeneksiz bir soruyla kalıyor ("Hangi beden için?"; sınır setinde D4, D6).
+
+**Denenen (A yolu, yalnız istem).** Aday belge tekse ve en çok 3 varyant görünüyorsa her varyant kaynaktaki adıyla, ayrı cümlede, kendi alıntısıyla listelenir; fazlaysa ya da iki ve daha çok belge varsa netleştirme sorulur; tamlık iddiası yok. İstemin 7. kuralı yeniden yazıldı, 9. kurala istisna cümlesi eklendi. Yanında: aynı adlı belgelerin modele ayrı gösterilmesi ve puanlayıcıda tek belgede listelemenin geçmesi (`listed_variants`).
+
+**Ölçüm (Mac, 2026-11-21; taban 7 ve taban 11, kırkar soru, canlı; karşılaştırma `evals/output/mac-main-2026-11-21`).**
+
+| Set | main | dal, ilk istem | dal, düzeltilmiş istem |
+| --- | --- | --- | --- |
+| Taban 7 | 38/40, doğrulanmış yanlış 0 | 38/40, doğrulanmış yanlış 1 | 38/40, doğrulanmış yanlış 0 |
+| Taban 11 | 38/40, doğrulanmış yanlış 0 | 37/40, doğrulanmış yanlış 1 | 38/40, doğrulanmış yanlış 1 |
+
+- Hedef soru `dikim-excel-netlestir`: ilk istemde iki sette de listeledi (taban 7'de üç ayrı cümle, geçti; taban 11'de üç bedeni tek cümlede, kaldı). Düzeltilmiş istemde ("değerleri tek cümlede birleştirme", "seçenek sorudaysa kısa ver") iki sette de yeniden netleştirme sordu. `ik-netlestir` hiçbir ölçümde listelemedi.
+- İki belgeli netleştirme soruları (`dikim-revizyon-netlestir`, `sql-netlestir`) üç ölçümde de netleştirme sordu.
+- "Doğrulanmış yanlış" sayılan tek soru `dikim-sohbet-1-t4` (takip sorusu; beklenen yalnız M bedenin değeri). Dal üç bedeni adlarıyla listeledi; değerler ve bedenler kaynakta doğru, ekranda yanlış değer yok. Puanlayıcı beklenmeyen iki değeri yabancı saydı. Kök neden cevap isteminde değil (açık notlar, Cevap kalitesi).
+- Tek değerli cevapların biçimi bozuldu: çıplak değer ("103,0") tam cümleye döndü ("PNT-1126 modelinde S beden dış paça 103,0."). Düzeltilmiş istemde iki sette 25 cevap `main`'dekinden belirgin uzundu (taban 7'de 11, taban 11'de 14); ilk istemde de görüldü, sayılmadı. Hepsi doğru ve geçiyordu.
+- FastReact ve sınır seti ölçülmedi; kabul koşulları taban setlerinde tutmayınca ölçüm durduruldu. Harcanan toplam 0,027 USD. "Aynı belgede farklı ürün" cümlesini sınayan soru ölçüm setlerinde yoktu.
+
+**Gerekçe.** Aynı istemle hedef sorularda kararsız davranış (bir ölçümde listeledi, diğerinde sordu); tek değerli cevapların biçimi bozuldu (25+ cevap uzadı); listeleme yalnız istemle güvenilir değil. İstem üçüncü kez değiştirilip ölçülmedi.
+
+**Karar.** A yolu geri çekildi; `varyant-listeleme` birleştirilmedi. Düğme etiketli netleştirme de reddedilmişti (2026-11-20: kaynaktan türetilen etiketler kullanıcıya bir şey söylemiyordu, plan büyüktü, her tıklama ikinci bir model çağrısı istiyordu). Netleştirme bugünkü hâliyle kalır: iki ve daha çok belgede düğmeli, tek belgede seçeneksiz soru. `#a2eaf46` ve `#2ad898d`'nin kuralları geçerli.
+
+**Dalda kalan, ileride işe yarayabilecekler.** Aynı adlı belgeleri modele ayrı gösteren `format_sources` değişikliği ("Ad (2)"; açık notlar, Belge yönetimi); puanlayıcıdaki `listed_variants`; istem metni.
+
