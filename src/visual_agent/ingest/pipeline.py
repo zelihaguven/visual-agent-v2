@@ -111,7 +111,8 @@ def with_images_in_place(elements: Sequence[Element], images: Sequence[Element])
 def annotate_ocr_pages(
     elements: Sequence[Element], ocr_pages: Mapping[int, tuple[str, ...]]
 ) -> list[Element]:
-    """OCR'dan gelen sayfaların öğelerini işaretler, belirsiz değerleri bağlar."""
+    """Eski OCR yolundan (ocrmypdf) gelen sayfaların öğelerini işaretler, belirsiz değerleri
+    bağlar. Okuyucu yolunun öğeleri kendi denetiminden geçmiştir, işaretlenmez."""
     annotated = []
     for element in elements:
         page = element.location.page
@@ -121,7 +122,7 @@ def annotate_ocr_pages(
         # Satırın bağlamı (bölüm etiketi, tablo notu) da cümleye kod olarak girebilir.
         text = f"{element.text} {element.context}"
         uncertain = tuple(t for t in ocr_pages[page] if contains_token(text, t))
-        annotated.append(replace(element, from_ocr=True, ocr_uncertain=uncertain))
+        annotated.append(replace(element, from_ocr=True, legacy_ocr=True, ocr_uncertain=uncertain))
     return annotated
 
 

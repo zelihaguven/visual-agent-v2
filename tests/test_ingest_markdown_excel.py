@@ -310,3 +310,17 @@ def test_uncertain_heading_rule_only_outdates_documents_with_ocr_pages(
     report = {**_old_report(), "input_format": "pdf", "rules_version": 15, "page_kinds": page_kinds}
 
     assert is_outdated(report, "belge.pdf") is outdated
+
+
+@pytest.mark.parametrize(
+    ("kinds", "outdated"),
+    [({"text": 2}, True), ({"none": 3, "weak": 1}, True), ({"none": 29}, False)],
+)
+def test_legacy_ocr_rules_outdate_only_documents_the_old_path_could_read(
+    kinds: dict[str, int], outdated: bool
+) -> None:
+    """19→20 (karar 0022): eski OCR yolu yalnız metinli, zayıf ya da taranmış katmanlı sayfada
+    çalışır; tamamı okuyucudan geçen taranmış belge yeniden işlenmez."""
+    report = {"input_format": "pdf", "rules_version": 19, "page_kinds": kinds}
+
+    assert is_outdated(report, "belge.pdf") is outdated
