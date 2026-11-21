@@ -86,6 +86,9 @@ def test_prompt_lists_variants_of_a_single_document_and_asks_across_documents() 
     assert "Farklı değerler BİRDEN ÇOK belgeden geliyorsa" in prompt
     assert "Farklı değerler TEK belgedeyse ve en çok 3 seçenek varsa sorma, listele" in prompt
     assert "seçeneğin kaynakta geçen adıyla ve kendi alıntısıyla" in prompt
+    # Ölçümde görülen: model üç değeri tek cümlede birleştirdi ve tek değerli cevapları uzattı.
+    assert 'tek cümlede "ve" ile birleştirme: üç seçenek üç ayrı öğedir' in prompt
+    assert "Soru seçeneği zaten söylüyorsa" in prompt and "listeleme yapma" in prompt
     # Tamlık iddiası yok; değeri görünmeyen ya da 3'ten fazla seçenek varsa sorulur.
     assert '"tüm", "yalnız", "iki tane" gibi sözler yazma' in prompt
     assert "adı görünüp değeri kaynaklarda görünmeyen bir seçenek varsa" in prompt
