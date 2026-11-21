@@ -521,3 +521,35 @@ def test_numbered_names_keep_word_boundary_matching() -> None:
     """Renk yolu numarası ("100") eskisi gibi sözcük sınırıyla aranır: "100x200" onu söylemez."""
     text = "Göğüs logosu Venom Red 690, ölçü 100x200."
     assert not _check(text, "Venom Red 690", LOGO, asked=LOGO_QUESTION).ok
+
+
+# --- Ürün sahibi kararıyla ek düzeltme: sayısal etiket yalnız sayısal değerli hücrede varyant ---
+
+COLORWAY_HEADER = (
+    "Material Details | Location | Qty | Usage | Only for Product Alternatives | "
+    "001: Black // White | 997: Blackout Navy // White"
+)
+
+
+@pytest.mark.parametrize("asked", ["hangi renk yolları var?", ""])
+def test_colorway_header_row_is_not_a_numeric_variant_group(asked: str) -> None:
+    """Yüklü 9 föyün malzeme tablosu başlık satırı: renk yolu numarası cümlede ve soruda yokken
+    de renk yolunun adı gizlenmez (ilk sürüm gizliyordu; main'de geçiyordu)."""
+    sources = _sources(COLORWAY_HEADER)
+    check = _check("Renk yolu Black // White.", "001: Black // White", sources, asked=asked)
+    assert check.ok, check.problems
+
+
+def test_numeric_sizes_and_years_are_still_variants_after_the_narrowing() -> None:
+    sizes = _sources(NUMERIC_SIZES, language="tr")
+    assert not _check("İç paça 72,0.", "38: 72,0 | 40: 74,0", sizes, asked="iç paça kaç?").ok
+    years = _sources(YEARS, language="tr")
+    assert not _check("Toplam satış 120.", "2024: 120 | 2025: 140", years, asked="satış?").ok
+    assert _check("2024 toplam satışı 120.", "2024: 120 | 2025: 140", years, asked="satış?").ok
+
+
+def test_numeric_sizes_with_code_values_are_a_known_gap() -> None:
+    """Değeri kod olan sayısal beden sütununda bedensiz cümle geçer (karar 0019, bilinen sınır)."""
+    sources = _sources("Kalem: Etiket kodu | 38: ETK-6154 | 40: ETK-6155", language="tr")
+    check = _check("Etiket kodu ETK-6154.", "38: ETK-6154", sources, asked="etiket kodu ne?")
+    assert not any(VARIANT_PROBLEM in problem for problem in check.problems)

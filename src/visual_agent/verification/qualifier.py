@@ -9,10 +9,10 @@ Kural B: alıntılanan değer bir varyant sütununun altındaysa (beden, renk yo
 cümlede ya da kullanıcının kendi sorusunda geçmeli; değer bütün varyantlarda aynıysa gerekmez.
 Varyant sütunu: aynı satırda aynı gruptan en az iki etiket ve aynı türde değer. Grup: kaynakta
 büyük harfle yazılmış kısa kod ("S", "XL", "4XLT"), son sözcüğü böyle kod olan ortak başlı ad
-("Beden S", "Beden M"), rakamlı ad ("100: White // Venom Red", "Seviye 2"), salt sayısal etiket
-("38", "40"; yıl sütunları "2024", "2025" da böyledir). Kaynaklardan birinin başlık satırında
-birden çok geçen numaralı ad da, satırda tek kalsa varyanttır. Yapısı anlaşılmayan satır
-(başlıksız) bu kuralın dışında kalır.
+("Beden S", "Beden M"), rakamlı ad ("100: White // Venom Red", "Seviye 2"), değeri de sayı olan
+salt sayısal etiket ("38: 72,0", "40: 74,0"; yıl sütunları "2024: 120" da böyledir).
+Kaynaklardan birinin başlık satırında birden çok geçen numaralı ad da, satırda tek kalsa
+varyanttır. Yapısı anlaşılmayan satır (başlıksız) bu kuralın dışında kalır.
 
 Kural C (hücre eşleşmesi): alıntı birden çok rakamlı hücre taşıyorsa ve cümle bunlardan birinin
 adını anıp kendi değerini söylemeden başka hücrenin değerini söylüyorsa cümle gizlenir
@@ -134,9 +134,10 @@ def _column(raw_label: str, raw_value: str) -> _Column:
     elif len(words) > 1 and _is_code(words[-1]):
         key = _norm(" ".join(words[:-1]))
         parts.add(_norm(words[-1]))
-    elif label.isdigit():
-        # Sayısal beden ya da yıl sütunu ("38", "2024"): kardeşiyle aynı türde değer taşıyorsa
-        # değerin hangi sütundan geldiği söylenmeli (karar 0019, Kural C'nin 1. sınırı).
+    elif label.isdigit() and _value_kind(value) == _SAME_VALUE:
+        # Sayısal beden ya da yıl sütunu ("38: 72,0", "2024: 120"): değerin hangi sütundan
+        # geldiği söylenmeli (karar 0019, Kural C'nin 1. sınırı). Değeri sayı olmayan hücre
+        # ("001: Black // White") numaralı addır; onu başlık satırı kuralı görür.
         key = _NUMERIC_LABEL
     return _Column(label, value, key, frozenset(parts))
 
