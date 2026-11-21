@@ -47,6 +47,7 @@ class QuestionScore(ScoringModel):
     verified_wrong: bool
     false_reject: bool
     skipped_clarification: bool = False
+    listed_variants: bool = False
 
 
 class RunSummary(ScoringModel):
@@ -56,6 +57,7 @@ class RunSummary(ScoringModel):
     false_rejects: int
     by_kind: dict[str, tuple[int, int]]
     skipped_clarifications: int = 0
+    listed_variants: int = 0
 
 
 def _canonical_number(raw: str) -> str:
@@ -145,6 +147,34 @@ def skipped_clarification(
     )
 
 
+def listed_variants(
+    question: GoldQuestion, record: AnswerRecord, documents: Mapping[str, str]
+) -> bool:
+    """Tek belgedeki varyantların hepsi kendi kaynağıyla listelendi (netleştirme yerine geçer).
+
+    Cevabın bütün maddeleri aynı tek belgeye atıf yapar; o belge sorunun kodlarını ve farklı
+    değerlerin hepsini içerir; cevaptaki her sayı ve kod soruda ya da o belgede geçer (varyant
+    adları "1-5 yıl", "Tip 1" yabancı sayılmaz). Farklı değerler ayrı belgelerdeyse (iki ürün,
+    iki sürüm) hiçbir tek belge hepsini içermez: orada netleştirme zorunludur.
+    """
+    if question.outcome is not Outcome.CLARIFY or record.outcome is not Outcome.ANSWERED:
+        return False
+    if not question.differing_values or not all(item.sources for item in record.items):
+        return False
+    cited = {source.doc_id for item in record.items for source in item.sources}
+    if len(cited) != 1:
+        return False
+    document = extract_tokens(documents.get(next(iter(cited)), ""))
+    asked = extract_tokens(question.text)
+    values = frozenset().union(*(extract_tokens(value) for value in question.differing_values))
+    answer_tokens = extract_tokens(" ".join(item.text for item in record.items))
+    return (
+        asked | values <= document
+        and answer_tokens <= document | asked
+        and all(_value_cited(value, record, documents) for value in question.differing_values)
+    )
+
+
 def score_question(
     question: GoldQuestion, record: AnswerRecord, documents: Mapping[str, str] | None = None
 ) -> QuestionScore:
@@ -156,9 +186,10 @@ def score_question(
         _value_stated(value, answer_text, answer_tokens) for value in question.expected_values
     )
     source_ok = _sources_ok(question, record)
-    passed = outcome_ok and values_ok and source_ok and not foreign
     badged = record.badge in _BADGED
-    skipped = badged and skipped_clarification(question, record, documents or {})
+    listed = badged and listed_variants(question, record, documents or {})
+    passed = (outcome_ok and values_ok and source_ok and not foreign) or listed
+    skipped = badged and not listed and skipped_clarification(question, record, documents or {})
     return QuestionScore(
         question_id=question.question_id,
         outcome_ok=outcome_ok,
@@ -169,6 +200,7 @@ def score_question(
         verified_wrong=badged and not passed and not skipped,
         false_reject=question.outcome is Outcome.ANSWERED and record.outcome in _REJECTED,
         skipped_clarification=skipped,
+        listed_variants=listed,
     )
 
 
@@ -184,6 +216,7 @@ def summarize(questions: Sequence[GoldQuestion], scores: Sequence[QuestionScore]
         false_rejects=sum(score.false_reject for score in scores),
         by_kind=by_kind,
         skipped_clarifications=sum(score.skipped_clarification for score in scores),
+        listed_variants=sum(score.listed_variants for score in scores),
     )
 
 

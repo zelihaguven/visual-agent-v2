@@ -2,7 +2,10 @@ import json
 
 import pytest
 
+from visual_agent.domain.document import Chunk, ChunkKind, SourceLocation
+from visual_agent.domain.result import Hit
 from visual_agent.generation.prompts import load_answer_prompt, load_answer_schema
+from visual_agent.generation.sources import format_sources
 
 
 @pytest.mark.parametrize(
@@ -74,3 +77,43 @@ def test_schema_allows_a_code_reference_and_is_valid_json() -> None:
     assert json.dumps(schema)
     assert item["properties"]["kod_kaynak_no"]["type"] == "integer"
     assert item["properties"]["alintilar"]["minItems"] == 0
+
+
+def test_prompt_lists_variants_of_a_single_document_and_asks_across_documents() -> None:
+    """A yolu (2026-11-20): tek belgede en çok 3 varyant listelenir; 2+ belgede sorulur."""
+    prompt = load_answer_prompt()
+
+    assert "Farklı değerler BİRDEN ÇOK belgeden geliyorsa" in prompt
+    assert "Farklı değerler TEK belgedeyse ve en çok 3 seçenek varsa sorma, listele" in prompt
+    assert "seçeneğin kaynakta geçen adıyla ve kendi alıntısıyla" in prompt
+    # Tamlık iddiası yok; değeri görünmeyen ya da 3'ten fazla seçenek varsa sorulur.
+    assert '"tüm", "yalnız", "iki tane" gibi sözler yazma' in prompt
+    assert "3'ten fazla seçenek varsa ya da adı görünüp değeri kaynaklarda görünmeyen" in prompt
+    # 9. kuralın istisnası ve eski "değerleri sıralama" cümlesinin kalkması.
+    assert "soruda varyant belirtilmediyse 7. kurala göre" in prompt
+    assert "bütün değerleri listeleme, sor" not in prompt
+    assert "tahmin etme ve değerleri sıralama" not in prompt
+
+
+def _hit(doc_id: str, title: str, text: str = "Bel | S: 38,0 | M: 40,0") -> Hit:
+    chunk = Chunk(
+        chunk_id=f"{doc_id}:0",
+        doc_id=doc_id,
+        kind=ChunkKind.TABLE_ROW,
+        text=text,
+        title=title,
+        location=SourceLocation(page=1),
+    )
+    return Hit(chunk=chunk, score=1.0)
+
+
+def test_documents_uploaded_under_the_same_name_look_different_to_the_model() -> None:
+    """İstem belge sayısına göre karar verir: aynı adlı iki belge tek belge görünmemeli."""
+    hits = [_hit("a", "Ölçü föyü"), _hit("b", "Ölçü föyü"), _hit("a", "Ölçü föyü"), _hit("c", "X")]
+
+    text = format_sources(hits)
+
+    assert text.count('belge="Ölçü föyü"') == 2  # a belgesinin iki parçası
+    assert text.count('belge="Ölçü föyü (2)"') == 1
+    assert text.count('belge="X"') == 1
+    assert "(1)" not in text and "(3)" not in text

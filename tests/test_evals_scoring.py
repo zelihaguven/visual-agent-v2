@@ -258,6 +258,138 @@ def test_summary_counts_skipped_clarifications_separately() -> None:
     assert (summary.skipped_clarifications, summary.verified_wrong) == (1, 1)
 
 
+# --- Tek belgede varyant listeleme netleştirmenin yerine geçer (A yolu, 2026-11-20) ---
+
+SHEET = GoldSource(doc_id="dikim-excel", sheet="Ölçü tablosu", row=3)
+LEAVE = GoldSource(doc_id="ik-izin", page=1)
+OTHER = GoldSource(doc_id="dikim-rev-b", page=1)
+VARIANT_DOCUMENTS = {
+    "dikim-excel": "PNT-1126 ölçü föyü\nİç paça\n72,0\n74,0\n76,0\n0,5",
+    "dikim-rev-b": "SRT-4294 ölçü föyü Rev B\nİç paça\n72,0\n74,0\n76,0\n0,5",
+    "ik-izin": "Kıdem\nİzin (gün)\n1-5 yıl\n15\n5-15 yıl\n20\n15 yıl üzeri\n28",
+}
+SIZES = CLARIFY.model_copy(
+    update={
+        "question_id": "dikim-excel-netlestir",
+        "text": "PNT-1126 modelinde iç paça kaç?",
+        "differing_values": ("72,0", "74,0", "76,0"),
+    }
+)
+SENIORITY = CLARIFY.model_copy(
+    update={
+        "question_id": "ik-netlestir",
+        "text": "Yıllık izin kaç gün?",
+        "differing_values": ("15", "20", "28"),
+    }
+)
+
+
+def test_listing_every_variant_of_a_single_document_passes() -> None:
+    record = listed(
+        ("S beden iç paça 72,0.", (SHEET,)),
+        ("M beden iç paça 74,0.", (SHEET,)),
+        ("L beden iç paça 76,0.", (SHEET,)),
+    )
+
+    score = score_question(SIZES, record, VARIANT_DOCUMENTS)
+
+    assert score.passed and score.listed_variants
+    assert not score.verified_wrong and not score.skipped_clarification
+
+
+def test_variant_names_that_carry_numbers_are_not_foreign_values() -> None:
+    record = listed(
+        ("1-5 yıl kıdemde yıllık izin 15 gündür.", (LEAVE,)),
+        ("5-15 yıl kıdemde yıllık izin 20 gündür.", (LEAVE,)),
+        ("15 yıl üzeri kıdemde yıllık izin 28 gündür.", (LEAVE,)),
+    )
+
+    score = score_question(SENIORITY, record, VARIANT_DOCUMENTS)
+
+    assert score.passed and not score.verified_wrong
+
+
+@pytest.mark.parametrize(
+    "items",
+    [
+        pytest.param(
+            (("S beden 72,0.", (SHEET,)), ("M beden 74,0.", (SHEET,))), id="eksik-varyant"
+        ),
+        pytest.param(
+            (
+                ("S beden 72,0.", (SHEET,)),
+                ("M beden 74,0.", (SHEET,)),
+                ("L beden 76,0, XL 78,0.", (SHEET,)),
+            ),
+            id="belgede-olmayan-deger",
+        ),
+        pytest.param((("72,0, 74,0 ve 76,0.", ()),), id="kaynaksiz"),
+    ],
+)
+def test_incomplete_or_misattributed_listing_is_still_verified_wrong(
+    items: tuple[tuple[str, tuple[GoldSource, ...]], ...],
+) -> None:
+    score = score_question(SIZES, listed(*items), VARIANT_DOCUMENTS)
+
+    assert not score.passed and not score.listed_variants
+    assert score.verified_wrong
+
+
+@pytest.mark.parametrize(
+    "items",
+    [
+        pytest.param(
+            (
+                ("S beden 72,0.", (OTHER,)),
+                ("M beden 74,0.", (OTHER,)),
+                ("L beden 76,0.", (OTHER,)),
+            ),
+            id="baska-urunun-belgesi",
+        ),
+        pytest.param(
+            (
+                ("S beden 72,0.", (SHEET,)),
+                ("M beden 74,0.", (SHEET,)),
+                ("L beden 76,0.", (OTHER,)),
+            ),
+            id="iki-belgeye-atif",
+        ),
+    ],
+)
+def test_listing_from_another_products_document_does_not_pass(
+    items: tuple[tuple[str, tuple[GoldSource, ...]], ...],
+) -> None:
+    """Değerler başka ürünün belgesinde de geçiyor; soru kodu o belgede yok. Geçmez; eskisi
+    gibi "atlanan netleştirme" sayılır (her değer, onu içeren bir belgeye atıfla verilmiş)."""
+    score = score_question(SIZES, listed(*items), VARIANT_DOCUMENTS)
+
+    assert not score.passed and not score.listed_variants
+    assert score.skipped_clarification
+
+
+def test_values_from_two_documents_never_count_as_a_single_document_listing() -> None:
+    record = listed(("Rev A: 74,0.", (REV_A,)), ("Rev B: 75,0.", (REV_B,)))
+
+    score = score_question(REVISIONS, record, DOCUMENTS)
+
+    assert not score.passed and not score.listed_variants and score.skipped_clarification
+
+
+def test_asking_instead_of_listing_still_passes_and_the_summary_counts_listings() -> None:
+    asked = AnswerRecord(question_id="q", outcome=Outcome.CLARIFY, badge=Badge.NONE)
+    full = listed(
+        ("S beden 72,0.", (SHEET,)), ("M beden 74,0.", (SHEET,)), ("L beden 76,0.", (SHEET,))
+    )
+    scores = [
+        score_question(SIZES, asked, VARIANT_DOCUMENTS),
+        score_question(SIZES, full, VARIANT_DOCUMENTS),
+    ]
+
+    summary = summarize([SIZES, SIZES], scores)
+
+    assert (summary.passed, summary.listed_variants, summary.verified_wrong) == (2, 1, 0)
+
+
 def test_saved_answers_are_rescored_without_the_model() -> None:
     gold = GoldSet(seed=11, documents=(), questions=(LOOKUP, REVISIONS), document_texts=DOCUMENTS)
     skipped = listed(("Rev A: 74,0.", (REV_A,)), ("Rev B: 75,0.", (REV_B,)))

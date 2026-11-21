@@ -436,8 +436,8 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 ### Bu repodaki istem değişiklikleri
 | Commit | Değişiklik | Ölçüm |
 | --- | --- | --- |
-| `#a2eaf46` | Farklı değerler tek satırdaysa da netleştirme sorulur | Yazılmamış |
-| `#2ad898d` | Kural 7: beden, model ya da sürüm anlaşılmıyorsa tahmin etmeden netleştirme. Kural 9: yalnız sorulan değer (diğer bedenler ve ayrı sütundaki tolerans eklenmez); cevap sesle de okunduğu için tek kısa cümle, parantezsiz. Kural 11 (yeni): sesten gelen dolgu sözleri, tiresiz ya da küçük harfli kod, taranmış tablolarda gürültülü sütun etiketi | Yazılmamış |
+| `#a2eaf46` | Farklı değerler tek satırdaysa da netleştirme sorulur. **Tek belge için tersine çevrildi (0020).** | Yazılmamış |
+| `#2ad898d` | Kural 7: beden, model ya da sürüm anlaşılmıyorsa tahmin etmeden netleştirme (**tek belgede listeleme istisnası: 0020**). Kural 9: yalnız sorulan değer (diğer bedenler ve ayrı sütundaki tolerans eklenmez; **soruda varyant yoksa 7. kurala göre: 0020**); cevap sesle de okunduğu için tek kısa cümle, parantezsiz. Kural 11 (yeni): sesten gelen dolgu sözleri, tiresiz ya da küçük harfli kod, taranmış tablolarda gürültülü sütun etiketi | Yazılmamış |
 | `#0e60352` (PR #14) | Kural 9: ayarın adı, yeri ve yanındaki not ayrı öğe | seed 7 37/40, seed 11 37/40, yanlış 0, önce ve sonra aynı |
 | `#676e9e0` (PR #24) | Kural 10 (şekil kaynakları) ve kural 11'deki bedene özgü gürültülü etiket maddesi silindi | Aşağıda, "Birim kuralı" |
 | `#87860fa` (`sadakat-turu-2`) | Kural 3: "Birimi yalnız kaynakta yazılıysa yaz; kaynakta birim yoksa sayıyı kaynaktaki gibi ver." | Aşağıda, "Birim kuralı" |
@@ -1440,3 +1440,29 @@ Tarih: 2026-11-20. Ürün sahibi kararı. Dal: `niteleyici-denetimi`. Kod: `src/
 **Ürün sahibi kararıyla ek düzeltme: yüklü 9 föyde haksız gizleme (2026-11-21, aynı dal; tek düzeltme turu bu kararla aşıldı).** İlk sürüm sayısal etiketi değeri sayı olmayan hücrelerde de varyant sayıyordu. Mac'in uygulama indeksinde 9 föyün malzeme tablosu başlık satırında ("… | 001: Black // White | 997: …") renk yolu numarası cümlede ve soruda yokken "Renk yolu Black // White." gizleniyordu; main'de geçiyordu. Kural daraltıldı: sayısal etiket yalnız değeri de sayı olan hücrelerde varyant sayılır ("38: 72,0", "2024: 120"); "001: Black // White" numaralı addır ve eskisi gibi başlık satırı kuralına kalır. Sonra 9 satırda üç cümle (etiketsiz, etiket cümlede, etiket soruda) yeniden denendi: 9 satırın 9'unda main ile aynı sonuç (hepsi geçti). Beden ve yıl davranışı değişmedi ("İç paça 72,0." ve "Toplam satış 120." yine gizlenir). **Bilinen sınır:** değeri kod olan sayısal beden sütunlarında ("38: ETK-6154 | 40: ETK-6155") bedensiz cümle geçer. Daraltmadan sonra ölçüm (Mac main tabanının önbelleğinden, ağa gitmeden; ıska 0, maliyet 0): 98 sorunun 98'inde cevap main ile birebir aynı; taban 7 ve taban 11 38/40, doğrulanmış yanlış 0, haksız ret 0. Windows'taki n21 ile doğrudan karşılaştırılamaz (okuyucu, set 11'in görüntüleri ve önbellek farklı).
 
 **Not: gerçek tanı günlükten okunmadan düzeltme yapılmaz.** PR 3 (#110, model numarası muafiyeti) bir yeniden kurguya dayanıyordu: o gün günlükte sorun ayrıntısı yoktu ve gizlemenin 6029322'den geldiği varsayıldı; asıl neden 001'di. Ayrıntı artık `problem_details`'te (#108).
+
+### 0020: Tek belgedeki varyantlar listelenir; birden çok belgede netleştirme zorunlu (A yolu)
+Tarih: 2026-11-20 (karar), 2026-11-21 (uygulama). Ürün sahibi kararı. Dal: `varyant-listeleme`.
+
+**Sorun.** Soru bir varyantı (beden, renk yolu, kıdem dilimi) söylemediğinde model netleştirme soruyordu. İki belge arasında bu işe yarıyor: seçenekler belge adıyla düğme oluyor. Tek belgenin içinde seçenekler bir satırın sütunları ya da aynı bölümün satırları; düğme üretilemiyor ve kullanıcı seçeneksiz bir soruyla kalıyor ("Hangi beden için?"; sınır setinde D4, D6; 6029322 göğüs logosu).
+
+**Karar.** Yalnız istem değişti; doğrulayıcıya yeni kural yok (0019).
+- Aday belge tek ve değer belge içinde varyanta göre değişiyorsa netleştirme istenmez: her varyantın değeri kaynakta geçen adıyla, ayrı cümlede, kendi alıntısıyla verilir.
+- En çok 3 varyant; fazlaysa bugünkü gibi netleştirme.
+- Tamlık iddiası yok ("tüm", "yalnız", "iki tane"). Adı görünüp değeri görünmeyen varyant varsa netleştirme.
+- Aday belge iki ya da daha çoksa (farklı ürün, farklı revizyon) netleştirme zorunlu; değişmedi.
+- İstemin 9. kuralına ("sorulmadıkça diğer bedenleri ekleme") istisna cümlesi: "soruda varyant belirtilmediyse 7. kurala göre".
+
+**Tersine çevrilen eski kararlar.** `#a2eaf46` ("farklı değerler tek satırdaysa da netleştirme sorulur") tek belge için geçersiz. `#2ad898d`'nin 7. kuralındaki "tahmin etme ve değerleri sıralama" cümlesi "listele ya da sor" oldu; 9. kuralı tek belge istisnasını aldı. İki belge arasındaki netleştirme kararları aynen geçerli.
+
+**"Görünen varyant sayısı" notu.** Model belgenin tamamını değil, aramanın getirdiği en çok 8 parçayı görür. "En çok 3 varyant" görünen varyantlar için geçerlidir; belgede dördüncü bir varyant olup parçalara girmemiş olabilir. Bu yüzden cevap tamlık iddia edemez ve istem bunu yasaklar. Doğrulayıcı listelenen her cümleyi ayrı ayrı denetler (değer kendi alıntısında, varyant adı cümlede: Kural B); eksik kalan varyantı denetleyemez.
+
+**Aynı adlı belgeler.** İstem kararı belge sayısına göre veriyor ve belgeyi adından tanıyor. Aynı adla yüklenmiş farklı belgeler modele ayrı görünür: ikincisi "Ad (2)" diye yazılır (`generation/sources.py`). Yoksa iki ayrı ürünün değerleri tek belgenin varyantı sanılıp listelenirdi.
+
+**Reddedilen: düğme etiketli netleştirme.** Kaynaktan türetilen etiketler kullanıcıya bir şey söylemiyordu, plan büyüktü, her tıklama ikinci bir model çağrısı istiyordu (20 Kasım; 21 Kasım'da Mac'te yeniden önerildi ve aynı gerekçeyle bırakıldı).
+
+**Puanlama (`evals/scoring.py`).** Netleştirme beklenen soruda, bütün maddeleri aynı tek belgeye atıf yapan, o belge sorunun kodlarını ve `differing_values` değerlerinin hepsini içeren ve her değeri kaynağıyla veren cevap geçer (`listed_variants`). Cevaptaki sayı ve kodlar soruda ya da o belgede geçmeli; "1-5 yıl", "Tip 1" gibi sayı taşıyan varyant adları yabancı değer sayılmaz. Değerler ayrı belgelerdeyse hiçbir tek belge hepsini içermez; orada cevap vermek eskisi gibi "atlanan netleştirme" ya da doğrulanmış yanlıştır. Netleştirme sormak tek belgede de geçmeye devam eder (3'ten fazla varyant). Puanlayıcı değerin doğru varyant adıyla eşleştiğini denetlemez (eskiden de denetlemiyordu); bunu doğrulayıcının Kural B'si yapar. Mac main tabanı (`evals/output/mac-main-2026-11-21`) yeni puanlayıcıyla ağa gitmeden yeniden puanlandı: taban 7 ve taban 11 38/40, doğrulanmış yanlış 0, listeleme 0; eski puanlayıcıyla aynı (main netleştirme soruyor).
+
+**Beklenen.** `dikim-excel-netlestir` ve `ik-netlestir` (iki sette), sınır setinde D4 ve D6 listeler. `dikim-revizyon-netlestir`, `sql-netlestir`, D1, D3 netleştirme kalır.
+
+**Ölçüm.** Aşağıya eklenecek (canlı; istem değişti).
