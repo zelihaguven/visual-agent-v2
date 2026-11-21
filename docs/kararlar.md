@@ -681,8 +681,78 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     kaldırıyor.
   - Bağlamın belgeleri silindiyse hangi belge olduğu soruluyor.
 - **Neden:** Commit mesajlarında davranış yazılı; ölçülmüş bir gerekçe yok.
-- **Bilinen kalan:** Model değişince önceki beden düşüyor (`dikim-sohbet-1-t4`, 10 tekrarın
-  hiçbirinde geçmedi; açık notlar).
+- **Ürün ya da model değişince beden taşınmaz; aynı ürünün sürümü değişince taşınır
+  (2026-11-21, ürün sahibi kararı; dal `urun-degisince-beden`).** Takip sorusu başka bir
+  ürünü ya da modeli adlandırıyorsa önceki turun bedeni tamamlanmış
+  soruya girmez; sistem bedeni sorar. Eski "bilinen kalan" (`dikim-sohbet-1-t4`, 10 tekrarın
+  hiçbirinde geçmedi) bununla kapandı: beklenti değişti, davranış değil.
+  - **Teşhis.** Tamamlama yalnız bağlamdaki tek soruyu ve yeni mesajı görür
+    (`ask/context.py`); cevap modeli önceki turları hiç görmez. Konuşma: "PNT-1126 M beden iç
+    paça 74,0 cm miydi?", "Peki dış paça kaç?" (beden taşındı), "Peki kordon boyu kaç?"
+    (bulunamadı; bağlam değişmedi), "Peki PNT-1162 modelinde iç paça kaç?". Dördüncü turda
+    yardımcı modelin gördüğü önceki soru "PNT-1126 M beden dış paça kaç?" idi, yani beden
+    önündeydi; araya giren tur bağlamı kesmiyordu. Aynı girdiyle 3 çağrının 3'ünde ve dört
+    Türkçe değişkenin dördünde beden düştü; istemdeki örneğin Türkçesinde de. Beden yalnız
+    istemdeki İngilizce örneğin kendisinde korundu. `is_grounded` yalnız uydurulan değeri
+    yakalar, düşen sözcüğü fark etmez.
+  - **Gerekçe.** Kural 1: taşınan beden sorulmamış bir bedenin değerini kendinden emin
+    verdirir (kullanıcı yeni ürünün başka bir bedenini ya da hepsini kastetmiş olabilir).
+    Davranış dile göre değişiyordu (İngilizcede taşıyor, Türkçede düşürüyordu). Taşımak hiç
+    ölçülmüş bir karar değildi: ilk sürümden (`#fcab57c`) beri istemde yazılıydı.
+  - **Değişen.** Tamamlama isteminden "ürün, model ya da sürüm değişince önceki sorunun
+    bedenini koru" cümlesi ve örneği çıkarıldı (`generation/rewrite.py`); sonrasında İngilizce
+    örnek de bedensiz tamamlandı (tek çağrıyla denendi; yardımcı model `gemma-4-26b`). Senaryo üreticisinde (`evals/scenarios/sewing.py`)
+    `dikim-sohbet-1-t4`'ün beklentisi netleştirme oldu; taban 7 ve taban 11 yeniden üretildi,
+    `gold.json` dosyalarında yalnız bu turun beş alanı değişti. Kod davranışı değişmedi.
+  - **Bedeli.** Kullanıcı bir tur fazla yazar ve tek belgede netleştirme seçeneksizdir
+    ("Hangi beden için?"; 0020). Ürün değişmeyen takiplerde beden taşınmaya devam eder
+    ("L beden?" → "Etiketi ne?").
+  - **Ölçüm (Mac, 2026-11-21; dalın koduyla, karşılaştırma `evals/output/mac-main-2026-11-21`).**
+    Taban 7 ve taban 11: 39/40 (main 38/40), doğrulanmış yanlış 0, haksız ret 0; takip
+    soruları 5/5 (main 4/5). Değişen tek soru `dikim-sohbet-1-t4`: cevap aynı (netleştirme),
+    beklenti değişti. Öbür dokuz takip turunun tamamlanmış sorusu iki sette de main ile
+    birebir aynı; konuşma dışı 30 sorunun cevabı da aynı (cevap modeli çağrıları önbellekten;
+    yalnız tamamlama çağrıları canlı). Kalan tek soru iki sette de `sql-ekran-uzunluk` (ekran görüntüsünden okunan değer).
+    Açık cümle eklendikten sonra yeniden ölçüldü: iki set yine 39/40, doğrulanmış yanlış 0.
+    Takip turlarından birinin tamamlanmış sorusu sözcük düzeyinde değişti (`sql-sohbet-1-t2`:
+    "yeni bir kolon eklerken" → "yeni kolon eklerken"); cevabı aynı komut, doğrulanmış.
+    Öbür turların tamamlanmış sorusu main ile aynı. Daraltılmış cümleyle üçüncü ölçüm aynı
+    sonucu verdi (39/40, doğrulanmış yanlış 0; tek fark yine `sql-sohbet-1-t2`'deki sözcük,
+    kabul edildi).
+  - **İsteme açık cümle (ürün sahibi kararıyla ek, tek düzeltme turunun dışında).** İnceleme
+    bulgusu: cümle çıkınca davranış istemde yazılı kalmamıştı; kalan cümleler harfiyen
+    okununca bedeni taşıtıyordu ve bedenin düşmesi yardımcı modelin eğilimine dayanıyordu.
+    Eklendi: "When the new message names another product or model, do not carry over the size
+    of the previous question" ve örneği.
+  - **Sürüm: beden taşınır (karar daraltıldı, 2026-11-21).** İlk yazımda cümle sürümü de
+    kapsıyordu ("product, model or version"). Yardımcı model sürümde uymadı: "SRT-4294 Rev B M
+    beden iç paça kaç?" → "Peki Rev A?" Türkçe ve İngilizce 6 çağrının 6'sında "SRT-4294 Rev A
+    M beden iç paça kaç?" oldu. Karar buna göre daraltıldı ve istemden "or version" çıkarıldı;
+    istem davranışla aynı. Gerekçe: kullanıcı büyük olasılıkla aynı bedeni aynı ürünün başka
+    revizyonunda soruyor; ürün aynı kaldığı için sorulmamış bir ürünün değeri verilmiyor ve
+    "Anlaşılan soru" ekranda gösteriliyor. Bedeli: kullanıcı öbür revizyonun başka bir
+    bedenini kastettiyse M'nin değeri verilir; ekrandaki tamamlanmış sorudan görür.
+  - **Deneme (yardımcı model, her durum 3 çağrı; sürümü de kapsayan ilk cümleyle).**
+
+    | Durum | Önceki soru → yeni mesaj | Çıktı (3/3) |
+    | --- | --- | --- |
+    | TR ürün değişti | "A-100 M beden genişlik kaç?" → "Peki B-200?" | "B-200 genişlik kaç?" |
+    | EN ürün değişti | "What is the width of A-100 in size M?" → "And B-200?" | "What is the width of B-200?" |
+    | TR ürün ve ölçü değişti | "PNT-1126 M beden dış paça kaç?" → "Peki PNT-1162 modelinde iç paça kaç?" | "PNT-1162 modelinde iç paça kaç?" |
+    | TR sürüm değişti | "SRT-4294 Rev B M beden iç paça kaç?" → "Peki Rev A?" | "SRT-4294 Rev A M beden iç paça kaç?" |
+    | EN sürüm değişti | "What is the inseam of SRT-4294 Rev B in size M?" → "And Rev A?" | "What is the inseam of SRT-4294 Rev A in size M?" |
+    | TR ürün aynı | "A-100 M beden genişlik kaç?" → "Peki dış paça?" | "A-100 M beden dış paça kaç?" |
+    | EN ürün aynı | "What is the width of A-100 in size M?" → "And the height?" | "What is the height of A-100 in size M?" |
+    | TR yalnız beden değişti | "CKT-7308 S beden bel kaç?" → "L beden?" | "CKT-7308 L beden bel kaç?" |
+
+    Daraltılmış cümleyle aynı sekiz durum üçer kez yeniden denendi: çıktılar tablodakilerle
+    birebir aynı (24 çağrının 24'ü). Ürün değişince beden düşüyor, sürüm değişince ve ürün
+    aynıyken taşınıyor; istem ile davranış artık aynı.
+  - **Bilinen sınırlar (inceleme turu).** (1) Bu tur artık her netleştirmeyle geçer;
+    tamamlama hatasından gelen netleştirme de ("soruyu birleştiremedim") geçer sayılır.
+    Ölçümde tamamlanmış soru elle doğrulandı: iki sette de model var, beden yok. (2)
+    `evals/baselines/taban` altındaki eski özetler bu turu hâlâ kalan soru sayıyor; 38 → 39
+    iyileşme değil, beklenti değişikliğidir.
 
 ### Gizlenen cevabın turunda da kullanıcının sorusu bağlama girer (değiştirildi)
 - **Ne zaman:** 2026-11-12, `sohbet-baglami` dalı, `ask/context.py` (`next_context`).

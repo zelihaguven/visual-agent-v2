@@ -24,6 +24,7 @@ from visual_agent.conversation.grounding import is_grounded
 from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.result import Answered, AskOutcome, Clarify, NotFound
+from visual_agent.generation import rewrite
 from visual_agent.generation.json_model import JsonModel
 from visual_agent.generation.rewrite import Rewrite, make_rewriter
 
@@ -486,3 +487,15 @@ def test_gone_documents_stay_in_the_context_so_the_next_follow_up_asks_again() -
     assert isinstance(second.result, Clarify)
     assert second.result.question == CONTEXT_GONE_QUESTION
     assert retriever.calls == []
+
+
+def test_rewriter_prompt_does_not_carry_the_size_over_to_another_product() -> None:
+    """Karar (2026-11-21): ürün değişince önceki beden taşınmaz. Cümle yalnız istemdeki İngilizce
+    örnekte işliyordu; Türkçe sorularda beden zaten düşüyordu (davranış dile göre değişiyordu)."""
+    assert "keep the size" not in rewrite._PROMPT
+    # Sürüm kapsam dışı: aynı ürünün başka revizyonunda beden taşınır (karar, 2026-11-21).
+    assert "product, model or version, do not" not in " ".join(rewrite._PROMPT.split())
+    assert "names another product or model, do not carry over the size" in " ".join(
+        rewrite._PROMPT.split()
+    )
+    assert 'becomes "What is the height of B-200?"' in " ".join(rewrite._PROMPT.split())
