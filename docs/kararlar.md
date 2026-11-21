@@ -1552,3 +1552,28 @@ Tarih: 2026-11-21. Ürün sahibi kararı. Dal: `ocr-belirsiz-komsu-hucre` (`7b9b
 
 **Yeniden düşünülür.** İkinci okuma serbest metinli hücrelerdeki boşluk ve ayraç hatalarını da işaretler hâle gelirse, ya da kural yalnız kısa sayısal hücrelerle sınırlanıp o hücrelerde ayrı ve daha büyük bir görüntü denetimi temiz çıkarsa. İkisi de set B ölçümü ister.
 
+### 0022: Eski OCR yolunun (gömülü görsel) set A ölçümü; eşikler ölçümden önce belirlendi
+Tarih: 2026-11-21. Ürün sahibi kararı. Dal: `eski-yol-olcumu`. Araç: `evals/run_embedded_images.py`. **Ölçüm henüz yapılmadı; bu kayıt sonuçtan önce yazıldı.**
+
+**Neden.** Eski OCR yolunun (karar 0018) bugünkü doğruluğu ölçülmemiş. 0010'daki "mevcut hat" sayıları (3.121 değerin 788'i yanlış) `c79e4ce`'deki koda ait: o hat taranmış sayfayı ocrmypdf ile okuyor, tablo hücrelerini bulut modeliyle yeniden okuyordu. O günden beri hücre okuyucu ve ızgara okuma silindi (0013), ikinci okuma sayımla karşılaştırılıyor, ortak tablo korumaları eklendi. Pilotta gömülü görseller bu yoldan geçecek.
+
+**Kapsam düzeltmesi.** Tarayıcının OCR'ladığı PDF'ler eski yola gitmez: sayfayı kaplayan görüntünün üstündeki görünmez ya da altında kalan metin "başka aracın OCR çıktısı" sayılır, sayfa metin katmansız kabul edilir ve sayfa okuyucusuna gider (`is_ocr_layer`; okuyucu yoksa belge "Okuyucu bekleniyor"). Eski yola gidenler: metinli sayfadaki gömülü görseller (RapidOCR + Tesseract) ve görünür metinli, büyük görüntülü ya da zayıf metin katmanlı sayfalar (ocrmypdf). Bu ölçüm yalnız birincisini kapsar.
+
+**Kurgu A (gömülü görsel, çözünürlük korunarak).** Set A benzetiminin 5 tarama PDF'i (30 sayfa) ve 12 telefon fotoğrafı (0009) kullanılır. Her sayfa görüntüsü, tek satır metni olan dijital bir sayfaya resim olarak gömülür; resim sayfanın yarısından azını kaplar, sayfa metinli sayılır ve görseli gömülü görsel yolu okur. Görselin bir pikseli hattın 300 dpi çizdiği sayfada bir pikseldir (küçültme yok, sıkıştırma yok). Yönlendirme zorlanmaz; bir sayfa okuyucuya ya da ocrmypdf yoluna düşerse koşu durur. Sayfa okuyucusu çalıştırılmaz ("set A'ya okuyucu çalıştırma" kuralı korunur).
+
+**Puanlama.** Dondurulmuş betik (`evals/results/2026-11-16-set-a-benzetim/puanla.py`) ve dondurulmuş `evals/ocr_score.py`, değiştirilmeden. Dondurulmuş `hat.py` bugünkü kodla çalışmaz (silinen hücre okuyucuyu içe aktarır); koşucu aynı biçimde çıktı üretir. Çıktı 0010'daki tablonun satırlarıdır: doğru gösterilen, yanlış gösterilen (bağ kopması, yanlış karakter, ayraç), atlama, gizlendi (doğruydu / yanlıştı); toplam, tarama ve fotoğraf.
+
+**Eşikler (ölçümden önce; ölçü 3.121 değer içinde yanlış gösterilen sayısı).** Karşılaştırma noktaları: okuyucu hattının 87'si (%2,8) ve eski ölçümün 788'i (%25).
+
+| Yanlış gösterilen | Yapılacak |
+| --- | --- |
+| ≤ 87 | Eski yol bu hâliyle kalır; "Taramadan okundu" rozeti zorunlu. |
+| 88–250 | Kalır; pilot öncesi ikinci okuma karşılaştırması sıkılaştırılır (0018'deki bilinen zayıflık) ve yeniden ölçülür. |
+| > 250, ya da yanlışların çoğu bağ kopması | Bu yoldan gelen tablo değerleri pilotta gösterilmez: ya okuyucuya yönlendirilir ya da yalnız kaynak görüntüsüyle verilir. |
+
+Ek koşul: yanlış az çıksa da doğru okunan değerlerin yarısından fazlası gizleniyorsa bu ayrıca kullanılabilirlik sorunu olarak yazılır.
+
+**Nerede ölçülür.** Windows'ta: sonuç pilotun Windows'taki eski yolunu temsil etmeli (ocrmypdf, Tesseract ve RapidOCR'ın sürümleri ve çıktıları işletim sistemine göre değişebilir). Komut açık notlarda (Yarım kalan). Bulut maliyeti 0. Mac'te yalnız tek belgeyle kuru deneme yapıldı (`syn2_s6_foto`: sayfa metinli sayıldı, görsel gömülü görsel yolundan okundu, puanlama çalıştı; 9 sn); tam koşu çalıştırılmadı.
+
+**Sınırlar.** Set A'nın sonuçları görüldü ve eski yol o günden beri gerçek föylere bakılarak değişti (yeniden işleme turu); bu, bugünkü durumun ölçümüdür, temiz bir kilitli karşılaştırma değil. Benzetim gerçek kâğıt ve tarayıcı değil (0009). Gerçekte yapıştırılan görsel çoğu zaman küçültülür; bu kurgu en iyi durumu ölçer. Küçültmenin etkisine ve kurgu B'ye (görünür damgalı tarama, ocrmypdf yolu) A'nın sonucundan sonra bakılacak.
+

@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 
+import pypdfium2
 import pytest
+from PIL import Image
 
 from evals.ocr_score import (
     Outcome,
@@ -356,3 +358,67 @@ def test_measurement_scripts_are_frozen() -> None:
         for name in FROZEN_MEASUREMENT_SCRIPTS
     }
     assert current == FROZEN_MEASUREMENT_SCRIPTS
+
+
+# --- Gömülü görsel ölçümü (evals.run_embedded_images): belge kurgusu ve yönlendirme denetimi ---
+
+
+def test_embedded_page_is_textual_and_keeps_the_image_pixel_for_pixel(tmp_path: Path) -> None:
+    """Görsel sayfanın yarısından azını kaplar (sayfa metinli sayılır, okuyucuya gitmez) ve
+    hattın çizdiği sayfada kendi pikselleriyle durur: ölçülen şey okuma, küçültme değil."""
+    from evals import run_embedded_images as runner
+    from visual_agent.ingest.page_reader import POINTS_PER_INCH, RENDER_DPI
+    from visual_agent.ingest.text_layer import PageKind
+    from visual_agent.ingest.tools import inspect_pdf
+
+    source = Image.new("RGB", (900, 600), "white")
+    for x in range(0, 900, 60):
+        source.paste((0, 0, 0), (x, 100, x + 30, 500))
+    target = tmp_path / "belge.pdf"
+
+    runner.build_document([source, source], target)
+    pages = inspect_pdf(target)
+
+    assert [info.kind for info in pages] == [PageKind.TEXT, PageKind.TEXT]
+    runner.check_routing("belge", pages)
+    box = pages[0].image_boxes[0]
+    scale = RENDER_DPI / POINTS_PER_INCH
+    assert round((box.right - box.left) * scale) == source.width
+    assert round((box.bottom - box.top) * scale) == source.height
+    document = pypdfium2.PdfDocument(target)
+    try:
+        rendered = document[0].render(scale=scale).to_pil().convert("RGB")
+    finally:
+        document.close()
+    left, top = round(box.left * scale), round(box.top * scale)
+    crop = rendered.crop((left, top, left + source.width, top + source.height))
+    assert crop.getpixel((15, 300)) == (0, 0, 0) and crop.getpixel((45, 300)) == (255, 255, 255)
+
+
+def test_run_stops_when_a_page_would_go_to_the_page_reader() -> None:
+    from evals import run_embedded_images as runner
+    from visual_agent.ingest.pipeline import PageInfo
+    from visual_agent.ingest.text_layer import PageKind
+
+    scanned = PageInfo(page=3, kind=PageKind.NONE, chars=0, image_boxes=())
+
+    with pytest.raises(SystemExit, match="s.3: sayfa sayfa okuyucusuna düşüyor"):
+        runner.check_routing("syn1_tarama", [scanned])
+
+
+def test_report_table_has_the_rows_of_the_recorded_measurement() -> None:
+    from evals import run_embedded_images as runner
+
+    recorded = json.loads((ocr_truth_record() / "rapor.json").read_text(encoding="utf-8"))
+    totals = {name: recorded["mevcut hat"][name] for name in ("toplam", "tarama", "foto")}
+
+    lines = runner.table(totals).splitlines()
+
+    assert lines[2] == "| Değer | 3121 | 2277 | 844 |"
+    assert "| Yanlış gösterilen | 788 | 507 | 281 |" in lines
+    assert "|   bağ kopması | 693 | 430 | 263 |" in lines
+    assert "| Gizlendi (doğruydu / yanlıştı) | 43 / 44 | 36 / 35 | 7 / 9 |" in lines
+
+
+def ocr_truth_record() -> Path:
+    return Path("evals/results/2026-11-16-set-a-benzetim")
