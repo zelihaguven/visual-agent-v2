@@ -359,7 +359,7 @@ def test_value_must_sit_in_the_cell_the_sentence_names(
 
 
 def test_sentence_naming_no_cell_is_left_to_the_other_rules() -> None:
-    """Ad anılmayan çok hücreli alıntı bu kurala girmez (bilinen açık: etiketsiz değer)."""
+    """Ad anılmayan çok hücreli alıntı bu kurala girmez; sayısal etiketlerde Kural B bakar."""
     sources = _sources("Ebat: İç paça | 38: 72,0 | 40: 74,0", language="tr")
     check = _check("İç paça 72,0.", "38: 72,0 | 40: 74,0", sources, asked="38 beden iç paça?")
     assert not any(CELL_PROBLEM in problem for problem in check.problems)
@@ -426,3 +426,57 @@ def test_year_columns_with_a_single_cell_sentence_pass() -> None:
 def test_correct_sentences_pass_the_cell_rule(row: str, text: str, quote: str, ok: bool) -> None:
     check = _check(text, quote, _sources(row, language="tr"))
     assert (not any(CELL_PROBLEM in problem for problem in check.problems)) is ok, check.problems
+
+
+# --- Kural B: salt sayısal kardeş etiketler varyanttır (Kural C'nin 1. sınırı, sayısal) ---
+
+VARIANT_PROBLEM = "cümlede değerin varyantı yok"
+NUMERIC_SIZES = "Ebat: İç paça | 38: 72,0 | 40: 74,0"
+YEARS = "Satış: Toplam | 2024: 120 | 2025: 140"
+
+
+@pytest.mark.parametrize(
+    ("row", "text", "quote", "asked", "ok"),
+    [
+        # Etiketsiz değer: hangi bedenin değeri olduğu ne cümlede ne soruda.
+        (NUMERIC_SIZES, "İç paça 72,0.", "38: 72,0 | 40: 74,0", "iç paça kaç?", False),
+        (NUMERIC_SIZES, "İç paça 72,0.", "38: 72,0", "iç paça kaç?", False),
+        # Kullanıcı başka bedeni sorduysa öbür bedenin etiketsiz değeri yine gizlenir.
+        (NUMERIC_SIZES, "İç paça 72,0.", "38: 72,0 | 40: 74,0", "40 beden iç paça kaç?", False),
+        # Etiket soruda ya da cümlede geçiyorsa geçer.
+        (NUMERIC_SIZES, "İç paça 72,0.", "38: 72,0 | 40: 74,0", "38 beden iç paça kaç?", True),
+        (NUMERIC_SIZES, "38 beden iç paça 72,0.", "38: 72,0 | 40: 74,0", "iç paça kaç?", True),
+        # Başka bir sayının parçası etiketi söylemez.
+        (NUMERIC_SIZES, "İç paça 72,0.", "38: 72,0 | 40: 74,0", "138 numaralı iç paça?", False),
+        (NUMERIC_SIZES, "İç paça 72,0.", "38: 72,0 | 40: 74,0", "38,5 mi iç paça?", False),
+        # Değer bütün bedenlerde aynıysa etiket gerekmez.
+        ("Ebat: Tolerans | 38: 1,0 | 40: 1,0", "Tolerans 1,0.", "38: 1,0 | 40: 1,0", "", True),
+        # Tek sayısal etiket varyant grubu değildir.
+        ("Ebat: İç paça | Adet: 3 | 38: 72,0", "İç paça 72,0.", "38: 72,0", "", True),
+        # Yıl sütunları da salt sayısal kardeştir: yıl söylenmeden değer verilemez.
+        (YEARS, "Toplam satış 120.", "2024: 120 | 2025: 140", "toplam satış kaç?", False),
+        (YEARS, "2024 toplam satışı 120.", "2024: 120 | 2025: 140", "toplam satış kaç?", True),
+        (YEARS, "Toplam satış 120.", "2024: 120 | 2025: 140", "2024 satışı kaç?", True),
+        (YEARS, "Toplam satış 120.", "2024: 120 | 2025: 140", "2025 satışı kaç?", False),
+    ],
+)
+def test_numeric_sibling_labels_are_variants(
+    row: str, text: str, quote: str, asked: str, ok: bool
+) -> None:
+    check = _check(text, quote, _sources(row, language="tr"), asked=asked)
+    assert check.ok is ok, check.problems
+    assert ok or any(VARIANT_PROBLEM in problem for problem in check.problems)
+
+
+def test_unlabelled_value_under_single_word_labels_is_a_known_gap() -> None:
+    """Tek sözcüklü etiketler ("Small", "Medium") varyant sayılmaz: öznitelik sütunlarından
+    ("Min", "Max") ayırt edilemez. Etiketsiz değer burada hâlâ doğrulanır (karar 0019)."""
+    sources = _sources("Ebat: İç paça | Small: 72,0 | Medium: 74,0", language="tr")
+    assert _check("İç paça 72,0.", "Small: 72,0 | Medium: 74,0", sources, asked="iç paça?").ok
+
+
+def test_previous_turns_numeric_size_is_replaced_by_this_turns() -> None:
+    sources = _sources(NUMERIC_SIZES, language="tr")
+    quote = "38: 72,0 | 40: 74,0"
+    assert _check("İç paça 72,0.", quote, sources, asked="peki iç paça?", previous="38").ok
+    assert not _check("İç paça 72,0.", quote, sources, asked="peki 40?", previous="38").ok

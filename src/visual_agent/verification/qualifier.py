@@ -9,9 +9,10 @@ Kural B: alıntılanan değer bir varyant sütununun altındaysa (beden, renk yo
 cümlede ya da kullanıcının kendi sorusunda geçmeli; değer bütün varyantlarda aynıysa gerekmez.
 Varyant sütunu: aynı satırda aynı gruptan en az iki etiket ve aynı türde değer. Grup: kaynakta
 büyük harfle yazılmış kısa kod ("S", "XL", "4XLT"), son sözcüğü böyle kod olan ortak başlı ad
-("Beden S", "Beden M"), rakamlı ad ("100: White // Venom Red", "Seviye 2"). Kaynaklardan birinin
-başlık satırında birden çok geçen numaralı ad da, satırda tek kalsa varyanttır. Yapısı
-anlaşılmayan satır (başlıksız) bu kuralın dışında kalır.
+("Beden S", "Beden M"), rakamlı ad ("100: White // Venom Red", "Seviye 2"), salt sayısal etiket
+("38", "40"; yıl sütunları "2024", "2025" da böyledir). Kaynaklardan birinin başlık satırında
+birden çok geçen numaralı ad da, satırda tek kalsa varyanttır. Yapısı anlaşılmayan satır
+(başlıksız) bu kuralın dışında kalır.
 
 Kural C (hücre eşleşmesi): alıntı birden çok rakamlı hücre taşıyorsa ve cümle bunlardan birinin
 adını anıp kendi değerini söylemeden başka hücrenin değerini söylüyorsa cümle gizlenir
@@ -28,7 +29,12 @@ from functools import lru_cache
 
 from visual_agent.domain.answer import ModelItem, PromptSource
 from visual_agent.verification.quote import labeled_cells
-from visual_agent.verification.text import normalize, numbers_in, turkish_lower
+from visual_agent.verification.text import (
+    canonical_number,
+    normalize,
+    numbers_in,
+    turkish_lower,
+)
 
 _CELL_SEPARATOR = "|"
 _NUMBER_SEPARATOR = ":"
@@ -37,6 +43,7 @@ _CODE_RE = re.compile(r"[A-ZÇĞİÖŞÜ0-9]{1,4}")
 _NUMERIC_VALUE_RE = re.compile(r"[\d\s.,:/+\-−]+")
 _SLASHES_RE = re.compile(r"\s*(?:/\s*)+")
 _SAME_VALUE = "sayı"
+_NUMERIC_LABEL = "sayısal etiket"
 
 
 def _norm(text: str) -> str:
@@ -52,6 +59,14 @@ def _pattern(name: str) -> re.Pattern[str]:
 
 def _mentions(text: str, name: str) -> bool:
     return bool(name) and _pattern(name).search(text) is not None
+
+
+def _says(text: str, name: str) -> bool:
+    """Salt sayısal ad ("38") metinde ayrı bir sayı olarak geçmeli: "38,5" ya da "138" onu
+    söylemez. Diğer adlar sözcük sınırıyla aranır."""
+    if name.isdigit():
+        return canonical_number(name) in numbers_in(text)
+    return _mentions(text, name)
 
 
 def _without(text: str, name: str) -> str:
@@ -106,6 +121,10 @@ def _column(raw_label: str, raw_value: str) -> _Column:
     elif len(words) > 1 and _is_code(words[-1]):
         key = _norm(" ".join(words[:-1]))
         parts.add(_norm(words[-1]))
+    elif label.isdigit():
+        # Sayısal beden ya da yıl sütunu ("38", "2024"): kardeşiyle aynı türde değer taşıyorsa
+        # değerin hangi sütundan geldiği söylenmeli (karar 0019, Kural C'nin 1. sınırı).
+        key = _NUMERIC_LABEL
     return _Column(label, value, key, frozenset(parts))
 
 
@@ -212,14 +231,14 @@ def _missing_variants(
                 siblings = {h for h in q.numbered_headers if _shape(h) in shapes}
                 names = {p for c in group for p in c.parts}
                 names |= {p for h in siblings for p in {h} | _number_parts(h)}
-                renamed = any(_mentions(q.asked, name) for name in names)
+                renamed = any(_says(q.asked, name) for name in names)
                 asked = (q.asked,) if renamed else (q.asked, q.previous)
                 for value in {c.value for c in group if _occurs(c.value, sentence)}:
                     # Değerin kendisi ad sayılmaz: "Black 001"deki 001 renk yolunu söylemez.
                     rest = _without(sentence, value)
                     owners = [c for c in group if c.value == value]
                     named = any(
-                        _mentions(text, part)
+                        _says(text, part)
                         for column in owners
                         for part in column.parts
                         for text in (rest, *asked)
