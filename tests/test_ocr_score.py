@@ -363,9 +363,10 @@ def test_measurement_scripts_are_frozen() -> None:
 # --- Gömülü görsel ölçümü (evals.run_embedded_images): belge kurgusu ve yönlendirme denetimi ---
 
 
-def test_embedded_page_is_textual_and_keeps_the_image_pixel_for_pixel(tmp_path: Path) -> None:
+def test_embedded_page_is_textual_and_keeps_the_image_at_its_own_size(tmp_path: Path) -> None:
     """Görsel sayfanın yarısından azını kaplar (sayfa metinli sayılır, okuyucuya gitmez) ve
-    hattın çizdiği sayfada kendi pikselleriyle durur: ölçülen şey okuma, küçültme değil."""
+    hattın çizdiği sayfada kendi piksel boyutunda durur: ölçülen şey okuma, küçültme değil.
+    Pikseller bire bir aynı değildir (çizim yeniden örnekler); denetlenen boyut ve yerdir."""
     from evals import run_embedded_images as runner
     from visual_agent.ingest.page_reader import POINTS_PER_INCH, RENDER_DPI
     from visual_agent.ingest.text_layer import PageKind
@@ -406,6 +407,18 @@ def test_run_stops_when_a_page_would_go_to_the_page_reader() -> None:
         runner.check_routing("syn1_tarama", [scanned])
 
 
+def test_run_stops_when_an_embedded_image_would_be_skipped(tmp_path: Path) -> None:
+    """Boyut eşiğinin altındaki görsel okunmadan atlanır; ölçüm bunu sessizce geçmemeli."""
+    from evals import run_embedded_images as runner
+    from visual_agent.ingest.tools import inspect_pdf
+
+    target = tmp_path / "belge.pdf"
+    runner.build_document([Image.new("RGB", (120, 90), "white")], target)
+
+    with pytest.raises(SystemExit, match="görsel okunmadan atlanıyor"):
+        runner.check_routing("kucuk", inspect_pdf(target))
+
+
 def test_report_table_has_the_rows_of_the_recorded_measurement() -> None:
     from evals import run_embedded_images as runner
 
@@ -421,4 +434,4 @@ def test_report_table_has_the_rows_of_the_recorded_measurement() -> None:
 
 
 def ocr_truth_record() -> Path:
-    return Path("evals/results/2026-11-16-set-a-benzetim")
+    return Path(__file__).parent.parent / "evals/results/2026-11-16-set-a-benzetim"
