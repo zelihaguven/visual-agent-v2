@@ -364,6 +364,13 @@ def test_follow_up_that_switches_the_product_expects_a_clarification(
     gold, _ = generated
     turn = next(q for q in gold.questions if q.question_id == "dikim-sohbet-1-t4")
 
+    first = next(q for q in gold.questions if q.question_id == "dikim-sohbet-1-t1")
+    document = gold.document_texts["dikim-pdf"]
+    model = document.split()[0]
+
     assert turn.kind is QuestionKind.FOLLOW_UP and turn.outcome is Outcome.CLARIFY
     assert not turn.expected_values and not turn.sources
     assert len(set(turn.differing_values)) == 3
+    # Değerler sorulan (ikinci) modelin belgesinden; ilk turun modeli başka.
+    assert model in turn.text and model not in first.text
+    assert all(value in document for value in turn.differing_values)

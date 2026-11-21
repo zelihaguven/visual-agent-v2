@@ -700,13 +700,29 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     ölçülmüş bir karar değildi: ilk sürümden (`#fcab57c`) beri istemde yazılıydı.
   - **Değişen.** Tamamlama isteminden "ürün, model ya da sürüm değişince önceki sorunun
     bedenini koru" cümlesi ve örneği çıkarıldı (`generation/rewrite.py`); sonrasında İngilizce
-    örnek de bedensiz tamamlanıyor. Senaryo üreticisinde (`evals/scenarios/sewing.py`)
+    örnek de bedensiz tamamlandı (tek çağrıyla denendi; yardımcı model `gemma-4-26b`). Senaryo üreticisinde (`evals/scenarios/sewing.py`)
     `dikim-sohbet-1-t4`'ün beklentisi netleştirme oldu; taban 7 ve taban 11 yeniden üretildi,
     `gold.json` dosyalarında yalnız bu turun beş alanı değişti. Kod davranışı değişmedi.
   - **Bedeli.** Kullanıcı bir tur fazla yazar ve tek belgede netleştirme seçeneksizdir
     ("Hangi beden için?"; 0020). Ürün değişmeyen takiplerde beden taşınmaya devam eder
     ("L beden?" → "Etiketi ne?").
-  - **Ölçüm.** Aşağıya eklenecek.
+  - **Ölçüm (Mac, 2026-11-21; dalın koduyla, karşılaştırma `evals/output/mac-main-2026-11-21`).**
+    Taban 7 ve taban 11: 39/40 (main 38/40), doğrulanmış yanlış 0, haksız ret 0; takip
+    soruları 5/5 (main 4/5). Değişen tek soru `dikim-sohbet-1-t4`: cevap aynı (netleştirme),
+    beklenti değişti. Öbür dokuz takip turunun tamamlanmış sorusu iki sette de main ile
+    birebir aynı; konuşma dışı 30 sorunun cevabı da aynı (cevap modeli çağrıları önbellekten;
+    yalnız tamamlama çağrıları canlı). Kalan tek soru iki sette de `sql-ekran-uzunluk` (ekran görüntüsünden okunan değer).
+  - **Bilinen sınırlar (inceleme turu).** (1) Davranış istemde yazılı değil: kalan iki cümle
+    ("yeni mesajın açık bıraktığını taşı: … beden", "yeni mesajdaki değer yalnız eşleşen
+    değerin yerine geçer") harfiyen okununca hâlâ bedeni taşıtır; bedenin düşmesi yardımcı
+    modelin eğilimine dayanıyor. Açık bir cümle ("yeni mesaj başka bir ürün ya da model
+    adlandırıyorsa bedeni taşıma") istem değişikliğidir, karar bekliyor. (2) Sürüm değişimi
+    ("Rev B M beden" ardından "Peki Rev A?") tanımsız: silinen cümle sürümü de kapsıyordu,
+    karar yalnız ürün ve modelden söz ediyor. (3) Bu tur artık her netleştirmeyle geçer;
+    tamamlama hatasından gelen netleştirme de ("soruyu birleştiremedim") geçer sayılır.
+    Ölçümde tamamlanmış soru elle doğrulandı: iki sette de model var, beden yok. (4)
+    `evals/baselines/taban` altındaki eski özetler bu turu hâlâ kalan soru sayıyor; 38 → 39
+    iyileşme değil, beklenti değişikliğidir.
 
 ### Gizlenen cevabın turunda da kullanıcının sorusu bağlama girer (değiştirildi)
 - **Ne zaman:** 2026-11-12, `sohbet-baglami` dalı, `ask/context.py` (`next_context`).
