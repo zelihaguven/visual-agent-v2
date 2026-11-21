@@ -88,7 +88,8 @@ def test_prompt_lists_variants_of_a_single_document_and_asks_across_documents() 
     assert "seçeneğin kaynakta geçen adıyla ve kendi alıntısıyla" in prompt
     # Tamlık iddiası yok; değeri görünmeyen ya da 3'ten fazla seçenek varsa sorulur.
     assert '"tüm", "yalnız", "iki tane" gibi sözler yazma' in prompt
-    assert "3'ten fazla seçenek varsa ya da adı görünüp değeri kaynaklarda görünmeyen" in prompt
+    assert "adı görünüp değeri kaynaklarda görünmeyen bir seçenek varsa" in prompt
+    assert "değeri görünüp adı kaynakta yazmayan bir seçenek varsa listeleme, sor" in prompt
     # 9. kuralın istisnası ve eski "değerleri sıralama" cümlesinin kalkması.
     assert "soruda varyant belirtilmediyse 7. kurala göre" in prompt
     assert "bütün değerleri listeleme, sor" not in prompt
@@ -117,3 +118,12 @@ def test_documents_uploaded_under_the_same_name_look_different_to_the_model() ->
     assert text.count('belge="Ölçü föyü (2)"') == 1
     assert text.count('belge="X"') == 1
     assert "(1)" not in text and "(3)" not in text
+
+
+def test_generated_document_name_never_collides_with_a_real_title() -> None:
+    """İnceleme bulgusu: "Föy", "Föy", "Föy (2)" adlı üç belge üç ayrı ad almalı."""
+    hits = [_hit("a", "Föy"), _hit("b", "Föy"), _hit("c", "Föy (2)")]
+
+    text = format_sources(hits)
+
+    assert [text.count(f'belge="{name}"') for name in ("Föy", "Föy (2)", "Föy (3)")] == [1, 1, 1]

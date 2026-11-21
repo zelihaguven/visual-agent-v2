@@ -313,6 +313,47 @@ def test_variant_names_that_carry_numbers_are_not_foreign_values() -> None:
     "items",
     [
         pytest.param(
+            (
+                ("S beden 72,0.", (SHEET,)),
+                ("M beden 74,0.", (SHEET,)),
+                ("L beden 76,0.", (SHEET,)),
+                ("Tolerans 0,5.", (SHEET,)),
+            ),
+            id="belgede-olan-fazladan-deger",
+        ),
+        pytest.param((("İç paça 72,0, 74,0 ve 76,0.", (SHEET,)),), id="tek-cumlede-adsiz"),
+        pytest.param(
+            (
+                ("S beden 72,0 ve M beden 74,0.", (SHEET,)),
+                ("L beden 76,0.", (SHEET,)),
+            ),
+            id="iki-varyant-tek-maddede",
+        ),
+    ],
+)
+def test_listing_must_give_each_variant_in_its_own_item_and_nothing_else(
+    items: tuple[tuple[str, tuple[GoldSource, ...]], ...],
+) -> None:
+    """İnceleme bulgusu: belgenin başka bir değeri ya da tek cümlede sıralama geçiş değildir."""
+    score = score_question(SIZES, listed(*items), VARIANT_DOCUMENTS)
+
+    assert not score.passed and not score.listed_variants
+
+
+def test_scorer_cannot_tell_a_value_paired_with_the_wrong_variant() -> None:
+    """Bilinen sınır: altın veride ad-değer eşlemesi yok; yanlış eşleşen listeleme geçer.
+    Eşleşmeyi doğrulayıcının Kural B'si denetler; ölçüm raporunda listelemeler elle okunur."""
+    record = listed(
+        ("S beden 76,0.", (SHEET,)), ("M beden 72,0.", (SHEET,)), ("L beden 74,0.", (SHEET,))
+    )
+
+    assert score_question(SIZES, record, VARIANT_DOCUMENTS).listed_variants
+
+
+@pytest.mark.parametrize(
+    "items",
+    [
+        pytest.param(
             (("S beden 72,0.", (SHEET,)), ("M beden 74,0.", (SHEET,))), id="eksik-varyant"
         ),
         pytest.param(

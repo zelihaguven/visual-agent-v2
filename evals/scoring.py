@@ -154,12 +154,19 @@ def listed_variants(
 
     Cevabın bütün maddeleri aynı tek belgeye atıf yapar; o belge sorunun kodlarını ve farklı
     değerlerin hepsini içerir; cevaptaki her sayı ve kod soruda ya da o belgede geçer (varyant
-    adları "1-5 yıl", "Tip 1" yabancı sayılmaz). Farklı değerler ayrı belgelerdeyse (iki ürün,
-    iki sürüm) hiçbir tek belge hepsini içermez: orada netleştirme zorunludur.
+    adları "1-5 yıl", "Tip 1" yabancı sayılmaz). Her varyant ayrı maddededir: madde sayısı değer
+    sayısına eşittir ve her madde farklı değerlerden birini taşır; fazladan madde (sorulmayan
+    ölçü, tolerans) ya da değerleri tek cümlede sıralamak geçmez. Farklı değerler ayrı
+    belgelerdeyse (iki ürün, iki sürüm) hiçbir tek belge hepsini içermez: orada netleştirme
+    zorunludur.
+
+    Değerin doğru varyant adıyla eşleştiği denetlenmez: altın veride ad-değer eşlemesi yok.
     """
     if question.outcome is not Outcome.CLARIFY or record.outcome is not Outcome.ANSWERED:
         return False
     if not question.differing_values or not all(item.sources for item in record.items):
+        return False
+    if len(record.items) != len(question.differing_values):
         return False
     cited = {source.doc_id for item in record.items for source in item.sources}
     if len(cited) != 1:
@@ -167,10 +174,10 @@ def listed_variants(
     document = extract_tokens(documents.get(next(iter(cited)), ""))
     asked = extract_tokens(question.text)
     values = frozenset().union(*(extract_tokens(value) for value in question.differing_values))
-    answer_tokens = extract_tokens(" ".join(item.text for item in record.items))
+    item_tokens = [extract_tokens(item.text) for item in record.items]
     return (
         asked | values <= document
-        and answer_tokens <= document | asked
+        and all(tokens & values and tokens <= document | asked for tokens in item_tokens)
         and all(_value_cited(value, record, documents) for value in question.differing_values)
     )
 

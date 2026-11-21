@@ -38,15 +38,18 @@ def _attribute(value: str) -> str:
 def _document_names(hits: Sequence[Hit]) -> dict[str, str]:
     """Belgenin modele görünen adı. Aynı adla yüklenmiş farklı belgeler ayırt edilir ("Föy",
     "Föy (2)"): model belge sayısına göre karar verir (istem, 7. kural) ve aynı adlı iki
-    belgeyi tek belge sanmamalı."""
+    belgeyi tek belge sanmamalı. Üretilen ad başka bir belgenin gerçek adıyla çakışmaz."""
+    titles = {hit.chunk.doc_id: hit.chunk.title for hit in reversed(hits)}
     names: dict[str, str] = {}
-    seen: dict[str, int] = {}
-    for hit in hits:
-        doc_id, title = hit.chunk.doc_id, hit.chunk.title
-        if doc_id in names:
-            continue
-        seen[title] = seen.get(title, 0) + 1
-        names[doc_id] = title if seen[title] == 1 else f"{title} ({seen[title]})"
+    used = set(titles.values())
+    seen: set[str] = set()
+    for doc_id in dict.fromkeys(hit.chunk.doc_id for hit in hits):
+        title, name, number = titles[doc_id], titles[doc_id], 1
+        while name in seen or (number > 1 and name in used):
+            number += 1
+            name = f"{title} ({number})"
+        seen.add(name)
+        names[doc_id] = name
     return names
 
 
