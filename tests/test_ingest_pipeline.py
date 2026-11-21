@@ -82,6 +82,22 @@ def test_ocr_page_elements_are_marked_and_uncertain_tokens_attached() -> None:
 
     assert marked[0].from_ocr and marked[0].ocr_uncertain == ("12,5",)
     assert not marked[1].from_ocr
+    assert marked[0].legacy_ocr and not marked[1].legacy_ocr
+
+
+def test_legacy_ocr_mark_reaches_the_chunk_and_reader_elements_stay_unmarked() -> None:
+    """Karar 0022: eski OCR yolunun (gömülü görsel, ocrmypdf) parçaları işaretlidir; sayfa
+    okuyucusundan gelen öğe (`ocr_checked`) eski yol sayılmaz."""
+    image_row = lines_to_elements([[segment("Görsel satırı", 0, 0)]], box())[0]
+    read = Element(
+        ElementKind.TABLE_ROW, "Kod: BL010", SourceLocation(page=2), from_ocr=True, ocr_checked=True
+    )
+    reader_row = annotate_ocr_pages([read], {2: ()})[0]
+
+    chunks = build_chunks([image_row, reader_row], DocumentMeta(doc_id="d", title="Belge"))
+
+    assert [chunk.legacy_ocr for chunk in chunks] == [True, False]
+    assert all(chunk.from_ocr for chunk in chunks)
 
 
 def test_cell_checked_table_rows_keep_their_own_uncertain_values() -> None:

@@ -145,6 +145,7 @@ def test_table_rows_carry_headers_boxes_and_only_their_own_uncertain_values() ->
     assert rows[1].text == "Kod: BL020 | S: 14 7/8 | M: 15"
     assert (rows[0].ocr_uncertain, rows[1].ocr_uncertain) == ((), ("7/8",))
     assert all(row.from_ocr and row.ocr_checked for row in rows)
+    assert not any(row.legacy_ocr for row in rows)
     box = rows[0].location.boxes[0]
     assert (box.page, box.left, box.top, box.right, box.bottom) == (2, 50.0, 100.0, 250.0, 200.0)
 
