@@ -1537,3 +1537,18 @@ Tarih: 2026-11-20 (karar), 2026-11-21 (deneme ve geri çekme). Ürün sahibi kar
 
 **Dalda kalan, ileride işe yarayabilecekler.** Aynı adlı belgeleri modele ayrı gösteren `format_sources` değişikliği ("Ad (2)"; açık notlar, Belge yönetimi); puanlayıcıdaki `listed_variants`; istem metni.
 
+### 0021: Belirsiz komşu hücreyi yok sayma (t2) denendi, geri çekildi; A5 yerinde kalır
+Tarih: 2026-11-21. Ürün sahibi kararı. Dal: `ocr-belirsiz-komsu-hucre` (`7b9b115`; birleştirilmedi, referans olarak `origin`'de duruyor).
+
+**Sorun.** Taramadan okunan bir tablo satırında bir hücre belirsizse (iki okuma uyuşmamışsa) ve model satırın tamamını alıntılarsa cümle gizleniyor; değeri sorulan hücre belirsiz olmasa da. Günlükteki tanı (2026-11-21, uygulama): "SIPARIS_KALEM tablosunda DEPO_KODU uzunluğu kaç?" → `OCR değeri belirsiz: ['VARCHAR']`; alıntı "Tablo: SIPARIS_KALEM | Kolon: DEPO_KODU | Tip: VARCHAR | Uzunluk: 59", gizlenen cümle "…DEPO_KODU uzunluğu 59'dur." (59 belirsiz değil, doğru). Taban 7 ve taban 11'de `sql-ekran-uzunluk` aynı nedenle kalıyor. 19 Kasım'da bu gizleme kabul edilmişti (A5; açık notlar, Doğrulama).
+
+**Denenen (t2, dar hâliyle).** Belirsiz parça alıntıda geçiyor ama cümlede geçmiyorsa, yalnız şu durumda yok sayılır: tablo satırı, parça etiketli bir hücrenin değerinde ("Tip: VARCHAR") ve cümle o hücreye değinmiyor (sütunun adını ekleriyle anmıyor, hücrenin değerinden sayı ya da kod taşımıyor, parçanın alt parçasını yazmıyor). Etiketsiz hücrede ve tablo dışı metinde bugünkü gizleme kalır. A5'in riskini sınayan testler yazıldı ve geçti ("tipi metin", "metin tipinde 59", "uzunluğu on dokuz", "TR0001 onaylı", föy satırında "eksi toleransı -3 1/8" gizli; "DEPO_KODU uzunluğu 59" ve belirsiz toleransın yanındaki kesin ölçü geçiyor); `pytest` 1524.
+
+**Kural 1 denetimi (geri çekmenin nedeni).** Kuralın Mac'in uygulama indeksinde neyi açacağı sayıldı: belirsiz parça taşıyan 1.283 tablo satırının 721'inde en az bir değer açılıyor; toplam 1.276 hücre, 1.270'i tech pack'lerde (Sort Order 572, Dim 264, Qty 80, Material Details 59, kalanı beden hücreleri). Bu üst sınırdır: denemede cümle yalnız açılan hücrenin etiketini ve değerini taşıyordu. Açılacak tech pack hücrelerinden sabit tohumla rastgele 10'u sayfa görüntüsüyle karşılaştırıldı: 9'u birebir uyuştu, 1'i uyuşmadı. 6013448 s.16, malzeme tablosu, Material Details: indekste "KNT-222890/PacMan Fleece -2 x 2 Rib - …", görüntüde "PacMan Fleece - 2 x 2 Rib - …" (ayraç tire sayıya yapışmış, "−2" gibi okunuyor). İkinci okuma bu hatayı işaretlememiş; satır bugün yalnız aynı satırdaki "Qty: 0.1861" belirsiz olduğu için gizli.
+
+**Gerekçe.** Taranmış sayfalarda işaretlenmemiş okuma hataları var ve bugün bir kısmı yalnız komşu hücrenin belirsizliği sayesinde gizli. Set A ölçümünde (0010) yeni hat 3.121 değerin 87'sini yanlış gösteriyordu; gizlemeyi azaltmak gösterilen yanlışı artırır. 10 örnekte 1 uyuşmazlık kural 1 için kabul edilemez; oranı daha iyi bilmek için daha büyük bir örnek gerekir ve kural yine aynı sınıftaki hatayı açar. A5 bu kanıtla korunuyor: belirsiz hücre alıntıda olup cümlede geçmese de cümle gizlenir.
+
+**Karar.** t2 uygulanmıyor; dal birleştirilmedi. Doğrulayıcı değişmedi. `sql-ekran-uzunluk` iki taban setinde kalan soru olmaya devam eder (cevap gizli, yanlış değil); sınır setinde A5 gizli kalır.
+
+**Yeniden düşünülür.** İkinci okuma serbest metinli hücrelerdeki boşluk ve ayraç hatalarını da işaretler hâle gelirse, ya da kural yalnız kısa sayısal hücrelerle sınırlanıp o hücrelerde ayrı ve daha büyük bir görüntü denetimi temiz çıkarsa. İkisi de set B ölçümü ister.
+
