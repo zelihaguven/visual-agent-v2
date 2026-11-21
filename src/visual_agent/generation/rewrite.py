@@ -24,9 +24,7 @@ message:
 - Carry over from the previous question only what the new message leaves open: product, model, \
 version, size, document, department.
 - A value in the new message replaces the matching value of the previous question and nothing \
-else. When the product, model or version changes, keep the size of the previous question: \
-"What is the width of A-100 in size M?" then "And the height of B-200?" becomes "What is the \
-height of B-200 in size M?".
+else.
 - Do not carry over a value the previous question was checking. "Was the width of A-100 28?" \
 then "And the height?" becomes "What is the height of A-100?".
 - Copy codes, model numbers, sizes, table and column names exactly as written.

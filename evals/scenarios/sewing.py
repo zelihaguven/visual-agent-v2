@@ -175,7 +175,7 @@ def _confirm_wrong(spec: Spec, document: ScenarioDocument) -> GoldQuestion:
 
 
 def _conversation_with_model_switch(
-    first: Spec, first_doc: ScenarioDocument, second: Spec, second_doc: ScenarioDocument
+    first: Spec, first_doc: ScenarioDocument, second: Spec
 ) -> list[GoldQuestion]:
     conversation = {"conversation_id": "dikim-sohbet-1"}
     value = first.value("M", "İç paça")
@@ -197,13 +197,16 @@ def _conversation_with_model_switch(
             **_lookup_fields(first, first_doc, "M", "Dış paça"),
         ),
         _not_found("dikim-sohbet-1-t3", "Peki kordon boyu kaç?", turn=3, **conversation),
+        # Ürün değişince önceki turun bedeni taşınmaz: sorulmamış bir bedenin değeri verilmez,
+        # sistem bedeni sorar (ürün sahibi kararı, 2026-11-21).
         make_question(
             question_id="dikim-sohbet-1-t4",
             text=f"Peki {second.model} modelinde iç paça kaç?",
             kind=QuestionKind.FOLLOW_UP,
             turn=4,
+            outcome=Outcome.CLARIFY,
+            differing_values=tuple(second.value(size, "İç paça") for size in SIZES),
             **conversation,
-            **_lookup_fields(second, second_doc, "M", "İç paça"),
         ),
     ]
 
@@ -324,9 +327,7 @@ def build_sewing(rng: Random) -> Scenario:
     ]
     questions.append(_clarify(specs[0], "İç paça"))
     questions.append(_confirm_wrong(specs[1], documents[specs[1].doc_id]))
-    questions += _conversation_with_model_switch(
-        specs[0], documents[specs[0].doc_id], specs[1], documents[specs[1].doc_id]
-    )
+    questions += _conversation_with_model_switch(specs[0], documents[specs[0].doc_id], specs[1])
     questions += _conversation_with_label(specs[2], documents[specs[2].doc_id])
     questions += _revision_questions(previous, current, documents[current.doc_id])
     return Scenario(documents=tuple(documents.values()), questions=tuple(questions))

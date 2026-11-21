@@ -355,3 +355,15 @@ def test_set_a_simulation_is_frozen(tmp_path: Path) -> None:
     names = degrade_set(FROZEN_TECHPACK_DIR, tmp_path, FROZEN_SET_A_SIMULATION_SEED)
     produced = {name: hashlib.sha256((tmp_path / name).read_bytes()).hexdigest() for name in names}
     assert produced == FROZEN_SET_A_SIMULATION
+
+
+def test_follow_up_that_switches_the_product_expects_a_clarification(
+    generated: tuple[GoldSet, Path],
+) -> None:
+    """Ürün değişince önceki turun bedeni taşınmaz; sistem bedeni sorar (2026-11-21)."""
+    gold, _ = generated
+    turn = next(q for q in gold.questions if q.question_id == "dikim-sohbet-1-t4")
+
+    assert turn.kind is QuestionKind.FOLLOW_UP and turn.outcome is Outcome.CLARIFY
+    assert not turn.expected_values and not turn.sources
+    assert len(set(turn.differing_values)) == 3

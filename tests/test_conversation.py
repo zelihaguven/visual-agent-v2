@@ -486,3 +486,12 @@ def test_gone_documents_stay_in_the_context_so_the_next_follow_up_asks_again() -
     assert isinstance(second.result, Clarify)
     assert second.result.question == CONTEXT_GONE_QUESTION
     assert retriever.calls == []
+
+
+def test_rewriter_prompt_does_not_carry_the_size_over_to_another_product() -> None:
+    """Karar (2026-11-21): ürün değişince önceki beden taşınmaz. Cümle yalnız istemdeki İngilizce
+    örnekte işliyordu; Türkçe sorularda beden zaten düşüyordu (davranış dile göre değişiyordu)."""
+    from visual_agent.generation import rewrite
+
+    assert "keep the size" not in rewrite._PROMPT
+    assert "in size M" not in rewrite._PROMPT

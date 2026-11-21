@@ -681,8 +681,32 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     kaldırıyor.
   - Bağlamın belgeleri silindiyse hangi belge olduğu soruluyor.
 - **Neden:** Commit mesajlarında davranış yazılı; ölçülmüş bir gerekçe yok.
-- **Bilinen kalan:** Model değişince önceki beden düşüyor (`dikim-sohbet-1-t4`, 10 tekrarın
-  hiçbirinde geçmedi; açık notlar).
+- **Ürün değişince beden taşınmaz (2026-11-21, ürün sahibi kararı; dal `urun-degisince-beden`).**
+  Takip sorusu başka bir ürünü ya da modeli adlandırıyorsa önceki turun bedeni tamamlanmış
+  soruya girmez; sistem bedeni sorar. Eski "bilinen kalan" (`dikim-sohbet-1-t4`, 10 tekrarın
+  hiçbirinde geçmedi) bununla kapandı: beklenti değişti, davranış değil.
+  - **Teşhis.** Tamamlama yalnız bağlamdaki tek soruyu ve yeni mesajı görür
+    (`ask/context.py`); cevap modeli önceki turları hiç görmez. Konuşma: "PNT-1126 M beden iç
+    paça 74,0 cm miydi?", "Peki dış paça kaç?" (beden taşındı), "Peki kordon boyu kaç?"
+    (bulunamadı; bağlam değişmedi), "Peki PNT-1162 modelinde iç paça kaç?". Dördüncü turda
+    yardımcı modelin gördüğü önceki soru "PNT-1126 M beden dış paça kaç?" idi, yani beden
+    önündeydi; araya giren tur bağlamı kesmiyordu. Aynı girdiyle 3 çağrının 3'ünde ve dört
+    Türkçe değişkenin dördünde beden düştü; istemdeki örneğin Türkçesinde de. Beden yalnız
+    istemdeki İngilizce örneğin kendisinde korundu. `is_grounded` yalnız uydurulan değeri
+    yakalar, düşen sözcüğü fark etmez.
+  - **Gerekçe.** Kural 1: taşınan beden sorulmamış bir bedenin değerini kendinden emin
+    verdirir (kullanıcı yeni ürünün başka bir bedenini ya da hepsini kastetmiş olabilir).
+    Davranış dile göre değişiyordu (İngilizcede taşıyor, Türkçede düşürüyordu). Taşımak hiç
+    ölçülmüş bir karar değildi: ilk sürümden (`#fcab57c`) beri istemde yazılıydı.
+  - **Değişen.** Tamamlama isteminden "ürün, model ya da sürüm değişince önceki sorunun
+    bedenini koru" cümlesi ve örneği çıkarıldı (`generation/rewrite.py`); sonrasında İngilizce
+    örnek de bedensiz tamamlanıyor. Senaryo üreticisinde (`evals/scenarios/sewing.py`)
+    `dikim-sohbet-1-t4`'ün beklentisi netleştirme oldu; taban 7 ve taban 11 yeniden üretildi,
+    `gold.json` dosyalarında yalnız bu turun beş alanı değişti. Kod davranışı değişmedi.
+  - **Bedeli.** Kullanıcı bir tur fazla yazar ve tek belgede netleştirme seçeneksizdir
+    ("Hangi beden için?"; 0020). Ürün değişmeyen takiplerde beden taşınmaya devam eder
+    ("L beden?" → "Etiketi ne?").
+  - **Ölçüm.** Aşağıya eklenecek.
 
 ### Gizlenen cevabın turunda da kullanıcının sorusu bağlama girer (değiştirildi)
 - **Ne zaman:** 2026-11-12, `sohbet-baglami` dalı, `ask/context.py` (`next_context`).
