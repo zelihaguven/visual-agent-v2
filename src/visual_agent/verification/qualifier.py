@@ -61,12 +61,25 @@ def _mentions(text: str, name: str) -> bool:
     return bool(name) and _pattern(name).search(text) is not None
 
 
-def _says(text: str, name: str) -> bool:
-    """Salt sayısal ad ("38") metinde ayrı bir sayı olarak geçmeli: "38,5" ya da "138" onu
-    söylemez. Diğer adlar sözcük sınırıyla aranır."""
-    if name.isdigit():
+def _says(text: str, name: str, numeric: bool) -> bool:
+    """Salt sayısal etiket ("38") metinde ayrı bir sayı olarak geçmeli: "38,5" ya da "138" onu
+    söylemez, "38,0" söyler (aynı sayı). Diğer adlar sözcük sınırıyla aranır."""
+    if numeric:
         return canonical_number(name) in numbers_in(text)
     return _mentions(text, name)
+
+
+def _read_as_label(value: str, group: Sequence["_Column"], sentence: str) -> bool:
+    """Sayısal kardeşlerde bir hücrenin değeri başka bir kardeşin etiketine eşit olabilir
+    ("36: 38 | 38: 40 | 40: 42"): cümledeki "40", 40 bedenin kendi değeri (42) de cümledeyse
+    değer değil etikettir ("40 beden bel 42")."""
+    number = canonical_number(value)
+    return any(
+        column.value != value
+        and canonical_number(column.label) == number
+        and _occurs(column.value, sentence)
+        for column in group
+    )
 
 
 def _without(text: str, name: str) -> str:
@@ -231,14 +244,17 @@ def _missing_variants(
                 siblings = {h for h in q.numbered_headers if _shape(h) in shapes}
                 names = {p for c in group for p in c.parts}
                 names |= {p for h in siblings for p in {h} | _number_parts(h)}
-                renamed = any(_says(q.asked, name) for name in names)
+                numeric = group[0].key == _NUMERIC_LABEL
+                renamed = any(_says(q.asked, name, numeric) for name in names)
                 asked = (q.asked,) if renamed else (q.asked, q.previous)
                 for value in {c.value for c in group if _occurs(c.value, sentence)}:
+                    if numeric and _read_as_label(value, group, sentence):
+                        continue
                     # Değerin kendisi ad sayılmaz: "Black 001"deki 001 renk yolunu söylemez.
                     rest = _without(sentence, value)
                     owners = [c for c in group if c.value == value]
                     named = any(
-                        _says(text, part)
+                        _says(text, part, numeric)
                         for column in owners
                         for part in column.parts
                         for text in (rest, *asked)

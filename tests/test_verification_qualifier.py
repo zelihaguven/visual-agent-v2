@@ -480,3 +480,44 @@ def test_previous_turns_numeric_size_is_replaced_by_this_turns() -> None:
     quote = "38: 72,0 | 40: 74,0"
     assert _check("İç paça 72,0.", quote, sources, asked="peki iç paça?", previous="38").ok
     assert not _check("İç paça 72,0.", quote, sources, asked="peki 40?", previous="38").ok
+
+
+OVERLAPPING = "Ebat: Bel | 36: 38 | 38: 40 | 40: 42"
+
+
+@pytest.mark.parametrize(
+    ("row", "text", "quote", "asked"),
+    [
+        # Bir bedenin etiketi komşu hücrenin değerine eşit: etiket, değer sanılmamalı.
+        (OVERLAPPING, "40 beden bel 42.", "40: 42", "40 beden bel kaç?"),
+        (OVERLAPPING, "40 beden bel 42.", "40: 42", "bel kaç?"),
+        ("Adet: Fiyat | 10: 12 | 12: 14", "12 adette fiyat 14.", "12: 14", "12 adet fiyat?"),
+        ("Ebat: Bel | 36: 38,0 | 38: 40,0", "38 beden bel 40,0.", "38: 40,0", "38 beden bel?"),
+        (
+            "Ebat: Bel | 36: 38,0 | 38: 40,0",
+            "38 beden bel 40,0.",
+            "36: 38,0 | 38: 40,0",
+            "38 beden bel?",
+        ),
+        # Baştaki sıfırlı kardeşler; "38,0" 38'i söyler (aynı sayı).
+        ("Renk: İplik | 001: Black | 002: White", "001 kodunda iplik Black.", "001: Black", ""),
+        (NUMERIC_SIZES, "İç paça 72,0.", "38: 72,0", "38,0 beden iç paça?"),
+    ],
+)
+def test_labelled_sentences_on_numeric_columns_are_not_hidden(
+    row: str, text: str, quote: str, asked: str
+) -> None:
+    check = _check(text, quote, _sources(row, language="tr"), asked=asked)
+    assert not any(VARIANT_PROBLEM in problem for problem in check.problems), check.problems
+
+
+def test_unlabelled_value_stays_hidden_when_labels_and_values_overlap() -> None:
+    sources = _sources(OVERLAPPING, language="tr")
+    assert not _check("Bel 40.", "38: 40", sources, asked="bel kaç?").ok
+    assert not _check("Bel 42.", "40: 42", sources, asked="38 beden bel kaç?").ok
+
+
+def test_numbered_names_keep_word_boundary_matching() -> None:
+    """Renk yolu numarası ("100") eskisi gibi sözcük sınırıyla aranır: "100x200" onu söylemez."""
+    text = "Göğüs logosu Venom Red 690, ölçü 100x200."
+    assert not _check(text, "Venom Red 690", LOGO, asked=LOGO_QUESTION).ok
