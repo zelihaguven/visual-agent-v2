@@ -1553,7 +1553,7 @@ Tarih: 2026-11-21. Ürün sahibi kararı. Dal: `ocr-belirsiz-komsu-hucre` (`7b9b
 **Yeniden düşünülür.** İkinci okuma serbest metinli hücrelerdeki boşluk ve ayraç hatalarını da işaretler hâle gelirse, ya da kural yalnız kısa sayısal hücrelerle sınırlanıp o hücrelerde ayrı ve daha büyük bir görüntü denetimi temiz çıkarsa. İkisi de set B ölçümü ister.
 
 ### 0022: Eski OCR yolunun (gömülü görsel) set A ölçümü; eşikler ölçümden önce belirlendi
-Tarih: 2026-11-21. Ürün sahibi kararı. Dal: `eski-yol-olcumu`. Araç: `evals/run_embedded_images.py`. **Ölçüm henüz yapılmadı; bu kayıt sonuçtan önce yazıldı.**
+Tarih: 2026-11-21. Ürün sahibi kararı. Dal: `eski-yol-olcumu`. Araç: `evals/run_embedded_images.py`. **Bu kayıt sonuçtan önce yazıldı; sonuç ve karar en altta (2026-11-21).**
 
 **Neden.** Eski OCR yolunun (karar 0018) bugünkü doğruluğu ölçülmemiş. 0010'daki "mevcut hat" sayıları (3.121 değerin 788'i yanlış) `c79e4ce`'deki koda ait: o hat taranmış sayfayı ocrmypdf ile okuyor, tablo hücrelerini bulut modeliyle yeniden okuyordu. O günden beri hücre okuyucu ve ızgara okuma silindi (0013), ikinci okuma sayımla karşılaştırılıyor, ortak tablo korumaları eklendi. Pilotta gömülü görseller bu yoldan geçecek.
 
@@ -1578,4 +1578,25 @@ Ek koşul: yanlış az çıksa da doğru okunan değerlerin yarısından fazlas�
 **Nerede ölçülür.** Windows'ta: sonuç pilotun Windows'taki eski yolunu temsil etmeli (ocrmypdf, Tesseract ve RapidOCR'ın sürümleri ve çıktıları işletim sistemine göre değişebilir). Komut açık notlarda (Yarım kalan). Bulut maliyeti 0. Mac'te yalnız tek belgeyle kuru deneme yapıldı (`syn2_s6_foto`: sayfa metinli sayıldı, görsel gömülü görsel yolundan okundu, puanlama çalıştı; 9 sn); tam koşu çalıştırılmadı.
 
 **Sınırlar.** Set A'nın sonuçları görüldü ve eski yol o günden beri gerçek föylere bakılarak değişti (yeniden işleme turu); bu, bugünkü durumun ölçümüdür, temiz bir kilitli karşılaştırma değil. Benzetim gerçek kâğıt ve tarayıcı değil (0009). Gerçekte yapıştırılan görsel çoğu zaman küçültülür; bu kurgu küçültmesiz durumu ölçer, piksel piksel aynı görüntüyü değil: hat görseli sayfa çiziminden keser ve çizim yeniden örnekler. Mac'te ölçülen fark (kaynak ile hattın kestiği görsel, gri düzeyde): fotoğrafta (`syn2_s6_foto`) piksellerin %7,8'i aynı, ortalama fark 5,4 / 255; taramada (`syn1_tarama` s.1) %57'si aynı, ortalama fark 0,65; taramada kesit bir piksel sütunu dar. Bu, uygulamada her gömülü görselin geçtiği yolun kendisidir. Küçültmenin etkisine ve kurgu B'ye (görünür damgalı tarama, ocrmypdf yolu) A'nın sonucundan sonra bakılacak.
+
+**Sonuç (Mac, 2026-11-21; `main` `178afdf`, tek koşu, 17 kaynak, 148 sn, bulut maliyeti 0).** Ölçüm makinesi Mac'e alındı (açık notlar); Windows'ta doğrulama yapılmadı. Koşu durmadı: hiçbir sayfa okuyucuya düşmedi, hiçbir görsel atlanmadı.
+
+| | Toplam | Tarama | Fotoğraf |
+|---|---|---|---|
+| Değer | 3121 | 2277 | 844 |
+| Doğru gösterilen | 273 | 206 | 67 |
+| Yanlış gösterilen | 172 | 128 | 44 |
+|   bağ kopması | 153 | 112 | 41 |
+|   yanlış karakter | 19 | 16 | 3 |
+|   ayraç | 0 | 0 | 0 |
+| Atlama | 2108 | 1524 | 584 |
+| Gizlendi (doğruydu / yanlıştı) | 335 / 233 | 250 / 169 | 85 / 64 |
+
+Taramadan okunan 781 parçanın 666'sı `figure`, 115'i `table_row`.
+
+- **Ölçülemedi.** Atlama 3.121 değerin 2.108'i (%67,5); ölçüm öncesi karardaki sınır %20 idi. Sonuç eşik tablosuna oturtulmaz ve 0010'daki 788 ve 87 ile doğrudan karşılaştırılmaz.
+- **Alt sınır.** Puanlanabilen değerlerde 172 yanlış gösterilen var; 153'ü (%89) bağ kopması. Puanlayıcı `figure` satırlarını sayabilse bu sayı yalnız artar (puanlanan satırlar aynı kalır, yenileri eklenir). Alt sınır tek başına okuyucu hattının 87'sinin iki katıdır.
+- **Gizleme.** Doğru okunan 608 değerin 335'i (%55) gizli; ek koşuldaki kullanılabilirlik sorunu.
+
+**Karar (ürün sahibi, 2026-11-21; alt sınıra dayanılarak).** %20 kuralı yanlış güveni önlemek içindi; olumsuz sonucu engellemez. Eski yoldan (gömülü görsel) okunan değerler pilotta doğrulanmış gösterilmez. Puanlayıcı düzeltmesi yapılmayacak: sonuç kararı değiştirmez, dondurulmuş dosyalar korunur. Uygulaması ayrı iştir (plan onay bekliyor); 0019'daki "yanlış değer açığını kapatan sıkılaştırma" istisnası kapsamında yazılacak. Küçültmenin etkisi ve kurgu B bu kararla gereksizleşmedi ama öncelikleri düştü; açık notlarda.
 
