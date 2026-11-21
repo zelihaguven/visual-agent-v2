@@ -681,9 +681,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     kaldırıyor.
   - Bağlamın belgeleri silindiyse hangi belge olduğu soruluyor.
 - **Neden:** Commit mesajlarında davranış yazılı; ölçülmüş bir gerekçe yok.
-- **Ürün, model ya da sürüm değişince beden taşınmaz (2026-11-21, ürün sahibi kararı; dal
-  `urun-degisince-beden`).** Takip sorusu başka bir ürünü, modeli ya da sürümü adlandırıyorsa
-  ("Rev B M beden …" ardından "Peki Rev A?") önceki turun bedeni tamamlanmış
+- **Ürün ya da model değişince beden taşınmaz; aynı ürünün sürümü değişince taşınır
+  (2026-11-21, ürün sahibi kararı; dal `urun-degisince-beden`).** Takip sorusu başka bir
+  ürünü ya da modeli adlandırıyorsa önceki turun bedeni tamamlanmış
   soruya girmez; sistem bedeni sorar. Eski "bilinen kalan" (`dikim-sohbet-1-t4`, 10 tekrarın
   hiçbirinde geçmedi) bununla kapandı: beklenti değişti, davranış değil.
   - **Teşhis.** Tamamlama yalnız bağlamdaki tek soruyu ve yeni mesajı görür
@@ -720,15 +720,30 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - **İsteme açık cümle (ürün sahibi kararıyla ek, tek düzeltme turunun dışında).** İnceleme
     bulgusu: cümle çıkınca davranış istemde yazılı kalmamıştı; kalan cümleler harfiyen
     okununca bedeni taşıtıyordu ve bedenin düşmesi yardımcı modelin eğilimine dayanıyordu.
-    Eklendi: "When the new message names another product, model or version, do not carry over
-    the size of the previous question" ve örneği. Sürüm de kapsamda.
-    Yardımcı model yeni istemle sekiz durumda üçer kez çağrıldı (Türkçe ve İngilizce): ürün
-    değişince beden 9 çağrının 9'unda düştü ("A-100 M beden genişlik kaç?" → "Peki B-200?" →
-    "B-200 genişlik kaç?"); ürün aynıyken 9 çağrının 9'unda korundu ("Peki dış paça?" →
-    "A-100 M beden dış paça kaç?"). **Sürüm değişince beden düşmedi:** "SRT-4294 Rev B M beden
-    iç paça kaç?" → "Peki Rev A?" Türkçe ve İngilizce 6 çağrının 6'sında "SRT-4294 Rev A M
-    beden iç paça kaç?" oldu. Karar sürümü kapsıyor, istem cümlesi de söylüyor, ama yardımcı
-    model sürümde uymuyor; istem bir kez daha değiştirilip ölçülmedi. Açık.
+    Eklendi: "When the new message names another product or model, do not carry over the size
+    of the previous question" ve örneği.
+  - **Sürüm: beden taşınır (karar daraltıldı, 2026-11-21).** İlk yazımda cümle sürümü de
+    kapsıyordu ("product, model or version"). Yardımcı model sürümde uymadı: "SRT-4294 Rev B M
+    beden iç paça kaç?" → "Peki Rev A?" Türkçe ve İngilizce 6 çağrının 6'sında "SRT-4294 Rev A
+    M beden iç paça kaç?" oldu. Karar buna göre daraltıldı ve istemden "or version" çıkarıldı;
+    istem davranışla aynı. Gerekçe: kullanıcı büyük olasılıkla aynı bedeni aynı ürünün başka
+    revizyonunda soruyor; ürün aynı kaldığı için sorulmamış bir ürünün değeri verilmiyor ve
+    "Anlaşılan soru" ekranda gösteriliyor. Bedeli: kullanıcı öbür revizyonun başka bir
+    bedenini kastettiyse M'nin değeri verilir; ekrandaki tamamlanmış sorudan görür.
+  - **Deneme (yardımcı model, her durum 3 çağrı; sürümü de kapsayan ilk cümleyle).**
+
+    | Durum | Önceki soru → yeni mesaj | Çıktı (3/3) |
+    | --- | --- | --- |
+    | TR ürün değişti | "A-100 M beden genişlik kaç?" → "Peki B-200?" | "B-200 genişlik kaç?" |
+    | EN ürün değişti | "What is the width of A-100 in size M?" → "And B-200?" | "What is the width of B-200?" |
+    | TR ürün ve ölçü değişti | "PNT-1126 M beden dış paça kaç?" → "Peki PNT-1162 modelinde iç paça kaç?" | "PNT-1162 modelinde iç paça kaç?" |
+    | TR sürüm değişti | "SRT-4294 Rev B M beden iç paça kaç?" → "Peki Rev A?" | "SRT-4294 Rev A M beden iç paça kaç?" |
+    | EN sürüm değişti | "What is the inseam of SRT-4294 Rev B in size M?" → "And Rev A?" | "What is the inseam of SRT-4294 Rev A in size M?" |
+    | TR ürün aynı | "A-100 M beden genişlik kaç?" → "Peki dış paça?" | "A-100 M beden dış paça kaç?" |
+    | EN ürün aynı | "What is the width of A-100 in size M?" → "And the height?" | "What is the height of A-100 in size M?" |
+    | TR yalnız beden değişti | "CKT-7308 S beden bel kaç?" → "L beden?" | "CKT-7308 L beden bel kaç?" |
+
+    Daraltılmış cümleyle yeniden deneme: aşağıda, ölçümde.
   - **Bilinen sınırlar (inceleme turu).** (1) Bu tur artık her netleştirmeyle geçer;
     tamamlama hatasından gelen netleştirme de ("soruyu birleştiremedim") geçer sayılır.
     Ölçümde tamamlanmış soru elle doğrulandı: iki sette de model var, beden yok. (2)
