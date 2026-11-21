@@ -123,6 +123,7 @@ Diğer ölçüm araçları:
 | `evals.run_documents --documents ornek-belgeler/FastReact_Knowledge --questions … --work … --output …` | Bir belge klasörünü (FastReact) kendi soru listesiyle ölçer; `--offline` aynı anlamda |
 | `evals.replay --rows … --work … --cache-dir … --output …` | Kayıtlı `run_documents` ölçümünü önbellekten yeniden değerlendirir |
 | `evals.rescore --set … --answers …` | Kayıtlı cevapları ağa gitmeden yeniden puanlar |
+| `evals.run_embedded_images --output …` | Set A benzetimini gömülü görsel olarak bugünkü eski OCR yolundan geçirir, dondurulmuş puanlamayla ölçer (karar 0022); okuyucu çalıştırmaz |
 
 Hepsi `uv run python -m` ile çalışır.
 
