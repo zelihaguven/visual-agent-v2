@@ -825,3 +825,92 @@ def test_cell_label_exemption_does_not_apply_to_prose() -> None:
     )
 
     assert result.status is VerificationStatus.FAILED
+
+
+# --- Belirsiz parça etiketli komşu hücredeyse ve cümle o hücreye değinmiyorsa gizletmez ---
+
+OCR_PROBLEM = "OCR değeri belirsiz"
+SQL_ROW = "Tablo: SIPARIS_KALEM | Kolon: DEPO_KODU | Tip: VARCHAR | Uzunluk: 59"
+SQL_ROW_19 = "Tablo: SIPARIS_KALEM | Kolon: MUSTERI_KODU | Tip: VARCHAR | Uzunluk: 19"
+UNLABELLED_ROW = "Tablo: STOK_HAREKET | Kolon: KALEM_ADEDI | VARCHAR | Uzunluk: 73"
+BOM_ROW = (
+    "BG-CV0007/Poly Bag - Fit To Folded Garment/Universal Packaging, Inc./TR0001/Approved/ea | "
+    "(boş) | 1.0000 | PACKAGING | (boş) | Clear 960 | Clear 960"
+)
+SUPPLIER_ROW = (
+    "Kalem: Poly Bag | Tedarikçi: Universal Packaging, Inc./TR0001/Approved/ea | Renk: Clear 960"
+)
+POM_ROW = (
+    "Sort Order: 435 | Dim: BW005 | Description: Chest Width | Tol (-): -3 1/8 | "
+    "Tol (+): 1/2 | XS: 20 1/2 | LG: 25"
+)
+
+
+def _ocr_check(
+    text: str, row: str, uncertain: tuple[str, ...], quote: str | None = None, table: bool = True
+) -> bool:
+    """Cümle OCR belirsizliği yüzünden gizleniyor mu (başka denetimlerden bağımsız)."""
+    source = PromptSource(
+        number=1, text=row, ocr_uncertain=uncertain, from_ocr=True, is_table_row=table
+    )
+    check = verify_item(item(text, quote=quote or row), {1: source}, "tr")
+    return any(OCR_PROBLEM in problem for problem in check.problems)
+
+
+def test_uncertain_neighbour_cell_does_not_hide_a_value_the_sentence_never_touches() -> None:
+    """Günlükteki tanı (2026-11-21): `OCR değeri belirsiz: ['VARCHAR']`; cümle yalnız uzunluğu
+    söylüyor, model satırın tamamını alıntılıyor."""
+    source = PromptSource(
+        number=1, text=SQL_ROW, ocr_uncertain=("VARCHAR",), from_ocr=True, is_table_row=True
+    )
+    sentence = "SIPARIS_KALEM tablosundaki DEPO_KODU uzunluğu 59'dur."
+
+    check = verify_item(item(sentence, quote=SQL_ROW), {1: source}, "tr")
+
+    assert check.ok, check.problems
+
+
+@pytest.mark.parametrize(
+    ("text", "row", "uncertain"),
+    [
+        # Model belirsiz hücreyi kendi sözleriyle anlatıyor: sütun adı ekiyle anılıyor.
+        ("DEPO_KODU tipi metin, uzunluğu 59.", SQL_ROW, ("VARCHAR",)),
+        ("DEPO_KODU metin tipinde, uzunluğu 59.", SQL_ROW, ("VARCHAR",)),
+        # Belirsiz parçanın kendisi cümlede.
+        ("DEPO_KODU tipi VARCHAR, uzunluğu 59.", SQL_ROW, ("VARCHAR",)),
+        # Değerin kendisi belirsiz: rakamla ve yazıyla.
+        ("MUSTERI_KODU kolonunun uzunluğu 19.", SQL_ROW_19, ("VARCHAR", "19")),
+        ("MUSTERI_KODU kolonunun uzunluğu on dokuz.", SQL_ROW_19, ("19",)),
+        # Etiketsiz hücre: cümlenin o hücreden söz edip etmediği anlaşılamaz.
+        ("KALEM_ADEDI kolonunun uzunluğu 73.", UNLABELLED_ROW, ("VARCHAR",)),
+        # Belirsiz parça cümlenin kod aldığı hücrede (başlıksız satır).
+        ("Poly bag (BG-CV0007) rengi Clear 960'dır.", BOM_ROW, ("Inc./TR0001/Approved/ea",)),
+        # Parçanın alt parçası kısaltılarak yazılmış.
+        ("TR0001 onaylı, rengi Clear 960.", SUPPLIER_ROW, ("Inc./TR0001/Approved/ea",)),
+        # Tech pack: cümle belirsiz parçayı içeriyor ya da hücrenin değerinden sayı taşıyor.
+        ("BW005 eksi toleransı -3 1/8.", POM_ROW, ("1/8",)),
+        ("BW005 eksi toleransı -3.", POM_ROW, ("1/8",)),
+        ("BW005 XS göğüs 20.", POM_ROW, ("1/2",)),
+    ],
+)
+def test_sentence_touching_the_uncertain_cell_stays_hidden(
+    text: str, row: str, uncertain: tuple[str, ...]
+) -> None:
+    assert _ocr_check(text, row, uncertain)
+
+
+def test_certain_measure_next_to_an_uncertain_tolerance_is_not_hidden_by_it() -> None:
+    assert not _ocr_check("BW005 LG beden göğüs 25.", POM_ROW, ("1/8",))
+
+
+def test_uncertain_neighbour_outside_a_table_row_still_hides() -> None:
+    sentence = "SIPARIS_KALEM tablosundaki DEPO_KODU uzunluğu 59'dur."
+
+    assert _ocr_check(sentence, SQL_ROW, ("VARCHAR",), table=False)
+
+
+def test_short_column_names_are_matched_as_whole_words_only() -> None:
+    row = "Ölçü: Bel | S: 38,0 | M: 40,0"
+
+    assert not _ocr_check("M beden bel 40,0.", row, ("38,0",))
+    assert _ocr_check("S ve M beden bel 40,0.", row, ("38,0",))

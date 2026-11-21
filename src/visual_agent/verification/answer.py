@@ -91,19 +91,87 @@ def code_source_number(item: ModelItem, sources: Sources) -> int | None:
     return None
 
 
+_MIN_LABEL_STEM = 3
+_TOKEN_PIECE_RE = re.compile(r"[^\s/|,;:()]+")
+
+
+_SOFTENED = {"k": "kğg", "p": "pb", "t": "td", "ç": "çc"}
+"""Türkçe ek alınca yumuşayan son ünsüz ("Uzunluk" → "uzunluğu", "Kitap" → "kitabı"); ad
+böyle de anılmış sayılır."""
+
+
+def _names_label(sentence: str, label: str) -> bool:
+    """Cümle sütunun adını anıyor mu; Türkçe ekleriyle ("Tip" → "tipi", "tipinde", "Uzunluk" →
+    "uzunluğu"). Çok kısa adlar ("S", "No") yalnız tam sözcük olarak aranır: ön ek araması her
+    sözcüğü tutardı."""
+    words = re.findall(r"[^\W\d_]+", turkish_lower(label, merge_dotless_i=True))
+    if not words:
+        return False
+    stem = words[0]
+    if len(stem) < _MIN_LABEL_STEM:
+        return re.search(rf"(?<!\w){re.escape(stem)}(?!\w)", sentence) is not None
+    last = _SOFTENED.get(stem[-1], stem[-1])
+    pattern = rf"(?<!\w){re.escape(stem[:-1])}[{re.escape(last)}]\w*"
+    return re.search(pattern, sentence) is not None
+
+
+def _touches_cell(item: ModelItem, cell: str, token: str) -> bool:
+    """Cümle belirsiz parçanın hücresine değiniyor mu. Değinmiyor sayılması için hücre etiketli
+    olmalı ("Tip: VARCHAR") ve cümle ne sütunun adını anmalı, ne hücrenin değerinden bir sayı
+    ya da kod taşımalı, ne de parçanın bir alt parçasını yazmalı. Etiketsiz hücrede cümlenin
+    hücreden söz edip etmediği anlaşılamaz: değiniyor sayılır."""
+    labeled = labeled_cells(cell)
+    if not labeled:
+        return True
+    label, value = labeled[0]
+    if not contains_token(normalize(value), normalize(token)):
+        return True  # belirsiz parça etiketin kendisinde
+    folded = turkish_lower(item.text, merge_dotless_i=True)
+    if _names_label(folded, label):
+        return True
+    stated = numbers_in(item.text) | word_numbers(item.text) | identifiers_in(item.text)
+    if stated & (numbers_in(value) | identifiers_in(value)):
+        return True
+    sentence = normalize(item.text)
+    pieces = {piece for piece in _TOKEN_PIECE_RE.findall(token) if len(piece) > 1}
+    return any(contains_token(sentence, normalize(piece)) for piece in pieces - {token})
+
+
+def _uncertain_in_quote(item: ModelItem, quote_text: str, source: PromptSource, token: str) -> bool:
+    """Alıntıdaki belirsiz parça cümleyi gizletir mi. Tablo satırında, cümlenin değinmediği
+    etiketli komşu hücredeki parça gizletmez: model satırın tamamını alıntılar, ilgisiz bir
+    hücrenin belirsizliği doğru okunan değeri de gizliyordu (sql-ekran "Tip: VARCHAR |
+    Uzunluk: 59"). Tablo dışı metinde ve etiketsiz hücrede eskisi gibi gizletir."""
+    cells = [
+        cell for cell in quote_text.split("|") if contains_token(normalize(cell), normalize(token))
+    ]
+    if not cells:
+        return False
+    return not source.is_table_row or any(_touches_cell(item, cell, token) for cell in cells)
+
+
 def _ocr_problems(item: ModelItem, sources: Sources) -> list[str]:
-    """Belirsiz okunan değer ne alıntıda ne cümlede geçebilir: satırın bağlamından ya da
-    başlıktan gelen kod alıntılanmadan cümleye yazılabiliyor (satır bağlamı ve bölüm adı
-    cümlenin teknik adlarına izin verir)."""
-    numbers = [quote.source_no for quote in item.quotes]
+    """Belirsiz okunan değer cümlede geçemez; alıntıda geçiyorsa cümle, parçanın hücresine
+    değinmediği gösterilebilen tek durum dışında gizlenir (`_uncertain_in_quote`). Satırın
+    bağlamından ya da başlıktan gelen kod alıntılanmadan cümleye yazılabiliyor (satır bağlamı
+    ve bölüm adı cümlenin teknik adlarına izin verir); bu yüzden cümle ayrıca aranır."""
+    cited = [(quote.source_no, quote.text) for quote in item.quotes]
+    numbers = [number for number, _ in cited]
     if item.code_source_no is not None:
         numbers.append(item.code_source_no)
     tokens = {
         token for number in numbers if number in sources for token in sources[number].ocr_uncertain
     }
-    texts = [normalize(text) for text in (item.text, *(quote.text for quote in item.quotes))]
+    sentence = normalize(item.text)
     uncertain = sorted(
-        token for token in tokens if any(contains_token(text, normalize(token)) for text in texts)
+        token
+        for token in tokens
+        if contains_token(sentence, normalize(token))
+        or any(
+            _uncertain_in_quote(item, text, sources[number], token)
+            for number, text in cited
+            if number in sources
+        )
     )
     return [f"OCR değeri belirsiz: {uncertain}"] if uncertain else []
 
