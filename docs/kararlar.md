@@ -1465,7 +1465,7 @@ Tarih: 2026-11-20 (karar), 2026-11-21 (uygulama). Ürün sahibi kararı. Dal: `v
 
 **İnceleme turunda eklenen istem cümlesi.** "Değeri görünüp adı kaynakta yazmayan bir seçenek varsa listeleme, sor": başlıksız satırlarda (6029322 göğüs logosu, "Clear 960 | Clear 960") varyantın adı parçada yok; model ad uydurmak ya da adsız yazmak yerine sormalı. Karar metnindeki "adı görünüp değeri görünmeyen" koşulunun tersi; ürün sahibinin onayına sunuldu.
 
-**Açık kalan: tek belgenin içindeki farklı ürünler.** Her sayfası ayrı model olan tek bir Excel'de (sınır setindeki `sinir-model-sayfa`: PNT-3101, PNT-3102; model kodu yalnız sayfa adında) modelsiz bir soru yeni istemle listelenebilir; karar "farklı üründe sor" diyor ama istem ürünü belgeyle eş tutuyor. Ölçümde bakılacak; karar ister.
+**Tek belgenin içindeki farklı ürünler (ürün sahibi kararıyla ek, 2026-11-21; tek düzeltme turunun dışında).** İnceleme bulgusu: her sayfası ayrı model olan tek bir Excel'de modelsiz bir soru listelenebilirdi; karar "farklı üründe sor" diyor ama istem ürünü belgeyle eş tutuyordu. İsteme eklendi: "Kaynaklar aynı belgede olsa da farklı ürün ya da model kodlarına aitse farklı ürün say; listeleme, netleştirme iste."
 
 **Beklenen.** `dikim-excel-netlestir` ve `ik-netlestir` (iki sette), sınır setinde D4 ve D6 listeler. `dikim-revizyon-netlestir`, `sql-netlestir`, D1, D3 netleştirme kalır.
 

@@ -90,6 +90,8 @@ def test_prompt_lists_variants_of_a_single_document_and_asks_across_documents() 
     assert '"tüm", "yalnız", "iki tane" gibi sözler yazma' in prompt
     assert "adı görünüp değeri kaynaklarda görünmeyen bir seçenek varsa" in prompt
     assert "değeri görünüp adı kaynakta yazmayan bir seçenek varsa listeleme, sor" in prompt
+    # Tek belgenin içinde farklı ürünler (her sayfası ayrı model olan Excel) farklı üründür.
+    assert "aynı belgede olsa da farklı ürün ya da model kodlarına aitse farklı ürün say" in prompt
     # 9. kuralın istisnası ve eski "değerleri sıralama" cümlesinin kalkması.
     assert "soruda varyant belirtilmediyse 7. kurala göre" in prompt
     assert "bütün değerleri listeleme, sor" not in prompt
