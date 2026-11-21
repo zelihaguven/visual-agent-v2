@@ -41,7 +41,9 @@ def _shared_hit(quote: str, hits: Sequence[Hit], language_of: LanguageOf) -> Hit
         (
             hit
             for hit in hits
-            if quote_matches(quote, hit.chunk.text, language_of(hit.chunk.doc_id))
+            # Eski OCR yolundan okunan parça doğrulanmış cevabın dayanağı olamaz (karar 0022).
+            if not hit.chunk.legacy_ocr
+            and quote_matches(quote, hit.chunk.text, language_of(hit.chunk.doc_id))
         ),
         None,
     )

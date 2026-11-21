@@ -5,6 +5,8 @@ import pytest
 
 from visual_agent.domain.answer import ModelItem, PromptSource, Quote
 from visual_agent.domain.document import Box, ChunkKind, DocumentMeta, SourceLocation
+from visual_agent.domain.result import Hit
+from visual_agent.generation.sources import to_prompt_sources
 from visual_agent.ingest.chunking import build_chunks
 from visual_agent.ingest.docling_parser import page_header_identifies
 from visual_agent.ingest.elements import Element, ElementKind, carries_value
@@ -98,6 +100,21 @@ def test_legacy_ocr_mark_reaches_the_chunk_and_reader_elements_stay_unmarked() -
 
     assert [chunk.legacy_ocr for chunk in chunks] == [True, False]
     assert all(chunk.from_ocr for chunk in chunks)
+
+
+def test_legacy_ocr_mark_survives_splitting_merging_and_reaches_the_prompt_source() -> None:
+    """ocrmypdf sayfasının düz metni bölünür ve birleşir; işaret her parçada ve modele giden
+    kaynakta kalmalı."""
+    page = SourceLocation(page=1)
+    long_text = Element(ElementKind.TEXT, "Uzun cümle sonu. " * 80, page, legacy_ocr=True)
+    digital = Element(ElementKind.TEXT, "Dijital satır.", SourceLocation(page=2))
+    read = Element(ElementKind.TEXT, "Okunan satır.", SourceLocation(page=2), legacy_ocr=True)
+
+    chunks = build_chunks([long_text, digital, read], DocumentMeta(doc_id="d", title="Belge"))
+
+    assert len(chunks) > 2 and all(chunk.legacy_ocr for chunk in chunks)
+    hits = [Hit(chunk=chunk, score=1.0) for chunk in chunks]
+    assert all(source.legacy_ocr for source in to_prompt_sources(hits, lambda _: "tr").values())
 
 
 def test_cell_checked_table_rows_keep_their_own_uncertain_values() -> None:

@@ -47,7 +47,7 @@ def _split_element(element: Element) -> list[Element]:
             element.location,
             element.from_ocr,
             tuple(token for token in element.ocr_uncertain if contains_token(piece, token)),
-            element.legacy_ocr,
+            legacy_ocr=element.legacy_ocr,
         )
         for piece in _split_long_text(element.text)
     ]

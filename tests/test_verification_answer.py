@@ -294,6 +294,10 @@ def test_item_resting_on_the_legacy_ocr_path_is_never_verified() -> None:
     assert check.problems == ("eski OCR yolundan okundu",) and check.source_numbers == (1,)
     assert verify_answer(answer(candidate), legacy, "tr").status is VerificationStatus.FAILED
     assert verify_answer(answer(candidate), reader, "tr").status is VerificationStatus.PARTIAL
+    # Kaynakta yazmayan birim tek sorun olsaydı alıntı gösterilirdi; eski yolda o da gösterilmez.
+    with_unit = item("DEPO_KODU uzunluğu 59 cm.", quote=row)
+    assert verify_item(with_unit, reader, "tr").quote == row
+    assert verify_item(with_unit, legacy, "tr").quote is None
 
 
 def test_one_ocr_item_makes_the_whole_answer_partial() -> None:

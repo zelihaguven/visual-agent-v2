@@ -65,6 +65,16 @@ TWO_SAME = [
 ]
 
 
+def test_candidate_read_on_the_legacy_ocr_path_does_not_confirm_the_answer() -> None:
+    """Karar 0022: diğer belgede alıntı birebir geçse de parça eski OCR yolundan okunduysa
+    cevap doğrulanmış verilmez; netleştirme sorusu kalır."""
+    legacy = TWO_SAME[1].model_copy(update={"from_ocr": True, "legacy_ocr": True})
+
+    outcome = _ask(SequenceClient([CLARIFY, _answer(SHARED)]), [TWO_SAME[0], legacy])
+
+    assert isinstance(outcome.result, Clarify)
+
+
 def test_same_answer_in_every_candidate_is_given_with_all_sources() -> None:
     client = SequenceClient([CLARIFY, _answer(SHARED)])
 
