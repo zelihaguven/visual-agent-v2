@@ -9,8 +9,7 @@
    "kaynakta olmayan birimle gösterilen değer (40,5 cm)"
   ],
   "source": "dikim-pdf.pdf",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "A2",
@@ -22,8 +21,7 @@
    "cm dışında bir birim"
   ],
   "source": "dikim-pdf.pdf",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "A3",
@@ -35,8 +33,7 @@
    "kaynakta olmayan birimle gösterilen değer (53,0 cm)"
   ],
   "source": "dikim-excel.xlsx",
-  "reading": false,
-  "locked": true
+  "reading": false
  },
  {
   "id": "A4",
@@ -48,8 +45,7 @@
    "kaynakta olmayan birimle gösterilen değer (73,5 cm)"
   ],
   "source": "dikim-word.docx",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "A5",
@@ -61,8 +57,7 @@
    "kaynakta olmayan birimle gösterilen değer (19 karakter)"
   ],
   "source": "sql-ekran.docx",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "A6",
@@ -74,8 +69,7 @@
    "TL dışında bir birim"
   ],
   "source": "ik-yan-haklar.xlsx",
-  "reading": false,
-  "locked": true
+  "reading": false
  },
  {
   "id": "A7",
@@ -87,8 +81,7 @@
    "saniye dışında bir birim"
   ],
   "source": "sql-notlar.docx",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "A8",
@@ -99,8 +92,7 @@
    "15 dışında bir değer (20; 28)"
   ],
   "source": "ik-izin.pdf",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "B1",
@@ -113,8 +105,7 @@
    "başka bir ürünün değeri"
   ],
   "source": "dikim-pdf.pdf",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "B2",
@@ -126,8 +117,7 @@
    "37,5 ya da 41,5 (komşu sütun)"
   ],
   "source": "dikim-rev-b.pdf",
-  "reading": false,
-  "locked": true
+  "reading": false
  },
  {
   "id": "B3",
@@ -139,8 +129,7 @@
    "94 (komşu satır)"
   ],
   "source": "sql-sozluk.xlsx",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "B4",
@@ -153,8 +142,7 @@
    "53,0 (PNT-1126)"
   ],
   "source": "dikim-word.docx",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "B5",
@@ -166,8 +154,7 @@
    "ETK-3352 (PNT-1162)"
   ],
   "source": "dikim-tarama.pdf",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "B6",
@@ -179,8 +166,7 @@
    "19 ya da 59 (başka tablo)"
   ],
   "source": "sql-sozluk.xlsx",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "B7",
@@ -192,8 +178,7 @@
    "66 ya da 94 (başka tablo)"
   ],
   "source": "sql-ekran.docx",
-  "reading": false,
-  "locked": true
+  "reading": false
  },
  {
   "id": "B8",
@@ -205,8 +190,7 @@
    "3500 (A)"
   ],
   "source": "ik-yan-haklar.xlsx",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "C1",
@@ -220,8 +204,7 @@
    "yalnız 'Fit Approved' (Hold Sampling olmadan)"
   ],
   "source": "6013448 tech pack, s.1 (sayfa görüntüsü)",
-  "reading": true,
-  "locked": false
+  "reading": true
  },
  {
   "id": "C2",
@@ -235,8 +218,7 @@
    "herhangi bir değer"
   ],
   "source": "6013448 tech pack, s.1 (sayfa görüntüsü)",
-  "reading": true,
-  "locked": false
+  "reading": true
  },
  {
   "id": "C3",
@@ -247,8 +229,7 @@
    "evet / yapılabilir"
   ],
   "source": "02_Orders_Transfer.md",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "C4",
@@ -259,8 +240,7 @@
    "evet / etkiler"
   ],
   "source": "02_Orders_Add_and_Amend_part1.md",
-  "reading": false,
-  "locked": true
+  "reading": false
  },
  {
   "id": "C5",
@@ -271,8 +251,7 @@
    "hayır / göremez"
   ],
   "source": "07_Planning_High_Level_Planning_Load_List.md",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "C6",
@@ -284,8 +263,7 @@
    "değiştirilemez"
   ],
   "source": "sql-notlar.docx",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "C7",
@@ -296,8 +274,7 @@
    "evet / olabilir"
   ],
   "source": "09_Tools_Send_Collaborative_Package.md",
-  "reading": false,
-  "locked": true
+  "reading": false
  },
  {
   "id": "C8",
@@ -308,8 +285,7 @@
    "entegrasyon adımı ya da menü yolu veren her cevap"
   ],
   "source": "— (2026-11-17: 6123 parçada 'SAP' yok; 14 parçada 'ASAP' var)",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "D1",
@@ -320,8 +296,7 @@
    "sürüm belirtmeden tek değer (yalnız 38,5 ya da yalnız 39,5)"
   ],
   "source": "dikim-rev-a.pdf, dikim-rev-b.pdf",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "D2",
@@ -333,8 +308,7 @@
    "başka bir ürünün değeri"
   ],
   "source": "dikim-foto.jpg",
-  "reading": true,
-  "locked": false
+  "reading": true
  },
  {
   "id": "D3",
@@ -345,8 +319,7 @@
    "tek bir ürünün tek değeri"
   ],
   "source": "dikim belgeleri",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "D4",
@@ -357,8 +330,7 @@
    "beden belirtmeden tek değer"
   ],
   "source": "dikim-pdf.pdf",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "D5",
@@ -370,8 +342,7 @@
    "15 (1-5 yıl)"
   ],
   "source": "ik-izin.pdf",
-  "reading": false,
-  "locked": true
+  "reading": false
  },
  {
   "id": "D6",
@@ -383,8 +354,7 @@
    "eksik aralık (yalnız XS-4XL)"
   ],
   "source": "6013448 tech pack, s.1 (sayfa görüntüsü)",
-  "reading": true,
-  "locked": false
+  "reading": true
  },
  {
   "id": "D7",
@@ -395,8 +365,7 @@
    "beş dışında bir sayı"
   ],
   "source": "08_Setup_Event_Planning_Framework_part1.md",
-  "reading": false,
-  "locked": false
+  "reading": false
  },
  {
   "id": "D8",
@@ -407,7 +376,6 @@
    "15 dışında bir sayı"
   ],
   "source": "08_Setup_General_Suppliers.md",
-  "reading": false,
-  "locked": true
+  "reading": false
  }
 ]
