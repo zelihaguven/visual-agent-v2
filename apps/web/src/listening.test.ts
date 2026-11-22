@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   INITIAL_BARGE,
   INITIAL_VAD,
+  TURN_FAILED,
   bargeThreshold,
   speechThreshold,
   stepBarge,
@@ -136,7 +137,7 @@ describe("interrupting by voice", () => {
     expect(bargeThreshold(state.echoPeak)).toBeLessThan(0.1);
   });
 
-  it("does not trigger during calibration", () => {
+  it("does not trigger in the first half second of the turn", () => {
     expect(runBarge(ticks(0.5, 450)).hasBarged).toBe(false);
   });
 });
@@ -233,6 +234,54 @@ describe("listening with a working recorder", () => {
     await vi.advanceTimersByTimeAsync(1000);
 
     expect(heard).toBeInstanceOf(Blob);
+  });
+
+  it("does not let a stale request cut the next interruption short", async () => {
+    // "Bitti" sistem konuşurken ya da dinleme biterken basılmış olabilir; sonraki söz kesmede
+    // kullanıcının sorusu ilk hecede kapanmamalı.
+    vi.useFakeTimers();
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    const level = { value: 0 };
+    const finish = { requested: true };
+    const result = listenForBargeIn(
+      microphoneAt(level),
+      new AbortController().signal,
+      new AbortController().signal,
+      () => undefined,
+      finish,
+    );
+    let heard: Blob | null | undefined;
+    void result.then((blob) => (heard = blob));
+
+    await vi.advanceTimersByTimeAsync(600);
+    level.value = 0.3;
+    await vi.advanceTimersByTimeAsync(800);
+
+    expect(finish.requested).toBe(false);
+    expect(heard).toBeUndefined();
+  });
+
+  it("does not take speech for a new question when the turn failed", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    const level = { value: 0 };
+    const turnDone = new AbortController();
+    const onBargeIn = vi.fn();
+    const result = listenForBargeIn(
+      microphoneAt(level),
+      new AbortController().signal,
+      turnDone.signal,
+      onBargeIn,
+    );
+
+    await vi.advanceTimersByTimeAsync(600);
+    level.value = 0.3;
+    await vi.advanceTimersByTimeAsync(200);
+    turnDone.abort(TURN_FAILED);
+    await vi.advanceTimersByTimeAsync(60);
+
+    await expect(result).resolves.toBeNull();
+    expect(onBargeIn).not.toHaveBeenCalled();
   });
 
   it("just stops when the system finishes and nobody is talking", async () => {

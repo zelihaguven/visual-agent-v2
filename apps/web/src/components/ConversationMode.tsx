@@ -5,6 +5,7 @@ import {
   listenForBargeIn,
   listenForUtterance,
   openMicrophone,
+  TURN_FAILED,
   type FinishRequest,
   type Microphone,
 } from "../listening";
@@ -14,6 +15,8 @@ import { TurnView } from "./TurnView";
 
 const LEVEL_GAIN = 7;
 export const WAITING_DELAY_MS = 2000;
+/** "Bitti, gönder"in hemen ardından gelen ikinci dokunuş soruyu iptal etmesin. */
+const DOUBLE_TAP_MS = 600;
 
 type Phase = "starting" | "listening" | "thinking" | "speaking";
 /** Halkanın görünümü: akışın evresi, ya da dinlerken son kaydın yazıya çevrilememesi. */
@@ -83,6 +86,7 @@ export function ConversationMode(props: Props) {
   const listenControl = useRef<AbortController | null>(null);
   const pendingChoice = useRef<Choice | null>(null);
   const finishRequest = useRef<FinishRequest>({ requested: false });
+  const finishedAt = useRef(0);
   const latest = useRef(props);
 
   useEffect(() => {
@@ -135,7 +139,7 @@ export function ConversationMode(props: Props) {
       } catch (error) {
         // Boş metin "duyulmadı"dır; servis hatası ayrı gösterilir ve döngü durur.
         turnControl.current = null;
-        monitorEnd.abort();
+        monitorEnd.abort(TURN_FAILED);
         throw error;
       }
       if (!text && !control.signal.aborted && !session.signal.aborted) {
@@ -260,12 +264,16 @@ export function ConversationMode(props: Props) {
   }
 
   function interrupt() {
+    if (Date.now() - finishedAt.current < DOUBLE_TAP_MS) {
+      return;
+    }
     turnControl.current?.abort();
     audio.stop();
   }
 
   /** Dinlerken halkaya basmak "bitti" demektir: o ana kadar söylenen, sessizlik beklenmeden alınır. */
   function finish() {
+    finishedAt.current = Date.now();
     finishRequest.current.requested = true;
   }
 

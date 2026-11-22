@@ -187,6 +187,7 @@ export function listenForUtterance(
   finishRequest?: FinishRequest,
 ): Promise<Blob | null> {
   return new Promise((resolve) => {
+    takeFinish(finishRequest, null);
     let recording = record(microphone.stream);
     let vad = INITIAL_VAD;
     const finish = (timer: number, result: Promise<Blob | null>) => {
@@ -203,7 +204,9 @@ export function listenForUtterance(
       onLevel(level);
       const step = stepVad(vad, level, TICK_MS);
       vad = step.state;
-      if (step.decision === "end" || takeFinish(finishRequest, vad)) {
+      // İstek her tikte okunur ve silinir: bayat kalan istek sonraki sözü yarıda keserdi.
+      const isFinished = takeFinish(finishRequest, vad);
+      if (step.decision === "end" || isFinished) {
         microphone.noiseFloor = vad.noiseFloor;
         finish(timer, recording.stop());
       } else if (step.decision === "restart") {
@@ -221,6 +224,9 @@ export function listenForUtterance(
  * anda kullanıcı konuşmaya başlamışsa (kısa cevabın sonuna denk gelen söz) o da araya girme
  * sayılır: kayıt atılıp dinleme baştan başlasaydı ilk sözcükler kaybolurdu.
  */
+/** Tur hatayla bitti: sistem sustuğu anda süren söz yeni soru sayılmaz, dinleme durur. */
+export const TURN_FAILED = "turn-failed";
+
 export function listenForBargeIn(
   microphone: Microphone,
   session: AbortSignal,
@@ -234,12 +240,15 @@ export function listenForBargeIn(
     let rollingMs = 0;
     let vad: VadState | null = null;
     const interrupt = () => {
+      // Sistem konuşurken basılmış "bitti" bu söz için değildir.
+      takeFinish(finishRequest, null);
       vad = { ...INITIAL_VAD, hasSpeech: true, noiseFloor: microphone.noiseFloor ?? 0 };
       onBargeIn();
     };
     const timer = window.setInterval(() => {
       const isOver = vad === null && turnDone.aborted;
-      if (isOver && !session.aborted && barge.speechMs >= BARGE_LATE_SPEECH_MS) {
+      const isCancelled = session.aborted || turnDone.reason === TURN_FAILED;
+      if (isOver && !isCancelled && barge.speechMs >= BARGE_LATE_SPEECH_MS) {
         interrupt();
         return;
       }
@@ -253,7 +262,8 @@ export function listenForBargeIn(
       if (vad !== null) {
         const step = stepVad(vad, level, TICK_MS);
         vad = step.state;
-        if (step.decision === "end" || takeFinish(finishRequest, vad)) {
+        const isFinished = takeFinish(finishRequest, vad);
+        if (step.decision === "end" || isFinished) {
           window.clearInterval(timer);
           void recording.stop().then(resolve);
         }
