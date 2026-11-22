@@ -1,0 +1,51 @@
+/* Hareket: yalnız opaklık ve dönüşüm; azaltılmış harekette kapalı. Kapalıyken hiçbir öğe
+   görünmez ya da ekran dışında kalmaz: canlandırmalar yalnız başlangıç durumunu tanımlar. */
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Açılış ekranı ilk çizimde yerine oturur. */
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes mic-pulse {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.hero,
+.is-landing .composer-area {
+  animation: settle var(--duration-slow) var(--ease-out-expo) both;
+}
+
+.is-landing .composer-area {
+  animation-delay: 60ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

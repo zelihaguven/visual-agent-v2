@@ -1,11 +1,8 @@
-import type { ReactNode } from "react";
-
 import type { DocumentSummary } from "./DocumentsPanel";
 
 type Props = {
   canTalk: boolean;
   summary: DocumentSummary | null;
-  onWrite: () => void;
   onTalk: () => void;
   onAddDocument: () => void;
   onOpenDocuments: () => void;
@@ -20,7 +17,6 @@ function Icon({ path }: { path: string }) {
 }
 
 const ICONS = {
-  write: "M3 17.25V21h3.75l11-11.03-3.75-3.75L3 17.25Zm17.7-10.2a1 1 0 0 0 0-1.42l-2.33-2.33a1 1 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.83-1.83Z",
   talk: "M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1a7 7 0 0 0 6-6.9h-2Z",
   arrow: "M7 7v2h6.59L6 16.59 7.41 18 15 10.41V17h2V7H7Z",
   add: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm-1 13v3h-2v-3H8v-2h3v-3h2v3h3v2h-3Zm0-7V3.5L18.5 9H13Z",
@@ -33,7 +29,7 @@ function ActionCard({
   text,
   onClick,
 }: {
-  tone: "write" | "talk" | "add";
+  tone: "talk" | "add";
   icon: string;
   title: string;
   text: string;
@@ -63,7 +59,7 @@ function statusText(summary: DocumentSummary): string {
     .join(", ");
 }
 
-function StatusParts({ summary }: { summary: DocumentSummary }): ReactNode {
+function StatusParts({ summary }: { summary: DocumentSummary }) {
   return (
     <>
       <span className="status-ready">{summary.ready} belge hazır</span>
@@ -73,30 +69,53 @@ function StatusParts({ summary }: { summary: DocumentSummary }): ReactNode {
   );
 }
 
-/** Açılış ekranının işlem kartları ve belge durumu; hepsi mevcut işlevlere bağlanır. */
-export function LandingActions({
-  canTalk,
+/** Belge durumu yalnız dikkat gerektiğinde: hepsi hazırsa sayı üst çubuktaki düğmede yeter. */
+function DocumentStatus({
   summary,
-  onWrite,
-  onTalk,
-  onAddDocument,
   onOpenDocuments,
-}: Props) {
+}: {
+  summary: DocumentSummary;
+  onOpenDocuments: () => void;
+}) {
+  if (summary.failed > 0) {
+    return (
+      <button
+        type="button"
+        className="status-card"
+        aria-label={`${statusText(summary)}. Belgeleri Aç`}
+        onClick={onOpenDocuments}
+      >
+        <StatusParts summary={summary} />
+      </button>
+    );
+  }
+  if (summary.pending > 0) {
+    return (
+      <p className="status-card" role="status" aria-label={statusText(summary)}>
+        <StatusParts summary={summary} />
+      </p>
+    );
+  }
+  if (summary.total === 0) {
+    return (
+      <p className="status-card" role="status">
+        Henüz belge yok.
+      </p>
+    );
+  }
+  return null;
+}
+
+/** Açılış ekranının işlemleri: asıl yol üstteki soru kutusu, burada sesli sorma ve belge ekleme. */
+export function LandingActions({ canTalk, summary, onTalk, onAddDocument, onOpenDocuments }: Props) {
   return (
     <>
       <div className="actions">
-        <ActionCard
-          tone="write"
-          icon={ICONS.write}
-          title="Yazarak sor"
-          text="Soruyu kutuya yazın."
-          onClick={onWrite}
-        />
         {canTalk && (
           <ActionCard
             tone="talk"
-          icon={ICONS.talk}
-            title="Sesli sor"
+            icon={ICONS.talk}
+            title="Sesli Sor"
             text="Konuşma modunu açın."
             onClick={onTalk}
           />
@@ -104,26 +123,12 @@ export function LandingActions({
         <ActionCard
           tone="add"
           icon={ICONS.add}
-          title="Belge ekle"
+          title="Belge Ekle"
           text="PDF, Word, Excel ya da görsel yükleyin."
           onClick={onAddDocument}
         />
       </div>
-      {summary !== null &&
-        (summary.failed > 0 ? (
-          <button
-            type="button"
-            className="status-card is-attention"
-            aria-label={`${statusText(summary)}. Belgeleri aç`}
-            onClick={onOpenDocuments}
-          >
-            <StatusParts summary={summary} />
-          </button>
-        ) : (
-          <p className="status-card" role="status" aria-label={statusText(summary)}>
-            <StatusParts summary={summary} />
-          </p>
-        ))}
+      {summary !== null && <DocumentStatus summary={summary} onOpenDocuments={onOpenDocuments} />}
     </>
   );
 }

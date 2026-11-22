@@ -11,11 +11,12 @@ import {
 } from "../listening";
 import type { AudioQueue } from "../speech";
 import type { Turn } from "../turn";
+import { Icon as LineIcon } from "./Icon";
 import { TurnView } from "./TurnView";
 
 const LEVEL_GAIN = 7;
 export const WAITING_DELAY_MS = 2000;
-/** "Bitti, gönder"in hemen ardından gelen ikinci dokunuş soruyu iptal etmesin. */
+/** "Bitti, Gönder"in hemen ardından gelen ikinci dokunuş soruyu iptal etmesin. */
 const DOUBLE_TAP_MS = 600;
 
 type Phase = "starting" | "listening" | "thinking" | "speaking";
@@ -33,8 +34,8 @@ const STATUS: Record<Ring, string> = {
 const HINTS: Record<Ring, string> = {
   starting: "Bir saniye.",
   listening: "Sorunuzu bekliyorum. Bitince halkaya basarsanız hemen bakarım.",
-  thinking: "Kaynaklarda arıyorum, bir saniye.",
-  speaking: "Araya girip konuşursanız susarım.",
+  thinking: "Kaynaklarda arıyorum. Vazgeçmek için halkaya basın.",
+  speaking: "Araya girip konuşursanız ya da halkaya basarsanız susarım.",
   "not-heard": "Bir daha söyler misiniz? Kodları harf harf söylemek işe yarar.",
 };
 
@@ -49,10 +50,10 @@ function withCodes(text: string) {
     .split(CODE_RE)
     .map((part, index) => (index % 2 === 1 ? <code key={index}>{part}</code> : part));
 }
-const VOICE_FAILED = "Ses servisine ulaşılamadı. \"Yazarak sor\"a basıp yazarak sorabilirsiniz.";
+const VOICE_FAILED = "Ses servisine ulaşılamadı. \"Yazarak Sor\"a basıp yazarak sorabilirsiniz.";
 const NO_MICROPHONE = "Mikrofona erişilemedi. Tarayıcı iznini kontrol edin.";
 
-/** Ekrandaki netleştirme ya da "Tüm belgelerde ara" seçimi: soru o belgelerde yeniden sorulur. */
+/** Ekrandaki netleştirme ya da "Tüm Belgelerde Ara" seçimi: soru o belgelerde yeniden sorulur. */
 export type Choice = { question: string; docIds: string[] | null; allDocuments?: boolean };
 
 type Props = {
@@ -283,28 +284,25 @@ export function ConversationMode(props: Props) {
   // Sesli mod açılmadan önce yazılmış soru "duyulmuş" gösterilmez.
   const heard = lastTurn !== null && lastTurn.id !== typedTurnId.current ? lastTurn : null;
   const icon = ring === "speaking" ? "speaker" : "mic";
+  const ringLabel = canInterrupt
+    ? "Sözünü Kes"
+    : canFinish
+      ? "Bitti, Gönder"
+      : error !== null
+        ? "Sesli mod durdu"
+        : STATUS[ring];
+  // Gezinme düğmeleri gövdeden sonra gelir: klavyede ilk durak halka. Görsel yerleri CSS ızgarasında.
   return (
     <section className="talk" aria-label="Konuşma modu">
-      <header className="talk-top">
-        <button type="button" className="talk-nav" onClick={onClose}>
-          <Icon name="home" />
-          Ana sayfa
-        </button>
-        <h2 className="talk-title">
-          Sesli mod <span>· eller serbest</span>
-        </h2>
-        <button type="button" className="talk-nav" onClick={onWrite}>
-          <Icon name="keyboard" />
-          Yazarak sor
-        </button>
-      </header>
+      <h2 className="talk-title">Sesli Mod</h2>
       <div className="talk-body">
         <div className="talk-stage">
           <button
             ref={bars}
             type="button"
             className={`talk-ring is-${ring}`}
-            aria-label={canInterrupt ? "Sözünü kes" : canFinish ? "Bitti, gönder" : STATUS[ring]}
+            aria-label={ringLabel}
+            aria-describedby={error === null ? "talk-hint" : undefined}
             disabled={!canInterrupt && !canFinish}
             onClick={canInterrupt ? interrupt : finish}
           >
@@ -332,7 +330,9 @@ export function ConversationMode(props: Props) {
               <p className="talk-status" role="status">
                 {STATUS[ring]}
               </p>
-              <p className="talk-hint">{HINTS[ring]}</p>
+              <p className="talk-hint" id="talk-hint">
+                {HINTS[ring]}
+              </p>
             </>
           )}
         </div>
@@ -347,8 +347,9 @@ export function ConversationMode(props: Props) {
               <p className="talk-heard-empty">Henüz bir şey duymadım.</p>
             )}
             {canInterrupt && (
-              <button type="button" className="talk-again" onClick={interrupt}>
-                Tekrar söyleyeceğim
+              <button type="button" className="ghost talk-pill" onClick={interrupt}>
+                <LineIcon name="refresh" />
+                Tekrar Söyleyeceğim
               </button>
             )}
           </section>
@@ -364,12 +365,22 @@ export function ConversationMode(props: Props) {
           )}
         </div>
       </div>
+      <header className="talk-top">
+        <button type="button" className="ghost talk-pill" onClick={onClose}>
+          <Icon name="close" />
+          <span className="talk-pill-label">Sesli Modu Kapat</span>
+        </button>
+        <button type="button" className="ghost talk-pill" onClick={onWrite}>
+          <Icon name="keyboard" />
+          <span className="talk-pill-label">Yazarak Sor</span>
+        </button>
+      </header>
     </section>
   );
 }
 
 const ICONS = {
-  home: ["M3 11l9-7 9 7", "M5 10v10h14V10"],
+  close: ["M6 6l12 12", "M18 6 6 18"],
   keyboard: [
     "M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z",
     "M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10",

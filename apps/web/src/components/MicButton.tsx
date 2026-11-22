@@ -14,9 +14,15 @@ type Props = {
 };
 
 const LABELS: Record<MicState, string> = {
-  idle: "Konuşarak sor",
-  recording: "Kaydı bitir",
+  idle: "Konuşarak Sor",
+  recording: "Kaydı Bitir",
   transcribing: "Yazıya çevriliyor",
+};
+
+const STATE_CLASS: Record<MicState, string> = {
+  idle: "",
+  recording: "is-active",
+  transcribing: "is-busy",
 };
 
 export function MicButton({ isDisabled, onTranscript, onError }: Props) {
@@ -83,10 +89,11 @@ export function MicButton({ isDisabled, onTranscript, onError }: Props) {
   return (
     <button
       type="button"
-      className={`icon-button ${state === "recording" ? "is-active" : ""}`}
+      className={`icon-button ${STATE_CLASS[state]}`}
       aria-label={LABELS[state]}
       title={LABELS[state]}
       aria-pressed={state === "recording"}
+      aria-busy={state === "transcribing"}
       disabled={state === "transcribing" || (isDisabled && state === "idle")}
       onClick={toggle}
     >

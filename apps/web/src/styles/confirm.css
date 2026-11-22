@@ -1,0 +1,166 @@
+/* Onay penceresi: karartılmış sayfanın ortasında krem kart. Açık yüzey jetonları tokens.css'te. */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: max(var(--space-6), env(safe-area-inset-top)) max(var(--space-6), env(safe-area-inset-right))
+    max(var(--space-6), env(safe-area-inset-bottom)) max(var(--space-6), env(safe-area-inset-left));
+  background: var(--color-scrim);
+  animation: fade var(--duration-base) var(--ease-out-expo);
+}
+
+.confirm {
+  display: grid;
+  gap: var(--space-5);
+  width: min(100%, 26rem);
+  padding: var(--space-8);
+  border-radius: var(--radius-tile);
+  background: var(--cream);
+  box-shadow: 0 24px 64px rgb(4 8 24 / 55%);
+  animation: confirm-in var(--duration-base) var(--ease-out-expo);
+}
+
+.confirm h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.confirm p {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: var(--leading-body);
+}
+
+/* Dar ekranda düğmeler alt alta ve tam genişlikte; asıl eylem üstte kalır. */
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.confirm-actions button {
+  display: inline-flex;
+  flex: 1 1 9rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: var(--touch-size);
+  padding: 0 var(--space-7);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: transform var(--ease);
+}
+
+.confirm-actions button:active {
+  transform: scale(0.98);
+}
+
+.confirm-cancel {
+  border-color: var(--color-line);
+  background: transparent;
+  color: var(--color-text);
+}
+
+.confirm-accept {
+  background: var(--navy-900);
+  color: var(--white);
+}
+
+.confirm-accept.is-danger {
+  background: var(--color-bad);
+}
+
+@media (hover: hover) {
+  .confirm-cancel:hover {
+    background: var(--color-chip);
+  }
+
+  .confirm-accept:hover {
+    filter: brightness(1.15);
+  }
+}
+
+@keyframes confirm-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+
+/* Kapanış: açılışın tersi. Süre ConfirmDialog.tsx'teki CONFIRM_EXIT_MS ile aynı; son kare
+   kalır, karar bildirilip pencere kaldırılana kadar geri belirmez. */
+.confirm-backdrop.is-closing {
+  animation: confirm-fade-out 180ms var(--ease-out-expo) forwards;
+}
+
+.confirm-backdrop.is-closing .confirm {
+  animation: confirm-out 180ms var(--ease-out-expo) forwards;
+}
+
+@keyframes confirm-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes confirm-out {
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+
+/* Dar ekran: pencere alttan açılan sayfa olur; düğmeler başparmağın erişiminde kalır. */
+@media (max-width: 640px) {
+  .confirm-backdrop {
+    place-items: end stretch;
+    padding: 0;
+  }
+
+  .confirm {
+    width: 100%;
+    padding: var(--space-8) max(var(--space-7), env(safe-area-inset-right))
+      max(var(--space-7), env(safe-area-inset-bottom)) max(var(--space-7), env(safe-area-inset-left));
+    border-radius: var(--radius-tile) var(--radius-tile) 0 0;
+    animation-name: confirm-sheet-in;
+    animation-duration: var(--duration-slow);
+  }
+
+  /* Tutamaç: sayfanın alttan geldiğini ve kapatılabildiğini gösterir. */
+  .confirm::before {
+    content: "";
+    justify-self: center;
+    width: 2.5rem;
+    height: 4px;
+    margin-top: calc(-1 * var(--space-5));
+    border-radius: var(--radius-pill);
+    background: var(--color-line);
+  }
+
+  .confirm-backdrop.is-closing .confirm {
+    animation-name: confirm-sheet-out;
+  }
+}
+
+@keyframes confirm-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes confirm-sheet-out {
+  to {
+    transform: translateY(100%);
+  }
+}

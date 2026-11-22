@@ -1,0 +1,475 @@
+/* Sesli mod: üstte gezinme, solda ses halkası ve durum, sağda duyulan soru ve cevap kartı.
+   Yerleşim pencereye değil sesli modun kendi alanına bakar (kapsayıcı sorgusu): yanında açık
+   çekmece varken de doğru düzene geçer. Dikey ve dar alanda alt alta, yatayda yan yana.
+   Halkanın dört hali biçimle de ayrılır, yalnız renkle değil: dinliyor (mercan çerçeve, dışa
+   açılan hale, sesle oynayan çubuklar), bakıyor (kesikli dönen çerçeve, üç nokta), konuşuyor
+   (dolu krem daire, hoparlör, dalga), anlayamadı (ince gri çerçeve, çubuksuz büyük mikrofon). */
+
+/* Alan ve ızgara. Gezinme düğmeleri DOM'da gövdeden sonradır (ilk odak halka); burada üste yerleşir. */
+.talk {
+  --talk-gutter: clamp(var(--space-6), 3vw, var(--space-10));
+  --talk-pill-height: calc(var(--touch-size) + var(--space-2));
+
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  container: talk / size;
+  display: grid;
+  grid-template:
+    "close title write" auto
+    "body body body" minmax(0, 1fr)
+    / auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4) var(--space-5);
+  padding: max(var(--space-6), env(safe-area-inset-top))
+    max(var(--talk-gutter), env(safe-area-inset-right))
+    max(var(--talk-gutter), env(safe-area-inset-bottom))
+    max(var(--talk-gutter), env(safe-area-inset-left));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--color-page);
+  animation: fade var(--ease);
+}
+
+/* Geniş ekranda açık belge ve kaynak panelleri sesli modun yanında kalır (çalışma alanı). */
+@media (min-width: 1080px) {
+  .layout:has(.drawer.is-left:not([hidden])) .talk {
+    left: var(--rail-width);
+  }
+
+  .layout:has(.drawer.is-right:not([hidden])) .talk {
+    right: var(--source-width);
+  }
+}
+
+/* Üst sıra */
+.talk-top {
+  display: contents;
+}
+
+.talk-top > :first-child {
+  grid-area: close;
+}
+
+.talk-top > :last-child {
+  grid-area: write;
+}
+
+.talk-title {
+  grid-area: title;
+  overflow: hidden;
+  color: var(--color-muted);
+  font-size: var(--text-lg);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Hap düğme: base.css'teki .ghost'un sesli moddaki büyük hali (eldivenle basılır). */
+.talk-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-height: var(--talk-pill-height);
+  padding-inline: var(--space-7);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .talk-pill:hover {
+    background: var(--color-raised-hover);
+  }
+}
+
+.talk-pill .talk-icon {
+  flex: none;
+  width: var(--text-2xl);
+  height: var(--text-2xl);
+}
+
+/* Gövde: iki sütun; sağ sütun kendi içinde kayar, halka hep görünür kalır. */
+.talk-body {
+  grid-area: body;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) min(30rem, 48%);
+  grid-template-rows: minmax(0, 1fr);
+  align-self: stretch;
+  align-items: center;
+  align-items: safe center;
+  gap: clamp(var(--space-6), 4cqi, var(--space-10));
+}
+
+.talk-stage {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.talk-side {
+  display: grid;
+  align-content: center;
+  align-content: safe center;
+  gap: var(--space-7);
+  max-height: 100%;
+  overflow-y: auto;
+  /* Kayan alanın kenarında odak çerçevesi kesilmesin. */
+  padding: var(--space-3);
+}
+
+/* Halka: bütün parçalar tek --ring-size ölçüsünden türer. */
+.talk-ring {
+  --level: 0;
+  --ring-size: clamp(7rem, min(30cqi, 40cqb), 21rem);
+  --ring-pct: calc(var(--ring-size) / 100);
+  --ring-border: max(4px, calc(var(--ring-pct) * 3));
+  --wave-height: calc(var(--ring-pct) * 19);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--ring-pct) * 5);
+  width: var(--ring-size);
+  aspect-ratio: 1;
+  /* Dışa açılan hale ve odak çerçevesi için yer. */
+  margin-block: calc(var(--ring-pct) * 7);
+  padding: 0;
+  border: var(--ring-border) solid var(--coral);
+  border-radius: var(--radius-round);
+  background: var(--color-raised);
+  color: var(--coral);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .talk-ring:not(:disabled):hover {
+    transform: scale(1.02);
+  }
+}
+
+/* Mercan çerçeve üstünde mercan odak görünmez; halka için açık renk. */
+.talk-ring:focus-visible {
+  outline: 3px solid var(--color-text);
+  outline-offset: var(--space-3);
+}
+
+.talk-ring:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.talk-ring::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--ring-border) * -1);
+  border-radius: var(--radius-round);
+  pointer-events: none;
+}
+
+/* Hata sonrası döngü durdu: hale ya da dönen çerçeve "sürüyor" demesin. */
+.talk-ring:disabled:not(.is-starting)::before {
+  display: none;
+}
+
+.talk-ring .talk-icon {
+  width: max(1.5rem, calc(var(--ring-pct) * 14));
+  height: max(1.5rem, calc(var(--ring-pct) * 14));
+}
+
+.talk-wave,
+.talk-dots {
+  display: flex;
+  align-items: center;
+  height: var(--wave-height);
+}
+
+.talk-wave {
+  gap: calc(var(--ring-pct) * 1.8);
+}
+
+.talk-wave span {
+  display: block;
+  width: calc(var(--ring-pct) * 2.4);
+  height: calc(var(--weight) * var(--wave-height));
+  border-radius: var(--radius-pill);
+  background: currentcolor;
+  transform: scaleY(calc(0.25 + var(--level) * 0.75));
+  /* Ses düzeyi örneklemesine yetişecek kadar kısa. */
+  transition: transform 80ms linear;
+}
+
+.talk-dots {
+  display: none;
+  gap: calc(var(--ring-pct) * 4);
+}
+
+.talk-dots span {
+  display: block;
+  width: calc(var(--ring-pct) * 4.7);
+  aspect-ratio: 1;
+  border-radius: var(--radius-round);
+  background: var(--color-text);
+  animation: talk-dot 1.2s ease-in-out infinite;
+}
+
+.talk-dots span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.talk-dots span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+/* Dinliyor (ve açılıyor): dışa açılan hale. */
+.talk-ring.is-listening::before,
+.talk-ring.is-starting::before {
+  border: calc(var(--ring-border) * 0.4) solid var(--coral);
+  animation: talk-pulse 1.8s ease-out infinite;
+}
+
+/* Bakıyor: çerçeve kesikli ve döner; çubuk yerine üç nokta. */
+.talk-ring.is-thinking {
+  border-color: transparent;
+  color: var(--color-muted);
+}
+
+.talk-ring.is-thinking::before {
+  border: calc(var(--ring-border) * 0.8) dashed var(--color-muted);
+  animation: talk-spin 6s linear infinite;
+}
+
+.talk-ring.is-thinking .talk-icon,
+.talk-ring.is-thinking .talk-wave {
+  display: none;
+}
+
+.talk-ring.is-thinking .talk-dots {
+  display: flex;
+}
+
+/* Konuşuyor: dolu krem daire, kendi kendine oynayan dalga. */
+.talk-ring.is-speaking {
+  border-color: var(--cream);
+  background: var(--cream);
+  color: var(--navy-900);
+}
+
+.talk-ring.is-speaking .talk-wave span {
+  animation: talk-wave 900ms ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * 110ms);
+}
+
+/* Anlayamadı: ince gri çerçeve; dinleme sürdüğü için mikrofon üstü çizili değil. */
+.talk-ring.is-not-heard {
+  border-width: max(2px, calc(var(--ring-border) * 0.5));
+  border-color: var(--color-muted);
+  color: var(--color-muted);
+}
+
+.talk-ring.is-not-heard .talk-wave {
+  display: none;
+}
+
+.talk-ring.is-not-heard .talk-icon {
+  width: calc(var(--ring-pct) * 19);
+  height: calc(var(--ring-pct) * 19);
+}
+
+/* Durum ve ipucu */
+.talk-status {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(var(--text-3xl), 1.25rem + 2.5cqi, 3rem);
+  font-weight: var(--weight-semibold);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.talk-hint {
+  max-width: 32ch;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: clamp(var(--text-lg), 0.875rem + 1cqi, var(--text-2xl));
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+/* Duyduğum: kutu yok, büyük yazı yeter. */
+.talk-heard {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.talk-heard h3 {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.talk-heard-text {
+  margin: 0;
+  font-size: clamp(var(--text-2xl), 1rem + 2cqi, var(--text-3xl));
+  font-weight: var(--weight-medium);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.talk-heard-text code {
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-small);
+  background: var(--navy-600);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  font-weight: var(--weight-semibold);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.talk-heard-empty {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: clamp(var(--text-lg), 0.875rem + 1cqi, var(--text-2xl));
+  line-height: 1.45;
+}
+
+.talk-heard .talk-pill {
+  justify-self: start;
+}
+
+/* Cevap kartı (turn.css'in): sesli modda tam genişlik, soru "Duyduğum"da olduğu için yinelenmez. */
+.talk-turn .turn {
+  max-width: none;
+  animation: none;
+}
+
+.talk-turn .question {
+  display: none;
+}
+
+/* Dikey ve dar alan (telefon, tablet dikey, iki çekmece açık): alt alta; halka ve durum üstte,
+   gövde kayar, gezinme sabit kalır. */
+@container talk (max-width: 62.5rem) and (orientation: portrait) {
+  .talk-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    align-content: start;
+    align-items: start;
+    gap: var(--space-8);
+    overflow-y: auto;
+    padding: var(--space-3);
+  }
+
+  .talk-ring {
+    --ring-size: clamp(9rem, min(48cqi, 34cqb), 21rem);
+  }
+
+  .talk-side {
+    align-content: start;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+  }
+}
+
+/* Alçak alan (telefon yatay): halka, durum ve ipucu kırpılmadan sığsın. */
+@container talk (max-height: 30rem) {
+  .talk-stage {
+    gap: var(--space-2);
+  }
+
+  .talk-status {
+    font-size: var(--text-3xl);
+  }
+
+  .talk-hint {
+    font-size: var(--text-md);
+  }
+}
+
+/* Başlık yer kalmayınca görsel olarak gizlenir (ekran okuyucuda kalır); daha da darda
+   gezinme düğmeleri yalnız simge olur, adları erişilebilir ad olarak kalır. */
+@container talk (max-width: 30rem) {
+  .talk-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+  }
+}
+
+@container talk (max-width: 28rem) {
+  .talk-top .talk-pill {
+    min-width: var(--talk-pill-height);
+    padding-inline: 0;
+  }
+
+  .talk-pill-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@keyframes talk-wave {
+  from {
+    transform: scaleY(0.25);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes talk-pulse {
+  from {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes talk-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+@keyframes talk-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-40%);
+  }
+}
+
+/* Azaltılmış hareket (animasyonlar motion.css'te kapanır): haller durağan biçimle ayrılır.
+   Dinlerken hale sabit ikinci çerçeve olur; çubuklar sesle oynamaz, sabit dalga çizer. */
+@media (prefers-reduced-motion: reduce) {
+  .talk-wave span {
+    transform: scaleY(0.5);
+  }
+
+  .talk-ring.is-listening::before,
+  .talk-ring.is-starting::before {
+    opacity: 0.5;
+  }
+}

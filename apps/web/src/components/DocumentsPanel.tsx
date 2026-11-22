@@ -9,6 +9,8 @@ import {
   type DocumentReport,
 } from "../api";
 import { groupDocuments } from "../documentGroups";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { Icon } from "./Icon";
 import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES, uploadLimitMessage } from "../limits";
 
 const POLL_MILLISECONDS = 3000;
@@ -20,7 +22,7 @@ const STATUS_LABELS: Record<DocumentInfo["status"], string | null> = {
   processing: "İşleniyor",
   ready: null,
   failed: "Hata",
-  // Belge bozuk değil: taranmış sayfaların okuyucusu yok; gelince "Yeniden işle" ile okunur.
+  // Belge bozuk değil: taranmış sayfaların okuyucusu yok; gelince "Yeniden İşle" ile okunur.
   waiting_reader: "Okuyucu bekleniyor",
 };
 // Bu kadar ya da daha az belgeli grup açık başlar; kalabalık grup başlığıyla gelir.
@@ -34,11 +36,27 @@ function needsAttention(document: DocumentInfo): boolean {
   return document.status !== "ready" || document.outdated === true;
 }
 
-function confirmDeletion(title: string): boolean {
-  return window.confirm(
-    `"${title}" silinsin mi? Belge, parçaları ve dosyaları kalıcı olarak silinir.`,
-  );
-}
+/** Onay bekleyen işlem: ikisi de belgenin dizinini değiştirir, yanlış dokunuşla başlamamalı. */
+type PendingAction = { kind: "reprocess" | "delete"; document: DocumentInfo };
+
+const CONFIRMATIONS = {
+  reprocess: {
+    question: "yeniden işlensin mi?",
+    body:
+      "Belge baştan okunur; parçaları ve arama dizini yenilenir. Bitene kadar belge işleniyor " +
+      "görünür. Taranmış belgelerde dakikalar sürebilir.",
+    confirmLabel: "Yeniden İşle",
+    confirmIcon: "refresh",
+    action: reprocessDocument,
+  },
+  delete: {
+    question: "silinsin mi?",
+    body: "Belge, parçaları ve dosyaları kalıcı olarak silinir.",
+    confirmLabel: "Sil",
+    confirmIcon: "trash",
+    action: deleteDocument,
+  },
+} as const;
 
 function DocumentNotes({ title, report }: { title: string; report: DocumentReport }) {
   if (report.warnings.length === 0 && report.uncertain_values === 0) {
@@ -83,8 +101,8 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
   const [listError, setListError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toggled, setToggled] = useState<Record<string, boolean>>({});
-
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [pending, setPending] = useState<PendingAction | null>(null);
 
   useEffect(() => {
     // Liste gelmeden sayı gösterilmez: "0 belge" yanlış izlenim verir.
@@ -165,9 +183,10 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
     }
   }
 
-  function handleDelete(document: DocumentInfo) {
-    if (confirmDeletion(document.title)) {
-      void runAction(document, deleteDocument);
+  function confirmPending() {
+    if (pending !== null) {
+      setPending(null);
+      void runAction(pending.document, CONFIRMATIONS[pending.kind].action);
     }
   }
 
@@ -180,16 +199,20 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
       <header className="drawer-header">
         <h2>Belgeler</h2>
         <button type="button" className="ghost" onClick={onClose}>
+          <Icon name="close" />
           Kapat
         </button>
       </header>
       <label className={`upload ${isUploading ? "is-busy" : ""}`}>
-        <span>{isUploading ? "Yükleniyor" : "Belge ekle"}</span>
+        <span>
+          {!isUploading && <Icon name="plus" />}
+          {isUploading ? "Yükleniyor" : "Belge Ekle"}
+        </span>
         <input
           ref={uploadInput}
           type="file"
           accept={ACCEPTED_TYPES}
-          aria-label="Belge yükle"
+          aria-label="Belge Yükle"
           disabled={isUploading}
           onChange={(event) => void handleFile(event)}
         />
@@ -223,8 +246,8 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
                     key={document.doc_id}
                     document={document}
                     isBusy={busyId !== null}
-                    onReprocess={() => void runAction(document, reprocessDocument)}
-                    onDelete={() => handleDelete(document)}
+                    onReprocess={() => setPending({ kind: "reprocess", document })}
+                    onDelete={() => setPending({ kind: "delete", document })}
                   />
                 ))}
               </ul>
@@ -234,6 +257,17 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
       </ul>
       {documents.length === 0 && listError === null && (
         <p className="muted">Soru sormak için önce bir belge ekleyin.</p>
+      )}
+      {pending !== null && (
+        <ConfirmDialog
+          title={`"${pending.document.title}" ${CONFIRMATIONS[pending.kind].question}`}
+          body={CONFIRMATIONS[pending.kind].body}
+          confirmLabel={CONFIRMATIONS[pending.kind].confirmLabel}
+          confirmIcon={CONFIRMATIONS[pending.kind].confirmIcon}
+          isDanger={pending.kind === "delete"}
+          onConfirm={confirmPending}
+          onCancel={() => setPending(null)}
+        />
       )}
     </div>
   );
@@ -251,39 +285,44 @@ function DocumentRow({
   onDelete: () => void;
 }) {
   const status = STATUS_LABELS[document.status];
-  // Sırada bekleyen ya da işlenen belgenin eski raporu yakında yenilenir; uyarı gösterilmez.
-  const outdated = document.outdated === true && !isPending(document);
   const pending = isPending(document);
+  // Sırada bekleyen ya da işlenen belgenin eski raporu yakında yenilenir; uyarı gösterilmez.
+  const outdated = document.outdated === true && !pending;
   return (
     <li className="document">
       <span className="document-title" title={document.filename}>
         {document.title}
       </span>
-      <span className="document-badges">
-        {status !== null && <span className={`status is-${document.status}`}>{status}</span>}
-        {outdated && <span className="status is-outdated">Eski kural</span>}
-      </span>
-      {/* Düğmeler hep başlığın hemen altında ve aynı sırada durur; durum değişince yer değiştirmez.
-          Kullanılamayan düğme gizlenmez, pasif görünür: yanlış düğmeye basılmasın. */}
-      <div className="document-actions">
-        <button
-          type="button"
-          aria-label={`${document.title} belgesini yeniden işle`}
-          disabled={isBusy || pending}
-          title={pending ? "Belge işlenirken yeniden işlenemez." : undefined}
-          onClick={onReprocess}
-        >
-          Yeniden işle
-        </button>
-        <button
-          type="button"
-          className="is-danger"
-          aria-label={`${document.title} belgesini sil`}
-          disabled={isBusy}
-          onClick={onDelete}
-        >
-          Sil
-        </button>
+      {/* Durum ve düğmeler hep başlığın hemen altında, aynı satırda ve aynı sırada durur; durum
+          değişince yer değiştirmez. Kullanılamayan düğme gizlenmez, pasif görünür: yanlış düğmeye
+          basılmasın. */}
+      <div className="document-meta">
+        <span className="document-badges">
+          {status !== null && <span className={`status is-${document.status}`}>{status}</span>}
+          {outdated && <span className="status is-outdated">Eski kural</span>}
+        </span>
+        <div className="document-actions">
+          <button
+            type="button"
+            aria-label={`${document.title} Belgesini Yeniden İşle`}
+            disabled={isBusy || pending}
+            title={pending ? "Belge işlenirken yeniden işlenemez." : undefined}
+            onClick={onReprocess}
+          >
+            <Icon name="refresh" size={15} />
+            Yeniden İşle
+          </button>
+          <button
+            type="button"
+            className="is-danger"
+            aria-label={`${document.title} Belgesini Sil`}
+            disabled={isBusy}
+            onClick={onDelete}
+          >
+            <Icon name="trash" size={15} />
+            Sil
+          </button>
+        </div>
       </div>
       {document.error !== null && <span className="document-error">{document.error}</span>}
       {document.report !== null && (

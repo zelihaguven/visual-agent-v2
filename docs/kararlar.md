@@ -978,6 +978,64 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Bilinen sınır:** Cümledeki tek düz sayı cevabın kendisi olmayabilir ("Rev 2", boşluklu kod
   "GML 6473"); değer büyük, cümle altında görünür.
 
+### Arayüz yenileme: sade açılış, belgeler menüsü, duyarlı tasarım, Title Case düğmeler
+- **Ne zaman:** 2026-11-22, `arayuz-yenileme` dalı; ürün sahibi isteği. 16 Kasım kaydındaki
+  "bento karolar (… krem 'Yazarak sor' …)" ve "metinler ve erişilebilirlik adları değişmedi"
+  cümlelerinin yerini alır. Renk paleti ve sistem yazı tipi aynı (harici yazı tipi yok).
+- **Ne değişti (yalnız `apps/web`; doğrulama, ses döngüsü, sunucu ve RAG aynı):**
+  - **Açılış:** "Yazarak Sor" karosu kalktı (yalnız üstündeki soru kutusuna odak veriyordu); soru
+    kutusu asıl yol, büyük mercan "Sesli Sor" ve sakin "Belge Ekle" kaldı. Mikrofon yoksa "Sesli
+    Sor" görünmez. "N belge hazır" hapı kalktı: sayı "Belgeler" düğmesinde; durum satırı yalnız
+    hata, işlenen belge ya da hiç belge yokken ("Henüz belge yok.") görünür.
+  - **Belgeler menüsü:** kayarak açılır, içerik kısa bir kademeyle oturur (yalnız dönüşüm ve
+    opaklık; yeniden çizimde tekrarlanmaz). Satırlar kutusuz; "Yeniden İşle" ve "Sil" ince
+    imleçte üstüne gelince ya da odakla belirir, dokunmatikte hep görünür (48 px). Grup sayısı
+    çip değil düz rakam. 1080 px altında menü iletişim kutusudur (`role="dialog"`, Tab içeride
+    döner); üstünde sayfanın parçası.
+  - **Düğme adları Title Case** ("Ana Sayfa", "Yeniden İşle", "Tüm Belgelerde Ara"); durum
+    metinleri, ipuçları, rozet ve uyarı metinleri değişmedi. Sesli modda iki ipucu genişledi:
+    "Kaynaklarda arıyorum. Vazgeçmek için halkaya basın." ve "Araya girip konuşursanız ya da
+    halkaya basarsanız susarım."; başlık "Sesli mod" (", eller serbest" kalktı).
+  - **Rozetler:** doğrulama, "Taramadan okundu", gizlenen cümle ve belge durumu rozetleri aynen
+    duruyor; durum rozetine simge eklendi (onay, ünlem, çarpı: yalnız renkle anlatılmaz). Süs
+    niteliğindeki sayı çipleri ve "BAĞLAM" etiketi sadeleşti.
+  - **Büyük değer** asla satıra bölünmez ve kesik görünmez: yazı, değerin bütün karakterleri
+    karta sığacak kadar küçülür (320 px'te 10 haneli sayı sığar; kod incelemesinde bulundu,
+    eskiden kart dışına taşıyor ya da kesik görünebiliyordu).
+  - **Duyarlı tasarım:** 320–1920 px. Sesli modda yerleşim pencereye değil kendi alanına bakar
+    (telefon yatayda yan yana, dikeyde alt alta; halka boyutu akışkan).
+  - **Sesli moddan çıkış:** sol üstteki düğme "Sesli Modu Kapat" (çarpı simgesi; önce "Ana
+    Sayfa" ve ev simgesiydi). Uzun ad 375 px'te ikinci düğmeyi ekran dışına itiyordu; düğmeler
+    alan 28rem'in altına inince yalnız simge olur (önce 21rem). Pay, sistem yazı tipinin
+    Windows ve Android'de daha geniş olabileceği için bırakıldı.
+  - **Onay penceresi:** "Yeniden İşle" ve "Sil" artık sorar (`ConfirmDialog.tsx`; tarayıcının
+    `confirm` kutusu kalktı). Yeniden işleme tek dokunuşla başlıyordu; belgeyi baştan okur,
+    parçalarını ve arama dizinini yeniler, taranmış belgede dakikalar sürer. Odak "Vazgeç"te
+    başlar, Escape pencereyi kapatır (arkadaki menüyü değil). Kapanışı da animasyonludur (karar
+    animasyon bitince bildirilir); 640 px altında alttan açılan sayfadır.
+  - **Belgeler paneli kapalı başlar** (geniş ekranda da): 16 Kasım'daki "belgeler paneli açık
+    başlar" maddesinin yerini alır; açılış soru kutusuna ayrılır, liste "Belgeler" ile açılır.
+  - **Düğme simgeleri:** ortak `Icon.tsx` (çizgi simgeler, ekran okuyucuya okunmaz): "Kapat",
+    "Belgeler", "Belge Ekle", "Yeniden İşle", "Sil", "Yeni Konu", "Tüm Belgelerde Ara", "Tekrar
+    Söyleyeceğim" ve onay penceresinin düğmeleri. "Sor" simgesiz kaldı (dar telefonda yer yok).
+  - **Marka ve atmosfer:** sol üstte mercan yıldız ve iki tonlu "Visual Agent"; sekme simgesi
+    aynı yıldız (satır içi SVG, ayrı dosya yok); arka planda yörünge halkaları, küçük yıldızlar
+    ve sağ altta soğuk mavi parıltı. Soru kutusunun yer tutucusu "Sorunuzu yazın…"; sesli mod
+    başlığı "Sesli Mod".
+  - **Kod:** `App.css` (1.678 satır) `src/styles/` altında 11 dosyaya bölündü (içe aktarma sırası
+    basamaklamayı korur); ortak boşluk, yazı ve süre jetonları. `TurnView.tsx` 511 → 240 satır
+    (`FinalAnswer.tsx`, `Citations.tsx`); `TopBar.tsx`; kırılım sabiti `layout.ts`.
+- **Doğrulanan:** ekran görüntüsüyle 320, 375, 768, 1024, 1440 px'te açılış, menü, cevap kartı,
+  kaynak paneli ve sesli modun yerleşimi; yatay kayma yok. Arayüz testleri 159 geçti.
+- **Doğrulanmadı:** animasyonların hareketi (menü açılışı, halka), gerçek mikrofonla sesli mod,
+  azaltılmış hareket, Safari ve Firefox, gerçek tablet. Kapsayıcı sorguları Chrome 105+,
+  Safari 16+, Firefox 110+ ister.
+- **Bilinen kalanlar (kod incelemesi; çoğu önceden de vardı):** sesli mod açılınca odak halkaya
+  taşınmıyor ve Tab sırası görsel sıradan farklı; menü açıkken ekran 1080 px altına inerse odak
+  dışarıda kalıyor; geniş ekranda kendiliğinden açılan kaynak paneli odağı soru kutusundan
+  alıyor; menü kapanırken sayfa dolgusu geçiş bitmeden kalkıyor; 320 px'te soru kutusunun yer
+  tutucusu "Sorunuzu ya…" diye kısalıyor.
+
 ### İnternetsiz açılış: VA_MODELS_OFFLINE; BM25 önbelleği kalıcı klasörde
 - **Ne zaman:** 2026-11-13, `cevrimdisi-acilis` dalı; ürün sahibi isteği (fabrika ağında
   internet olmayabilir).

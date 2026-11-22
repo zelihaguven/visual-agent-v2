@@ -1,4 +1,5 @@
 import type { ConversationContext } from "../api";
+import { Icon } from "./Icon";
 
 type Props = {
   context: ConversationContext;
@@ -15,7 +16,8 @@ export function ContextBar({ context, onClear }: Props) {
         <span className="context-question">{context.question}</span>
       </p>
       <button type="button" className="ghost" onClick={onClear}>
-        Yeni konu
+        <Icon name="plus" />
+        Yeni Konu
       </button>
     </div>
   );

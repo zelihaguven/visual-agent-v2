@@ -1,0 +1,257 @@
+/* Soru kutusu: açılışta sayfanın ağırlık merkezi, sohbette altta sabit (ızgaranın son satırı,
+   içeriğin üstüne binmez). */
+.composer-area {
+  display: grid;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: var(--content-width);
+  justify-self: center;
+  padding: var(--space-4) max(var(--gutter), env(safe-area-inset-right))
+    max(var(--space-6), env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+}
+
+.is-landing .composer-area {
+  max-width: var(--content-width-narrow);
+  padding-bottom: 0;
+}
+
+/* Izgara öğeleri içeriklerinin doğal genişliğine kilitlenmesin: dar ekranda taşmaz. */
+.composer-area > * {
+  min-width: 0;
+}
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  background: var(--color-raised);
+  transition:
+    border-color var(--ease),
+    box-shadow var(--ease);
+}
+
+.is-landing .composer {
+  box-shadow: 0 18px 48px rgb(4 8 24 / 45%);
+}
+
+/* Odak kutunun tamamında görünür: metin alanının kendi halkası yerine mercan çerçeve. */
+.composer:focus-within {
+  border-color: var(--focus-ring-color);
+  box-shadow: 0 0 0 1px var(--focus-ring-color);
+}
+
+.is-landing .composer:focus-within {
+  box-shadow:
+    0 0 0 1px var(--focus-ring-color),
+    0 18px 48px rgb(4 8 24 / 45%);
+}
+
+.composer input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--touch-size);
+  padding: var(--space-4);
+  border: 0;
+  background: transparent;
+  font-size: var(--text-lg);
+  text-overflow: ellipsis;
+}
+
+.composer input::placeholder {
+  color: var(--color-muted);
+  opacity: 1;
+}
+
+.composer input:focus-visible {
+  outline: none;
+}
+
+.is-landing .composer input {
+  min-height: 56px;
+}
+
+.composer button {
+  flex: none;
+  min-width: 76px;
+  min-height: var(--touch-size);
+  padding: 0 var(--space-7);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--coral);
+  color: var(--color-on-accent);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  transition:
+    background-color var(--ease),
+    color var(--ease),
+    opacity var(--ease),
+    transform var(--ease);
+}
+
+.is-landing .composer button {
+  min-height: 56px;
+}
+
+@media (hover: hover) {
+  .composer button:not(.icon-button):not(:disabled):hover {
+    filter: brightness(1.08);
+  }
+}
+
+.composer .icon-button {
+  display: grid;
+  place-items: center;
+  width: var(--touch-size);
+  min-width: var(--touch-size);
+  min-height: var(--touch-size);
+  padding: 0;
+  background: transparent;
+  color: var(--color-muted);
+}
+
+.is-landing .composer .icon-button {
+  width: 52px;
+  min-width: 52px;
+  min-height: 52px;
+}
+
+@media (hover: hover) {
+  .composer .icon-button:not(:disabled):hover {
+    background: var(--color-raised-hover);
+    color: var(--color-text);
+  }
+}
+
+/* 380px altı telefon: düğmeler dokunma boyunda kalır, aralarındaki boşluk daralır ki yer tutucu
+   ("Sorunuzu yazın…") olabildiğince sığsın. */
+@media (max-width: 380px) {
+  .composer {
+    gap: 0;
+    padding-left: var(--space-3);
+  }
+
+  .composer input {
+    padding-inline: var(--space-3);
+    font-size: var(--text-base);
+  }
+
+  .composer button:not(.icon-button) {
+    min-width: 60px;
+    padding: 0 var(--space-5);
+  }
+
+  .is-landing .composer .icon-button {
+    width: var(--touch-size);
+    min-width: var(--touch-size);
+  }
+}
+
+.composer .icon-button:not(:disabled):active {
+  background: var(--color-raised-hover);
+}
+
+/* Kayıt sürüyor: dolu mercan ve yavaş nabız; renk tek başına durumu taşımaz, etiket de değişir. */
+.composer .icon-button.is-active {
+  position: relative;
+  background: var(--coral);
+  color: var(--color-on-accent);
+}
+
+/* Nabız halkası yalnız dönüşüm ve opaklıkla; hareket kapalıysa görünmez kalır. */
+.composer .icon-button.is-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--coral);
+  border-radius: var(--radius-round);
+  opacity: 0;
+  animation: mic-pulse 1.6s var(--ease-out-expo) infinite;
+}
+
+/* Yazıya çevriliyor: düğme kapalı ama dönen halka beklendiğini gösterir. */
+.composer .icon-button.is-busy {
+  position: relative;
+}
+
+.composer .icon-button.is-busy::after {
+  content: "";
+  position: absolute;
+  inset: var(--space-2);
+  border: 2px solid transparent;
+  border-top-color: currentcolor;
+  border-radius: var(--radius-round);
+  animation: spin 0.9s linear infinite;
+}
+
+.composer .stop-button {
+  background: var(--white);
+}
+
+.composer button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.composer .icon-button.is-busy:disabled {
+  opacity: 0.8;
+  cursor: progress;
+}
+
+.composer-notice {
+  margin: 0;
+  padding: 0 var(--space-6);
+}
+
+/* Bağlam çubuğu: soru kutusunun üstünde süren konuyu sessizce gösterir. Uzun başlık ve soru
+   tek satırda kısalır; tam metni ekran okuyucu yine okur. */
+.context-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-6);
+  border-radius: var(--radius);
+  background: rgb(255 255 255 / 4%);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.context-bar p {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+}
+
+.context-bar p > * {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.context-label {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
+.context-bar strong {
+  font-weight: var(--weight-semibold);
+}
+
+/* Belge adı varsa soru ikinci satıra iner. */
+.context-bar strong + .context-question {
+  grid-column: 1 / -1;
+}
+
+.context-question {
+  color: var(--color-muted);
+}
+
+.context-bar .ghost {
+  flex: none;
+}

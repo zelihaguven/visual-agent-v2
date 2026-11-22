@@ -11,13 +11,26 @@ import {
   type SpokenItem,
   type VoicePhrases,
 } from "./api";
-import "./App.css";
+// Sıra basamaklamayı (cascade) korur: sonraki dosya öncekini ezer; değiştirmeden önce bakın.
+import "./styles/tokens.css";
+import "./styles/base.css";
+import "./styles/layout.css";
+import "./styles/landing.css";
+import "./styles/composer.css";
+import "./styles/turn.css";
+import "./styles/drawer.css";
+import "./styles/documents.css";
+import "./styles/source.css";
+import "./styles/confirm.css";
+import "./styles/talk.css";
+import "./styles/motion.css";
 import { ContextBar } from "./components/ContextBar";
 import { ConversationMode } from "./components/ConversationMode";
 import { DocumentsPanel, type DocumentSummary } from "./components/DocumentsPanel";
 import { Drawer } from "./components/Drawer";
 import { MicButton } from "./components/MicButton";
 import { SourcePanel } from "./components/SourcePanel";
+import { TopBar } from "./components/TopBar";
 import { TurnView, type SpeechStatus } from "./components/TurnView";
 import { LandingActions } from "./components/LandingActions";
 import { MAX_QUESTION_CHARS } from "./limits";
@@ -27,8 +40,6 @@ import { applyEvent, newTurn, type Turn } from "./turn";
 
 const ASK_FAILED = "Cevap alınamadı. Bağlantınızı kontrol edip yeniden deneyin.";
 const ASK_STOPPED = "Soru durduruldu.";
-// App.css içindeki çalışma alanı kırılımıyla aynı.
-const WORKSPACE_QUERY = "(min-width: 1080px)";
 
 type AskOptions = {
   context: ConversationContext | null;
@@ -59,10 +70,8 @@ export function App() {
   const [speech, setSpeech] = useState<{ turnId: string; status: SpeechStatus } | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [hasVoiceService, setHasVoiceService] = useState(true);
-  // Geniş ekranda belgeler sohbetin yanında açık başlar; dar ekranda çekmecedir.
-  const [isLibraryOpen, setIsLibraryOpen] = useState(
-    () => window.matchMedia?.(WORKSPACE_QUERY).matches ?? false,
-  );
+  // Belgeler her ekranda kapalı başlar: açılış soru kutusuna ayrılır, liste istenince açılır.
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [summary, setSummary] = useState<DocumentSummary | null>(null);
   const closeLibrary = useCallback(() => setIsLibraryOpen(false), []);
   // Yoklama her turda yeni nesne getirir; sayılar değişmedikçe yeniden çizilmez.
@@ -298,35 +307,16 @@ export function App() {
   }
 
   const isLanding = turns.length === 0;
+  const canTalk = canListen() && hasVoiceService;
   return (
     <div className={`layout ${isLanding ? "is-landing" : "is-asking"}`}>
-      <header className="topbar">
-        {isLanding ? (
-          <span className="brand">Visual Agent</span>
-        ) : (
-          <button
-            type="button"
-            className="home-button"
-            aria-label="Ana sayfaya dön"
-            title="Ana sayfaya dön"
-            onClick={goHome}
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-              <path fill="currentColor" d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3L12 3Z" />
-            </svg>
-            Ana sayfa
-          </button>
-        )}
-        <button
-          type="button"
-          className="library-button"
-          aria-label={summary === null ? "Belgeler" : `Belgeler (${summary.total})`}
-          aria-expanded={isLibraryOpen}
-          onClick={() => setIsLibraryOpen(true)}
-        >
-          Belgeler{summary !== null && <span className="count">{summary.total}</span>}
-        </button>
-      </header>
+      <TopBar
+        isLanding={isLanding}
+        documentCount={summary?.total ?? null}
+        isLibraryOpen={isLibraryOpen}
+        onHome={goHome}
+        onOpenLibrary={() => setIsLibraryOpen(true)}
+      />
       <main className="conversation">
         {isLanding ? (
           <div className="hero">
@@ -369,7 +359,7 @@ export function App() {
               value={draft}
               maxLength={MAX_QUESTION_CHARS}
               autoComplete="off"
-              placeholder="Sorunuzu yazın"
+              placeholder="Sorunuzu yazın…"
               onChange={(event) => {
                 if (event.target.value === "") {
                   draftFromVoice.current = false;
@@ -378,12 +368,12 @@ export function App() {
               }}
             />
             <MicButton isDisabled={isAsking} onTranscript={handleTranscript} onError={setVoiceError} />
-            {canListen() && hasVoiceService && (
+            {canTalk && (
               <button
                 type="button"
                 className="icon-button"
-                aria-label="Konuşma modu"
-                title="Konuşma modu"
+                aria-label="Konuşma Modu"
+                title="Konuşma Modu"
                 onClick={openConversation}
               >
                 <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -406,9 +396,8 @@ export function App() {
           </form>
           {isLanding && (
             <LandingActions
-              canTalk={canListen() && hasVoiceService}
+              canTalk={canTalk}
               summary={summary}
-              onWrite={() => draftInput.current?.focus()}
               onTalk={openConversation}
               onAddDocument={() => {
                 // Aynı tıklama içinde: tarayıcı dosya seçiciyi ancak kullanıcı hareketiyle açar.
