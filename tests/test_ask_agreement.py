@@ -80,6 +80,28 @@ def test_candidate_read_from_a_scan_keeps_the_answer_partially_verified() -> Non
     assert [c.doc_id for c in item.citations] == ["a", "b"]
 
 
+def test_scanned_candidate_with_an_uncertain_value_in_the_quote_is_not_a_match() -> None:
+    """Okuyucunun emin olmadığı değer alıntıdaysa o aday aynı cevabı veriyor sayılmaz (tek
+    belgede cümle gizlenirdi); alıntıda geçmeyen belirsiz değer eşleşmeyi bozmaz."""
+    quoted = TWO_SAME[1].model_copy(update={"from_ocr": True, "ocr_uncertain": ("delivery",)})
+    elsewhere = TWO_SAME[1].model_copy(update={"from_ocr": True, "ocr_uncertain": ("Low",)})
+
+    hidden = _ask(SequenceClient([CLARIFY, _answer(SHARED)]), [TWO_SAME[0], quoted])
+    shown = _ask(SequenceClient([CLARIFY, _answer(SHARED)]), [TWO_SAME[0], elsewhere])
+
+    assert isinstance(hidden.result, Clarify)
+    assert isinstance(shown.result, Answered) and shown.result.status.value == "partial"
+
+
+def test_scanned_first_candidate_still_asks() -> None:
+    """İlk adayın cevabı tam doğrulanmış olmalı; taranmışsa netleştirme sorulur."""
+    scanned = TWO_SAME[0].model_copy(update={"from_ocr": True})
+
+    outcome = _ask(SequenceClient([CLARIFY, _answer(SHARED)]), [scanned, TWO_SAME[1]])
+
+    assert isinstance(outcome.result, Clarify)
+
+
 def test_candidate_read_on_the_legacy_ocr_path_does_not_confirm_the_answer() -> None:
     """Karar 0022: diğer belgede alıntı birebir geçse de parça eski OCR yolundan okunduysa
     cevap doğrulanmış verilmez; netleştirme sorusu kalır."""

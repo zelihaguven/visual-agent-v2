@@ -19,6 +19,7 @@ from visual_agent.generation.parse import ParseFailure, parse_answer
 from visual_agent.generation.sources import build_user_message, to_prompt_sources
 from visual_agent.verification.answer import verify_answer
 from visual_agent.verification.quote import quote_matches
+from visual_agent.verification.text import contains_token, normalize
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,14 @@ def candidate_documents(hits: Sequence[Hit], option_numbers: Sequence[int]) -> l
     return list(dict.fromkeys(hit.chunk.doc_id for hit in hits if hit.chunk.doc_id in chosen))
 
 
+def _unreliable(quote: str, hit: Hit) -> bool:
+    """Eski OCR yolundan okunan parça (karar 0022) ve alıntıdaki değeri belirsiz okunmuş parça
+    eşleşme sayılmaz: tek belgeden gelseydi cümle gizlenirdi, burada netleştirme kalır."""
+    text = normalize(quote)
+    uncertain = any(contains_token(text, normalize(t)) for t in hit.chunk.ocr_uncertain)
+    return hit.chunk.legacy_ocr or uncertain
+
+
 def _shared_hit(quote: str, hits: Sequence[Hit], language_of: LanguageOf) -> Hit | None:
     if len(quote.split()) < MIN_SHARED_QUOTE_WORDS:
         return None
@@ -41,8 +50,7 @@ def _shared_hit(quote: str, hits: Sequence[Hit], language_of: LanguageOf) -> Hit
         (
             hit
             for hit in hits
-            # Eski OCR yolundan okunan parça doğrulanmış cevabın dayanağı olamaz (karar 0022).
-            if not hit.chunk.legacy_ocr
+            if not _unreliable(quote, hit)
             and quote_matches(quote, hit.chunk.text, language_of(hit.chunk.doc_id))
         ),
         None,
