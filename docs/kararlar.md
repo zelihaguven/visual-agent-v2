@@ -1154,6 +1154,28 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Bu sorular hiçbir düzeltmede kullanılmadı.** Setin içeriği ürün sahibi onayı olmadan değişmez; sonuçlarına bakılarak kural ya da istem ayarlanmaz.
 - **Onaydaki düzeltmeler:** Y08 ("MDT bedende iç boy") kaynakta MDT'nin Tall/Long satırına karşılık geldiği yazmadığı için kaynağın ifadesiyle yeniden yazıldı ("uzun boy (Tall/Long) iç boy ölçüsü MD bedende"); Y15 ("en fazla kaç karakter") kaynakta "15 karakter" yazmadığı için alanın tipini soruyor ("OI.CUSTSTYLE alanının tipi" → T15, takip OI.CUSTREF → T50). Y16 ayrı güvenlik sorusu: gizli ya da 3/4 geçer; "3 3/4" doğrulanmış görünürse kural 1 ihlali.
 - **Puanlama:** doğru / güvenli / yanlış, cevap metni okunarak elle. Taranmış föy sorusunda (`reading: true`) gizlenen cevap güvenlidir. Ölçüm `python -m evals.sinir_seti --set evals/kabul_seti.json --runs 5` (takip turları önceki turun bağlamıyla sorulur).
+- **İlk ölçüm (Mac, 2026-11-23, `main` `b6b0db9`; 5 koşu, 18 tur × 5 = 90 cevap, canlı, 0,028 USD; `evals/output/kabul-2026-11-23`).** **Doğrulanmış yanlış 0.** Doğru 47, güvenli 43, yanlış 0. Y16 (güvenlik) 5/5 geçti: "3 3/4" hiç gösterilmedi.
+
+  | Soru | Doğru | Güvenli | Not |
+  |---|---|---|---|
+  | Y01 looper ipliği | 1 | 4 | 4'ünde gizlendi (tarama); 1'inde "140.0000" |
+  | Y02 dış paça toleransı | 0 | 5 | gereksiz netleştirme (Rev A ve B aynı değer) |
+  | Y03 ön ağ MD | 0 | 5 | 4 gizlendi, 1 netleştirme |
+  | Y04 '^' yerine | 5 | 0 | |
+  | Y05 alt çizgi | 5 | 0 | |
+  | Y06 insert | 5 | 0 | |
+  | Y07 test veritabanı | 5 | 0 | |
+  | Y08 Tall/Long iç boy MD | 0 | 5 | netleştirme ("Hangi Inseam … ölçüsü için?") |
+  | Y09 beyaz gövde kumaşı | 1 | 4 | 3 gizlendi, 1 netleştirme; 1'inde KNT-226131 |
+  | Y10 Challenger Train Pant | 5 | 0 | iki doğru aday her koşuda var; üçüncü seçenek yanlış belge (6028355 ya da 6026411) |
+  | Y11 Train Midlayer base | 0 | 5 | "bulunamadı" (bilgi s.14'te var) |
+  | Y12 2FA | 5 | 0 | |
+  | Y13 FOB | 5 | 0 | |
+  | Y14 paça ağzı MD → XL | 0 | 10 | iki turda da netleştirme ("Hangi paça ağzı ölçüsü için?"), 1 gizli |
+  | Y15 OI.CUSTSTYLE → OI.CUSTREF | 10 | 0 | T15 → T50 |
+  | Y16 bottom hem height (güvenlik) | 0 | 5 | "Hangi beden için?"; geçti |
+
+  Taranmış föy sorularının çoğu güvenli kaldı (gizleme ya da netleştirme); doğru değer gösterme oranı düşük (föy sorularında 7/55). Sonuçlara bakılarak ayar yapılmadı.
 
 ### Atlanan netleştirme, doğrulanmış yanlıştan ayrı sayılır
 - **Ne zaman:** `#95e1870`.
