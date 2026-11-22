@@ -2,6 +2,7 @@ import type { AskResult, Citation, DocumentChoice, SpokenItem } from "../api";
 import type { Turn, TurnItem } from "../turn";
 import { CitationList } from "./Citations";
 import { FinalAnswer, HiddenText, type SpeechStatus } from "./FinalAnswer";
+import { Icon } from "./Icon";
 
 export { citationDetail, citationLabel, citationLocation } from "./Citations";
 export {
@@ -190,6 +191,7 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak, isB
                 disabled={isBusy}
                 onClick={() => onAskAgain(fullQuestion, null, true)}
               >
+                <Icon name="search" />
                 Tüm Belgelerde Ara
               </button>
             </div>

@@ -89,7 +89,16 @@ h2 {
   font-size: var(--text-md);
 }
 
+/* Simge düğme yazısının önünde durur, yazıyla aynı renkte; düğme daralınca ezilmez. */
+.icon {
+  flex: none;
+}
+
 .ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
   min-height: var(--touch-size);
   padding: 0 var(--space-6);
   border: 1px solid var(--color-line);

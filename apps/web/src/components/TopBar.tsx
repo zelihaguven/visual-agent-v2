@@ -1,3 +1,5 @@
+import { Icon } from "./Icon";
+
 type Props = {
   isLanding: boolean;
   documentCount: number | null;
@@ -40,6 +42,7 @@ export function TopBar({ isLanding, documentCount, isLibraryOpen, onHome, onOpen
         aria-expanded={isLibraryOpen}
         onClick={onOpenLibrary}
       >
+        <Icon name="folder" />
         Belgeler{documentCount !== null && <span className="count">{documentCount}</span>}
       </button>
     </header>

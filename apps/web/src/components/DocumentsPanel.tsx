@@ -10,6 +10,7 @@ import {
 } from "../api";
 import { groupDocuments } from "../documentGroups";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { Icon } from "./Icon";
 import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES, uploadLimitMessage } from "../limits";
 
 const POLL_MILLISECONDS = 3000;
@@ -45,15 +46,17 @@ const CONFIRMATIONS = {
       "Belge baştan okunur; parçaları ve arama dizini yenilenir. Bitene kadar belge işleniyor " +
       "görünür. Taranmış belgelerde dakikalar sürebilir.",
     confirmLabel: "Yeniden İşle",
+    confirmIcon: "refresh",
     action: reprocessDocument,
   },
   delete: {
     question: "silinsin mi?",
     body: "Belge, parçaları ve dosyaları kalıcı olarak silinir.",
     confirmLabel: "Sil",
+    confirmIcon: "trash",
     action: deleteDocument,
   },
-};
+} as const;
 
 function DocumentNotes({ title, report }: { title: string; report: DocumentReport }) {
   if (report.warnings.length === 0 && report.uncertain_values === 0) {
@@ -196,11 +199,15 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
       <header className="drawer-header">
         <h2>Belgeler</h2>
         <button type="button" className="ghost" onClick={onClose}>
+          <Icon name="close" />
           Kapat
         </button>
       </header>
       <label className={`upload ${isUploading ? "is-busy" : ""}`}>
-        <span>{isUploading ? "Yükleniyor" : "Belge Ekle"}</span>
+        <span>
+          {!isUploading && <Icon name="plus" />}
+          {isUploading ? "Yükleniyor" : "Belge Ekle"}
+        </span>
         <input
           ref={uploadInput}
           type="file"
@@ -256,6 +263,7 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
           title={`"${pending.document.title}" ${CONFIRMATIONS[pending.kind].question}`}
           body={CONFIRMATIONS[pending.kind].body}
           confirmLabel={CONFIRMATIONS[pending.kind].confirmLabel}
+          confirmIcon={CONFIRMATIONS[pending.kind].confirmIcon}
           isDanger={pending.kind === "delete"}
           onConfirm={confirmPending}
           onCancel={() => setPending(null)}
@@ -301,6 +309,7 @@ function DocumentRow({
             title={pending ? "Belge işlenirken yeniden işlenemez." : undefined}
             onClick={onReprocess}
           >
+            <Icon name="refresh" size={15} />
             Yeniden İşle
           </button>
           <button
@@ -310,6 +319,7 @@ function DocumentRow({
             disabled={isBusy}
             onClick={onDelete}
           >
+            <Icon name="trash" size={15} />
             Sil
           </button>
         </div>

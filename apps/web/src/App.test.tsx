@@ -802,7 +802,9 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: "Vazgeç" })).toHaveFocus();
     fireEvent.click(screen.getByRole("button", { name: "Vazgeç" }));
 
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    // Pencere kapanış animasyonu bitince kalkar.
+    expect(screen.getByTestId("confirm-backdrop")).toHaveClass("is-closing");
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(screen.getByText("Föy")).toBeInTheDocument();
     expect(methodCalls(fetchMock, "DELETE")).toEqual([]);
   });
@@ -845,7 +847,7 @@ describe("App", () => {
     fireEvent.click(opener);
     fireEvent.keyDown(screen.getByRole("alertdialog"), { key: "Escape" });
 
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(methodCalls(fetchMock, "POST")).toEqual([]);
     expect(screen.getByRole("heading", { name: "Belgeler" })).toBeVisible();
     expect(opener).toHaveFocus();

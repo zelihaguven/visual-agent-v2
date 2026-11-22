@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { fetchSource, type Citation, type SourceView } from "../api";
 import { citationLocation } from "./Citations";
+import { Icon } from "./Icon";
 
 type LoadState =
   | { kind: "loading"; chunkId: string }
@@ -85,6 +86,7 @@ export function SourcePanel({
           {where && <p className="muted source-location">{where}</p>}
         </div>
         <button type="button" className="ghost" onClick={onClose}>
+          <Icon name="close" />
           Kapat
         </button>
       </header>

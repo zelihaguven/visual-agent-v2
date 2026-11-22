@@ -11,6 +11,7 @@ import {
 } from "../listening";
 import type { AudioQueue } from "../speech";
 import type { Turn } from "../turn";
+import { Icon as LineIcon } from "./Icon";
 import { TurnView } from "./TurnView";
 
 const LEVEL_GAIN = 7;
@@ -347,6 +348,7 @@ export function ConversationMode(props: Props) {
             )}
             {canInterrupt && (
               <button type="button" className="ghost talk-pill" onClick={interrupt}>
+                <LineIcon name="refresh" />
                 Tekrar Söyleyeceğim
               </button>
             )}

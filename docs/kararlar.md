@@ -1007,7 +1007,11 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - **Onay penceresi:** "Yeniden İşle" ve "Sil" artık sorar (`ConfirmDialog.tsx`; tarayıcının
     `confirm` kutusu kalktı). Yeniden işleme tek dokunuşla başlıyordu; belgeyi baştan okur,
     parçalarını ve arama dizinini yeniler, taranmış belgede dakikalar sürer. Odak "Vazgeç"te
-    başlar, Escape pencereyi kapatır (arkadaki menüyü değil).
+    başlar, Escape pencereyi kapatır (arkadaki menüyü değil). Kapanışı da animasyonludur (karar
+    animasyon bitince bildirilir); 640 px altında alttan açılan sayfadır.
+  - **Düğme simgeleri:** ortak `Icon.tsx` (çizgi simgeler, ekran okuyucuya okunmaz): "Kapat",
+    "Belgeler", "Belge Ekle", "Yeniden İşle", "Sil", "Yeni Konu", "Tüm Belgelerde Ara", "Tekrar
+    Söyleyeceğim" ve onay penceresinin düğmeleri. "Sor" simgesiz kaldı (dar telefonda yer yok).
   - **Marka ve atmosfer:** sol üstte mercan yıldız ve iki tonlu "Visual Agent"; sekme simgesi
     aynı yıldız (satır içi SVG, ayrı dosya yok); arka planda yörünge halkaları, küçük yıldızlar
     ve sağ altta soğuk mavi parıltı. Soru kutusunun yer tutucusu "Sorunuzu yazın…"; sesli mod

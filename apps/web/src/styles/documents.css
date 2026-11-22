@@ -37,8 +37,10 @@
     opacity var(--ease);
 }
 
-.upload span::before {
-  content: "+ ";
+.upload span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 @media (hover: hover) {
@@ -263,6 +265,10 @@
 }
 
 .document-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   min-width: var(--touch-size);
   min-height: var(--touch-size);
   padding: 0 var(--space-2);
