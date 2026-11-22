@@ -60,7 +60,7 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
             if state.result is not None:
                 break
     finally:
-        # Erken başlatılan çeviri beklenmeden hat bittiyse (hata, iptal, boş kapsam) açık kalmaz.
+        # Erken başlatılan çeviri beklenmeden hat bittiyse (adımlar arasında hata) açık kalmaz.
         if state.translation is not None:
             state.translation.cancel()
     result = state.result or Failed(reason="Cevap üretilemedi.")

@@ -151,7 +151,13 @@ async def resolve_intent(state: AskState, deps: AskDeps) -> AskState:
     intent, translation = _known_intent(state, deps), None
     if intent is None and deps.intent_classifier is not None:
         translation = start_translation(state, deps)
-        intent = await _asked_intent(state, deps.intent_classifier, deps.intent_limit_seconds)
+        try:
+            intent = await _asked_intent(state, deps.intent_classifier, deps.intent_limit_seconds)
+        except BaseException:
+            # İstek sınıflandırıcı beklenirken iptal edildi (kullanıcı söz kesti, bağlantı koptu):
+            # görev henüz duruma yazılmadı, burada kapatılmazsa açık kalır.
+            translation.cancel()
+            raise
     result = _result_for(intent or "question", state, deps)
     if result is not None:
         if translation is not None:

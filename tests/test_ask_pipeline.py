@@ -622,15 +622,73 @@ def test_small_talk_cancels_the_translation_it_started() -> None:
     deps = make_deps(FakeClient(answer_payload("76,5")), retriever, translator, ENGLISH)
     deps = replace(deps, intent_classifier=classifier)  # type: ignore[arg-type]
 
-    async def run() -> object:
+    async def run() -> tuple[object, list[bool], int]:
         outcome = await answer_question(AskRequest(question="çok sağ olun yardımınız için"), deps)
         await asyncio.sleep(0)  # iptal edilen görev kapanır
-        return outcome
+        # Döngü kapanmadan bakılır: asyncio.run açık görevleri kendisi de iptal ederdi.
+        return outcome, list(cancelled), len(asyncio.all_tasks())
 
-    outcome = asyncio.run(run())
+    outcome, cancelled_in_time, open_tasks = asyncio.run(run())
 
     assert type(outcome.result).__name__ == "SmallTalk"  # type: ignore[attr-defined]
-    assert cancelled == [True] and retriever.calls == []
+    assert cancelled_in_time == [True] and open_tasks == 1
+    assert retriever.calls == []
+
+
+def test_request_cancelled_while_classifying_closes_the_translation() -> None:
+    """Kullanıcı söz keser ya da bağlantı kopar: istek sınıflandırıcı beklenirken iptal edilir."""
+
+    async def translator(question: str, source: str, targets: Sequence[str]) -> str:
+        await asyncio.sleep(5)
+        return "geç"
+
+    async def classifier(question: str) -> str:
+        await asyncio.sleep(5)
+        return "question"
+
+    deps = make_deps(FakeClient(answer_payload("76,5")), FakeRetriever(), translator, ENGLISH)
+    deps = replace(deps, intent_classifier=classifier)  # type: ignore[arg-type]
+
+    async def run() -> int:
+        request = asyncio.create_task(answer_question(AskRequest(question="iç paça nedir"), deps))
+        await asyncio.sleep(0.01)
+        request.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await request
+        await asyncio.sleep(0)
+        return len(asyncio.all_tasks())
+
+    assert asyncio.run(run()) == 1
+
+
+def test_translation_started_early_can_fail_and_the_classifier_can_time_out() -> None:
+    """Erken başlayan çeviri düşerse arama özgün soruyla yapılır; sınıflandırıcı süre sınırına
+    takılırsa mesaj belge sorusu sayılır ve başarılı çeviri yine kullanılır."""
+
+    async def failing(question: str, source: str, targets: Sequence[str]) -> str:
+        raise RuntimeError("servis")
+
+    async def working(question: str, source: str, targets: Sequence[str]) -> str:
+        return "inseam value"
+
+    async def quick(question: str) -> str:
+        return "question"
+
+    async def slow(question: str) -> str:
+        await asyncio.sleep(5)
+        return "thanks"
+
+    retriever = FakeRetriever()
+    deps = make_deps(FakeClient(answer_payload("76,5")), retriever, failing, ENGLISH)
+    failed = ask(replace(deps, intent_classifier=quick), "iç paça nedir")  # type: ignore[arg-type]
+    assert failed.translation_failed and retriever.calls[0]["bm25"] == "iç paça nedir"
+    assert "translate" in failed.timings
+
+    retriever = FakeRetriever()
+    deps = make_deps(FakeClient(answer_payload("76,5")), retriever, working, ENGLISH)
+    deps = replace(deps, intent_classifier=slow, intent_limit_seconds=0.01)  # type: ignore[arg-type]
+    timed_out = ask(deps, "iç paça nedir")
+    assert not timed_out.translation_failed and retriever.calls[0]["bm25"] == "inseam value"
 
 
 def test_question_with_a_code_translates_inside_the_search_as_before() -> None:
