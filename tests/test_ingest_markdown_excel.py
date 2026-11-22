@@ -288,6 +288,20 @@ def test_docling_table_guards_outdate_every_pdf_and_office_document() -> None:
         assert is_outdated(report, name)
 
 
+@pytest.mark.parametrize(
+    ("page_kinds", "outdated"),
+    [({"text": 3}, True), ({"text": 2, "weak": 1}, True), ({"scanned": 3}, False)],
+)
+def test_embedded_image_count_fix_outdates_only_documents_with_text_pages(
+    page_kinds: dict[str, int], outdated: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """20→21 yalnız metinli sayfadaki gömülü görsellerin ikinci okumasını değiştirdi."""
+    monkeypatch.setitem(RULES_VERSIONS, InputFormat.PDF, 21)
+    report = {**_old_report(), "input_format": "pdf", "rules_version": 20, "page_kinds": page_kinds}
+
+    assert is_outdated(report, "belge.pdf") is outdated
+
+
 def test_row_without_any_labels_marks_its_empty_cells() -> None:
     from visual_agent.ingest.elements import labeled_row
 

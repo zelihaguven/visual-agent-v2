@@ -88,6 +88,14 @@ def test_copied_counting_gives_the_same_marks_as_the_measured_code(result: Path)
     assert copied, "sahte okuma en az bir bloğu işaretlemeli"
 
 
+def test_several_second_readings_compare_with_the_highest_count() -> None:
+    """Gömülü görselin iki Tesseract kipi art arda eklenmez: iki kipin de okuduğu değer çift
+    sayılmaz. Tek okumalı okuyucu yolu bundan etkilenmez."""
+    assert page_reader.count_mismatches("VARCHAR 19 VARCHAR 59", "VARCHAR VARCHAR", "19 59") == []
+    assert page_reader.count_mismatches("12 12", "12", "12") == ["12"]  # hiçbir kip ikisini okumadı
+    assert page_reader.count_mismatches("12", "12 12", "12") == ["12"]  # bir kip fazla okudu
+
+
 @pytest.mark.parametrize("result", RESULTS, ids=lambda path: f"{path.parent.name}/{path.stem}")
 def test_recorded_marks_are_reproduced_and_reach_the_elements(result: Path) -> None:
     """Ölçümdeki işaretler: (1) uygulama kopyasının parçalarıyla tutarlı, (2) ölçümün gizlediği

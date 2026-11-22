@@ -257,14 +257,15 @@ def skipped_image_warnings(pages: list[PageInfo]) -> list[str]:
     ]
 
 
-def _tesseract_text(image: Image.Image, language: str, work: str, executable: str) -> str:
-    """Tablolarda blok modu son sütunları kaçırır; seyrek mod da okunup birleştirilir."""
+def _tesseract_texts(image: Image.Image, language: str, work: str, executable: str) -> list[str]:
+    """Tablolarda blok modu son sütunları kaçırır; seyrek mod da okunur. Okumalar ayrı döner:
+    karşılaştırma her parçayı kiplerin en çok okuduğu sayıyla yapar (count_mismatches)."""
     source = Path(work) / "crop.png"
     image.save(source)
-    return " ".join(
+    return [
         tesseract_text(executable, source, language, mode, _OCR_TIMEOUT_SECONDS)
         for mode in _TESSERACT_PAGE_MODES
-    )
+    ]
 
 
 def _crop(page_image: Image.Image, box: Box) -> Image.Image:
@@ -304,9 +305,9 @@ def _read_image(
         return []
     elements = lines_to_elements(group_lines(_segments_in_page_points(raw, box)), box)
     with tempfile.TemporaryDirectory() as work:
-        second = _tesseract_text(crop, language, work, tesseract)
+        seconds = _tesseract_texts(crop, language, work, tesseract)
     first = " ".join(text for text, _ in raw)
-    tokens = unconfirmed_tokens(first, second)
+    tokens = unconfirmed_tokens(first, *seconds)
     return [with_uncertain_tokens(element, tokens) for element in elements]
 
 

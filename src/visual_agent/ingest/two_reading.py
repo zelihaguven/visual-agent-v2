@@ -35,12 +35,12 @@ def page_ranges(pages: Iterable[int]) -> str:
     return ",".join(ranges)
 
 
-def unconfirmed_tokens(primary: str, second: str) -> list[str]:
+def unconfirmed_tokens(primary: str, second: str, *more: str) -> list[str]:
     """Birinci okumanın, ikinci okumada aynı sayıda geçmeyen sayı ve kod parçaları; okuyucu
     yolundaki kuralla (count_mismatches): harf-rakam eşdeğerliği yok ("B12" "812" değildir),
     rakamsız kodlar da denetlenir, virgül ve nokta farklıdır (karar 0008). Dönen parça birinci
     okumanın kendi yazımıdır: belirsiz değer öğenin metninde aynı yazımla aranır."""
-    mismatched = set(count_mismatches(primary, second))
+    mismatched = set(count_mismatches(primary, second, *more))
     unconfirmed = []
     for raw in primary.split():
         token = raw.strip(_STRIP_CHARACTERS)
