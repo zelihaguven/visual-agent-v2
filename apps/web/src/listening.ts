@@ -8,10 +8,12 @@ const MIN_SPEECH_MS = 200;
 const END_SILENCE_MS = 900;
 const MAX_UTTERANCE_MS = 30_000;
 const NO_SPEECH_RESTART_MS = 15_000;
-const BARGE_CALIBRATION_MS = 500;
+const BARGE_SETTLE_MS = 500;
 const BARGE_MIN_THRESHOLD = 0.05;
 const BARGE_ECHO_FACTOR = 1.8;
+const BARGE_ECHO_SMOOTHING = 0.05;
 const BARGE_SPEECH_MS = 300;
+const BARGE_LATE_SPEECH_MS = 150;
 const PRE_ROLL_MS = 1000;
 
 export function canListen(): boolean {
@@ -76,7 +78,13 @@ export type BargeState = { elapsedMs: number; speechMs: number; echoPeak: number
 
 export const INITIAL_BARGE: BargeState = { elapsedMs: 0, speechMs: 0, echoPeak: 0 };
 
-/** Sistem konuşurken eşik, mikrofona sızan kendi sesinin üstünde tutulur. */
+/**
+ * Sistem konuşurken eşik, mikrofona sızan kendi sesinin üstünde tutulur. Yankı tahmini yavaş
+ * yükselir, hiç düşmez: eşiğin altında kalan tek bir an (kullanıcının hece arası) tahmini
+ * sıçratırsa eşik konuşanın sesinin üstüne çıkar ve söz kesilemez. Turun ilk yarım saniyesi
+ * ne söz kesme sayılır ne yankı: o an sistem henüz konuşmuyor, duyulan kullanıcının sorusunun
+ * sonudur (2026-11-22 ölçümü: bu ses yankı sayılınca eşik tur boyunca kilitleniyordu).
+ */
 export function bargeThreshold(echoPeak: number): number {
   return Math.max(BARGE_MIN_THRESHOLD, echoPeak * BARGE_ECHO_FACTOR);
 }
@@ -87,11 +95,8 @@ export function stepBarge(
   deltaMs: number,
 ): { state: BargeState; isBarge: boolean } {
   const elapsedMs = state.elapsedMs + deltaMs;
-  if (elapsedMs <= BARGE_CALIBRATION_MS) {
-    return {
-      state: { ...state, elapsedMs, echoPeak: Math.max(state.echoPeak, level) },
-      isBarge: false,
-    };
+  if (elapsedMs <= BARGE_SETTLE_MS) {
+    return { state: { ...state, elapsedMs }, isBarge: false };
   }
   if (level > bargeThreshold(state.echoPeak)) {
     const speechMs = state.speechMs + deltaMs;
@@ -101,7 +106,7 @@ export function stepBarge(
     state: {
       elapsedMs,
       speechMs: Math.max(0, state.speechMs - deltaMs),
-      echoPeak: Math.max(state.echoPeak, level),
+      echoPeak: state.echoPeak + Math.max(0, level - state.echoPeak) * BARGE_ECHO_SMOOTHING,
     },
     isBarge: false,
   };
@@ -137,6 +142,17 @@ export async function openMicrophone(): Promise<Microphone> {
   };
 }
 
+/** Kullanıcı "bitti" dedi (halkaya bastı): o ana kadar söylenen, sessizlik beklenmeden alınır. */
+export type FinishRequest = { requested: boolean };
+
+function takeFinish(finish: FinishRequest | undefined, vad: VadState | null): boolean {
+  if (finish === undefined || !finish.requested) {
+    return false;
+  }
+  finish.requested = false;
+  return vad !== null && vad.hasSpeech;
+}
+
 export type Recording = { stop: () => Promise<Blob>; cancel: () => void };
 
 export function record(stream: MediaStream): Recording {
@@ -168,6 +184,7 @@ export function listenForUtterance(
   microphone: Microphone,
   onLevel: (level: number) => void,
   signal: AbortSignal,
+  finishRequest?: FinishRequest,
 ): Promise<Blob | null> {
   return new Promise((resolve) => {
     let recording = record(microphone.stream);
@@ -186,7 +203,7 @@ export function listenForUtterance(
       onLevel(level);
       const step = stepVad(vad, level, TICK_MS);
       vad = step.state;
-      if (step.decision === "end") {
+      if (step.decision === "end" || takeFinish(finishRequest, vad)) {
         microphone.noiseFloor = vad.noiseFloor;
         finish(timer, recording.stop());
       } else if (step.decision === "restart") {
@@ -200,21 +217,33 @@ export function listenForUtterance(
 
 /**
  * Sistem konuşurken dinler. Kullanıcı araya girerse onBargeIn çağrılır ve konuşması
- * bitince kaydı döner; kayıt sürekli yenilendiği için ilk heceler kaybolmaz.
+ * bitince kaydı döner; kayıt sürekli yenilendiği için ilk heceler kaybolmaz. Sistem sustuğu
+ * anda kullanıcı konuşmaya başlamışsa (kısa cevabın sonuna denk gelen söz) o da araya girme
+ * sayılır: kayıt atılıp dinleme baştan başlasaydı ilk sözcükler kaybolurdu.
  */
 export function listenForBargeIn(
   microphone: Microphone,
   session: AbortSignal,
   turnDone: AbortSignal,
   onBargeIn: () => void,
+  finishRequest?: FinishRequest,
 ): Promise<Blob | null> {
   return new Promise((resolve) => {
     let recording = record(microphone.stream);
     let barge = INITIAL_BARGE;
     let rollingMs = 0;
     let vad: VadState | null = null;
+    const interrupt = () => {
+      vad = { ...INITIAL_VAD, hasSpeech: true, noiseFloor: microphone.noiseFloor ?? 0 };
+      onBargeIn();
+    };
     const timer = window.setInterval(() => {
-      if (session.aborted || (vad === null && turnDone.aborted)) {
+      const isOver = vad === null && turnDone.aborted;
+      if (isOver && !session.aborted && barge.speechMs >= BARGE_LATE_SPEECH_MS) {
+        interrupt();
+        return;
+      }
+      if (session.aborted || isOver) {
         window.clearInterval(timer);
         recording.cancel();
         resolve(null);
@@ -224,7 +253,7 @@ export function listenForBargeIn(
       if (vad !== null) {
         const step = stepVad(vad, level, TICK_MS);
         vad = step.state;
-        if (step.decision === "end") {
+        if (step.decision === "end" || takeFinish(finishRequest, vad)) {
           window.clearInterval(timer);
           void recording.stop().then(resolve);
         }
@@ -234,8 +263,7 @@ export function listenForBargeIn(
       barge = step.state;
       rollingMs += TICK_MS;
       if (step.isBarge) {
-        vad = { ...INITIAL_VAD, hasSpeech: true, noiseFloor: microphone.noiseFloor ?? 0 };
-        onBargeIn();
+        interrupt();
       } else if (rollingMs >= PRE_ROLL_MS) {
         recording.cancel();
         recording = record(microphone.stream);

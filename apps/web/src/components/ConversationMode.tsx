@@ -5,6 +5,7 @@ import {
   listenForBargeIn,
   listenForUtterance,
   openMicrophone,
+  type FinishRequest,
   type Microphone,
 } from "../listening";
 import type { AudioQueue } from "../speech";
@@ -28,7 +29,7 @@ const STATUS: Record<Ring, string> = {
 
 const HINTS: Record<Ring, string> = {
   starting: "Bir saniye.",
-  listening: "Sorunuzu bekliyorum.",
+  listening: "Sorunuzu bekliyorum. Bitince halkaya basarsanız hemen bakarım.",
   thinking: "Kaynaklarda arıyorum, bir saniye.",
   speaking: "Araya girip konuşursanız susarım.",
   "not-heard": "Bir daha söyler misiniz? Kodları harf harf söylemek işe yarar.",
@@ -81,6 +82,7 @@ export function ConversationMode(props: Props) {
   const turnControl = useRef<AbortController | null>(null);
   const listenControl = useRef<AbortController | null>(null);
   const pendingChoice = useRef<Choice | null>(null);
+  const finishRequest = useRef<FinishRequest>({ requested: false });
   const latest = useRef(props);
 
   useEffect(() => {
@@ -115,12 +117,18 @@ export function ConversationMode(props: Props) {
       const monitorEnd = new AbortController();
       let hasBargedIn = false;
       turnControl.current = control;
-      const monitor = listenForBargeIn(mic, session.signal, monitorEnd.signal, () => {
-        hasBargedIn = true;
-        control.abort();
-        audio.stop();
-        setPhase("listening");
-      });
+      const monitor = listenForBargeIn(
+        mic,
+        session.signal,
+        monitorEnd.signal,
+        () => {
+          hasBargedIn = true;
+          control.abort();
+          audio.stop();
+          setPhase("listening");
+        },
+        finishRequest.current,
+      );
       let text: string;
       try {
         text = await question();
@@ -174,13 +182,31 @@ export function ConversationMode(props: Props) {
         return;
       }
       microphone = mic;
+      let recording: Blob | null = null;
       const greeting = latest.current.takeGreeting();
       if (greeting !== null) {
+        // Selam da kesilebilir: kullanıcı selamı beklemeden sorusunu söyleyebilir.
         setPhase("speaking");
+        const greetingEnd = new AbortController();
+        let hasBargedIn = false;
+        const monitor = listenForBargeIn(
+          mic,
+          session.signal,
+          greetingEnd.signal,
+          () => {
+            hasBargedIn = true;
+            audio.stop();
+            setPhase("listening");
+          },
+          finishRequest.current,
+        );
         audio.enqueue(greeting.audio, greeting.mime);
         await audio.whenIdle();
+        if (!hasBargedIn) {
+          greetingEnd.abort();
+        }
+        recording = await monitor;
       }
-      let recording: Blob | null = null;
       while (!session.signal.aborted) {
         if (recording === null) {
           setPhase("listening");
@@ -192,7 +218,7 @@ export function ConversationMode(props: Props) {
           session.signal.addEventListener("abort", stopListening);
           listenControl.current = listen;
           setCanChoose(true);
-          recording = await listenForUtterance(mic, showLevel, listen.signal);
+          recording = await listenForUtterance(mic, showLevel, listen.signal, finishRequest.current);
           setCanChoose(false);
           session.signal.removeEventListener("abort", stopListening);
           listenControl.current = null;
@@ -238,7 +264,13 @@ export function ConversationMode(props: Props) {
     audio.stop();
   }
 
+  /** Dinlerken halkaya basmak "bitti" demektir: o ana kadar söylenen, sessizlik beklenmeden alınır. */
+  function finish() {
+    finishRequest.current.requested = true;
+  }
+
   const canInterrupt = error === null && (phase === "thinking" || phase === "speaking");
+  const canFinish = error === null && phase === "listening";
   const ring: Ring = isNotHeard && phase === "listening" ? "not-heard" : phase;
   // Sesli mod açılmadan önce yazılmış soru "duyulmuş" gösterilmez.
   const heard = lastTurn !== null && lastTurn.id !== typedTurnId.current ? lastTurn : null;
@@ -264,9 +296,9 @@ export function ConversationMode(props: Props) {
             ref={bars}
             type="button"
             className={`talk-ring is-${ring}`}
-            aria-label={canInterrupt ? "Sözünü kes" : STATUS[ring]}
-            disabled={!canInterrupt}
-            onClick={interrupt}
+            aria-label={canInterrupt ? "Sözünü kes" : canFinish ? "Bitti, gönder" : STATUS[ring]}
+            disabled={!canInterrupt && !canFinish}
+            onClick={canInterrupt ? interrupt : finish}
           >
             <Icon name={icon} />
             <span className="talk-wave" aria-hidden="true">
