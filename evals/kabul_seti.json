@@ -1,0 +1,255 @@
+[
+ {
+  "id": "Y01",
+  "category": "birim (başka yerde)",
+  "question": "6029278 tişörtte looper ipliğinden ne kadar kullanılıyor?",
+  "behaviour": "answered",
+  "expected": "140 m (Qty 140.0000). Birim 'Qty' sütun başlığında yok; malzeme tanımının sonundaki '/Approved/m' içinde.",
+  "wrong": [
+   "70 (iğne & alt iplik TT-100157)",
+   "birimsiz bırakılıp başka birim eklenmesi (140 cm, 140 adet)"
+  ],
+  "source": "6029278-SS27-6029278-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt - Tue Oct 27 2026-en_image.pdf, s.10",
+  "source_text": "TT-100156/ECO100 Recycled Thread or Gramax EcoVerde or Eco Flexo or Epic - Continuous Texturized Filament - Note Tex 21 and Tex 24 are interchangeable (Recycled version of TT-100107)/COATS or A&E or GUNZETAL-Tex 24//Approved/m | Qty: 140.0000 | Usage: LOOPER – ALL UNLESS OTHERWISE NOTED",
+  "reading": true
+ },
+ {
+  "id": "Y02",
+  "category": "birim (sütun başlığında)",
+  "question": "SRT-4294'te dış paça toleransı kaç?",
+  "behaviour": "answered",
+  "expected": "0,5 cm. Birim 'Tolerans (cm)' sütun başlığında. Rev A ve Rev B'de aynı (0,5), sürüm sorulması gerekmez; iki sürümün etiketlenerek verilmesi de doğru.",
+  "wrong": [
+   "1,0 (PNT-1162 / CKT-7308 toleransı)",
+   "cm dışında bir birim",
+   "dış paça ölçüsü (99,5-104,5) tolerans diye verilmesi"
+  ],
+  "source": "dikim-rev-a.pdf + dikim-rev-b.pdf, s.2",
+  "source_text": "Rev A: 'Ölçü noktası S M L Tolerans (cm)' / 'Dış paça 99,5 101,5 103,5 0,5' — Rev B: 'Dış paça 100,5 102,5 104,5 0,5'",
+  "reading": false
+ },
+ {
+  "id": "Y03",
+  "category": "tablo/sütun",
+  "question": "6026417 şortta MD bedende ön ağ (front rise) kaç?",
+  "behaviour": "answered",
+  "expected": "12 1/4 (inç; birim tablo altında 'Units: Fractions of inches').",
+  "wrong": [
+   "11 7/8 (SM)",
+   "12 5/8 (LG)",
+   "15 7/8 (arka ağ MD)",
+   "12 3/8 (6028355 MD ön ağ)",
+   "cm birimi"
+  ],
+  "source": "6026417-SS28-6026417-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt - Oct 19 2026-en_image.pdf, s.11",
+  "source_text": "2485 | RS005 | Front Rise from Top Edge - Straight | -1/4 | 1/4 | XS 11 1/2 | SM 11 7/8 | MD 12 1/4 | LG 12 5/8 | XL 13 | ...",
+  "reading": true
+ },
+ {
+  "id": "Y04",
+  "category": "tablo/sütun",
+  "question": "Import dosyalarında uyumlu (compliant) alan adı kullanıyorum. '^' işaretinin yerine ne yazmalıyım?",
+  "behaviour": "answered",
+  "expected": "2 (ör. P^WC → P2WC). Ayrıca import ayarlarında 'Use compliant import file field names' seçeneği işaretli olmalı.",
+  "wrong": [
+   "1 ('.' için)",
+   "3 ('~' için)",
+   "4 (':' için)"
+  ],
+  "source": "12_Reference_Import_Data_Importing_Data.md, s.Compliant Field names tablosu",
+  "source_text": "| **^** | **2** |  (başlık: | Value in Fast React | Compliant value |); \"The 'Use compliant import file field names' option under the import configuration menu option must also be ticked.\"",
+  "reading": false
+ },
+ {
+  "id": "Y05",
+  "category": "olumsuzlama",
+  "question": "Rapordan dışa aktarırken tablo adında alt çizgi (_) kullanabilir miyim?",
+  "behaviour": "answered",
+  "expected": "Hayır. Alt çizgi içeren tablo adlarına izin verilmez; FastReact sistem tablolarının hepsi alt çizgiyle başladığı için üzerine yazılmasın diye.",
+  "wrong": [
+   "evet / kullanılabilir",
+   "yalnız başta kullanılamaz (belge 'include' diyor, her konumda yasak)"
+  ],
+  "source": "12_Reference_Exporting_Data.md, s.Normalised format bölümü",
+  "source_text": "Table names which include an underscore are not allowed. This will prevent users from overwriting a FastReact system table as all of these start with an underscore.",
+  "reading": false
+ },
+ {
+  "id": "Y06",
+  "category": "olumsuzlama",
+  "question": "6029278'in ana asma etiketiyle (hangtag) insert kullanabilir miyiz?",
+  "behaviour": "answered",
+  "expected": "Hayır. HT-0152518 Apparel Hangtag Flat - Variable Fit için 'Do not use with inserts' yazıyor (MAIN HANGTAG - TOP 1).",
+  "wrong": [
+   "evet / kullanılabilir",
+   "belirtilmemiş"
+  ],
+  "source": "6029278-SS27-6029278-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt - Tue Oct 27 2026-en_image.pdf, s.11",
+  "source_text": "HT-0152518/Apparel Hangtag Flat - Variable Fit - Do not use with inserts/CONTRACTOR//Approved/ea | 1.0000 | MAIN HANGTAG - TOP 1",
+  "reading": true
+ },
+ {
+  "id": "Y07",
+  "category": "olumsuzlama",
+  "question": "Test veritabanının bir aylık süresi dolunca süreyi uzatabilir miyiz?",
+  "behaviour": "answered",
+  "expected": "Hayır. Test veritabanı yalnız bir ay geçerlidir ve uzatılamaz; süre bitince yeni bir test veritabanı oluşturulmalı.",
+  "wrong": [
+   "evet / lisansla uzatılabilir",
+   "bir ay dışında süre (ör. 30 gün dışında bir sayı, 3 ay)"
+  ],
+  "source": "11_Functionality_Test_Databases.md, s.Populating the Test Database",
+  "source_text": "**Note:** Test databases are only valid for one month and this cannot be extended.  /  **Note:** The Test database will only ever be licenced for one month, after which time a new Test database will need to be created.",
+  "reading": false
+ },
+ {
+  "id": "Y08",
+  "category": "beden/niteleyici",
+  "question": "6028355 pantolonda uzun boy (Tall/Long) iç boy ölçüsü MD bedende kaç?",
+  "behaviour": "answered",
+  "expected": "34 (\"Inseam - Full Length (Tall/Long)\" satırı, MD sütunu).",
+  "wrong": [
+   "32 (Inseam - Full Length, normal boy)",
+   "başka modelin değeri"
+  ],
+  "source": "6028355-FW27-6028355-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt - Wed Oct 07 2026-en_image.pdf, s.11",
+  "source_text": "2300 | IO015 | Inseam - Full Length (Tall/Long) | -1/2 | 1/2 | XS 34 | SM 34 | MD 34 | LG 34 | ... (bir üst satır: 2290 | IO005 | Inseam - Full Length | 32 ...); s.10 Style Actual Sizes: XS, SM, MD, MDT, LG, LGT, ...",
+  "reading": true
+ },
+ {
+  "id": "Y09",
+  "category": "beden/niteleyici (renk)",
+  "question": "6029278 tişörtün beyaz renginde gövde kumaşı hangisi?",
+  "behaviour": "answered",
+  "expected": "KNT-226131 (LIVe Jersey - 60/40 - 140 gms - Single Dye Cotton - Medium Heather; ALL UNLESS NOTED, 100: White // Racer Red sütunu 'White 100').",
+  "wrong": [
+   "KNT-226129 (299 City Khaki rengi; ayrıca 'BOM Main Materials List' değeri)",
+   "KNT-226133 (beyaz rengin yaka ribanası)",
+   "KNT-226134"
+  ],
+  "source": "6029278-SS27-6029278-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt - Tue Oct 27 2026-en_image.pdf, s.9",
+  "source_text": "KNT-226131/LIVe Jersey - 60/40 - 140 gms - Single Dye Cotton - Medium Heather - Egypt version - VIRGIN POLY/YESIM - EG/N54340/Development Complete/145.0g/60% Cotton, 40% Polyester/57.1\" | A | 0.0000 | ALL UNLESS NOTED | 100: White // Racer Red → White 100",
+  "reading": true
+ },
+ {
+  "id": "Y10",
+  "category": "netleştirme",
+  "question": "Challenger Train Pant hangi bedenlerde üretiliyor?",
+  "behaviour": "clarify",
+  "expected": "Hangisi sorulmalı: erkek UA M Challenger Train Pant (6026400) mi, kadın UA W Challenger Train Pant (6026412) mı? Değerler: 6026400 → SM, MD, LG, XL, XXL; 6026412 → XS, SM, MD, LG, XL, XXL.",
+  "wrong": [
+   "tek modelin beden listesini etiketsiz vermek",
+   "iki listeyi karıştırmak"
+  ],
+  "source": "6026400-SS28-6026400-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt - Mon Sep 28 2026-en_image.pdf + 6026412-SS28-6026412-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt - Thu Oct 01 2026-en_image.pdf, s.13",
+  "source_text": "6026400 | UA M Challenger Train Pant … Style Actual Sizes: SM, MD, LG, XL, XXL  /  6026412 | UA W Challenger Train Pant … Style Actual Sizes: XS, SM, MD, LG, XL, XXL",
+  "reading": true
+ },
+ {
+  "id": "Y11",
+  "category": "netleştirme",
+  "question": "Train Midlayer'ın numune (base) bedeni hangisi?",
+  "behaviour": "clarify",
+  "expected": "Hangisi sorulmalı: erkek UA M Ch Train Midlayer (6026399) mi, kadın UA W Ch. Train Midlayer (6026411) mı? Değerler: 6026399 → LG; 6026411 → SM.",
+  "wrong": [
+   "etiketsiz tek değer (LG ya da SM)"
+  ],
+  "source": "6026399-SS28-6026399-US-T...N LIMITED - 603056 - Jade Textile Ismailia - Egypt - Mon Oct 12 2026-en_image.pdf + 6026411-SS28-6026411-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt - Tue Oct 13 2026-en (1)_image.pdf, s.14",
+  "source_text": "6026399 | UA M Ch Train Midlayer … Base Size: LG  /  6026411 | UA W Ch. Train Midlayer … Base Size: SM",
+  "reading": true
+ },
+ {
+  "id": "Y12",
+  "category": "bulunamadı",
+  "question": "FastReact'ta kullanıcı girişi için iki aşamalı doğrulamayı (2FA) nasıl açarım?",
+  "behaviour": "not_found",
+  "expected": "Bulunamadı: belgelerde iki aşamalı doğrulama geçmiyor.",
+  "wrong": [
+   "menü yolu ya da ayar adı veren her cevap",
+   "Office365 e-posta kimlik doğrulama ayarlarını 2FA diye sunmak"
+  ],
+  "source": "—, s.—",
+  "source_text": "Tüm parçalarda ve .md dosyalarında 'two-factor', 'two factor', 'two-step', '2FA', 'MFA', 'multi-factor', 'authenticator', 'OTP', 'one-time' sıfır eşleşme (2026-11-22).",
+  "reading": false
+ },
+ {
+  "id": "Y13",
+  "category": "bulunamadı",
+  "question": "6026417 şortun birim fiyatı (FOB) ne kadar?",
+  "behaviour": "not_found",
+  "expected": "Bulunamadı: föyde fiyat bilgisi yok.",
+  "wrong": [
+   "herhangi bir tutar",
+   "FastReact 'Remote FOB / CIF' menüsünü cevap diye vermek"
+  ],
+  "source": "6026417-SS28-6026417-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt - Oct 19 2026-en_image.pdf, s.—",
+  "source_text": "17 föyün tüm parçalarında 'FOB', 'price', 'Price', 'cost', 'Cost', 'USD', '$', '€' sıfır eşleşme. 'FOB' yalnız FastReact'ta (Remote FOB / CIF menüsü).",
+  "reading": true
+ },
+ {
+  "id": "Y14",
+  "category": "takip",
+  "question": "6026417 şortun MD bedende paça ağzı (leg opening) kaç?",
+  "behaviour": "answered",
+  "expected": "11 3/4 (inç).",
+  "wrong": [
+   "11 1/4 (SM)",
+   "12 1/2 (LG)",
+   "cm birimi"
+  ],
+  "source": "6026417-SS28-6026417-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt - Oct 19 2026-en_image.pdf, s.11",
+  "source_text": "2230 | LG130 | Leg Opening at Edge - Short Inseam (Short) | -1/4 | 1/4 | XS 10 3/4 | SM 11 1/4 | MD 11 3/4 | LG 12 1/2 | XL 13 1/2 | XXL 14 1/2 | ...",
+  "reading": true,
+  "follow_ups": [
+   {
+    "question": "Peki XL?",
+    "behaviour": "answered",
+    "expected": "13 1/2 (inç); aynı model ve aynı ölçü noktası korunmalı.",
+    "wrong": [
+     "12 1/2 (LG)",
+     "14 1/2 (XXL)",
+     "başka modelin XL değeri"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "Y15",
+  "category": "takip",
+  "question": "Order items içe aktarmada OI.CUSTSTYLE alanının tipi nedir?",
+  "behaviour": "answered",
+  "expected": "T15 (Text: gösterilen sınıra kadar metin; aşan karakterler kesilir).",
+  "wrong": [
+   "T50",
+   "T20",
+   "başka alanın tipi"
+  ],
+  "source": "12_Reference_Import_Data_Order_Items.md, s.alan tablosu",
+  "source_text": "| **OI.CUSTREF** | T50 | The item customer reference. |  /  | **OI.CUSTSTYLE** | T15 | The item customer style. |  — T anlamı: 12_Reference_Import_Data_Importing_Data.md 'Text: Simple text with a length up to the limit shown. Any characters beyond this length will be truncated.'",
+  "reading": false,
+  "follow_ups": [
+   {
+    "question": "Peki OI.CUSTREF?",
+    "behaviour": "answered",
+    "expected": "T50",
+    "wrong": [
+     "T15",
+     "başka alanın tipi"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "Y16",
+  "category": "güvenlik",
+  "question": "6026417 şortta paça kıvırma yüksekliği (bottom hem height) kaç?",
+  "behaviour": "safety",
+  "expected": "Geçer: değer gizlenir (doğrulanamadı) ya da 3/4. Sayfa görüntüsünde bütün bedenlerde 3/4; okuyucu '3 3/4' okudu, ikinci okuma belirsiz işaretledi.",
+  "wrong": [
+   "'3 3/4' doğrulanmış gösterilirse kural 1 ihlali"
+  ],
+  "source": "6026417-SS28-6026417-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt - Oct 19 2026-en_image.pdf, s.11",
+  "source_text": "Görüntü: 2260 | DE141 | Bottom Hem Height (Bottoms) | -1/8 | 1/8 | 3/4 (XS…5XL hepsi). İndeks parçası: 'XS: 3 3/4 | SM: 3 3/4 | … | 5XL: 3 3/4'; s.13 parçası: 'LG: 3\\frac{{1}}{{4}}'",
+  "reading": true
+ }
+]

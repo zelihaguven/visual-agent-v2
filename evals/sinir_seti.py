@@ -1,6 +1,8 @@
-"""Sınır seti ölçümü: soruları çalışan uygulamanın `/api/ask` yolundan sorar (bağlamsız, yazılı).
+"""Sınır seti ölçümü: soruları çalışan uygulamanın `/api/ask` yolundan sorar (yazılı). Soru
+bağlamsızdır; takip turları (`follow_ups`) önceki turun bağlamıyla sorulur (ilk tur netleştirme ya
+da "bulunamadı" ise bağlam yoktur, arayüzdeki gibi).
 
-Her koşu × soru için bir satır yazar (JSON lines) ve özet verir. Süre kullanıcının gördüğüdür:
+Her koşu × tur için bir satır yazar (JSON lines) ve özet verir. Süre kullanıcının gördüğüdür:
 isteğin gönderilmesinden ilk doğrulanmış cümleye. Sınıflar (doğru / güvenli / yanlış) cevap
 metni okunarak elle verilir; betik vermez. Uygulama önce açılır ve birkaç soruyla ısıtılır
 (ilk soru modelleri yükler).
@@ -40,18 +42,26 @@ def _events(response: httpx.Response) -> Iterator[dict[str, Any]]:
             yield json.loads(line[len("data: ") :])
 
 
-def ask(client: httpx.Client, question: str) -> dict[str, Any]:
-    """Cevabın türü, gösterilen (doğrulanmış) cümleler ve kullanıcının gördüğü süreler."""
+def ask(
+    client: httpx.Client, question: str, context: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """Cevabın türü, gösterilen (doğrulanmış) cümleler ve kullanıcının gördüğü süreler.
+    context: önceki turun bağlamı (takip sorusu); dönen satırda bu turun bağlamı da var."""
     started = time.perf_counter()
     first_verified: float | None = None
     result: dict[str, Any] = {}
-    with client.stream("POST", "/api/ask", json={"question": question}) as response:
+    turn_context: dict[str, Any] | None = None
+    body: dict[str, Any] = {"question": question}
+    if context is not None:
+        body["context"] = context
+    with client.stream("POST", "/api/ask", json=body) as response:
         response.raise_for_status()
         for event in _events(response):
             if event.get("type") == "item_verified" and first_verified is None:
                 first_verified = time.perf_counter() - started
             if event.get("type") == "done":
                 result = event.get("result") or {}
+                turn_context = event.get("context")
     items = result.get("items") or []
     return {
         "kind": result.get("kind", "error"),
@@ -62,6 +72,7 @@ def ask(client: httpx.Client, question: str) -> dict[str, Any]:
         "options": [option.get("label") for option in result.get("options") or []],
         "first_verified": round(first_verified, 3) if first_verified is not None else None,
         "total": round(time.perf_counter() - started, 3),
+        "context": turn_context,
     }
 
 
@@ -121,13 +132,22 @@ def main() -> None:
     ):
         for run in range(1, arguments.runs + 1):
             for question in questions:
-                if rows:
-                    time.sleep(arguments.pause)
-                row = {"run": run, "id": question["id"], **ask(client, question["question"])}
-                rows.append(row)
-                output.write(json.dumps(row, ensure_ascii=False) + "\n")
-                output.flush()
-                print(run, row["id"], row["kind"], row["first_verified"], flush=True)
+                # Takip turları (follow_ups) önceki turun bağlamıyla sorulur; satır kimliği "-t2"…
+                turns = [
+                    question["question"],
+                    *(t["question"] for t in question.get("follow_ups", [])),
+                ]
+                context: dict[str, Any] | None = None
+                for number, text in enumerate(turns, start=1):
+                    if rows:
+                        time.sleep(arguments.pause)
+                    turn_id = question["id"] if number == 1 else f"{question['id']}-t{number}"
+                    row = {"run": run, "id": turn_id, **ask(client, text, context)}
+                    context = row["context"]
+                    rows.append(row)
+                    output.write(json.dumps(row, ensure_ascii=False) + "\n")
+                    output.flush()
+                    print(run, row["id"], row["kind"], row["first_verified"], flush=True)
     database = arguments.database or Path(Settings().database_path)
     time.sleep(1.0)  # uygulama son kaydı arka planda yazıyor
     records = measured_records(asyncio.run(read_records(database, len(rows) * 2)), since)

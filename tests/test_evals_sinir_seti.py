@@ -101,3 +101,24 @@ def test_summary_counts_questions_that_fell_back_to_another_provider() -> None:
     assert len(measured) == 3  # ısınma sorusu ölçüm başlamadan önce
     assert result["yedeğe geçen soru"] == 2
     assert result["sağlayıcı hataları"] == {"makora": 2}
+
+
+def test_follow_up_is_asked_with_the_previous_turn_context() -> None:
+    seen: list[dict[str, object]] = []
+    context = {"question": "6026417 MD paça ağzı kaç?", "doc_ids": ["d"], "titles": ["şort"]}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(json.loads(request.content))
+        done = {"type": "done", "result": {"kind": "answered", "items": []}, "context": context}
+        body = f"data: {json.dumps(done, ensure_ascii=False)}\n\n"
+        return httpx.Response(200, text=body, headers={"content-type": "text/event-stream"})
+
+    with httpx.Client(base_url="http://test", transport=httpx.MockTransport(handler)) as client:
+        first = ask(client, "6026417 MD paça ağzı kaç?")
+        ask(client, "Peki XL?", first["context"])
+
+    assert first["context"] == context
+    assert seen == [
+        {"question": "6026417 MD paça ağzı kaç?"},
+        {"question": "Peki XL?", "context": context},
+    ]
