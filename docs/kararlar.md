@@ -650,6 +650,20 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   kez daha cevap istenir. Her alıntı (en az 3 kelime) diğer adaylarda da birebir geçiyorsa
   cevap verilir. Düğmeler yalnız 2–4 aday belgede gösterilir. Ölçüm: seed 7 ve 11'de
   37/40, yanlış 0, önce ve sonra aynı.
+- **Taranmış aday (2026-11-22, dal `ortak-cevap-tarama-rozeti`; ürün sahibi kararı).** Diğer
+  adayda eşleşen parça taramadan okunduysa (sayfa okuyucusu) cevap yine verilir ama "kısmen
+  doğrulandı" kalır, rozeti "Taramadan okundu" olur; önceden "doğrulandı" çıkıyordu
+  (`ask/agreement.py`, 0022'nin kod incelemesinde bulundu). Dijital adayla eşleşen cevap
+  "doğrulandı" kalır; eski OCR yolundan okunan aday eşleşme sayılmaz (0022). Alıntıdaki
+  değeri taranmış adayda belirsiz okunmuşsa o aday da eşleşme sayılmaz, netleştirme kalır (tek
+  belgede cümle gizlenirdi; kod incelemesinde bulundu, bu dalda kapatıldı). İlk aday
+  taranmışsa eskisi gibi netleştirme sorulur (ilk adayın cevabı tam doğrulanmış olmalı).
+  Bugünkü veride bu yoldan geçen cevap yok: Mac soru günlüğünde iki ve daha çok belgeye atıflı
+  91 doğrulanmış cevabın hiçbiri taranmış belgeye atıf yapmıyor; taban 7 ve 11'de iki belgeye
+  atıflı cevap yok. Ölçüm (Mac, bugünkü taban `eski-yol-2026-11-21`; önbellekten, ağa
+  gitmeden): iki set 39/40, doğrulanmış yanlış 0, kırk sorunun kayıtları ve rozetleri
+  öncekiyle aynı. Bilinen: diğer adayda alıntı hem taranmış hem dijital parçada geçiyorsa
+  arama sırasında önde olan belirler (kısmen doğrulandı ya da doğrulandı; ikisi de güvenli).
 - **Bilinen kalan:** Aynı adımı farklı menü yoluyla anlatan adaylar (açık notlar).
 
 ### Selam, envanter ve bekleme cümleleri sabit metin; modele gitmez
