@@ -1153,7 +1153,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Dosya:** `evals/kabul_seti.json`. 16 soru (birim, tablo/sütun, olumsuzlama, beden/niteleyici, netleştirme, bulunamadı, takip, güvenlik); 10'u taranmış föylerden, 5'i FastReact'tan, 1'i örnek belgeden. Her beklenen değer kaynakla birebir doğrulandı (taranmış föylerde sayfa görüntüsüyle); taslak 22 Kasım'da yazıldı, ürün sahibi 23 Kasım'da onayladı.
 - **Bu sorular hiçbir düzeltmede kullanılmadı.** Setin içeriği ürün sahibi onayı olmadan değişmez; sonuçlarına bakılarak kural ya da istem ayarlanmaz.
 - **Onaydaki düzeltmeler:** Y08 ("MDT bedende iç boy") kaynakta MDT'nin Tall/Long satırına karşılık geldiği yazmadığı için kaynağın ifadesiyle yeniden yazıldı ("uzun boy (Tall/Long) iç boy ölçüsü MD bedende"); Y15 ("en fazla kaç karakter") kaynakta "15 karakter" yazmadığı için alanın tipini soruyor ("OI.CUSTSTYLE alanının tipi" → T15, takip OI.CUSTREF → T50). Y16 ayrı güvenlik sorusu: gizli ya da 3/4 geçer; "3 3/4" doğrulanmış görünürse kural 1 ihlali.
-- **Puanlama:** doğru / güvenli / yanlış, cevap metni okunarak elle. Taranmış föy sorusunda (`reading: true`) gizlenen cevap güvenlidir. Ölçüm `python -m evals.sinir_seti --set evals/kabul_seti.json --runs 5` (takip turları önceki turun bağlamıyla sorulur).
+- **Puanlama:** doğru / güvenli / yanlış, cevap metni okunarak elle. Taranmış föy sorusunda (`reading: true`) gizlenen cevap güvenlidir. Ölçüm `python -m evals.sinir_seti --set evals/kabul_seti.json --runs 5 --output <klasör>/kabul.jsonl` (uygulama açık) (takip turları önceki turun bağlamıyla sorulur).
 - **İlk ölçüm (Mac, 2026-11-23, `main` `b6b0db9`; 5 koşu, 18 tur × 5 = 90 cevap, canlı, 0,028 USD; `evals/output/kabul-2026-11-23`).** **Doğrulanmış yanlış 0.** Doğru 47, güvenli 43, yanlış 0. Y16 (güvenlik) 5/5 geçti: "3 3/4" hiç gösterilmedi.
 
   | Soru | Doğru | Güvenli | Not |
@@ -1171,7 +1171,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   | Y11 Train Midlayer base | 0 | 5 | "bulunamadı" (bilgi s.14'te var) |
   | Y12 2FA | 5 | 0 | |
   | Y13 FOB | 5 | 0 | |
-  | Y14 paça ağzı MD → XL | 0 | 10 | iki turda da netleştirme ("Hangi paça ağzı ölçüsü için?"), 1 gizli |
+  | Y14 paça ağzı MD → XL | 0 | 10 | iki turda da netleştirme ("Hangi paça ağzı ölçüsü için?"), 1 gizli. İlk tur netleştirmede kaldığı için takip turu bağlamsız gitti: **takip davranışı bu soruda sınanmadı** |
   | Y15 OI.CUSTSTYLE → OI.CUSTREF | 10 | 0 | T15 → T50 |
   | Y16 bottom hem height (güvenlik) | 0 | 5 | "Hangi beden için?"; geçti |
 
@@ -1875,7 +1875,7 @@ Tarama 758 / 67 (doğru / yanlış gösterilen), fotoğraf 227 / 18. Sayfa tür�
 
 **Bu ölçümün cevaplamadıkları.** 0010'daki "set B'de ayrıca ölçülecek" maddeleri (görülmemiş belgede başlık kuralı, hücre sayısı uyuşmayan tablo, görsel küçültme) ve 0025'in kalan riski ayrıca incelenmedi; yalnız toplam okuma sonucu ölçüldü.
 
-**Karar gerektiren.** Kabul edilebilir yanlış gösterilen oranı açık bir ürün kararı değil (0012). Bağ kopmalarının fark tablolarında yoğunlaşması ayrı inceleme ister; bu ölçümle kural yazılmadı (her soru bir kez; sonuca göre ayar yapılmaz).
+**Karar gerektiren.** Kabul edilebilir yanlış gösterilen oranı açık bir ürün kararı değil (0012). → Karar verildi: 0027. Bağ kopmalarının fark tablolarında yoğunlaşması ayrı inceleme ister; bu ölçümle kural yazılmadı (her soru bir kez; sonuca göre ayar yapılmaz).
 
 <a id="karar-0027"></a>
 

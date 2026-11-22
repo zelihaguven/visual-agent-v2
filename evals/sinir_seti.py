@@ -1,6 +1,8 @@
-"""Sınır seti ölçümü: soruları çalışan uygulamanın `/api/ask` yolundan sorar (bağlamsız, yazılı).
+"""Sınır seti ölçümü: soruları çalışan uygulamanın `/api/ask` yolundan sorar (yazılı). Soru
+bağlamsızdır; takip turları (`follow_ups`) önceki turun bağlamıyla sorulur (ilk tur netleştirme ya
+da "bulunamadı" ise bağlam yoktur, arayüzdeki gibi).
 
-Her koşu × soru için bir satır yazar (JSON lines) ve özet verir. Süre kullanıcının gördüğüdür:
+Her koşu × tur için bir satır yazar (JSON lines) ve özet verir. Süre kullanıcının gördüğüdür:
 isteğin gönderilmesinden ilk doğrulanmış cümleye. Sınıflar (doğru / güvenli / yanlış) cevap
 metni okunarak elle verilir; betik vermez. Uygulama önce açılır ve birkaç soruyla ısıtılır
 (ilk soru modelleri yükler).
