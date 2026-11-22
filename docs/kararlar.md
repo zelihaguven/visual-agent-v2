@@ -1009,6 +1009,8 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     parçalarını ve arama dizinini yeniler, taranmış belgede dakikalar sürer. Odak "Vazgeç"te
     başlar, Escape pencereyi kapatır (arkadaki menüyü değil). Kapanışı da animasyonludur (karar
     animasyon bitince bildirilir); 640 px altında alttan açılan sayfadır.
+  - **Belgeler paneli kapalı başlar** (geniş ekranda da): 16 Kasım'daki "belgeler paneli açık
+    başlar" maddesinin yerini alır; açılış soru kutusuna ayrılır, liste "Belgeler" ile açılır.
   - **Düğme simgeleri:** ortak `Icon.tsx` (çizgi simgeler, ekran okuyucuya okunmaz): "Kapat",
     "Belgeler", "Belge Ekle", "Yeniden İşle", "Sil", "Yeni Konu", "Tüm Belgelerde Ara", "Tekrar
     Söyleyeceğim" ve onay penceresinin düğmeleri. "Sor" simgesiz kaldı (dar telefonda yer yok).

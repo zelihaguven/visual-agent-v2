@@ -1980,6 +1980,27 @@ describe("landing actions", () => {
     expect(screen.queryByRole("button", { name: /Sesli Sor/ })).not.toBeInTheDocument();
   });
 
+  it("keeps the documents panel closed on start, on wide screens too", async () => {
+    // 2026-11-22: geniş ekranda panel kendiliğinden açılıyordu; artık yalnız istenince açılır.
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query.includes("min-width: 1080px"),
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    }));
+    stubApi({ "/api/documents": () => jsonResponse([]) });
+    try {
+      render(<App />);
+
+      const opener = await screen.findByRole("button", { name: /^Belgeler/ });
+      expect(opener).toHaveAttribute("aria-expanded", "false");
+      expect(screen.queryByRole("complementary", { name: "Belgeler" })).not.toBeInTheDocument();
+      fireEvent.click(opener);
+      expect(screen.getByRole("complementary", { name: "Belgeler" })).toBeVisible();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("opens the documents drawer and the file picker from the add card", async () => {
     stubApi({ "/api/documents": () => jsonResponse([]) });
     render(<App />);

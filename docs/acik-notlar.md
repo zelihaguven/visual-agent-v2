@@ -9,6 +9,7 @@ Kod iki bilgisayarda aynı: `main`, #117. Son işler Windows'ta yapıldı (#104�
 **Veri**
 
 - Mac: 394 belgenin hepsi 19 Kasım'da bugünkü kurallarla yeniden işlendi (46 dakika; 17 taranmış föy dahil, 37 dakikası onlar). #104–#117 kural sürümlerini değiştirmedi; "Eski kural" belge yok.
+- Mac, 22 Kasım: `ik-yan-haklar` arayüz denemesinde yeniden işlendi ve ardından silindi; aynı gün `apps.sample_documents` ile geri yüklendi (394 belge, "Eski kural" yok). Belge kimliği değişti; parçaları ölçüm kopyasıyla bire bir aynı (3 parça). Sınır setinde bu belgeye dayanan A6 ve B8 geri yüklemeden sonra birer kez soruldu, ikisi de doğru.
 - Windows: kendi verisi 19 Kasım'da yeniden işlenmişti. Taranmış föyler (6013448 ve diğerleri) yalnız Mac'te işlenir (karar 0015); Mac'in `data/` klasörü 19 Kasım'da taşınmak üzere sıkıştırıldı (Mac masaüstü, `visual-agent-data-mac-2026-11-19.zip`). Windows'a alınıp alınmadığı bu nota yazılmadı.
 - Veri taşıma (iki yönde, Windows'ta sınandı): iki bilgisayar aynı commit'te olmalı (kural sürümleri farklıysa "Eski kural" çıkar); kaynak bilgisayarda uygulama kapalı (Qdrant klasörü kilitlidir); `data/` kopyalanır, `data/models` gerekmez; hedefte mevcut `data/` yeniden adlandırılıp saklanır; uygulama repo kökünden açılır ve belge sayısı, "Eski kural" olmadığı ve birkaç soru kaynağıyla denetlenir. Belge yolları belge klasörüne göre ve düz eğik çizgiyle tutulur (#103); eski kayıtlar açılışta bir kez dönüştürülür. Hedefin soru günlüğü kaynağınkiyle değişir.
 
