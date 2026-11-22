@@ -1797,7 +1797,9 @@ describe("layout", () => {
     expect(screen.queryByRole("list", { name: "Belgeler" })).not.toBeInTheDocument();
     opener.focus();
     fireEvent.click(opener);
-    const drawer = screen.getByRole("complementary", { name: "Belgeler" });
+    // Dar ekranda çekmece modaldır.
+    const drawer = screen.getByRole("dialog", { name: "Belgeler" });
+    expect(drawer).toHaveAttribute("aria-modal", "true");
     expect(drawer).toHaveFocus();
     expect(screen.getByRole("list", { name: "Belgeler" })).toBeInTheDocument();
 

@@ -83,7 +83,6 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
   const [listError, setListError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toggled, setToggled] = useState<Record<string, boolean>>({});
-
   const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
@@ -251,39 +250,42 @@ function DocumentRow({
   onDelete: () => void;
 }) {
   const status = STATUS_LABELS[document.status];
-  // Sırada bekleyen ya da işlenen belgenin eski raporu yakında yenilenir; uyarı gösterilmez.
-  const outdated = document.outdated === true && !isPending(document);
   const pending = isPending(document);
+  // Sırada bekleyen ya da işlenen belgenin eski raporu yakında yenilenir; uyarı gösterilmez.
+  const outdated = document.outdated === true && !pending;
   return (
     <li className="document">
       <span className="document-title" title={document.filename}>
         {document.title}
       </span>
-      <span className="document-badges">
-        {status !== null && <span className={`status is-${document.status}`}>{status}</span>}
-        {outdated && <span className="status is-outdated">Eski kural</span>}
-      </span>
-      {/* Düğmeler hep başlığın hemen altında ve aynı sırada durur; durum değişince yer değiştirmez.
-          Kullanılamayan düğme gizlenmez, pasif görünür: yanlış düğmeye basılmasın. */}
-      <div className="document-actions">
-        <button
-          type="button"
-          aria-label={`${document.title} Belgesini Yeniden İşle`}
-          disabled={isBusy || pending}
-          title={pending ? "Belge işlenirken yeniden işlenemez." : undefined}
-          onClick={onReprocess}
-        >
-          Yeniden İşle
-        </button>
-        <button
-          type="button"
-          className="is-danger"
-          aria-label={`${document.title} Belgesini Sil`}
-          disabled={isBusy}
-          onClick={onDelete}
-        >
-          Sil
-        </button>
+      {/* Durum ve düğmeler hep başlığın hemen altında, aynı satırda ve aynı sırada durur; durum
+          değişince yer değiştirmez. Kullanılamayan düğme gizlenmez, pasif görünür: yanlış düğmeye
+          basılmasın. */}
+      <div className="document-meta">
+        <span className="document-badges">
+          {status !== null && <span className={`status is-${document.status}`}>{status}</span>}
+          {outdated && <span className="status is-outdated">Eski kural</span>}
+        </span>
+        <div className="document-actions">
+          <button
+            type="button"
+            aria-label={`${document.title} Belgesini Yeniden İşle`}
+            disabled={isBusy || pending}
+            title={pending ? "Belge işlenirken yeniden işlenemez." : undefined}
+            onClick={onReprocess}
+          >
+            Yeniden İşle
+          </button>
+          <button
+            type="button"
+            className="is-danger"
+            aria-label={`${document.title} Belgesini Sil`}
+            disabled={isBusy}
+            onClick={onDelete}
+          >
+            Sil
+          </button>
+        </div>
       </div>
       {document.error !== null && <span className="document-error">{document.error}</span>}
       {document.report !== null && (
