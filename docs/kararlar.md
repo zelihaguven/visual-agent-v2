@@ -1004,6 +1004,10 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     eskiden kart dışına taşıyor ya da kesik görünebiliyordu).
   - **Duyarlı tasarım:** 320–1920 px. Sesli modda yerleşim pencereye değil kendi alanına bakar
     (telefon yatayda yan yana, dikeyde alt alta; halka boyutu akışkan).
+  - **Sesli moddan çıkış:** sol üstteki düğme "Sesli Modu Kapat" (çarpı simgesi; önce "Ana
+    Sayfa" ve ev simgesiydi). Uzun ad 375 px'te ikinci düğmeyi ekran dışına itiyordu; düğmeler
+    alan 28rem'in altına inince yalnız simge olur (önce 21rem). Pay, sistem yazı tipinin
+    Windows ve Android'de daha geniş olabileceği için bırakıldı.
   - **Onay penceresi:** "Yeniden İşle" ve "Sil" artık sorar (`ConfirmDialog.tsx`; tarayıcının
     `confirm` kutusu kalktı). Yeniden işleme tek dokunuşla başlıyordu; belgeyi baştan okur,
     parçalarını ve arama dizinini yeniler, taranmış belgede dakikalar sürer. Odak "Vazgeç"te
