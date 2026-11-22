@@ -2,8 +2,8 @@
 
 Her koşu × soru için bir satır yazar (JSON lines) ve özet verir. Süre kullanıcının gördüğüdür:
 isteğin gönderilmesinden ilk doğrulanmış cümleye. Sınıflar (doğru / güvenli / yanlış) cevap
-metni okunarak elle verilir; betik vermez. Kilitli sorular varsayılan olarak sorulmaz (karar
-0014). Uygulama önce açılır ve birkaç soruyla ısıtılır (ilk soru modelleri yükler).
+metni okunarak elle verilir; betik vermez. Uygulama önce açılır ve birkaç soruyla ısıtılır
+(ilk soru modelleri yükler).
 
 Sorular arasında beklenir: art arda sorulunca cevap sağlayıcısı istek sınırına takılıyor ve
 yedeğe geçiliyor (2026-11-19: yarım saatte 366 soruda Makora 6 kez 429); o zaman süre ölçümü
@@ -97,7 +97,6 @@ def main() -> None:
     parser.add_argument("--url", default=DEFAULT_URL)
     parser.add_argument("--runs", type=int, default=5)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--with-locked", action="store_true", help="kilitli soruları da sor")
     parser.add_argument(
         "--pause",
         type=float,
@@ -106,11 +105,7 @@ def main() -> None:
     )
     parser.add_argument("--database", type=Path, help="soru günlüğü; varsayılan: VA_DATABASE_PATH")
     arguments = parser.parse_args()
-    questions = [
-        question
-        for question in json.loads(arguments.set.read_text(encoding="utf-8"))
-        if arguments.with_locked or not question["locked"]
-    ]
+    questions = json.loads(arguments.set.read_text(encoding="utf-8"))
     rows: list[dict[str, Any]] = []
     since = datetime.now(UTC).isoformat(timespec="milliseconds")
     arguments.output.parent.mkdir(parents=True, exist_ok=True)
