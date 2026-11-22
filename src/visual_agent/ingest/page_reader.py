@@ -155,14 +155,15 @@ def value_tokens(text: str) -> list[str]:
     return tokens
 
 
-def count_mismatches(primary: str, *seconds: str) -> list[str]:
+def count_mismatches(primary: str, second: str, *more: str) -> list[str]:
     """Birinci okumanın sayı ve kod parçalarından, iki okumada geçiş sayısı farklı olanlar.
     İkinci okuma birden çok kipte yapıldıysa her parça, kiplerin en çok okuduğu sayıyla
     karşılaştırılır; kiplerin metni art arda eklenmez (iki kipin de okuduğu değer çift sayılırdı).
-    Bilinen zayıflık: aynı bloktaki iki hata birbirini dengelerse sayılar tutar ve geçer."""
+    Bilinen zayıflıklar: aynı bloktaki iki hata birbirini dengelerse sayılar tutar ve geçer; eksik
+    okuyan kip onayı engellemez (birinci okumayla aynı hatayı yapan başka bir kip varsa geçer)."""
     first, other = Counter(value_tokens(primary)), Counter[str]()
-    for second in seconds:
-        other |= Counter(value_tokens(second))
+    for reading in (second, *more):
+        other |= Counter(value_tokens(reading))
     return sorted(token for token, count in first.items() if other[token] != count)
 
 
