@@ -33,8 +33,8 @@ const STATUS: Record<Ring, string> = {
 const HINTS: Record<Ring, string> = {
   starting: "Bir saniye.",
   listening: "Sorunuzu bekliyorum. Bitince halkaya basarsanız hemen bakarım.",
-  thinking: "Kaynaklarda arıyorum, bir saniye.",
-  speaking: "Araya girip konuşursanız susarım.",
+  thinking: "Kaynaklarda arıyorum. Vazgeçmek için halkaya basın.",
+  speaking: "Araya girip konuşursanız ya da halkaya basarsanız susarım.",
   "not-heard": "Bir daha söyler misiniz? Kodları harf harf söylemek işe yarar.",
 };
 
@@ -283,28 +283,25 @@ export function ConversationMode(props: Props) {
   // Sesli mod açılmadan önce yazılmış soru "duyulmuş" gösterilmez.
   const heard = lastTurn !== null && lastTurn.id !== typedTurnId.current ? lastTurn : null;
   const icon = ring === "speaking" ? "speaker" : "mic";
+  const ringLabel = canInterrupt
+    ? "Sözünü Kes"
+    : canFinish
+      ? "Bitti, Gönder"
+      : error !== null
+        ? "Sesli mod durdu"
+        : STATUS[ring];
+  // Gezinme düğmeleri gövdeden sonra gelir: klavyede ilk durak halka. Görsel yerleri CSS ızgarasında.
   return (
     <section className="talk" aria-label="Konuşma modu">
-      <header className="talk-top">
-        <button type="button" className="talk-nav" onClick={onClose}>
-          <Icon name="home" />
-          Ana Sayfa
-        </button>
-        <h2 className="talk-title">
-          Sesli mod <span>· eller serbest</span>
-        </h2>
-        <button type="button" className="talk-nav" onClick={onWrite}>
-          <Icon name="keyboard" />
-          Yazarak Sor
-        </button>
-      </header>
+      <h2 className="talk-title">Sesli mod</h2>
       <div className="talk-body">
         <div className="talk-stage">
           <button
             ref={bars}
             type="button"
             className={`talk-ring is-${ring}`}
-            aria-label={canInterrupt ? "Sözünü Kes" : canFinish ? "Bitti, Gönder" : STATUS[ring]}
+            aria-label={ringLabel}
+            aria-describedby={error === null ? "talk-hint" : undefined}
             disabled={!canInterrupt && !canFinish}
             onClick={canInterrupt ? interrupt : finish}
           >
@@ -332,7 +329,9 @@ export function ConversationMode(props: Props) {
               <p className="talk-status" role="status">
                 {STATUS[ring]}
               </p>
-              <p className="talk-hint">{HINTS[ring]}</p>
+              <p className="talk-hint" id="talk-hint">
+                {HINTS[ring]}
+              </p>
             </>
           )}
         </div>
@@ -347,7 +346,7 @@ export function ConversationMode(props: Props) {
               <p className="talk-heard-empty">Henüz bir şey duymadım.</p>
             )}
             {canInterrupt && (
-              <button type="button" className="talk-again" onClick={interrupt}>
+              <button type="button" className="ghost talk-pill" onClick={interrupt}>
                 Tekrar Söyleyeceğim
               </button>
             )}
@@ -364,6 +363,16 @@ export function ConversationMode(props: Props) {
           )}
         </div>
       </div>
+      <header className="talk-top">
+        <button type="button" className="ghost talk-pill" onClick={onClose}>
+          <Icon name="home" />
+          <span className="talk-pill-label">Ana Sayfa</span>
+        </button>
+        <button type="button" className="ghost talk-pill" onClick={onWrite}>
+          <Icon name="keyboard" />
+          <span className="talk-pill-label">Yazarak Sor</span>
+        </button>
+      </header>
     </section>
   );
 }
