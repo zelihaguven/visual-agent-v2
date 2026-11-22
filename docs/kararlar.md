@@ -1,7 +1,7 @@
 # Karar kaydı
 
 Bugüne kadar alınmış önemli kararlar: ne, ne zaman, neden, hangi durumda yeniden düşünülür.
-Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0024) tam metni en
+Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0026) tam metni en
 sonda: [Karar belgeleri](#karar-belgeleri).
 
 **Kural:** Burada "çıkarıldı", "eklenmedi" ya da "reddedildi" yazan bir şeyi yeniden önermek
@@ -349,6 +349,11 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Neden:** Kural "sistem komutu yerleştirmez, değiştirmez, çalıştırmaz" (0001). Model
   komutu yazmaz, yalnız kaynak numarasını verir (`kod_kaynak_no`). Ölçüm yok.
 
+### Excel: altında satır olmayan başlık başlık değildir (2026-11-22, #136)
+- **Sorun:** Tek dolu satırı olan sayfa (ör. yalnız A1'de "Not: tork 12 Nm") başlık satırı sanılıyor, hücre metni hiçbir parçaya girmiyordu (kural 3).
+- **Kural:** Altında dolu satır olmayan başlık satırı başlık sayılmaz; hücreleri etiketsiz satır olarak yazılır ("Kod | (boş) | Tork"). Excel kural sürümü 5. Yüklü 3 Excel'in çıktısı değişmedi.
+- **Bilerek yapılmayan:** tek sütunlu not sayfasında ilk notun ikincinin etiketi olması ("Not 1: Not 2"); tek sütunlu sayfayı başlıksız saymak gerçek başlıklı listeleri etiketsiz bırakır (açık notlar, karar bekliyor).
+
 ### Excel'de her sayfa kendi bölümüyle başlar
 - **Ne zaman:** 2026-11-13. `excel-sayfa-bolum` dalı; ürün sahibi onayı.
 - **Kural:** Excel sayfa başlığı en üst düzey başlıktır; önceki sayfanın adı ve başlığı
@@ -494,6 +499,11 @@ geçersiz olur.
   - Ölçümde de cevaplar LLM ile puanlanmaz.
 - **Yeniden düşünülür:** Anlam düzeyindeki boşluklar (olumsuzlama, yanlış sütun) biçim
   kuralıyla kapanmıyor (açık notlar). Ayrı tasarım gerekir.
+
+### U+2010 ve U+2011 kısa tire okunur (2026-11-22, #136)
+- `canon_chars` iki tireyi kısa tireye çevirir; `prefixed_codes_in` da aynı biçimde okur. Word'ün bölünmez tiresiyle yazılmış kod ("PNT‑1162") kod olarak tanınır; kaynaktaki "‐5" eksi olarak okunur (önce "5" okunuyor, cevaptaki "5" doğrulanıyordu: küçük bir kural 1 açığı kapandı). U+2012 ve U+2013 eklenmedi: – zaten aralık ve eksi işareti olarak ele alınıyor, "M8–M10" tek ad olurdu.
+- Docling yolunda kod taşıyan sayfa üst bilgisi de bu yazımı tanır; PDF ve Office kural sürümü 22. Yüklü veride bu karakter 0.
+- BM25 normalleştirmesine (`_CODE_HYPHEN_RE`) U+2011 eklenmedi: arama davranışı değişir, karar bekliyor (açık notlar).
 
 ### Sayı, kod ve teknik ad cümlenin kendi alıntısında birebir geçer
 - **Ne zaman:**
@@ -953,6 +963,12 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   parçalar ve yeni veritabanları bu alanı taşımıyor.
 - **Sonra:** Giriş ve departman bazlı yetki, arayüz ağa açılmadan önce ayrıca tasarlanacak
   (açık notlar, "Yayına almadan önce").
+
+### Yükleme yarım kayıt bırakmaz (2026-11-22, #136)
+- SQLite bağlantısı autocommit ve yazma iş parçacığında: istek iptal edilse de kayıt yazılıyor, klasör siliniyordu (dosyasız kayıt, "işlenemedi"). Artık yazma korunur; hata ya da iptalde yazmanın bitmesi beklenir, kayıt mevcut `delete_document` ile silinir, sonra klasör; temizlik tek, korunan bir görevde (ikinci iptal yarıda bırakmaz, silme hatası asıl hatayı örtmez).
+
+### Belgeler panelindeki "net okunamadı" sayısı sayfa başına tekil değer (2026-11-22, #137)
+- Başlıkta belirsiz okunan değer doğrulama için altındaki her parçaya taşınıyor; rapordaki sayı parçalardan toplandığı için aynı değer yüzlerce kez sayılıyordu (föylerde 8.690 değerin 2.203'ü dört başlık parçasının tekrarı). Artık öğelerden, sayfa başına tekil değer sayılır. Parçalar ve doğrulama değişmedi. Mac'te yeniden işlemeden sonra toplam 3.776. Eski kayıtlardaki sayılar (ör. 0006'daki "397 → 16") eski yöntemle.
 
 ### Soru kaydı: tanının türü ve ayrıntısı ayrı sütunlarda
 - **Ne zaman:**
@@ -1606,14 +1622,14 @@ Tarih: 2026-11-19. Ürün sahibi kararı.
 Tarih: 2026-11-20. Ürün sahibi kararı. Dal: `niteleyici-denetimi`. Kod: `src/visual_agent/verification/qualifier.py`.
 
 **Ne.** Doğrulayıcı sayı ve kodları denetliyordu, sayı içermeyen niteleyicileri denetlemiyordu. Bugünkü parçalarla yerelde gösterildi (19 Kasım teşhisi): "Chart Size Range değeri XS-4XL, SMT-4XLT" (değer s.1'deki Size Range'in), "Black / Blue Haze renk yolunda göğüs logosu Venom Red 690" (değer öbür renk yolunun) ve "Göğüs logosunun rengi Venom Red 690" (renk yolu düşmüş) doğrulanmış gösteriliyordu. İki genel kural eklendi; ikisi de cümleyi yeniden yazmaz, geçemeyen cümle gizlenir:
-- **Kural A:** kaynakların tablo satırlarındaki en az iki sözcüklü bir ad (etiket, ayraçlı hücre ya da rakamsız değer; düz yazı satırı ad kaynağı değildir) cümlede geçiyorsa, cümlenin alıntı yaptığı kaynağın metninde de geçmeli. En uzun ad esas alınır. Bölüm yolu sayılmaz (yollar yanlış iç içe olabilir; açık notlar, Sıradaki işler madde 4).
+- **Kural A:** kaynakların tablo satırlarındaki en az iki sözcüklü bir ad (etiket, ayraçlı hücre ya da rakamsız değer; düz yazı satırı ad kaynağı değildir) cümlede geçiyorsa, cümlenin alıntı yaptığı kaynağın metninde de geçmeli. En uzun ad esas alınır. Bölüm yolu sayılmaz (yollar yanlış iç içe olabilir; taranmış föylerde düzeltildi, 0025).
 - **Kural B:** alıntılanan değer bir varyant sütununun altındaysa o sütunun adı cümlede ya da kullanıcının kendi sorusunda geçmeli; değer bütün varyantlarda aynıysa gerekmez. Varyant sütunu: aynı satırda aynı gruptan en az iki etiket (kısa kod "S/M/L", ortak başlı ad "Beden S/Beden M", numaralı ad "100: White // Venom Red", değeri de sayı olan salt sayısal etiket "38: 72,0 / 40: 74,0") ve aynı türde değer; ya da kaynaklardan birinin başlık satırında birden çok geçen numaralı ad.
 - Soru olarak modelin tamamladığı soru değil, kullanıcının bu turdaki metni ve önceki turdan yalnız kullanıcıdan geldiği denetlenmiş sözcükler (kod, sayı, beden; `is_grounded`) kullanılır. Bu turun sorusu bir varyant grubundan ad söylüyorsa ("peki M?") önceki turun o gruptaki adı ("L") sayılmaz; söylemiyorsa ("peki kalça?") sayılır.
 - Eşleşme Türkçe büyük-küçük harften ve ı/i farkından bağımsız; "Black / Blue Haze", "Black // Blue Haze", "Black / / Blue Haze" aynı; kısa kodlar sözcük sınırıyla ("M" "M.CODE" ya da "SMT-4XLT" içinde eşleşmez). Ad kümesi cevap başına bir kez hesaplanır.
 
 **Bilinen sınırlar.**
 - Tek sözcüklü adlar Kural A'nın dışında ("Regular", "Fleece"): bunları ad saymak doğru cümleleri de gizlerdi.
-- Başlıksız satırlarda (taranmış tablonun sayfaya devam eden satırları, 6029322 s.9) değerin hangi varyanta ait olduğu parçada yok; Kural B uygulanamaz. Başlık satırı ilk 8 parçaya girmezse tek renk yolu sütunu da varyant olarak tanınmaz. Açık notlar, Sıradaki işler madde 4'e bağlı.
+- Başlıksız satırlarda (eşi olmayan başlık, 6013448 s.21; iki katlı başlık, 6013448 s.10–12) değerin hangi varyanta ait olduğu parçada yok; Kural B uygulanamaz. 6029322 s.9 0025 ile başlıklı oldu. Başlık satırı ilk 8 parçaya girmezse tek renk yolu sütunu da varyant olarak tanınmaz. 0025 ile önceki sayfada kabul edilmiş başlığın tekrarı başlık sayılıyor (yüklü föylerde 4 tablo, 41 satır); eşi olmayan başlıklar (6013448 s.21) başlıksız kalır.
 - Etiketler İngilizce, cümleler Türkçe olduğunda adın çevirisi ("Size Range" → "beden aralığı") Kural A'ya görünmez; çevrilmiş ad başka kaynağın adıysa yakalanmaz.
 - Kısa kod yalnız kaynakta büyük harfle yazılmış harf/rakam kodudur ("S", "XL", "4XLT"); "Min", "Adet", "Volt" varyant sayılmaz. Büyük harfle yazılmış kısa öznitelik başlıkları ("ID", "NO") aynı satırda sayısal değerle yan yana gelirse varyant sayılır ve doğru cümle gizlenebilir.
 - Bu turda sorulan varyant alıntılanan satırda ve başlık satırlarında yoksa ("peki XL?", satırda yalnız S/M/L) önceki turun adı sayılmaya devam eder.
@@ -1789,3 +1805,47 @@ Tarih: 2026-11-22. Ürün sahibi kararı.
 - İndirilen model dosyaları (`data/models/paddleocr-vl-gguf/`) ve Homebrew'deki llama.cpp (ve yalnız onun için kurulan ggml, libomp, openssl@4) 22 Kasım'da silindi.
 
 **Yeniden düşünülür.** Okuyucu için ekran kartlı bir makine ya da sunucu gündeme gelirse; ya da Windows'ta ayar denemesi (iş parçacığı sayısı) yetmez ve GPU'lu llama.cpp (Vulkan, Intel Iris Xe) ayrı süreç olarak onaylanırsa (açık notlar, Sayfa okuyucusu, Windows hız teşhisi).
+
+<a id="karar-0025"></a>
+
+### 0025: Taranmış tabloda tekrarlanan başlık başlıktır; içerikten sonra gelen başlıklar kardeştir
+Tarih: 2026-11-22. Ürün sahibinin bu tur için verdiği iş (açık notlar, Sıradaki işler madde 4). PR #138.
+
+**Teşhis (düzeltildi).** 6029322 s.9 bir sayfa devamı değildi: başlık satırı aynı sayfada okunuyor, ama başlık hücresi rakamlı ("100: White // Venom Red"), altındaki değerler rakamsız ("As Artwork") olduğu için `_first_row_is_header` karşı kanıt sayıyor, satırlar başlıksız kalıyordu. Yüklü föylerde gerçek sayfa devamı (yeni sayfada başlık hiç yok) 0. Bölüm yolunda ilk başlık ("Cover Sheet Properties") içerikten sonra geldiği için bütün bölüm başlıkları onun altına giriyordu.
+
+**Kurallar.**
+- Tablonun ilk satırı, aynı belgenin **önceki sayfalarında yapıdan** başlık sayılmış bir satırla hücre hücre aynıysa (boşluklar yok sayılır) başlıktır. `header_fits` koruması aynen; tekrardan kabul edilen başlık öğrenilmez (zincirlenmez); aynı sayfa ve başka belge sayılmaz; etiketler sayfanın kendi okumasından gelir.
+- İçerikten sonra gelen ilk düzeysiz başlık **kod taşımıyorsa** kök değildir; bu durumda düzeysiz başlıklar kardeştir. Kod taşıyorsa (önce "Sayfa 1 / 12", sonra "PNT-4417 ölçü föyü") kök kalır: kod bölüm yolunda olmalı (kod dizini, cevap denetimi; inceleme turunda bulundu).
+- Kural sürümü PDF ve Office 23, görsel 16, SQL 3.
+
+**Yapılmayanlar.** Sonraki sayfaya başlık taşımak (veride örnek yok; yeni tablo yanlış etiket alır, Kural B yanlış varyantı onaylayabilir). Karşı kanıtı gevşetmek (form tablolarında "Style #: Style Name" gibi yanlış etiket). Okuyucu etiketinden düzey (kod taşıyan kök başlık bölüm yolundan düşer).
+
+**Ölçüm (Mac, `main` #138 koduyla).** 32 belge yeniden işlendi (42 dk, bulut 0), "Eski kural" 0. Okuyucudan geçen 252 sayfada eski ve yeni parçalar: yeniden okuma hiçbir değeri değiştirmedi; belirsiz işareti kalkan değer 0; bölüm yolu değişen parça 557; başlık kazanan satır 41 (4 tablo). **Kural 1 denetimi:** başlık kazanan satırlardan rastgele 10'u sayfa görüntüsüyle karşılaştırıldı, 10/10 uyuşuyor. Saklı set A okumalarında (73 tablo) kural hiçbir tabloyu değiştirmiyor. Taban 7, 11 ve FastReact belgeleri bu kodla yeniden işlendi: parçalar birebir aynı, cevaplar aynı (32/33, doğrulanmış yanlış 0; FastReact 18/18). Föy soruları (bir kez canlı): C1 ve C2 doğru, D6 netleştirme (bilinen), göğüs logosu ve poly bag netleştirme (yanlış doğrulama yok), TT-100157/001 gizlendi (açık notlar, Cevap kalitesi).
+
+**Kalan risk.** 1. sayfada yapıdan yanlışlıkla başlık sayılan bir satır artık sonraki sayfalarda karşı kanıta rağmen başlık olur (birebir aynı ilk satır ve rakamlılığı değişen gövde gerekir; nadir). Set B ile ölçülecekler arasında.
+
+<a id="karar-0026"></a>
+
+### 0026: Okuyucu hattı set B'de: değerlerin %2,9'u yanlış gösteriliyor (0010'daki %2,8 ile aynı düzeyde)
+Tarih: 2026-11-22. Ölçüm, bütün kod değişikliklerinden sonra (`main` `70d363f`, #138).
+
+**Set B.** 0008'deki üreticiyle hiç görülmemiş yeni tohum (20261122): 5 belge × 6 sayfa (set A ile aynı sayfa türleri), 2.118 değer; 0009'daki benzetimle (aynı tohum) 5 tarama ve 12 telefon fotoğrafı, toplam 2.889 puanlanan değer. Dosyalar repoda değil; aynı tohumla yeniden üretilir: `uv run python -m evals.render.techpack_pdf --seed 20261122 --count 5 --set-label B --output <set klasörü>`, ardından `evals.render.imaging.degrade_set(<set klasörü>, <çıktı klasörü>, 20261122)`.
+
+**Nasıl ölçüldü.** Her dosya uygulamanın bugünkü belge hattından geçti (`ingest_document`, okuyucu MLX, istekler tek tek, Tesseract ikinci okuması); parçalar dondurulmuş puanlamayla (`evals/ocr_score.py`, `pipeline_pages`, `score_page`) ve 0008'in toplama kurallarıyla puanlandı. Tek koşu, 386 sn, bulut maliyeti 0. Koşucu tek seferlik betik (repoda değil); donmuş `hat.py` artık çalışmıyor (silinmiş `cell_reader`'ı içe aktarıyor).
+
+| | Set B (bugünkü hat) | Set A, 0010 (ölçülen aday) |
+|---|---|---|
+| Puanlanan değer | 2.889 | 3.121 |
+| Doğru gösterilen | 985 (%34,1) | 1.325 (%42,5) |
+| Yanlış gösterilen | 85 (%2,9): bağ kopması 67, yanlış karakter 18, ayraç 0 | 87 (%2,8): bağ kopması 37, yanlış karakter 50 |
+| Atlama | 70 | 49 |
+| Gizlendi (doğruydu / yanlıştı) | 1.396 / 353 | 1.335 / 325 |
+
+Tarama 758 / 67 (doğru / yanlış gösterilen), fotoğraf 227 / 18. Sayfa türüne göre yanlış gösterilen: fark tablosu 39 (bağ kopması 35), BOM 20, ölçü 16, değerlendirme 6, kapak 4, yorum 0.
+
+**Okuma.** Yanlış gösterilen oranı 0010'dakiyle aynı düzeyde (%2,9 ve %2,8); sayı küçülmedi, kural 1 açısından hat bugün de değerlerin yaklaşık 35'te 1'ini yanlış gösteriyor. Yanlışların türü değişti: yanlış karakter azaldı, bağ kopması (değer yanlış sütuna ya da etikete bağlı) arttı, en çok fark tablolarında. Gizlenen doğru değer %48'e çıktı. Karşılaştırma birebir değil: farklı tohum, farklı belge içeriği; set A ölçülen adayın okumalarıyla, set B uygulamanın hattıyla (çözünürlük, tek tek istekler, 0011–0025 kuralları) ölçüldü. Benzetim gerçek taramadan iyimser olabilir (0009).
+
+**Bu ölçümün cevaplamadıkları.** 0010'daki "set B'de ayrıca ölçülecek" maddeleri (görülmemiş belgede başlık kuralı, hücre sayısı uyuşmayan tablo, görsel küçültme) ve 0025'in kalan riski ayrıca incelenmedi; yalnız toplam okuma sonucu ölçüldü.
+
+**Karar gerektiren.** Kabul edilebilir yanlış gösterilen oranı açık bir ürün kararı değil (0012). Bağ kopmalarının fark tablolarında yoğunlaşması ayrı inceleme ister; bu ölçümle kural yazılmadı (her soru bir kez; sonuca göre ayar yapılmaz).
+
