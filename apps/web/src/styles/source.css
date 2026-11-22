@@ -1,15 +1,42 @@
-/* Kaynak paneli */
+/* Kaynak paneli (açık yüzey). Çekmece kaydırır; başlık ve Kapat üstte kalır. */
 .source-panel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
-  gap: 14px;
-  padding: 18px 20px 24px;
+  gap: var(--space-6);
+  padding: 0 max(var(--space-7), env(safe-area-inset-right))
+    max(var(--space-8), env(safe-area-inset-bottom)) max(var(--space-7), env(safe-area-inset-left));
+}
+
+/* Açık yüzeyde mercan halka zayıf kalır; koyu mercan yeterli karşıtlık verir. */
+.source-panel :focus-visible {
+  outline-color: var(--coral-ink);
+}
+
+.source-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding-top: max(var(--space-6), env(safe-area-inset-top));
+  padding-bottom: var(--space-4);
+  background: var(--cream);
+}
+
+.source-heading {
+  min-width: 0;
+}
+
+.source-heading h2 {
+  text-wrap: balance;
 }
 
 .source-location {
-  margin: 4px 0 0;
+  margin: var(--space-2) 0 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
+/* Sayfa görüntüsü vurgularıyla birlikte sunucuda çizilir; panel genişliğine orantılı ölçeklenir. */
 .source-page {
   display: block;
   width: 100%;
@@ -19,14 +46,22 @@
   box-shadow: 0 10px 30px -12px rgb(10 18 48 / 35%);
 }
 
-.source-text {
-  margin: 0;
-  padding: 16px 18px;
-  border-radius: var(--radius);
-  background: var(--white);
-  white-space: pre-wrap;
+.source-section {
+  overflow-wrap: anywhere;
 }
 
+.source-text {
+  margin: 0;
+  padding: var(--space-6) var(--space-7);
+  border-radius: var(--radius);
+  background: var(--white);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Geniş tablo sayfayı değil yalnız kendi kutusunu kaydırır. */
 .sheet-scroll {
   overflow: auto;
   border-radius: var(--radius);
@@ -36,22 +71,27 @@
 .sheet {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9375rem;
+  font-size: var(--text-md);
 }
 
 .sheet caption {
-  padding: 12px 14px;
+  padding: var(--space-5) var(--space-6);
   color: var(--color-muted);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   text-align: left;
 }
 
 .sheet th,
 .sheet td {
-  padding: 8px 14px;
+  padding: var(--space-4) var(--space-6);
   border-top: 1px solid var(--color-line);
   text-align: left;
   vertical-align: top;
+}
+
+.sheet td {
+  min-width: 12rem;
+  overflow-wrap: anywhere;
 }
 
 .sheet th {
@@ -60,6 +100,8 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Vurgulu satır: arka plan ve soldaki mercan şerit; renk tek başına taşımasın diye satır numarası
+   da koyulaşır. */
 .sheet .is-highlighted {
   background: var(--color-highlight);
   box-shadow: inset 5px 0 0 var(--coral);
@@ -67,4 +109,5 @@
 
 .sheet .is-highlighted th {
   color: var(--color-text);
+  font-weight: var(--weight-bold);
 }
