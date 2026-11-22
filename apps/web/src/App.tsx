@@ -40,7 +40,6 @@ import { applyEvent, newTurn, type Turn } from "./turn";
 
 const ASK_FAILED = "Cevap alınamadı. Bağlantınızı kontrol edip yeniden deneyin.";
 const ASK_STOPPED = "Soru durduruldu.";
-// styles/layout.css ve styles/drawer.css içindeki çalışma alanı kırılımıyla aynı.
 
 type AskOptions = {
   context: ConversationContext | null;

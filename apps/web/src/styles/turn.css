@@ -59,6 +59,8 @@
   padding: var(--space-6) clamp(var(--space-6), 3vw, var(--space-8)) var(--space-7);
   border-radius: var(--radius-tile);
   background: var(--cream);
+  /* Büyük değerin yazı boyu kartın kendi genişliğine göre hesaplanır. */
+  container-type: inline-size;
 }
 
 .answer-head {
@@ -149,16 +151,22 @@
   cursor: progress;
 }
 
-/* Büyük değer asla satıra bölünmez (bölünmüş sayı iki değer gibi okunur); sığmazsa kendi
-   kutusunda kayar. */
+/* Büyük değer asla satıra bölünmez (bölünmüş sayı iki değer gibi okunur) ve kesik görünmez:
+   yazı, değerin bütün karakterleri kartın genişliğine sığacak kadar küçülür (karakter başına
+   0,62em: tek aralıklı rakam ve pay). Çok uzun değerde alt sınıra iner, o zaman kutusunda kayar. */
 .answer-value {
   margin: var(--space-2) 0 0;
-  overflow-x: auto;
+  /* Yalnız yatayda kayar: satır yüksekliği dar olduğu için dikey kaydırma çubuğu çıkıyordu. */
+  overflow: auto hidden;
   font-family: var(--font-mono);
-  font-size: clamp(3rem, 2rem + 5vw, 6.5rem);
+  font-size: clamp(
+    1.5rem,
+    calc(100cqi / (var(--chars, 4) * 0.62)),
+    clamp(3rem, 2rem + 5vw, 6.5rem)
+  );
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  line-height: 1.1;
   letter-spacing: -0.03em;
   white-space: nowrap;
 }

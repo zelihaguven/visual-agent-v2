@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import type { AskResult, SpokenItem } from "../api";
 import { CitationList, type OpenSource } from "./Citations";
 
@@ -206,7 +208,12 @@ export function FinalAnswer({
         )}
       </div>
       {result.has_conflict && <p className="notice">Kaynaklar birbiriyle çelişiyor.</p>}
-      {value !== null && <p className="answer-value">{value}</p>}
+      {value !== null && (
+        // Uzunluk stile gider: yazı, değerin tamamı karta sığacak kadar küçülür (turn.css).
+        <p className="answer-value" style={{ "--chars": value.length } as CSSProperties}>
+          {value}
+        </p>
+      )}
       <ol className="answer-items">
         {mergeHidden(result.items).map((item, index) => (
           <li key={index} className={`answer-item ${item.verified ? "is-verified" : "is-unverified"}`}>

@@ -281,7 +281,9 @@ describe("App", () => {
 
     await ask("GML-6473 M bel kaç?");
 
-    expect(await screen.findByText("38,0", { selector: ".answer-value" })).toBeInTheDocument();
+    const value = await screen.findByText("38,0", { selector: ".answer-value" });
+    // Karakter sayısı stile gider: yazı, değer kesilmeden karta sığacak kadar küçülür.
+    expect(value.style.getPropertyValue("--chars")).toBe("4");
   });
 
   it("does not repeat a sentence that is only the value", async () => {
