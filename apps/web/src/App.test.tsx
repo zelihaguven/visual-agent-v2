@@ -1538,6 +1538,37 @@ describe("App", () => {
       expect(screen.getByLabelText("Sorunuz")).toHaveFocus();
     });
 
+    it("sends what was said so far when the ring is pressed while listening", async () => {
+      stubAudio();
+      hearInTurn();
+      await open(conversationApi([]));
+
+      fireEvent.click(await screen.findByRole("button", { name: "Bitti, gönder" }));
+
+      const finishRequest = listening.listen.mock.calls[0][3];
+      expect(finishRequest).toEqual({ requested: true });
+    });
+
+    it("lets the greeting be interrupted by voice", async () => {
+      stubAudio(false);
+      hearInTurn();
+      listening.barge.mockImplementationOnce(
+        (_mic: unknown, _session: unknown, _done: unknown, onBargeIn: () => void) =>
+          new Promise((resolve) => {
+            setTimeout(() => {
+              onBargeIn();
+              resolve(new Blob(["araya giren"], { type: "audio/webm" }));
+            }, 20);
+          }),
+      );
+      const fetchMock = conversationApi(["izin kaç gün"]);
+
+      await open(fetchMock);
+
+      await waitFor(() => expect(askBodiesOf(fetchMock)).toHaveLength(1));
+      expect(askBodiesOf(fetchMock)[0].question).toBe("izin kaç gün");
+    });
+
     it("stops talking and listens again when interrupted", async () => {
       stubAudio(false);
       hearInTurn("birinci");

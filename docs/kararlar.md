@@ -1625,3 +1625,22 @@ Taramadan okunan 781 parçanın 666'sı `figure`, 115'i `table_row`.
 - **Bedeli.** Word'e ya da PDF'e yapıştırılmış tablo görüntüsünden gelen doğru değerler de gösterilmez; kullanıcı kaynağa bakar. Açılması için eski yolun ölçülebilir ve temiz çıkması gerekir (bu kararın sonucu tersini gösterdi) ya da gömülü görsellerin okuyucuya yönlendirilmesi (ayrı karar).
 - **Kod incelemesinde bulunanlar (tek düzeltme turu).** Kapatılan: netleştirme adayları "aynı cevabı veriyor" yolunda diğer belgenin eşleşen parçası eski yoldan okunduysa eşleşme sayılmaz, netleştirme sorusu kalır (`ask/agreement.py`; testi var). **Bilinen sınır (ürün sahibi kararı, 2026-11-22: düzeltilmeyecek):** ocrmypdf sayfasında okunan bir başlık parça olmaz, sonraki parçaların bölüm adı olur; işaret bölüm adına taşınmaz. Başlıktaki yanlış okunmuş bir kod, iki okuma uyuştuysa, alıntısı dijital bir parçadan gelen cümlede doğrulanmış geçebilir (sayılar geçemez, alıntıda olmak zorundadır). Yalnız ocrmypdf yolunda; gömülü görsel başlık üretmez. Bugünkü veride böyle parça yok (ocrmypdf'ten gelen parça 0). Önerilen düzeltme (işaretli başlığın kod ve sayılarını bölümün belirsiz listesine eklemek) başlığın altındaki dijital parçalarda aynı kodu taşıyan cümleleri de gizlerdi ve parça çıktısını değiştirirdi; bu yüzden uygulanmadı. Ayrıca aynı yolda okuyucudan gelen parça da (işaretsiz) eşleşme sayılıyor ve cevap "doğrulandı" çıkıyor; önceden de böyleydi, okuyucu yoluna bu işte dokunulmadı.
 
+### 0023: Sesle söz kesme; eşik kullanıcının sesiyle kilitlenmez, halkaya basınca söylenen gönderilir
+Tarih: 2026-11-22. Ürün sahibi kararı ve Mac'te elle deneme. Dal: `soz-kesme-esigi`.
+
+**Sorun.** Sesli modda sistem konuşurken kullanıcı araya girince konuşma çoğu zaman durmuyordu. Söz kesme (`#dba91ee`, 9 Kasım) mikrofonu dinler; eşik en az 0,05 ya da duyulan en yüksek "yankının" 1,8 katıdır ve bunun üstünde 300 ms ses gerekir. Yankı engelleme açıktır (`echoCancellation`, `noiseSuppression`, `autoGainControl`).
+
+**Ölçüm (Mac, dizüstü hoparlörü; geçici ölçüm satırı, silindi).** Sistemin kendi sesi mikrofonda en çok 0,035; kullanıcının sesi 0,10–0,27, hece aralarında 0,05'in altına düşüyor. İki ayrı kilitlenme ölçüldü:
+- Eşiğin hemen altında kalan her an "yankı" sayılıp tepe değeri oluyordu. Kullanıcının hece araları eşiği üç dilimde 0,05'ten 0,494'e çıkardı; ses 0,275'te kaldı, söz kesilemedi.
+- Turun ilk yarım saniyesindeki en yüksek ses "kalibrasyon" diye yankı sayılıyordu. O an sistem henüz konuşmuyor; duyulan sorunun son hecesiydi (0,08), eşik tur boyunca 0,144'e kilitlendi.
+
+**Karar.**
+- Yankı tahmini yavaş yükselir (50 ms'de aradaki farkın %5'i), hiç düşmez. Turun ilk yarım saniyesinde ne söz kesme sayılır ne yankı öğrenilir. 0,05 tabanı, 1,8 katsayısı ve 300 ms değişmedi.
+- Açılış selamı da sesle kesilebilir (önceden dinlenmiyordu).
+- Sistem sustuğu anda kullanıcı en az 150 ms'dir konuşuyorsa kayıt atılmaz, sözün tamamı soru olur (kısa cevapların sonunda ilk sözcükler kayboluyordu). Tur hatayla bittiyse uygulanmaz.
+- Dinlerken ses halkasına basmak "bitti" demektir: o ana kadar söylenen, sessizlik beklenmeden gönderilir; hiçbir şey söylenmediyse yok sayılır. Sistem düşünürken ya da konuşurken basmak eskisi gibi susturur. "Bitti"nin hemen ardından gelen ikinci dokunuş (600 ms) soruyu iptal etmez.
+
+**Sonuç.** Son denemede 7 turun 5'inde söz kesildi; kesilmeyen turun nedeni ikinci kilitlenmeydi ve ondan sonra düzeltildi. Son hâli elle bir kez daha denenmeli (bu kayıt yazılırken sonucu bilinmiyordu). Arayüz testleri 151 geçti.
+
+**Kabul edilen risk (kod incelemesi, benzetimle).** Koruma tek bir cihazda ölçülen yankıya (en çok 0,035) göre ayarlı. Yankısı 0,05'in üstünde dalgalanan cihazda (yankı engellemesi zayıf tarayıcı, yüksek sesli harici hoparlör, tablet) sistem kendi sesiyle kendini eskisinden kolay keser: rastgele dalgalı yankıyla 200 denemede kendi sözünü kesme, tepe 0,07'de 1 → 12, 0,08'de 3 → 73, 0,10'da 18 → 190. Aynı cihazlarda cevabın son hecesinin yankısı "sistem sustuğu anda süren söz" sayılıp sistemin kendi cümlesi soru olarak sorulabilir. Eski "kalibrasyon" bu korumayı uygulamada zaten sağlamıyordu (ölçüm sistem konuşmadan yapılıyordu); kaybolan, eşiğin altında kalan her ana sıçrayan tahmindi. Atölyede ve tablette denenmeden pilot cihazı için geçerli sayılmaz.
+

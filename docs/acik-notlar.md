@@ -88,7 +88,7 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 
 ## Ses
 
-- Sesle söz kesme bilgisayarda hoparlörle çalıştı; atölye gürültüsünde ve tablette eşik yeniden denenecek.
+- Sesle söz kesme (karar 0023): eşik yalnız bu Mac'in yankısına (en çok 0,035) göre ölçüldü. Atölye gürültüsünde, tablette ve harici hoparlörde denenmeli: yankı 0,05'in üstünde dalgalanırsa sistem kendi sesiyle kendini keser ve kendi son cümlesini soru sanabilir. Ayrıca ortamdaki başka konuşmalar soru sanılıyor (22 Kasım denemesinde iki kez); ayrı konu, dokunulmadı.
 - Söylenen kodlar yazıya çevrilirken bozulabiliyor ("PNT-1162" yerine "NT1162"). Konuşma modunda soru otomatik gönderildiği için gerçek konuşmacıyla ölçülecek.
 - Tablet Safari'de otomatik ses çalma denenmedi.
 - Ağdaki tabletlerden mikrofon için HTTPS gerekiyor.
