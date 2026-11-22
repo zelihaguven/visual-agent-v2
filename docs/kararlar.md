@@ -1,7 +1,7 @@
 # Karar kaydı
 
 Bugüne kadar alınmış önemli kararlar: ne, ne zaman, neden, hangi durumda yeniden düşünülür.
-Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0026) tam metni en
+Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0027) tam metni en
 sonda: [Karar belgeleri](#karar-belgeleri).
 
 **Kural:** Burada "çıkarıldı", "eklenmedi" ya da "reddedildi" yazan bir şeyi yeniden önermek
@@ -352,7 +352,7 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 ### Excel: altında satır olmayan başlık başlık değildir (2026-11-22, #136)
 - **Sorun:** Tek dolu satırı olan sayfa (ör. yalnız A1'de "Not: tork 12 Nm") başlık satırı sanılıyor, hücre metni hiçbir parçaya girmiyordu (kural 3).
 - **Kural:** Altında dolu satır olmayan başlık satırı başlık sayılmaz; hücreleri etiketsiz satır olarak yazılır ("Kod | (boş) | Tork"). Excel kural sürümü 5. Yüklü 3 Excel'in çıktısı değişmedi.
-- **Bilerek yapılmayan:** tek sütunlu not sayfasında ilk notun ikincinin etiketi olması ("Not 1: Not 2"); tek sütunlu sayfayı başlıksız saymak gerçek başlıklı listeleri etiketsiz bırakır (açık notlar, karar bekliyor).
+- **Tek sütunlu sayfa (2026-11-23, #140, ürün sahibi kararı):** hiçbir satırında birden fazla dolu hücre olmayan sayfa başlıksızdır; her hücre ayrı, etiketsiz satır ("Not 1: Not 2" oluşmaz). Bedel: gerçek başlıklı tek sütunlu liste ("Parça No" ve altında kodlar) etiketsiz yazılır, içerik korunur. Excel kural sürümü 6. Yüklü ve ölçüm setlerindeki 19 xlsx'in çıktısı değişmedi.
 
 ### Excel'de her sayfa kendi bölümüyle başlar
 - **Ne zaman:** 2026-11-13. `excel-sayfa-bolum` dalı; ürün sahibi onayı.
@@ -503,7 +503,7 @@ geçersiz olur.
 ### U+2010 ve U+2011 kısa tire okunur (2026-11-22, #136)
 - `canon_chars` iki tireyi kısa tireye çevirir; `prefixed_codes_in` da aynı biçimde okur. Word'ün bölünmez tiresiyle yazılmış kod ("PNT‑1162") kod olarak tanınır; kaynaktaki "‐5" eksi olarak okunur (önce "5" okunuyor, cevaptaki "5" doğrulanıyordu: küçük bir kural 1 açığı kapandı). U+2012 ve U+2013 eklenmedi: – zaten aralık ve eksi işareti olarak ele alınıyor, "M8–M10" tek ad olurdu.
 - Docling yolunda kod taşıyan sayfa üst bilgisi de bu yazımı tanır; PDF ve Office kural sürümü 22. Yüklü veride bu karakter 0.
-- BM25 normalleştirmesine (`_CODE_HYPHEN_RE`) U+2011 eklenmedi: arama davranışı değişir, karar bekliyor (açık notlar).
+- BM25 normalleştirmesi de U+2010 ve U+2011'i kısa tireye çevirir (2026-11-23, #140, ürün sahibi kararı; okumayla aynı). Yüklü veride bu karakter 0, vektörler değişmedi.
 
 ### Sayı, kod ve teknik ad cümlenin kendi alıntısında birebir geçer
 - **Ne zaman:**
@@ -1148,6 +1148,12 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   `evals/output/mac-main-2026-11-21` (taban 7 ve taban 11, main 38/40, doğrulanmış yanlış 0;
   0019). Bu kayıttaki 37/40 Windows tabanıdır, yalnız referans. Mac tabanı repoda değil
   (`evals/output/` `.gitignore`'da).
+
+### Kabul seti: yüklü belgelerden 16 soru; hiçbir düzeltmede kullanılmadı (2026-11-23)
+- **Dosya:** `evals/kabul_seti.json`. 16 soru (birim, tablo/sütun, olumsuzlama, beden/niteleyici, netleştirme, bulunamadı, takip, güvenlik); 10'u taranmış föylerden, 5'i FastReact'tan, 1'i örnek belgeden. Her beklenen değer kaynakla birebir doğrulandı (taranmış föylerde sayfa görüntüsüyle); taslak 22 Kasım'da yazıldı, ürün sahibi 23 Kasım'da onayladı.
+- **Bu sorular hiçbir düzeltmede kullanılmadı.** Setin içeriği ürün sahibi onayı olmadan değişmez; sonuçlarına bakılarak kural ya da istem ayarlanmaz.
+- **Onaydaki düzeltmeler:** Y08 ("MDT bedende iç boy") kaynakta MDT'nin Tall/Long satırına karşılık geldiği yazmadığı için kaynağın ifadesiyle yeniden yazıldı ("uzun boy (Tall/Long) iç boy ölçüsü MD bedende"); Y15 ("en fazla kaç karakter") kaynakta "15 karakter" yazmadığı için alanın tipini soruyor ("OI.CUSTSTYLE alanının tipi" → T15, takip OI.CUSTREF → T50). Y16 ayrı güvenlik sorusu: gizli ya da 3/4 geçer; "3 3/4" doğrulanmış görünürse kural 1 ihlali.
+- **Puanlama:** doğru / güvenli / yanlış, cevap metni okunarak elle. Taranmış föy sorusunda (`reading: true`) gizlenen cevap güvenlidir. Ölçüm `python -m evals.sinir_seti --set evals/kabul_seti.json --runs 5` (takip turları önceki turun bağlamıyla sorulur).
 
 ### Atlanan netleştirme, doğrulanmış yanlıştan ayrı sayılır
 - **Ne zaman:** `#95e1870`.
@@ -1848,4 +1854,13 @@ Tarama 758 / 67 (doğru / yanlış gösterilen), fotoğraf 227 / 18. Sayfa tür�
 **Bu ölçümün cevaplamadıkları.** 0010'daki "set B'de ayrıca ölçülecek" maddeleri (görülmemiş belgede başlık kuralı, hücre sayısı uyuşmayan tablo, görsel küçültme) ve 0025'in kalan riski ayrıca incelenmedi; yalnız toplam okuma sonucu ölçüldü.
 
 **Karar gerektiren.** Kabul edilebilir yanlış gösterilen oranı açık bir ürün kararı değil (0012). Bağ kopmalarının fark tablolarında yoğunlaşması ayrı inceleme ister; bu ölçümle kural yazılmadı (her soru bir kez; sonuca göre ayar yapılmaz).
+
+<a id="karar-0027"></a>
+
+### 0027: Okuyucu hattının yanlış oranı pilotta "Taramadan okundu" rozetiyle kabul edilir; set B görülmüş sayılır
+Tarih: 2026-11-23. Ürün sahibi kararı.
+
+**Karar.** Taranmış belgelerde okuyucu hattı set B'de değerlerin %2,9'unu yanlış gösterdi (0026). Pilotta bu oran, taramadan okunan her cevapta "Taramadan okundu · kaynaktan kontrol edin" rozetiyle kabul edilir; rozet kaldırılmaz (açık notlar, Doğrulama). Gerçek taramalar gelince yanlış oranı yeniden ölçülür.
+
+**Set B görülmüş sayılır.** Sonuçlarına bakıldı; bundan sonra set B'ye bakılarak OCR ayarı yapılmaz. Okuma katmanında yeni bir tasarım ölçülecekse yeni tohumla set C üretilir ya da gerçek taramalar kullanılır.
 
