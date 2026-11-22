@@ -168,6 +168,23 @@ def test_section_keeps_the_document_heading_as_context() -> None:
     assert chunks[0].section == "PNT-4417 ölçü föyü · Ölçü tablosu"
 
 
+def test_headings_after_content_are_siblings_not_children_of_the_first() -> None:
+    """İçerikten sonra gelen ilk başlık belge başlığı değildir (taranmış föy: önce sayfa başı
+    satırı, sonra "Cover Sheet Properties"); sonraki bölüm başlıkları onun altına girmez."""
+    chunks = build_chunks(
+        [
+            element(ElementKind.TEXT, "SS27-6029322 föyü"),
+            element(ElementKind.HEADING, "Cover Sheet Properties"),
+            element(ElementKind.TABLE_ROW, "Sample Status | Fit Approved"),
+            element(ElementKind.HEADING, "BOM"),
+            element(ElementKind.TABLE_ROW, "Material: Shell"),
+        ],
+        META,
+    )
+
+    assert [chunk.section for chunk in chunks] == ["", "Cover Sheet Properties", "BOM"]
+
+
 def test_paragraphs_merge_up_to_the_limit_on_the_same_page() -> None:
     long_text = "kelime " * 60
     chunks = build_chunks(
