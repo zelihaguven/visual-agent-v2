@@ -5,7 +5,7 @@ from collections.abc import Iterable, Sequence
 
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.elements import SECTION_SEPARATOR, Element, ElementKind
-from visual_agent.verification.text import contains_token
+from visual_agent.verification.text import contains_token, identifiers_in
 
 CHUNK_MAX_CHARS = 900
 _SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?:;])\s+")
@@ -78,18 +78,22 @@ _ROOT_LEVEL = 0
 _UNKNOWN_LEVEL = 99
 
 
-def _next_path(path: HeadingPath, heading: Element) -> HeadingPath:
+def _next_path(path: HeadingPath, heading: Element, after_content: bool = False) -> HeadingPath:
     """Düzeyi bilinen başlık kendi düzeyindeki ve altındaki başlıkların yerini alır.
 
     Düzeyi bilinmeyen başlık belgenin ilk başlığının altına girer; ilk başlığın aynısıysa
-    bölüm yalnız ilk başlıktır.
+    bölüm yalnız ilk başlıktır. Belgenin ilk başlığı içerikten sonra geliyor ve kod taşımıyorsa
+    (after_content) belge başlığı değildir: düzeyi bilinmeyen başlıklar kardeştir, her biri
+    öncekinin yerini alır.
     """
     if heading.level is not None:
         kept = tuple(item for item in path if item[0] < heading.level)
         return (*kept, (heading.level, heading.text))
     if not path:
-        return ((_ROOT_LEVEL, heading.text),)
+        return ((_UNKNOWN_LEVEL if after_content else _ROOT_LEVEL, heading.text),)
     root = path[0]
+    if root[0] == _UNKNOWN_LEVEL:
+        return ((_UNKNOWN_LEVEL, heading.text),)
     return (root,) if heading.text == root[1] else (root, (_UNKNOWN_LEVEL, heading.text))
 
 
@@ -112,7 +116,10 @@ def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str, t
     for element in elements:
         if element.kind is ElementKind.HEADING:
             flush()
-            path = _next_path(path, element)
+            # Kod taşıyan ilk başlık içerikten sonra da gelse belge başlığıdır (kod bölüm yolunda
+            # kalmalı: kod dizini ve cevap denetimi onu bağlamdan okur).
+            after_content = bool(output) and not identifiers_in(element.text)
+            path = _next_path(path, element, after_content)
             section = SECTION_SEPARATOR.join(text for _, text in path)
             heading_uncertain[element.text] = element.ocr_uncertain
             section_uncertain = tuple(

@@ -269,6 +269,14 @@ def test_remote_reader_server_is_refused(url: str) -> None:
         parse_reader_setting(f"mlx-vlm-server@{url}")
 
 
+def _scan_pages(path: Path, count: int) -> Path:
+    pages = [Image.new("RGB", (600, 800), "white") for _ in range(count)]
+    for page in pages:
+        ImageDraw.Draw(page).rectangle((100, 100, 300, 160), fill="black")
+    pages[0].save(path, "PDF", resolution=72.0, save_all=True, append_images=pages[1:])
+    return path
+
+
 def _scan(path: Path, blank: bool = False, dpi: float = 72.0) -> Path:
     image = Image.new("RGB", (600, 800), "white")
     if not blank:
@@ -534,3 +542,95 @@ def test_reader_heading_with_only_a_list_number_stays_a_heading() -> None:
     elements = page_reader.page_elements(_heading_page("3. Kurulum"), 1, (600.0, 800.0), {})
 
     assert [element.kind for element in elements] == [ElementKind.HEADING]
+
+
+def _html(rows: list[list[str]]) -> str:
+    cells = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in row) + "</tr>" for row in rows)
+    return f"<table>{cells}</table>"
+
+
+# İlk sayfada değerler rakamlı: başlık yapıdan kabul edilir. Sonraki sayfada renk yolu sütununun
+# değerleri rakamsız ("As Artwork"): rakamlı başlık hücresi karşı kanıt sayılıyordu.
+_FIRST = _html(
+    [
+        ["Material", "Qty", "100: White // Red"],
+        ["Shell", "1", "White 100"],
+        ["Lining", "2", "Red 690"],
+    ]
+)
+_REPEAT = [
+    ["Material", "Qty", "100: White / / Red"],
+    ["Label", "1", "As Artwork"],
+    ["Tag", "2", "N/A"],
+]
+
+
+def _texts_with(
+    html: str, known: frozenset[tuple[str, ...]] = frozenset(), learned: set[Any] | None = None
+) -> list[str]:
+    page = _page([_block(0, "table", html)])
+    return [e.text for e in page_elements(page, 1, (500.0, 1000.0), {}, known, learned)]
+
+
+def test_header_accepted_on_an_earlier_page_labels_the_repeated_table() -> None:
+    learned: set[Any] = set()
+    _texts_with(_FIRST, learned=learned)
+
+    texts = _texts_with(_html(_REPEAT), frozenset(learned))
+
+    assert texts[0] == "Material: Label | Qty: 1 | 100: White / / Red: As Artwork"
+    assert _texts_with(_html(_REPEAT))[0] == "Material | Qty | 100: White / / Red"
+
+
+def test_repeated_header_must_match_every_cell_and_fit_the_rows() -> None:
+    learned: set[Any] = set()
+    _texts_with(_FIRST, learned=learned)
+    known = frozenset(learned)
+    other = [["Material", "Quantity", "100: White // Red"], *_REPEAT[1:]]
+    shifted = [_REPEAT[0], ["Label", "1", "As Artwork", "x"], ["Tag", "2", "N/A", "y"]]
+
+    assert _texts_with(_html(other), known)[0].startswith("Material | Quantity")
+    assert _texts_with(_html(shifted), known)[0].startswith("Material | Qty")
+
+
+def test_only_structurally_accepted_headers_are_learned() -> None:
+    """Tekrardan kabul edilen başlık öğrenilmez: kabul zincirlenmez."""
+    learned: set[Any] = set()
+    _texts_with(_FIRST, learned=learned)
+    again: set[Any] = set()
+
+    _texts_with(_html(_REPEAT), frozenset(learned), again)
+
+    assert again == set()
+
+
+def test_header_from_the_same_page_is_not_used() -> None:
+    """Yalnız önceki sayfalar: aynı sayfadaki tablolar birbirinin başlığını taşımaz."""
+    page = _page([_block(0, "table", _FIRST), _block(1, "table", _html(_REPEAT))])
+
+    texts = [e.text for e in page_elements(page, 1, (500.0, 1000.0), {}, frozenset(), set())]
+
+    assert "Material | Qty | 100: White / / Red" in texts
+
+
+def test_header_learned_on_a_page_labels_the_next_pages_only(tmp_path: Path) -> None:
+    """Sayfalar okuma sırasıyla: önce kabul edilen başlık sonraki sayfada tekrar başlıktır;
+    sonraki sayfada öğrenilen başlık önceki sayfaya geri uygulanmaz."""
+    tables = {1: _FIRST, 2: _html(_REPEAT)}
+
+    def read_two(order: list[int]) -> list[str]:
+        pages = iter(order)
+
+        def read_page(image: Path) -> dict[str, Any]:
+            width, height = Image.open(image).size
+            block = _block(0, "table", tables[next(pages)])
+            return {"width": width, "height": height, "parsing_res_list": [block]}
+
+        scan = _scan_pages(tmp_path / f"iki{order[0]}.pdf", 2)
+        return [e.text for e in read_scanned_pages(scan, [1, 2], tmp_path, read_page, str)]
+
+    forward = read_two([1, 2])
+    backward = read_two([2, 1])
+
+    assert "Material: Label | Qty: 1 | 100: White / / Red: As Artwork" in forward
+    assert "Material | Qty | 100: White / / Red" in backward

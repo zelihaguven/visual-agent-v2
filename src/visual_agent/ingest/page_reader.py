@@ -247,15 +247,38 @@ def _first_row_is_header(rows: Sequence[Sequence[str]]) -> bool:
     return evidence and not counter
 
 
-def _table_elements(content: str, location: SourceLocation, tokens: Sequence[str]) -> list[Element]:
+HeaderKey = tuple[str, ...]
+
+
+def _header_key(row: Sequence[str]) -> HeaderKey:
+    """Başlık satırının karşılaştırma biçimi: hücre hücre, boşluksuz ("// " ile "/ /" aynı)."""
+    return tuple("".join(cell.split()) for cell in row)
+
+
+def _table_elements(
+    content: str,
+    location: SourceLocation,
+    tokens: Sequence[str],
+    known_headers: frozenset[HeaderKey] = frozenset(),
+    learned: set[HeaderKey] | None = None,
+) -> list[Element]:
     """Başlıklı tabloda satır "Başlık: değer" biçimindedir; başlıksız tabloda (form, tek satır)
     satır okunduğu gibi kalır: hücreler sırayla, ilk satır da bir satırdır, aradaki boş hücre
     yerini korur. Başlık satırının hücre sayısı bir veri satırınınkinden farklıysa tablo da
     başlıksız yazılır: okuyucu bir hücreyi düşürdüyse başlıklar bir sütun kayar ve değer yanlış
     sütunun adını alır (fotoğrafta "S: Bel | M: 38,0"; doğrusu S 38,0). İkinci okuma bunu
-    yakalamaz, sayılar doğrudur."""
+    yakalamaz, sayılar doğrudur.
+
+    Belgenin önceki sayfalarında yapıdan başlık sayılmış satırın birebir aynısı (known_headers)
+    karşı kanıta rağmen başlıktır: belgeler sütun başlığını her sayfada tekrarlar, değerleri
+    rakamsız olan sayfada ("As Artwork") rakamlı başlık hücresi ("100: White") karşı kanıt
+    sayılıyordu. Yalnız yapıdan kabul edilen başlıklar öğrenilir (learned); kabul zincirlenmez."""
     rows = [[canonical(text) for text in row] for row in html_rows(content)]
-    has_header = len(rows) > 1 and header_fits(rows[0], rows[1:]) and _first_row_is_header(rows)
+    structural = len(rows) > 1 and _first_row_is_header(rows)
+    repeated = len(rows) > 1 and _header_key(rows[0]) in known_headers
+    has_header = len(rows) > 1 and header_fits(rows[0], rows[1:]) and (structural or repeated)
+    if has_header and structural and learned is not None:
+        learned.add(_header_key(rows[0]))
     if not has_header:
         rows = [with_empty_cells_marked(row) for row in rows]
     cells = [
@@ -283,6 +306,8 @@ def page_elements(
     page: int,
     page_size: tuple[float, float],
     marks: Mapping[int, Sequence[str]],
+    known_headers: frozenset[HeaderKey] = frozenset(),
+    learned: set[HeaderKey] | None = None,
 ) -> list[Element]:
     """Okuyucunun sayfa sonucu, okuma sırasıyla öğelere çevrilir. Metin karşılaştırılan yazımla
     yazılır ("14⅞" → "14 7/8"): belirsiz değerler cevap denetiminde aynı yazımla aranır.
@@ -308,7 +333,7 @@ def page_elements(
         location = SourceLocation(page=page, boxes=(box,))
         tokens = marks.get(int(block.get("block_id", -1)), ())
         if block.get("block_label") == "table":
-            elements += _table_elements(content, location, tokens)
+            elements += _table_elements(content, location, tokens, known_headers, learned)
             continue
         text = canonical(content)
         heading = block.get("block_label") in _HEADING_LABELS
@@ -506,6 +531,7 @@ def read_scanned_pages(
     document = pypdfium2.PdfDocument(path)
     try:
         elements: list[Element] = []
+        known_headers: frozenset[HeaderKey] = frozenset()
         for number in pages:
             page = document[number - 1]
             if source_image is not None:
@@ -522,7 +548,9 @@ def read_scanned_pages(
             image.save(source)
             data = read_page(source)
             marks = second_reading_marks(data, image, second)
-            elements += page_elements(data, number, page.get_size(), marks)
+            learned: set[HeaderKey] = set()
+            elements += page_elements(data, number, page.get_size(), marks, known_headers, learned)
+            known_headers |= learned  # yalnız sonraki sayfalar için
         return elements
     finally:
         document.close()
