@@ -1175,7 +1175,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   | Y15 OI.CUSTSTYLE → OI.CUSTREF | 10 | 0 | T15 → T50 |
   | Y16 bottom hem height (güvenlik) | 0 | 5 | "Hangi beden için?"; geçti |
 
-  Taranmış föy sorularının çoğu güvenli kaldı (gizleme ya da netleştirme); doğru değer gösterme oranı düşük (föy sorularında 7/55). Sonuçlara bakılarak ayar yapılmadı.
+  Taranmış föy sorularının çoğu güvenli kaldı (gizleme ya da netleştirme); föy turlarında doğru 17/55, bunların yalnız 7'sinde değer gösterildi (kalanı doğru netleştirme ya da doğru "bulunamadı"). Sonuçlara bakılarak ayar yapılmadı.
 
 ### Atlanan netleştirme, doğrulanmış yanlıştan ayrı sayılır
 - **Ne zaman:** `#95e1870`.
