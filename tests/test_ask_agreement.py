@@ -65,6 +65,21 @@ TWO_SAME = [
 ]
 
 
+def test_candidate_read_from_a_scan_keeps_the_answer_partially_verified() -> None:
+    """Diğer belgede eşleşen parça sayfa okuyucusundan (taramadan) geldiyse cevap verilir ama
+    "doğrulandı" olmaz: taranmış kaynağın durumu ve rozeti korunur. Dijital eşleşme (aşağıdaki
+    test) "doğrulandı" kalır."""
+    scanned = TWO_SAME[1].model_copy(update={"from_ocr": True})
+
+    outcome = _ask(SequenceClient([CLARIFY, _answer(SHARED)]), [TWO_SAME[0], scanned])
+
+    assert isinstance(outcome.result, Answered)
+    assert outcome.result.status.value == "partial"
+    item = outcome.result.items[0]
+    assert item.verified and item.from_ocr and not outcome.result.problems
+    assert [c.doc_id for c in item.citations] == ["a", "b"]
+
+
 def test_candidate_read_on_the_legacy_ocr_path_does_not_confirm_the_answer() -> None:
     """Karar 0022: diğer belgede alıntı birebir geçse de parça eski OCR yolundan okunduysa
     cevap doğrulanmış verilmez; netleştirme sorusu kalır."""

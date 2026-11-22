@@ -49,18 +49,18 @@ def _shared_hit(quote: str, hits: Sequence[Hit], language_of: LanguageOf) -> Hit
     )
 
 
-def _citations_elsewhere(
-    item: ModelItem, others: Sequence[Sequence[Hit]], cite: Cite, language_of: LanguageOf
-) -> list[Citation] | None:
-    """Öğenin her alıntısı her diğer belgede geçiyorsa o belgelerin atıfları; yoksa None."""
-    citations: list[Citation] = []
+def _hits_elsewhere(
+    item: ModelItem, others: Sequence[Sequence[Hit]], language_of: LanguageOf
+) -> list[Hit] | None:
+    """Öğenin her alıntısı her diğer belgede geçiyorsa o belgelerdeki parçalar; yoksa None."""
+    found: list[Hit] = []
     for hits in others:
         for quote in item.quotes:
-            found = _shared_hit(quote.text, hits, language_of)
-            if found is None:
+            hit = _shared_hit(quote.text, hits, language_of)
+            if hit is None:
                 return None
-            citations.append(cite(found))
-    return citations
+            found.append(hit)
+    return found
 
 
 def shared_answer(
@@ -74,7 +74,10 @@ def shared_answer(
     asked: str = "",
     previous: str = "",
 ) -> Answered | None:
-    """İlk belgeden gelen cevap bütün aday belgelerde birebir geçiyorsa cevap; yoksa None."""
+    """İlk belgeden gelen cevap bütün aday belgelerde birebir geçiyorsa cevap; yoksa None.
+
+    Eşleşen parçalardan biri taramadan okunduysa cevap, tek belgeden gelseydi olacağı gibi,
+    kısmen doğrulanmış kalır (rozet "Taramadan okundu")."""
     parsed = parse_answer(content, finish)
     if isinstance(parsed, ParseFailure) or parsed.kind is not AnswerKind.ANSWER:
         return None
@@ -87,13 +90,22 @@ def shared_answer(
     for item, check in zip(parsed.items, verification.items, strict=True):
         if item.code_source_no is not None or not item.quotes:
             return None
-        elsewhere = _citations_elsewhere(item, others, cite, language_of)
+        elsewhere = _hits_elsewhere(item, others, language_of)
         if elsewhere is None:
             return None
-        own = [cite(first[number - 1]) for number in check.source_numbers]
-        unique = {citation.chunk_id: citation for citation in [*own, *elsewhere]}
-        items.append(AnsweredItem(text=item.text, citations=tuple(unique.values()), verified=True))
-    return Answered(status=VerificationStatus.VERIFIED, items=tuple(items))
+        own = [first[number - 1] for number in check.source_numbers]
+        unique = {hit.chunk.chunk_id: cite(hit) for hit in [*own, *elsewhere]}
+        items.append(
+            AnsweredItem(
+                text=item.text,
+                citations=tuple(unique.values()),
+                verified=True,
+                from_ocr=any(hit.chunk.from_ocr for hit in elsewhere),
+            )
+        )
+    scanned = any(item.from_ocr for item in items)
+    status = VerificationStatus.PARTIAL if scanned else VerificationStatus.VERIFIED
+    return Answered(status=status, items=tuple(items))
 
 
 async def agreed_answer(
