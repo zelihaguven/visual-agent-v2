@@ -60,7 +60,10 @@ Repo sade kalmalı. Daha önce "overengineered" bulundu; bunu tekrarlama.
 
 ## Çalışma biçimi
 
-- Her iş kendi dalında yapılır. Ana dala doğrudan yazma, birleştirme yapma.
+- Her iş kendi dalında yapılır. Ana dala doğrudan yazma.
+- Birleştirme (ekip izni, 2026-11-22; bu Mac'te): CI yeşil, code-reviewer bitmiş, kabul ölçütleri
+  tutmuş ve ekipten beklenen açık bir karar yoksa PR'ı kendin birleştirebilirsin. Karar, onay ya da
+  istisna gerektiren her şeyde yine dur ve sor.
 - PR'lar her zaman `main`'e açılır. Bir dal başka bir açık dala dayanıyorsa, önceki PR birleştikten sonra dalı `main`'e taşı ve PR'ın tabanını `main` yap.
 - Aynı hatanın etrafında tur atma. Bir yaklaşım işe yaramazsa nedenini yaz, açık notlara ekle, sıradaki işe geç.
 - Ertelenen fikirler ve öneriler `docs/acik-notlar.md`'ye yazılır; oradan kendiliğinden iş seçme.
