@@ -1004,6 +1004,14 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     eskiden kart dışına taşıyor ya da kesik görünebiliyordu).
   - **Duyarlı tasarım:** 320–1920 px. Sesli modda yerleşim pencereye değil kendi alanına bakar
     (telefon yatayda yan yana, dikeyde alt alta; halka boyutu akışkan).
+  - **Onay penceresi:** "Yeniden İşle" ve "Sil" artık sorar (`ConfirmDialog.tsx`; tarayıcının
+    `confirm` kutusu kalktı). Yeniden işleme tek dokunuşla başlıyordu; belgeyi baştan okur,
+    parçalarını ve arama dizinini yeniler, taranmış belgede dakikalar sürer. Odak "Vazgeç"te
+    başlar, Escape pencereyi kapatır (arkadaki menüyü değil).
+  - **Marka ve atmosfer:** sol üstte mercan yıldız ve iki tonlu "Visual Agent"; sekme simgesi
+    aynı yıldız (satır içi SVG, ayrı dosya yok); arka planda yörünge halkaları, küçük yıldızlar
+    ve sağ altta soğuk mavi parıltı. Soru kutusunun yer tutucusu "Sorunuzu yazın…"; sesli mod
+    başlığı "Sesli Mod".
   - **Kod:** `App.css` (1.678 satır) `src/styles/` altında 11 dosyaya bölündü (içe aktarma sırası
     basamaklamayı korur); ortak boşluk, yazı ve süre jetonları. `TurnView.tsx` 511 → 240 satır
     (`FinalAnswer.tsx`, `Citations.tsx`); `TopBar.tsx`; kırılım sabiti `layout.ts`.

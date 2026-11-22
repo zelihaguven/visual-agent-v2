@@ -100,13 +100,15 @@
 /* Açık yüzeyin içindeki odak halkası: mercan kremde zayıf kalır, koyu mercan yeterli karşıtlık
    verir. Karoların kendi halkası lacivert zeminde çizildiği için mercan kalır. */
 .answer,
-.drawer.is-right {
+.drawer.is-right,
+.confirm {
   --focus-ring-color: var(--coral-ink);
 }
 
 /* Açık yüzeyler: cevap kartı, kaynak paneli, krem ve beyaz karolar. */
 .answer,
 .drawer.is-right,
+.confirm,
 .action-card.is-add {
   --color-text: var(--navy-900);
   --color-muted: #4d5878;

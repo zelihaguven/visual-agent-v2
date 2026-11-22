@@ -11,7 +11,14 @@ export function TopBar({ isLanding, documentCount, isLibraryOpen, onHome, onOpen
   return (
     <header className="topbar">
       {isLanding ? (
-        <span className="brand">Visual Agent</span>
+        <span className="brand">
+          <svg className="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M12 1.5c.9 6.3 4.2 9.6 10.5 10.5-6.3.9-9.6 4.2-10.5 10.5C11.1 16.2 7.8 12.9 1.5 12 7.8 11.1 11.1 7.8 12 1.5Z" />
+          </svg>
+          <span>
+            Visual <span className="brand-soft">Agent</span>
+          </span>
+        </span>
       ) : (
         <button
           type="button"

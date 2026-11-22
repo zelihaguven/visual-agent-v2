@@ -293,7 +293,7 @@ export function ConversationMode(props: Props) {
   // Gezinme düğmeleri gövdeden sonra gelir: klavyede ilk durak halka. Görsel yerleri CSS ızgarasında.
   return (
     <section className="talk" aria-label="Konuşma modu">
-      <h2 className="talk-title">Sesli mod</h2>
+      <h2 className="talk-title">Sesli Mod</h2>
       <div className="talk-body">
         <div className="talk-stage">
           <button

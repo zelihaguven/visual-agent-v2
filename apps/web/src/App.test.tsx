@@ -736,11 +736,11 @@ describe("App", () => {
 
   it("keeps an action error after the list is refreshed", async () => {
     stubDocumentActions(404);
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<App />);
     openDocuments();
 
     fireEvent.click(await screen.findByRole("button", { name: "Föy Belgesini Sil" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sil" }));
 
     expect(await screen.findByText("Belge bulunamadı.")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("Belge bulunamadı.")).toBeInTheDocument());
@@ -780,36 +780,40 @@ describe("App", () => {
 
   it("deletes a document only after the user confirms", async () => {
     const fetchMock = stubDocumentActions();
-    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<App />);
     openDocuments();
 
     fireEvent.click(await screen.findByRole("button", { name: "Föy Belgesini Sil" }));
+    const dialog = screen.getByRole("alertdialog", { name: '"Föy" silinsin mi?' });
+    expect(dialog).toHaveAccessibleDescription(/kalıcı olarak silinir/);
+    expect(methodCalls(fetchMock, "DELETE")).toEqual([]);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Sil" }));
 
     await waitFor(() => expect(screen.queryByText("Föy")).not.toBeInTheDocument());
-    expect(confirm).toHaveBeenCalledWith(expect.stringContaining('"Föy" silinsin mi?'));
     expect(methodCalls(fetchMock, "DELETE")).toEqual(["/api/documents/d1"]);
   });
 
   it("keeps the document when the user cancels the deletion", async () => {
     const fetchMock = stubDocumentActions();
-    vi.spyOn(window, "confirm").mockReturnValue(false);
     render(<App />);
     openDocuments();
 
     fireEvent.click(await screen.findByRole("button", { name: "Föy Belgesini Sil" }));
+    expect(screen.getByRole("button", { name: "Vazgeç" })).toHaveFocus();
+    fireEvent.click(screen.getByRole("button", { name: "Vazgeç" }));
 
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(screen.getByText("Föy")).toBeInTheDocument();
     expect(methodCalls(fetchMock, "DELETE")).toEqual([]);
   });
 
   it("shows why a deletion failed", async () => {
     stubDocumentActions(404);
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<App />);
     openDocuments();
 
     fireEvent.click(await screen.findByRole("button", { name: "Föy Belgesini Sil" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sil" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Belge bulunamadı.");
   });
@@ -820,10 +824,31 @@ describe("App", () => {
     openDocuments();
 
     fireEvent.click(await screen.findByRole("button", { name: "Föy Belgesini Yeniden İşle" }));
+    // Yeniden işleme dizini değiştirir ve taranmış belgede dakikalar sürer: önce sorulur.
+    const dialog = screen.getByRole("alertdialog", { name: '"Föy" yeniden işlensin mi?' });
+    expect(dialog).toHaveAccessibleDescription(/arama dizini yenilenir/);
+    expect(methodCalls(fetchMock, "POST")).toEqual([]);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Yeniden İşle" }));
 
     expect(await screen.findByText("Kuyrukta")).toBeInTheDocument();
     expect(methodCalls(fetchMock, "POST")).toEqual(["/api/documents/d1/reprocess"]);
     expect(screen.getByRole("button", { name: "Föy Belgesini Yeniden İşle" })).toBeDisabled();
+  });
+
+  it("cancels reprocessing with Escape without closing the documents drawer", async () => {
+    const fetchMock = stubDocumentActions();
+    render(<App />);
+    openDocuments();
+    const opener = await screen.findByRole("button", { name: "Föy Belgesini Yeniden İşle" });
+    opener.focus();
+
+    fireEvent.click(opener);
+    fireEvent.keyDown(screen.getByRole("alertdialog"), { key: "Escape" });
+
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(methodCalls(fetchMock, "POST")).toEqual([]);
+    expect(screen.getByRole("heading", { name: "Belgeler" })).toBeVisible();
+    expect(opener).toHaveFocus();
   });
 
   it("shows skipped images and uncertain OCR values of a document", async () => {

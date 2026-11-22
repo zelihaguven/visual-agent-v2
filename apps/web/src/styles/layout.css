@@ -3,13 +3,15 @@
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   height: 100%;
-  /* Atmosfer: sol üstte mercan parıltı, sağ üstte ince eşyükselti çizgileri. Arka plan
-     görseli olduğu için taşma yaratmaz; çizgiler çok soluk, metin kontrastını düşürmez. */
+  /* Atmosfer: sol üstte mercan, sağ altta soğuk mavi parıltı; sağ üstte merkezden dışa solan
+     yörünge halkaları ve marka yıldızından birkaç küçük ışık. Arka plan görseli olduğu için
+     taşma yaratmaz; halkalar metnin olduğu sütuna gelince çok soluktur, kontrastı düşürmez. */
   background:
-    radial-gradient(60vmax 44vmax at -8% -12%, rgb(255 111 79 / 24%), transparent 62%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='520' fill='none' stroke='%23ffffff' stroke-opacity='.07'%3E%3Cpath d='M720 40C560 20 430 90 420 210s90 190 300 230M720 90C590 76 480 130 474 214s70 150 246 176M720 142c-104-8-190 30-194 80s56 104 194 122M720 196c-70-4-128 14-130 34s40 54 130 66'/%3E%3C/svg%3E")
-      no-repeat right top / min(720px, 100%) auto,
-    var(--color-page);
+    radial-gradient(52vmax 40vmax at -6% -10%, rgb(255 111 79 / 22%), transparent 64%),
+    radial-gradient(58vmax 46vmax at 108% 112%, rgb(72 104 214 / 20%), transparent 62%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='700' fill='none'%3E%3Cg transform='rotate%28-9 900 240%29'%3E%3Cg stroke='%23fff'%3E%3Cellipse cx='900' cy='240' rx='150' ry='68' stroke-opacity='.17'/%3E%3Cellipse cx='900' cy='240' rx='275' ry='132' stroke-opacity='.13'/%3E%3Cellipse cx='900' cy='240' rx='410' ry='205' stroke-opacity='.09'/%3E%3Cellipse cx='900' cy='240' rx='555' ry='288' stroke-opacity='.06'/%3E%3Cellipse cx='900' cy='240' rx='710' ry='380' stroke-opacity='.04'/%3E%3C/g%3E%3Cellipse cx='900' cy='240' rx='58' ry='25' stroke='%23ff6f4f' stroke-opacity='.45'/%3E%3C/g%3E%3Cpath fill='%23ff6f4f' fill-opacity='.75' d='M596 109c0.81 5.40 3.60 8.19 9 9-5.40 0.81-8.19 3.60-9 9-0.81-5.40-3.60-8.19-9-9 5.40-0.81 8.19-3.60 9-9Z'/%3E%3Cpath fill='%23fff' fill-opacity='.35' d='M742 397c0.45 3.00 2.00 4.55 5 5-3.00 0.45-4.55 2.00-5 5-0.45-3.00-2.00-4.55-5-5 3.00-0.45 4.55-2.00 5-5Z'/%3E%3Cpath fill='%23fff' fill-opacity='.25' d='M468 262c0.36 2.40 1.60 3.64 4 4-2.40 0.36-3.64 1.60-4 4-0.36-2.40-1.60-3.64-4-4 2.40-0.36 3.64-1.60 4-4Z'/%3E%3Cpath fill='%23ff6f4f' fill-opacity='.5' d='M820 92.5c0.32 2.10 1.40 3.19 3.5 3.5-2.10 0.32-3.19 1.40-3.5 3.5-0.32-2.10-1.40-3.19-3.5-3.5 2.10-0.32 3.19-1.40 3.5-3.5Z'/%3E%3C/svg%3E")
+      no-repeat right top / min(900px, 135%) auto,
+    linear-gradient(180deg, var(--navy-900), #080f29);
 }
 
 .topbar {
@@ -22,12 +24,29 @@
     var(--space-5) max(var(--gutter), env(safe-area-inset-left));
 }
 
+/* Marka: mercan yıldız ve iki tonlu yazı (ilk sözcük dolu, ikincisi hafif). */
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--touch-size);
   font-family: var(--font-display);
-  font-size: var(--text-md);
-  font-weight: var(--weight-semibold);
-  letter-spacing: 0.01em;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+
+.brand-mark {
+  flex: none;
+  width: 1.375rem;
+  height: 1.375rem;
+  color: var(--coral);
+}
+
+.brand-soft {
   color: var(--color-muted);
+  font-weight: var(--weight-medium);
 }
 
 .library-button,

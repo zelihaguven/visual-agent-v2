@@ -1,0 +1,95 @@
+/* Onay penceresi: karartılmış sayfanın ortasında krem kart. Açık yüzey jetonları tokens.css'te. */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: max(var(--space-6), env(safe-area-inset-top)) max(var(--space-6), env(safe-area-inset-right))
+    max(var(--space-6), env(safe-area-inset-bottom)) max(var(--space-6), env(safe-area-inset-left));
+  background: var(--color-scrim);
+  animation: fade var(--duration-base) var(--ease-out-expo);
+}
+
+.confirm {
+  display: grid;
+  gap: var(--space-5);
+  width: min(100%, 26rem);
+  padding: var(--space-8);
+  border-radius: var(--radius-tile);
+  background: var(--cream);
+  box-shadow: 0 24px 64px rgb(4 8 24 / 55%);
+  animation: confirm-in var(--duration-base) var(--ease-out-expo);
+}
+
+.confirm h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.confirm p {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: var(--leading-body);
+}
+
+/* Dar ekranda düğmeler alt alta ve tam genişlikte; asıl eylem üstte kalır. */
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.confirm-actions button {
+  flex: 1 1 9rem;
+  min-height: var(--touch-size);
+  padding: 0 var(--space-7);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: transform var(--ease);
+}
+
+.confirm-actions button:active {
+  transform: scale(0.98);
+}
+
+.confirm-cancel {
+  border-color: var(--color-line);
+  background: transparent;
+  color: var(--color-text);
+}
+
+.confirm-accept {
+  background: var(--navy-900);
+  color: var(--white);
+}
+
+.confirm-accept.is-danger {
+  background: var(--color-bad);
+}
+
+@media (hover: hover) {
+  .confirm-cancel:hover {
+    background: var(--color-chip);
+  }
+
+  .confirm-accept:hover {
+    filter: brightness(1.15);
+  }
+}
+
+@keyframes confirm-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}

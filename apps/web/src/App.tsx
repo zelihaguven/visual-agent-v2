@@ -21,6 +21,7 @@ import "./styles/turn.css";
 import "./styles/drawer.css";
 import "./styles/documents.css";
 import "./styles/source.css";
+import "./styles/confirm.css";
 import "./styles/talk.css";
 import "./styles/motion.css";
 import { ContextBar } from "./components/ContextBar";
@@ -361,7 +362,7 @@ export function App() {
               value={draft}
               maxLength={MAX_QUESTION_CHARS}
               autoComplete="off"
-              placeholder="Sorunuzu yazın"
+              placeholder="Sorunuzu yazın…"
               onChange={(event) => {
                 if (event.target.value === "") {
                   draftFromVoice.current = false;

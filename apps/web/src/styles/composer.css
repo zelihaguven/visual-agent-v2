@@ -126,7 +126,7 @@
 }
 
 /* 380px altı telefon: düğmeler dokunma boyunda kalır, aralarındaki boşluk daralır ki yer tutucu
-   ("Sorunuzu yazın") kesilmesin. */
+   ("Sorunuzu yazın…") olabildiğince sığsın. */
 @media (max-width: 380px) {
   .composer {
     gap: 0;

@@ -9,6 +9,7 @@ import {
   type DocumentReport,
 } from "../api";
 import { groupDocuments } from "../documentGroups";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES, uploadLimitMessage } from "../limits";
 
 const POLL_MILLISECONDS = 3000;
@@ -34,11 +35,25 @@ function needsAttention(document: DocumentInfo): boolean {
   return document.status !== "ready" || document.outdated === true;
 }
 
-function confirmDeletion(title: string): boolean {
-  return window.confirm(
-    `"${title}" silinsin mi? Belge, parçaları ve dosyaları kalıcı olarak silinir.`,
-  );
-}
+/** Onay bekleyen işlem: ikisi de belgenin dizinini değiştirir, yanlış dokunuşla başlamamalı. */
+type PendingAction = { kind: "reprocess" | "delete"; document: DocumentInfo };
+
+const CONFIRMATIONS = {
+  reprocess: {
+    question: "yeniden işlensin mi?",
+    body:
+      "Belge baştan okunur; parçaları ve arama dizini yenilenir. Bitene kadar belge işleniyor " +
+      "görünür. Taranmış belgelerde dakikalar sürebilir.",
+    confirmLabel: "Yeniden İşle",
+    action: reprocessDocument,
+  },
+  delete: {
+    question: "silinsin mi?",
+    body: "Belge, parçaları ve dosyaları kalıcı olarak silinir.",
+    confirmLabel: "Sil",
+    action: deleteDocument,
+  },
+};
 
 function DocumentNotes({ title, report }: { title: string; report: DocumentReport }) {
   if (report.warnings.length === 0 && report.uncertain_values === 0) {
@@ -84,6 +99,7 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toggled, setToggled] = useState<Record<string, boolean>>({});
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [pending, setPending] = useState<PendingAction | null>(null);
 
   useEffect(() => {
     // Liste gelmeden sayı gösterilmez: "0 belge" yanlış izlenim verir.
@@ -164,9 +180,10 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
     }
   }
 
-  function handleDelete(document: DocumentInfo) {
-    if (confirmDeletion(document.title)) {
-      void runAction(document, deleteDocument);
+  function confirmPending() {
+    if (pending !== null) {
+      setPending(null);
+      void runAction(pending.document, CONFIRMATIONS[pending.kind].action);
     }
   }
 
@@ -222,8 +239,8 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
                     key={document.doc_id}
                     document={document}
                     isBusy={busyId !== null}
-                    onReprocess={() => void runAction(document, reprocessDocument)}
-                    onDelete={() => handleDelete(document)}
+                    onReprocess={() => setPending({ kind: "reprocess", document })}
+                    onDelete={() => setPending({ kind: "delete", document })}
                   />
                 ))}
               </ul>
@@ -233,6 +250,16 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
       </ul>
       {documents.length === 0 && listError === null && (
         <p className="muted">Soru sormak için önce bir belge ekleyin.</p>
+      )}
+      {pending !== null && (
+        <ConfirmDialog
+          title={`"${pending.document.title}" ${CONFIRMATIONS[pending.kind].question}`}
+          body={CONFIRMATIONS[pending.kind].body}
+          confirmLabel={CONFIRMATIONS[pending.kind].confirmLabel}
+          isDanger={pending.kind === "delete"}
+          onConfirm={confirmPending}
+          onCancel={() => setPending(null)}
+        />
       )}
     </div>
   );
