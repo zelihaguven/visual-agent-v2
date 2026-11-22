@@ -1117,6 +1117,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   doğrulanmış cümlesinde 1'ini ("7ABC", değer değil).
 - **Okuma düzeltmeleri (aynı dal):** "±0,5" artık "artı eksi sıfır virgül beş" (önce "artı
   eksi0,5" TTS'e gidiyordu); "°C" "santigrat derece" (önce "°ce").
+- **Bilinen sınır:** bitişik yazılmış birimler ("−5°C", "5mm") ve rakamla başlayan beden kodları
+  ("3XL") okunmaz, "Değer ekranda gösteriliyor." söylenir. Okunmalarına izin vermek ayrı karar
+  ister (açık notlardan taşındı, 2026-11-22).
 
 ## Ölçüm
 
@@ -1299,7 +1302,7 @@ Bundan sonraki karşılaştırmalar bu bilgisayarda alınan tabana göre yapıl�
 
 ### 0004: Yerel kurulumda ölçüm sonuçları
 
-**Not (2026-11-21):** Bu tabanın yerini Mac tabanı aldı (`evals/output/mac-main-2026-11-21`; "Geçerli taban" maddesi ve 0019). Aşağıdaki sayılar yalnız referans.
+**Not (2026-11-21):** Bu tabanın yerini Mac tabanı aldı (`evals/output/mac-main-2026-11-21`; Ölçüm bölümündeki "Geçerli taban bu bilgisayarda" kaydı ve 0019). Aşağıdaki sayılar yalnız referans.
 
 Tarih: 2026-11-10. Ölçümler üretilmiş test setiyle, Docker'sız yerel kurulumda ([0003](#karar-0003)) yapıldı. Soru bazındaki sonuçlar ve ölçüm bilgileri: [`evals/baselines/taban/`](../evals/baselines/taban).
 
