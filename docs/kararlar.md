@@ -1,8 +1,8 @@
 # Karar kaydı
 
 Bugüne kadar alınmış önemli kararlar: ne, ne zaman, neden, hangi durumda yeniden düşünülür.
-Kararların tek kaydı bu dosya. "0001"–"0004" diye anılan karar belgelerinin tam metni en sonda:
-[Karar belgeleri 0001–0004](#karar-belgeleri-00010004).
+Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0024) tam metni en
+sonda: [Karar belgeleri](#karar-belgeleri).
 
 **Kural:** Burada "çıkarıldı", "eklenmedi" ya da "reddedildi" yazan bir şeyi yeniden önermek
 için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen gereksinim.
@@ -92,14 +92,17 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 
 ### BM25 sorgusu belge diline çevrilir
 - **Ne zaman:** Eski pilotta eklendi (2026-11-03) ve hatta bağlandı (2026-11-06). Bu repoda
-  `generation/translate.py`, sınır 1,2 sn.
+  `generation/translate.py`; süre sınırı 1,5 sn (`ask/deps.py`,
+  `DEFAULT_TRANSLATION_LIMIT_SECONDS`; 18 Kasım'a kadar 1,2 sn).
 - **Neden:**
   - Eski pilot (`adim2/hat_rapor_2026-11-06.md`, Ek): yanlış ret 25'ten 11'e düştü.
     - Ölçüm onaylı 199 sorunun cevaplı 160'ında yapıldı (kural çıkışları hariç), 245
       sorunun tamamında değil.
     - Karşılaştırılan iki hat ("varsayılan yol" ve "ikili yol") yalnız çeviriyle
       ayrılmıyor. Farkın tamamı çeviriye bağlanamaz (`docs/MIMARI.md` A4.13).
-  - Çeviri modeli Gemma 4, NextBit üzerinde. p95 1,04 sn, %2'si sınırı aşıyor.
+  - Çeviri modeli Gemma 4. Yardımcı model sağlayıcı sırası Parasail, Venice, NextBit
+    (`settings.py`, `helper_providers`; 18 Kasım'a kadar NextBit). Eski pilotta NextBit
+    üzerinde p95 1,04 sn, %2'si 1,2 sn sınırını aşıyordu.
     Aynı model (ayar: `VA_HELPER_MODEL` / `VA_HELPER_PROVIDERS`; eski adı
     `VA_TRANSLATION_*`) takip sorusunu tamamlama ve niyet sınıflandırmasını da yapar.
     Gemma 3 ile DeepInfra'da %96'sı aşıyordu
@@ -109,9 +112,9 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Yeniden düşünülür:** Belgeler ve sorular aynı dilde olursa gereksiz kalır. FastReact
   ölçümünde 18 sorunun birinde sınır aşıldı.
 
-- **Güncel ayar (2026-11-18, `b3d4552`):** sınır 1,5 sn; yardımcı model sağlayıcı sırası Parasail,
-  Venice, NextBit (yukarıdaki "1,2 sn" ve "NextBit" o tarihten önceki durumdur). 21–22 Kasım'da
-  47 sorunun 1'inde çeviri düştü.
+- **Sınır ve sağlayıcı değişikliği (2026-11-18, `b3d4552`):** yukarıdaki 1,5 sn ve sağlayıcı
+  sırası bu commit'ten (açık notlar, Cevap kalitesi). 21–22 Kasım'da 47 sorunun 1'inde çeviri
+  düştü.
 - **Niyet sınıflandırmasıyla birlikte başlar (2026-11-22, dal `niyet-ceviri-paralel`; ürün sahibi
   onayı).** Niyet sınıflandırıcısı ve çeviri yardımcı modele ayrı çağrılardır ve art arda
   bekleniyordu; 19 Kasım sonrası 3 sn'yi aşan 19 cevapta ortalama niyet 0,81 sn, çeviri 0,96 sn
@@ -263,7 +266,10 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   - Her biçimin kural sürümü belge raporuna yazılıyor.
   - Eski sürümle işlenmiş belge listede "eski okuma kuralıyla işlendi" diye görünüyor.
   - Bir biçimin parçalarını ya da konumlarını değiştiren her değişiklikte o biçimin sürümü
-    artırılıyor. Excel (xlsx, xls), PDF, görsel ve Office 3'te; Markdown, metin ve SQL 2'de.
+    artırılıyor. Bu kayıt yazıldığında Excel (xlsx, xls), PDF, görsel ve Office 3'te; Markdown,
+    metin ve SQL 2'deydi. 22 Kasım'da PDF ve Office 20, görsel 15, Excel 4, Markdown 3, metin ve
+    SQL 2. Güncel sürümler ve her artışın gerekçesi `formats.py`'de (`RULES_VERSIONS` ve
+    yorumları); bu kayıttaki sayılar güncellenmez.
     PDF, görsel ve Office 2: OCR kalite puanında tek büyük harf çöp sayılmaz. Office da
     2'ye çıkarıldı (ürün sahibi kararı), çünkü PDF'e çevrilip aynı OCR kararından geçiyor.
     PDF, görsel ve Office 3 (2026-11-13): yeniden işleme belgenin kayıtlı dilini ("tr") OCR'a
@@ -273,6 +279,9 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
     sürüm 2'deki bütün PDF, görsel ve Office belgeleri (ilk yüklemede zaten tur+eng ile
     okunanlar dahil) "eski kural" görünür. Office de aynı yoldan etkilendiği için (taranmış
     sayfa ve gömülü görsel OCR'ı) ürün sahibinin kararıyla 3'e çıkarıldı.
+  - Sonra (sürüm 7'den beri): `is_outdated` yalnız sayıya bakmaz. Bir geçiş yalnız belli sayfa
+    türlerinin çıktısını değiştirdiyse yalnız o türden sayfası olan belge eskir
+    (`_CHANGED_PAGE_KINDS`).
 - **Neden:** Parçalama kuralı değişince eski belgeler sessizce eski parçalarıyla kalıyordu.
   Hangi belgelerin yeniden işlenmesi gerektiği bilinmiyordu.
 - **Neden kodla engellenmedi:**
@@ -377,17 +386,13 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Ne zaman:** Eski pilotta yerel qwen2.5:7b'den buluta geçildi. Bu repoda 0001 ve 0002.
 - **Neden:**
   - Yerel 7B modeli 18 sorunun 9'unu doğru cevapladı (`PILOT-RAPORU` §1).
-  - Bu repoda 35 soruda (0002) Gemma 4 26B 33 geçti, 0 yanlış değer verdi; ortanca süre
-    1,57 sn, maliyet 35 soru için toplam 0,0068 $. Sıradaki aday Qwen 3.6 35B: 31 geçti,
-    0 yanlış değer, 3,14 sn.
+  - Bu repodaki karşılaştırma (35 soru, 7 model; Gemma 4 26B 33 geçti, 0 yanlış değer):
+    tablo, sıralama ölçütü ve istemin Gemma'ya verdiği avantaj [0002](#karar-0002)'de.
   - Gemma 4 31B 25 geçti. Eski pilotta Crusoe sağlayıcısında 32 kesik cevap vermişti
     (`adim2/okuma_nihai_ara_2026-11-05.md`). Aynı tabloda 26B de Parasail'de 34 kesik
     veriyor; kesiklerin kaynağı modelden çok sağlayıcı.
-  - Sıralama ölçütü: önce yanlış değer, sonra doğruluk, sonra süre ve maliyet.
-  - İstem Gemma üzerinde ayarlandı; karşılaştırmada ona biraz avantaj var.
 - **Yeniden düşünülür:**
-  - Model değişikliği yalnız ölçümle yapılır (kural 5).
-  - GPT-OSS 120B ve GLM 5.3 Flash istemci uyumsuzluğu yüzünden ölçülemedi.
+  - Model değişikliği yalnız ölçümle yapılır (kural 5). Ölçülemeyen adaylar 0002'de.
 
 ### Sağlayıcı sırası: Makora, yedek DeepInfra; yedeğe yalnız kesintide geçilir
 - **Ne zaman:** 2026-11-19, ürün sahibi kararı. Bu repoda `settings.answer_providers`.
@@ -902,12 +907,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 ### Postgres yerine SQLite (değiştirildi)
 - **Ne zaman:** Bu repo Postgres ile başladı (`#80037b2`). `#2fd96e8` ile SQLite'a geçildi
   (0003).
-- **Neden:**
-  - Bu bilgisayarda yönetici yetkisi yok; Postgres hizmet olarak kurulamıyor.
-  - Yük küçük.
-  - Sunucuda da aynı kod çalışsın diye orada da SQLite kullanılıyor.
-- **Yeniden düşünülür:** Yük büyürse ya da sunucuda çok işçi gerekirse. Yalnız
-  `catalog/repository.py` değişir.
+- **Neden ve nasıl:** [0003](#karar-0003), "Neden SQLite" (yönetici yetkisi, küçük yük,
+  sunucuda da aynı kod, WAL kipi, Postgres'e dönülürse değişecek tek dosya).
+- **Yeniden düşünülür:** Yük büyürse ya da sunucuda çok işçi gerekirse.
 
 ### Qdrant: yerelde gömülü klasör, sunucuda servis; yerelde tek süreç
 - **Ne zaman:** `#8a9b388`, `#39fa785` (0003).
@@ -935,7 +937,8 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   testleri uyarılarla birlikte çalıştırmak ve kilitteki dolaylı kullanımına bakmak gerekir.
 
 ### Docker paketi kaldırıldı (önce: sunucu için kalır; denenmedi)
-- **Ne zaman:** 0003'te kaldı; 2026-11-19'da kaldırıldı (karar 0017).
+- **Kayıt:** [0017](#karar-0017) (ne kalktı, neden, geri alma). 0003'te "sunucu için kalır"
+  denmişti; 2026-11-19'da kaldırıldı.
 - **Not:** nginx'teki güvenlik başlıkları ve hız sınırı yerelde yok (açık notlar).
 
 ### Yetki altyapısı kaldırıldı; giriş ağa açılmadan önce ayrıca ele alınacak
@@ -964,7 +967,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 
 ## Arayüz
 
-### Tek açık tema; koyu tema kaldırıldı
+### Tek açık tema; koyu tema kaldırıldı (geçersiz)
+- **Durum:** Geçersiz. Yerini 2026-11-16'daki "Çalışma alanı düzeni" kaydı aldı (lacivert zemin,
+  krem ve beyaz kartlar; aşağıda). Tarihsel kayıt olarak duruyor.
 - **Ne zaman:** 2026-11-13, `arayuz-stil` dalı; ürün sahibi kararı.
 - **Ne:** Yeni tasarım tek açık temada (açık gri zemin, beyaz kartlar, cam efekti yalnız
   çekmecelerde). İşletim sisteminin koyu tema tercihine uyan renkler silindi.
@@ -984,6 +989,8 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   simgesi. Metinler ve erişilebilirlik adları değişmedi. Harici yazı tipi yok.
 - **Denenmedi:** atölye ışığında koyu zeminin okunurluğu; konuşma modu yalnız stil olarak
   değişti, mikrofonla denenmedi.
+- **Sonra:** 22 Kasım arayüz yenilemesi açılış karolarını, belgeler panelinin açık başlamasını
+  ve `App.css`'i değiştirdi (aşağıda, "Arayüz yenileme").
 
 ### Sesli mod ve cevap kartı tasarımı
 - **Ne zaman:** 2026-11-20, `arayuz-sesli-tasarim` dalı; ürün sahibinin tasarımı ve kararları.
@@ -1110,6 +1117,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   doğrulanmış cümlesinde 1'ini ("7ABC", değer değil).
 - **Okuma düzeltmeleri (aynı dal):** "±0,5" artık "artı eksi sıfır virgül beş" (önce "artı
   eksi0,5" TTS'e gidiyordu); "°C" "santigrat derece" (önce "°ce").
+- **Bilinen sınır:** bitişik yazılmış birimler ("−5°C", "5mm") ve rakamla başlayan beden kodları
+  ("3XL") okunmaz, "Değer ekranda gösteriliyor." söylenir. Okunmalarına izin vermek ayrı karar
+  ister (açık notlardan taşındı, 2026-11-22).
 
 ## Ölçüm
 
@@ -1118,6 +1128,10 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Neden:** 0002'deki 35 soruluk ölçüm yeniden üretilemiyor. `--seed 7` bugün 40 soru
   üretiyor ve eski sonuçlar saklanmamış. Taban: seed 7 ve seed 11'in her ikisinde 37/40,
   doğrulanmış yanlış 0.
+- **Sonra (2026-11-21):** Ölçüm makinesi Mac'e alındı; geçerli taban
+  `evals/output/mac-main-2026-11-21` (taban 7 ve taban 11, main 38/40, doğrulanmış yanlış 0;
+  0019). Bu kayıttaki 37/40 Windows tabanıdır, yalnız referans. Mac tabanı repoda değil
+  (`evals/output/` `.gitignore`'da).
 
 ### Atlanan netleştirme, doğrulanmış yanlıştan ayrı sayılır
 - **Ne zaman:** `#95e1870`.
@@ -1171,9 +1185,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Eski klasörler:** n3–n9, run7-taban, run11-taban ve fastreact karşılaştırma için
   kalıyor. `evals/output/` `.gitignore`'da; repoda izlenen dosyası yok.
 
-## Karar belgeleri 0001–0010
+## Karar belgeleri
 
-Eskiden `docs/decisions/` altındaki dört belgenin tam metni. Yukarıdaki maddelerde "0001"–"0004" diye anılan belgeler bunlar.
+Yukarıdaki maddelerde numarayla anılan belgeler. 0001–0004 eskiden `docs/decisions/` altındaydı; sonrakiler doğrudan burada yazıldı.
 
 <a id="karar-0001"></a>
 
@@ -1246,6 +1260,8 @@ Tarih: 2026-11-10
 
 Pilot, Docker kurulamayan ve yönetici yetkisi olmayan bir Windows bilgisayarda çalışacak. Bu yüzden ana yol yerel kurulum oldu; Docker paketi sunucu için kalıyor.
 
+**Not (2026-11-19):** Docker paketi [0017](#karar-0017) ile kaldırıldı. Aşağıdaki "Sunucu" satırı, "Sunucuda ne değişir" bölümü ve `VA_WORKER_IN_PROCESS` geçerli değil; tarihsel kayıt olarak duruyor.
+
 | Konu | Karar |
 | --- | --- |
 | Ana kurulum | Yerel, Docker'sız, yönetici yetkisi olmadan, tek komut (`baslat.bat`) |
@@ -1285,6 +1301,8 @@ Bundan sonraki karşılaştırmalar bu bilgisayarda alınan tabana göre yapıl�
 <a id="karar-0004"></a>
 
 ### 0004: Yerel kurulumda ölçüm sonuçları
+
+**Not (2026-11-21):** Bu tabanın yerini Mac tabanı aldı (`evals/output/mac-main-2026-11-21`; Ölçüm bölümündeki "Geçerli taban bu bilgisayarda" kaydı ve 0019). Aşağıdaki sayılar yalnız referans.
 
 Tarih: 2026-11-10. Ölçümler üretilmiş test setiyle, Docker'sız yerel kurulumda ([0003](#karar-0003)) yapıldı. Soru bazındaki sonuçlar ve ölçüm bilgileri: [`evals/baselines/taban/`](../evals/baselines/taban).
 
@@ -1451,7 +1469,7 @@ Tarih: 2026-11-16. Ölçüm: set A benzetimi (0009), 5 taranmış belge (30 sayf
 
 **Sınırlar.** Benzetim, gerçek kâğıt ve kamera değil (0009); sonuçlar iyimser olabilir.
 
-**Ekip kararı (2026-11-16).** Uygulamaya geçilmiyor. "⅞" → "%" ortak hatası için düzeltme yapılmıyor; tasarım değişirse set A ile değil set B ile ölçülür. Set A'nın gerçek taramaları geldiğinde aynı iki aday, hiçbir şey değiştirilmeden bir kez daha ölçülecek.
+**Ekip kararı (2026-11-16).** Uygulamaya geçilmiyor. (Sonra, aynı gün: ürün sahibi okuyucuyu hatta aldı, 0011. "Uygulamaya geçilmiyor" cümlesinin yerini 0011 aldı; bu paragrafın geri kalanı geçerli.) "⅞" → "%" ortak hatası için düzeltme yapılmıyor; tasarım değişirse set A ile değil set B ile ölçülür. Set A'nın gerçek taramaları geldiğinde aynı iki aday, hiçbir şey değiştirilmeden bir kez daha ölçülecek.
 
 **Uygulamadaki aday ölçülen adayla aynı değil (2026-11-17, 0011).** Uygulamaya alınan okuyucu, ölçülen adaydan iki bakımdan ayrılır: çözünürlük (ölçümde her sayfa 300 dpi görüntüydü; uygulama taramayı kendi çözünürlüğünde okutur) ve girdi yolu (ölçümde sayfa görüntüsü doğrudan verildi; uygulama PDF sayfasını çizer, OCR katmanlı taramaları da okuyucuya verir, görsel dosyasını doğrudan okutur). Bu tablodaki sayılar uygulamadaki hattın ölçümü değildir. Bir sonraki ölçüm yeni tohumla üretilen set B ile yapılacak. Eski hattı yeniden ölçmek için `c79e4ce` kullanılmalı.
 
@@ -1530,6 +1548,8 @@ Tarih: 2026-11-18. Ürün sahibi kararı.
 
 **Açık kalan.** Birim ekleme (A3, A4: istem kuralı var, model yine ekliyor); sorgu çevirisinin süre sınırı; D2 (fotoğrafta bölüm yok); D4 ve D6 (seçeneksiz netleştirme).
 
+<a id="karar-0015"></a>
+
 ### 0015: Taranmış tech pack'ler normal bilgisayarda okunmaz; hızlı makinede işlenip veri taşınır
 Tarih: 2026-11-19. Ürün sahibi kararı.
 
@@ -1560,6 +1580,8 @@ Tarih: 2026-11-19. Ürün sahibi kararı.
 
 **Yeniden düşünülür.** Gruplama kullanılamayacak kadar bozulursa.
 
+<a id="karar-0017"></a>
+
 ### 0017: Docker paketi kaldırıldı; sunucu gündeme gelince geri alınır
 Tarih: 2026-11-19. Ürün sahibi kararı.
 
@@ -1568,6 +1590,8 @@ Tarih: 2026-11-19. Ürün sahibi kararı.
 **Neden.** Paket hiçbir bilgisayarda denenmemişti ve yerel kipten ayrışmıştı (mimari denetimi, 2026-11-19): compose'da okuyucu ayarı yoktu (taranmış belge sunucuda sonsuza dek beklerdi), imajda `libreoffice-calc` yoktu, docling modellerinin klasörü boş bir birime işaret ediyordu, okuyucu modelinin (3,6 GB) yeri tanımlı değildi. İşçinin kurulması iki yerde yazılıydı.
 
 **Geri alma.** Sunucu gündeme gelince bu commit'in sildiği dosyalar git geçmişinden geri alınır ve yukarıdaki eksikler giderilir. Qdrant sunucusu ayarı (`VA_QDRANT_URL`) duruyor; yerelde gömülü klasör kullanılır.
+
+<a id="karar-0018"></a>
 
 ### 0018: Eski OCR yolu (ocrmypdf, RapidOCR) kalıyor
 Tarih: 2026-11-19. Ürün sahibi kararı.
@@ -1607,6 +1631,8 @@ Tarih: 2026-11-20. Ürün sahibi kararı. Dal: `niteleyici-denetimi`. Kod: `src/
 **Ürün sahibi kararıyla ek düzeltme: yüklü 9 föyde haksız gizleme (2026-11-21, aynı dal; tek düzeltme turu bu kararla aşıldı).** İlk sürüm sayısal etiketi değeri sayı olmayan hücrelerde de varyant sayıyordu. Mac'in uygulama indeksinde 9 föyün malzeme tablosu başlık satırında ("… | 001: Black // White | 997: …") renk yolu numarası cümlede ve soruda yokken "Renk yolu Black // White." gizleniyordu; main'de geçiyordu. Kural daraltıldı: sayısal etiket yalnız değeri de sayı olan hücrelerde varyant sayılır ("38: 72,0", "2024: 120"); "001: Black // White" numaralı addır ve eskisi gibi başlık satırı kuralına kalır. Sonra 9 satırda üç cümle (etiketsiz, etiket cümlede, etiket soruda) yeniden denendi: 9 satırın 9'unda main ile aynı sonuç (hepsi geçti). Beden ve yıl davranışı değişmedi ("İç paça 72,0." ve "Toplam satış 120." yine gizlenir). **Bilinen sınır:** değeri kod olan sayısal beden sütunlarında ("38: ETK-6154 | 40: ETK-6155") bedensiz cümle geçer. Daraltmadan sonra ölçüm (Mac main tabanının önbelleğinden, ağa gitmeden; ıska 0, maliyet 0): 98 sorunun 98'inde cevap main ile birebir aynı; taban 7 ve taban 11 38/40, doğrulanmış yanlış 0, haksız ret 0. Windows'taki n21 ile doğrudan karşılaştırılamaz (okuyucu, set 11'in görüntüleri ve önbellek farklı).
 
 **Not: gerçek tanı günlükten okunmadan düzeltme yapılmaz.** PR 3 (#110, model numarası muafiyeti) bir yeniden kurguya dayanıyordu: o gün günlükte sorun ayrıntısı yoktu ve gizlemenin 6029322'den geldiği varsayıldı; asıl neden 001'di. Ayrıntı artık `problem_details`'te (#108).
+
+**Son kural ilkesi (2026-11-22 notu).** "Yeni kural yok" kararından sonra giren değişikliklerin ikisi sıkılaştırmadır (Kural C, sayısal kardeş etiketler; kural 1 önceliği), ikisi gevşetmedir (hücre başlığı ve model numarası muafiyetleri). Gevşetme yalnız soru günlüğündeki gerçek tanıya (`problem_details`) dayanır. Hücre başlığı muafiyeti buna uyar (günlükteki tanı `['001']`). Model numarası muafiyeti bu kural konmadan, yeniden kurguya dayanarak girdi; günlükte işe yaradığı bir vaka görülmezse kaldırılabilir (Bilinen sınırlar, yukarıda).
 
 ### 0020: Tek belge varyantlarını listeleme (A yolu) denendi, geri çekildi
 Tarih: 2026-11-20 (karar), 2026-11-21 (deneme ve geri çekme). Ürün sahibi kararı. Dal: `varyant-listeleme` (`d6109d6`; birleştirilmedi, referans olarak `origin`'de duruyor).
@@ -1727,3 +1753,39 @@ Tarih: 2026-11-22. Ürün sahibi kararı ve Mac'te elle deneme. Dal: `soz-kesme-
 
 **Kabul edilen risk (kod incelemesi, benzetimle).** Koruma tek bir cihazda ölçülen yankıya (en çok 0,035) göre ayarlı. Yankısı 0,05'in üstünde dalgalanan cihazda (yankı engellemesi zayıf tarayıcı, yüksek sesli harici hoparlör, tablet) sistem kendi sesiyle kendini eskisinden kolay keser: rastgele dalgalı yankıyla 200 denemede kendi sözünü kesme, tepe 0,07'de 1 → 12, 0,08'de 3 → 73, 0,10'da 18 → 190. Aynı cihazlarda cevabın son hecesinin yankısı "sistem sustuğu anda süren söz" sayılıp sistemin kendi cümlesi soru olarak sorulabilir. Eski "kalibrasyon" bu korumayı uygulamada zaten sağlamıyordu (ölçüm sistem konuşmadan yapılıyordu); kaybolan, eşiğin altında kalan her ana sıçrayan tahmindi. Atölyede ve tablette denenmeden pilot cihazı için geçerli sayılmaz.
 
+
+<a id="karar-0024"></a>
+
+### 0024: Okuyucu için llama.cpp (işlemci) yolu bırakıldı; eski OCR yolu kalıyor, görüntü küçültme şimdilik yok
+Tarih: 2026-11-22. Ürün sahibi kararı.
+
+**Ne denendi.** Windows'ta okuyucu süreç içi kipte (`VA_PAGE_READER=local`) işlemcide sayfa başına 50 sn ile 16 dk sürüyor (0015). Kurulu PaddleOCR 3.7 aynı modeli `llama.cpp` sunucusuyla çalıştırabiliyor; kod değişmeden, yalnız ayarla (`VA_PAGE_READER=llama-cpp-server@http://127.0.0.1:8112/v1`) Mac'te denendi. Model: `PaddlePaddle/PaddleOCR-VL-1.6-GGUF` (936 MB + görüntü kodlayıcı 882 MB, Apache-2.0); llama.cpp Homebrew'den, yalnız işlemci. Set A'ya dokunulmadı; belgeler `dikim-foto.jpg` ve `dikim-tarama.pdf`. Bulut maliyeti 0.
+
+**Hız (Mac M4 Pro; her belge ilk kez okunurken):**
+
+| Arka uç | `dikim-foto` (1 sayfa) | `dikim-tarama` (3 sayfa) |
+|---|---|---|
+| MLX (Mac'in bugünkü yolu) | 4,1 sn | 9,1 sn |
+| Süreç içi kip (Windows'taki yol) | 41,2 sn (model yükleme dahil) | 36,4 sn |
+| llama.cpp, yalnız işlemci | 57,9 sn (ilk açılış dahil) | 157,7 sn |
+
+- Taramada llama.cpp süreç içi kipten yaklaşık 4 kat yavaş. Sürenin neredeyse tamamı görüntü kodlamada (blok başına yaklaşık 20 sn); metin üretimi hızlı.
+- Aynı belge ikinci kez okununca llama.cpp 13,6 sn; bu önbellek etkisi, gerçek belgelerde her sayfa yenidir.
+- Fotoğraf satırı adil bir karşılaştırma değil: iki süre de ilk açılış payı taşıyor.
+
+**Okuma farkları.** Sayılar ve kodlar üç arka uçta birebir aynı, belirsiz değer 0. Farklar yalnız sayı içermeyen metinde; her arka uç iki koşuda kendi içinde aynı sonucu verdi:
+
+| Belge | MLX ve süreç içi | llama.cpp |
+|---|---|---|
+| `dikim-foto` başlık | "Ổlộcũ fōyũ" (bozuk) | "ölçü föyü" (doğru) |
+| `dikim-foto` sütun adı | "Toierans" (bozuk) | "Tolerans" (doğru) |
+| `dikim-tarama` bölüm adı | "Etiket kodları" (doğru) | "Etiket kodlari" (bozuk) |
+
+**Karar.**
+- llama.cpp işlemci yolu bırakıldı: Windows'ta okumayı hızlandırması beklenmiyor.
+- Eski OCR yolu (ocrmypdf, RapidOCR) kalıyor ([0018](#karar-0018)). Kaldırılması, sunucu ya da ekran kartı kararına kadar kapandı.
+- Taranmış belgeler [0015](#karar-0015)'e göre Mac'te işlenir, veri taşınır.
+- Okuyucuya verilen görüntü şimdilik küçültülmez (set B'de denenecekler listesinde kalır, 0010).
+- İndirilen model dosyaları (`data/models/paddleocr-vl-gguf/`) ve Homebrew'deki llama.cpp (ve yalnız onun için kurulan ggml, libomp, openssl@4) 22 Kasım'da silindi.
+
+**Yeniden düşünülür.** Okuyucu için ekran kartlı bir makine ya da sunucu gündeme gelirse; ya da Windows'ta ayar denemesi (iş parçacığı sayısı) yetmez ve GPU'lu llama.cpp (Vulkan, Intel Iris Xe) ayrı süreç olarak onaylanırsa (açık notlar, Sayfa okuyucusu, Windows hız teşhisi).
