@@ -129,7 +129,8 @@ def word_number_spans(text: str, language: str) -> list[tuple[int, int]]:
 
 
 def _build_char_table() -> dict[int, str]:
-    table = {ord("×"): "x", ord("✕"): "x", ord("⁄"): "/", ord("⓿"): "0"}
+    # U+2010 ve U+2011 (Word'ün bölünmez tiresi) kısa tiredir: kod ve eksi işareti tanınır.
+    table = {ord("×"): "x", ord("✕"): "x", ord("⁄"): "/", ord("⓿"): "0", 0x2010: "-", 0x2011: "-"}
     for start, first in ((0x2776, 1), (0x2780, 1), (0x278A, 1), (0x24F5, 1), (0x24EB, 11)):
         for offset in range(10):
             table[start + offset] = str(first + offset)
@@ -322,7 +323,9 @@ def numbers_with_next_word(text: str) -> set[tuple[str, str]]:
 
 def prefixed_codes_in(text: str) -> set[str]:
     """Harfle başlayan kodlar (büyük ya da küçük harf): içlerindeki rakam sayı sayılmaz."""
-    return {compact_identifier(m.group(0)) for m in _LETTER_PREFIXED_CODE_RE.finditer(text)}
+    return {
+        compact_identifier(m.group(0)) for m in _LETTER_PREFIXED_CODE_RE.finditer(canon_chars(text))
+    }
 
 
 def fold_identifier(value: str) -> str:

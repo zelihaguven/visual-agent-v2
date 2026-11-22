@@ -5,6 +5,7 @@ from visual_agent.verification.text import (
     identifiers_in,
     normalize,
     numbers_in,
+    prefixed_codes_in,
     turkish_lower,
     turkish_tens,
     word_numbers,
@@ -122,3 +123,14 @@ def test_turkish_lower_keeps_or_merges_the_dotless_i(text: str, merged: str, tur
 
 def test_identifiers_match_whatever_the_dotted_or_dotless_i() -> None:
     assert identifiers_in("KIL-12 kodu") == identifiers_in("`kıl-12` kodu") == {"kil-12"}
+
+
+@pytest.mark.parametrize("dash", ["\u2010", "\u2011"])
+def test_hyphen_variants_read_as_a_hyphen(dash: str) -> None:
+    """Word'ün bölünmez tiresiyle yazılmış kod kod olarak, eksi işareti eksi olarak okunur."""
+    source = f"PNT{dash}1162 tork 12 Nm; sıcaklık {dash}5 °C"
+
+    assert identifiers_in(source) == identifiers_in("PNT-1162 tork 12 Nm; sıcaklık -5 °C")
+    assert prefixed_codes_in(source) == prefixed_codes_in("PNT-1162")
+    assert numbers_in(source) == {"12", "-5"}
+    assert normalize(f"PNT{dash}1162") == normalize("PNT-1162")

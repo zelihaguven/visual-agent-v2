@@ -73,11 +73,14 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     #    değerleri doğrulanmış gösterilmez (karar 0022). Okuyucu yolunun parçaları değişmedi.
     # 21 (PDF, Office): gömülü görselin iki Tesseract kipi art arda eklenmez; her parça kiplerin
     #    en çok okuduğu sayıyla karşılaştırılır (iki kipin okuduğu değer çift sayılıyordu).
-    InputFormat.PDF: 21,
-    InputFormat.OFFICE: 21,
+    # 22 (PDF, Office): U+2010/U+2011 tireli kod taşıyan sayfa üst bilgisi de bölüm olur
+    #    (karşılaştırma bu tireleri kısa tire okur; docling_parser.page_header_identifies).
+    InputFormat.PDF: 22,
+    InputFormat.OFFICE: 22,
     InputFormat.IMAGE: 15,
-    InputFormat.SPREADSHEET: 4,
-    InputFormat.LEGACY_SPREADSHEET: 4,
+    # Excel 5: altında satır olmayan başlık satırı başlık sayılmaz; satırları etiketsiz yazılır.
+    InputFormat.SPREADSHEET: 5,
+    InputFormat.LEGACY_SPREADSHEET: 5,
     InputFormat.SQL: 2,
     InputFormat.TEXT: 2,
     InputFormat.MARKDOWN: 3,
@@ -119,6 +122,7 @@ _CHANGED_PAGE_KINDS = {
     18: ("none", "scanned"),
     19: ("text", "weak", "scanned"),
     20: ("text",),
+    21: ("text",),
 }
 """Bu sürümden bir sonrakine geçiş yalnız bu tür sayfası olan belgelerin çıktısını değiştirdi:
 7→8 taranmış sayfalar sayfa okuyucusuna gitti ("scanned": OCR katmanlı tarama öyle kaydedilmiş
@@ -126,7 +130,7 @@ olabilir); 8→9 eski OCR yolundaki (zayıf ya da taranmış metin katmanlı) sa
 9→10, 10→11 ve 11→12 sayfa okuyucusundan geçen sayfalardaki form tabloları; 12→13 aynı
 sayfalarda başlığı ile satırları aynı sayıda hücre taşımayan tablolar; 19→20 eski OCR yolunun
 parçaları (metinli sayfadaki gömülü görsel, zayıf ya da taranmış metin katmanlı sayfa); 20→21
-metinli sayfadaki gömülü görsellerin belirsiz değerleri."""
+metinli sayfadaki gömülü görsellerin belirsiz değerleri; 21→22 metinli sayfaların üst bilgisi."""
 _PAGE_FORMATS = (InputFormat.PDF, InputFormat.OFFICE, InputFormat.IMAGE)
 
 

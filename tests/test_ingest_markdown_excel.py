@@ -338,3 +338,34 @@ def test_legacy_ocr_rules_outdate_only_documents_the_old_path_could_read(
     report = {"input_format": "pdf", "rules_version": 19, "page_kinds": kinds}
 
     assert is_outdated(report, "belge.pdf") is outdated
+
+
+def _workbook(path: Path, rows: list[list[str]]) -> Path:
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Notlar"
+    for row in rows:
+        sheet.append(row)
+    target = path / "notlar.xlsx"
+    workbook.save(target)
+    return target
+
+
+def _rows(path: Path) -> list[str]:
+    elements, _ = parse_workbook(path)
+    return [element.text for element in elements if element.kind is ElementKind.TABLE_ROW]
+
+
+def test_sheet_with_a_single_filled_row_keeps_its_text(tmp_path: Path) -> None:
+    """Yalnız A1'de not olan sayfa: başlık sanılıp metin kaybolmuyordu (kural 3)."""
+    assert _rows(_workbook(tmp_path, [["Not: tork 12 Nm"]])) == ["Not: tork 12 Nm"]
+
+
+def test_header_without_rows_below_is_written_as_a_row(tmp_path: Path) -> None:
+    assert _rows(_workbook(tmp_path, [["Kod", "", "Tork"]])) == ["Kod | (boş) | Tork"]
+
+
+def test_header_with_rows_below_still_labels_them(tmp_path: Path) -> None:
+    rows = _rows(_workbook(tmp_path, [["Parça No"], ["PNT-1"], ["PNT-2"]]))
+
+    assert rows == ["Parça No: PNT-1", "Parça No: PNT-2"]
