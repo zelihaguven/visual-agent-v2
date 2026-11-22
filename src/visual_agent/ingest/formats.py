@@ -76,15 +76,16 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     # 22 (PDF, Office): U+2010/U+2011 tireli kod taşıyan sayfa üst bilgisi de bölüm olur
     #    (karşılaştırma bu tireleri kısa tire okur; docling_parser.page_header_identifies).
     # 23 (PDF, Office; görsel 16): okuyucu yolunda önceki sayfada yapıdan kabul edilen başlık
-    #    satırının aynısı başlıktır; içerikten sonra gelen ilk başlık kök değildir, düzeyi
-    #    bilinmeyen başlıklar kardeştir (bütün yollar).
+    #    satırının aynısı başlıktır; içerikten sonra gelen kodsuz ilk başlık kök değildir,
+    #    düzeyi bilinmeyen başlıklar kardeştir (bütün yollar; SQL 3, Markdown ve Excel düzeyli).
     InputFormat.PDF: 23,
     InputFormat.OFFICE: 23,
     InputFormat.IMAGE: 16,
     # Excel 5: altında satır olmayan başlık satırı başlık sayılmaz; satırları etiketsiz yazılır.
     InputFormat.SPREADSHEET: 5,
     InputFormat.LEGACY_SPREADSHEET: 5,
-    InputFormat.SQL: 2,
+    # SQL 3: içerikten sonra gelen kodsuz ilk başlık kök değildir (bölüm yolu ortak kodda).
+    InputFormat.SQL: 3,
     InputFormat.TEXT: 2,
     InputFormat.MARKDOWN: 3,
 }

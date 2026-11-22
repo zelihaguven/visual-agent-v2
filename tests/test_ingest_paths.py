@@ -185,6 +185,21 @@ def test_headings_after_content_are_siblings_not_children_of_the_first() -> None
     assert [chunk.section for chunk in chunks] == ["", "Cover Sheet Properties", "BOM"]
 
 
+def test_first_heading_with_a_code_stays_the_root_after_content() -> None:
+    """Önce sayfa numarası, sonra kod taşıyan belge başlığı: kod bölüm yolunda kalır."""
+    chunks = build_chunks(
+        [
+            element(ElementKind.TEXT, "Sayfa 1 / 12"),
+            element(ElementKind.HEADING, "PNT-4417 ölçü föyü"),
+            element(ElementKind.HEADING, "Ölçü tablosu"),
+            element(ElementKind.TABLE_ROW, "Bel: 70"),
+        ],
+        META,
+    )
+
+    assert chunks[-1].section == "PNT-4417 ölçü föyü · Ölçü tablosu"
+
+
 def test_paragraphs_merge_up_to_the_limit_on_the_same_page() -> None:
     long_text = "kelime " * 60
     chunks = build_chunks(

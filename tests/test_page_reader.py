@@ -269,6 +269,14 @@ def test_remote_reader_server_is_refused(url: str) -> None:
         parse_reader_setting(f"mlx-vlm-server@{url}")
 
 
+def _scan_pages(path: Path, count: int) -> Path:
+    pages = [Image.new("RGB", (600, 800), "white") for _ in range(count)]
+    for page in pages:
+        ImageDraw.Draw(page).rectangle((100, 100, 300, 160), fill="black")
+    pages[0].save(path, "PDF", resolution=72.0, save_all=True, append_images=pages[1:])
+    return path
+
+
 def _scan(path: Path, blank: bool = False, dpi: float = 72.0) -> Path:
     image = Image.new("RGB", (600, 800), "white")
     if not blank:
@@ -603,3 +611,26 @@ def test_header_from_the_same_page_is_not_used() -> None:
     texts = [e.text for e in page_elements(page, 1, (500.0, 1000.0), {}, frozenset(), set())]
 
     assert "Material | Qty | 100: White / / Red" in texts
+
+
+def test_header_learned_on_a_page_labels_the_next_pages_only(tmp_path: Path) -> None:
+    """Sayfalar okuma sırasıyla: önce kabul edilen başlık sonraki sayfada tekrar başlıktır;
+    sonraki sayfada öğrenilen başlık önceki sayfaya geri uygulanmaz."""
+    tables = {1: _FIRST, 2: _html(_REPEAT)}
+
+    def read_two(order: list[int]) -> list[str]:
+        pages = iter(order)
+
+        def read_page(image: Path) -> dict[str, Any]:
+            width, height = Image.open(image).size
+            block = _block(0, "table", tables[next(pages)])
+            return {"width": width, "height": height, "parsing_res_list": [block]}
+
+        scan = _scan_pages(tmp_path / f"iki{order[0]}.pdf", 2)
+        return [e.text for e in read_scanned_pages(scan, [1, 2], tmp_path, read_page, str)]
+
+    forward = read_two([1, 2])
+    backward = read_two([2, 1])
+
+    assert "Material: Label | Qty: 1 | 100: White / / Red: As Artwork" in forward
+    assert "Material | Qty | 100: White / / Red" in backward
