@@ -1927,13 +1927,24 @@ describe("layout", () => {
 describe("landing actions", () => {
   const ready = { title: "Föy", filename: "foy.pdf", status: "ready", error: null, report: null };
 
-  it("focuses the question box from the write card", async () => {
+  it("puts the question box before the landing actions, without a separate write card", async () => {
     stubApi({ "/api/documents": () => jsonResponse([]) });
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Yazarak Sor/ }));
+    const box = screen.getByLabelText("Sorunuz");
+    const add = screen.getByRole("button", { name: /Belge Ekle/ });
+    expect(screen.getByRole("main")).toContainElement(box);
+    expect(box.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Yazarak Sor/ })).not.toBeInTheDocument();
+  });
 
-    expect(screen.getByLabelText("Sorunuz")).toHaveFocus();
+  it("keeps adding a document but offers no voice tile where the browser cannot record", async () => {
+    vi.stubGlobal("MediaRecorder", undefined);
+    stubApi({ "/api/documents": () => jsonResponse([]) });
+    render(<App />);
+
+    expect(screen.getByRole("button", { name: /Belge Ekle/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Sesli Sor/ })).not.toBeInTheDocument();
   });
 
   it("opens the documents drawer and the file picker from the add card", async () => {
@@ -1968,12 +1979,34 @@ describe("landing actions", () => {
     expect(screen.getByRole("list", { name: "Belgeler" })).toBeInTheDocument();
   });
 
-  it("shows a plain state line when nothing failed", async () => {
+  it("leaves the count to the documents button when every document is ready", async () => {
     stubApi({ "/api/documents": () => jsonResponse([{ ...ready, doc_id: "a" }]) });
     render(<App />);
 
-    expect(await screen.findByRole("status")).toHaveTextContent("1 belge hazır");
+    expect(await screen.findByRole("button", { name: "Belgeler (1)" })).toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.queryByText(/belge hazır/)).not.toBeInTheDocument();
+  });
+
+  it("shows a plain state line while documents are still processing", async () => {
+    stubApi({
+      "/api/documents": () =>
+        jsonResponse([
+          { ...ready, doc_id: "a" },
+          { ...ready, doc_id: "b", status: "processing" },
+        ]),
+    });
+    render(<App />);
+
+    expect(await screen.findByRole("status")).toHaveTextContent("1 belge hazır1 işleniyor");
     expect(screen.queryByText(/hata/)).not.toBeInTheDocument();
+  });
+
+  it("says so when there is no document yet", async () => {
+    stubApi({ "/api/documents": () => jsonResponse([]) });
+    render(<App />);
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Henüz belge yok.");
   });
 
   it("leaves the landing actions once a question is asked", async () => {
@@ -1982,7 +2015,7 @@ describe("landing actions", () => {
     await ask("soru");
 
     await screen.findByText("İç paça 76,5 cm.");
-    expect(screen.queryByRole("button", { name: /Yazarak Sor/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Belge Ekle/ })).not.toBeInTheDocument();
   });
 
   it("keeps the source quote of a hidden sentence apart from the hidden-sentence notice", async () => {
