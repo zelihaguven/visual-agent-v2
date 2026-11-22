@@ -61,11 +61,6 @@
   background: var(--cream);
 }
 
-/* Açık yüzeyde mercan halka zayıf kalır; koyu mercan yeterli karşıtlık verir. */
-.answer :focus-visible {
-  outline-color: var(--coral-ink);
-}
-
 .answer-head {
   display: flex;
   align-items: center;

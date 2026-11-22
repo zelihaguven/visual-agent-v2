@@ -7,8 +7,8 @@ import {
   type ReactNode,
 } from "react";
 
-// App.tsx'teki WORKSPACE_QUERY ile aynı: geniş ekranda çekmece sayfanın parçasıdır, modal değildir.
-const WORKSPACE_QUERY = "(min-width: 1080px)";
+import { WORKSPACE_QUERY } from "../layout";
+
 // İçeriğin kademeli girişi (documents.css) bu süre boyunca açıktır; sonra yeniden çizimde tekrarlanmaz.
 const OPENING_MS = 400;
 const FOCUSABLE =

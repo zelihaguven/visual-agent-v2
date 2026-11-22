@@ -32,6 +32,7 @@ import { SourcePanel } from "./components/SourcePanel";
 import { TopBar } from "./components/TopBar";
 import { TurnView, type SpeechStatus } from "./components/TurnView";
 import { LandingActions } from "./components/LandingActions";
+import { WORKSPACE_QUERY } from "./layout";
 import { MAX_QUESTION_CHARS } from "./limits";
 import { canListen } from "./listening";
 import { AudioQueue } from "./speech";
@@ -40,7 +41,6 @@ import { applyEvent, newTurn, type Turn } from "./turn";
 const ASK_FAILED = "Cevap alınamadı. Bağlantınızı kontrol edip yeniden deneyin.";
 const ASK_STOPPED = "Soru durduruldu.";
 // styles/layout.css ve styles/drawer.css içindeki çalışma alanı kırılımıyla aynı.
-const WORKSPACE_QUERY = "(min-width: 1080px)";
 
 type AskOptions = {
   context: ConversationContext | null;

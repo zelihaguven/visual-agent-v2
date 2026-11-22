@@ -8,11 +8,6 @@
     max(var(--space-8), env(safe-area-inset-bottom)) max(var(--space-7), env(safe-area-inset-left));
 }
 
-/* Açık yüzeyde mercan halka zayıf kalır; koyu mercan yeterli karşıtlık verir. */
-.source-panel :focus-visible {
-  outline-color: var(--coral-ink);
-}
-
 .source-header {
   position: sticky;
   top: 0;

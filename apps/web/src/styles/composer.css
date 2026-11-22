@@ -125,6 +125,30 @@
   }
 }
 
+/* 380px altı telefon: düğmeler dokunma boyunda kalır, aralarındaki boşluk daralır ki yer tutucu
+   ("Sorunuzu yazın") kesilmesin. */
+@media (max-width: 380px) {
+  .composer {
+    gap: 0;
+    padding-left: var(--space-3);
+  }
+
+  .composer input {
+    padding-inline: var(--space-3);
+    font-size: var(--text-base);
+  }
+
+  .composer button:not(.icon-button) {
+    min-width: 60px;
+    padding: 0 var(--space-5);
+  }
+
+  .is-landing .composer .icon-button {
+    width: var(--touch-size);
+    min-width: var(--touch-size);
+  }
+}
+
 .composer .icon-button:not(:disabled):active {
   background: var(--color-raised-hover);
 }

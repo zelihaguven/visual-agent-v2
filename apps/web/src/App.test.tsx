@@ -1648,6 +1648,8 @@ describe("App", () => {
       await open(fetchMock);
 
       expect(await screen.findByRole("alert")).toHaveTextContent("Mikrofona erişilemedi");
+      // Halka "Dinliyorum" gibi yanıltıcı bir durum adı taşımaz ve basılamaz.
+      expect(screen.getByRole("button", { name: "Sesli mod durdu" })).toBeDisabled();
       expect(listening.listen).not.toHaveBeenCalled();
     });
   });
