@@ -1629,7 +1629,7 @@ Tarih: 2026-11-20. Ürün sahibi kararı. Dal: `niteleyici-denetimi`. Kod: `src/
 
 **Bilinen sınırlar.**
 - Tek sözcüklü adlar Kural A'nın dışında ("Regular", "Fleece"): bunları ad saymak doğru cümleleri de gizlerdi.
-- Başlıksız satırlarda (taranmış tablonun sayfaya devam eden satırları, 6029322 s.9) değerin hangi varyanta ait olduğu parçada yok; Kural B uygulanamaz. Başlık satırı ilk 8 parçaya girmezse tek renk yolu sütunu da varyant olarak tanınmaz. 0025 ile önceki sayfada kabul edilmiş başlığın tekrarı başlık sayılıyor (yüklü föylerde 4 tablo, 41 satır); eşi olmayan başlıklar (6013448 s.21) başlıksız kalır.
+- Başlıksız satırlarda (eşi olmayan başlık, 6013448 s.21; iki katlı başlık, 6013448 s.10–12) değerin hangi varyanta ait olduğu parçada yok; Kural B uygulanamaz. 6029322 s.9 0025 ile başlıklı oldu. Başlık satırı ilk 8 parçaya girmezse tek renk yolu sütunu da varyant olarak tanınmaz. 0025 ile önceki sayfada kabul edilmiş başlığın tekrarı başlık sayılıyor (yüklü föylerde 4 tablo, 41 satır); eşi olmayan başlıklar (6013448 s.21) başlıksız kalır.
 - Etiketler İngilizce, cümleler Türkçe olduğunda adın çevirisi ("Size Range" → "beden aralığı") Kural A'ya görünmez; çevrilmiş ad başka kaynağın adıysa yakalanmaz.
 - Kısa kod yalnız kaynakta büyük harfle yazılmış harf/rakam kodudur ("S", "XL", "4XLT"); "Min", "Adet", "Volt" varyant sayılmaz. Büyük harfle yazılmış kısa öznitelik başlıkları ("ID", "NO") aynı satırda sayısal değerle yan yana gelirse varyant sayılır ve doğru cümle gizlenebilir.
 - Bu turda sorulan varyant alıntılanan satırda ve başlık satırlarında yoksa ("peki XL?", satırda yalnız S/M/L) önceki turun adı sayılmaya devam eder.
@@ -1815,7 +1815,7 @@ Tarih: 2026-11-22. Ürün sahibinin bu tur için verdiği iş (açık notlar, S�
 
 **Kurallar.**
 - Tablonun ilk satırı, aynı belgenin **önceki sayfalarında yapıdan** başlık sayılmış bir satırla hücre hücre aynıysa (boşluklar yok sayılır) başlıktır. `header_fits` koruması aynen; tekrardan kabul edilen başlık öğrenilmez (zincirlenmez); aynı sayfa ve başka belge sayılmaz; etiketler sayfanın kendi okumasından gelir.
-- İçerikten sonra gelen ilk düzeysiz başlık **kod taşımıyorsa** kök değildir; düzeysiz başlıklar kardeştir. Kod taşıyorsa (önce "Sayfa 1 / 12", sonra "PNT-4417 ölçü föyü") kök kalır: kod bölüm yolunda olmalı (kod dizini, cevap denetimi; inceleme turunda bulundu).
+- İçerikten sonra gelen ilk düzeysiz başlık **kod taşımıyorsa** kök değildir; bu durumda düzeysiz başlıklar kardeştir. Kod taşıyorsa (önce "Sayfa 1 / 12", sonra "PNT-4417 ölçü föyü") kök kalır: kod bölüm yolunda olmalı (kod dizini, cevap denetimi; inceleme turunda bulundu).
 - Kural sürümü PDF ve Office 23, görsel 16, SQL 3.
 
 **Yapılmayanlar.** Sonraki sayfaya başlık taşımak (veride örnek yok; yeni tablo yanlış etiket alır, Kural B yanlış varyantı onaylayabilir). Karşı kanıtı gevşetmek (form tablolarında "Style #: Style Name" gibi yanlış etiket). Okuyucu etiketinden düzey (kod taşıyan kök başlık bölüm yolundan düşer).
@@ -1829,7 +1829,7 @@ Tarih: 2026-11-22. Ürün sahibinin bu tur için verdiği iş (açık notlar, S�
 ### 0026: Okuyucu hattı set B'de: değerlerin %2,9'u yanlış gösteriliyor (0010'daki %2,8 ile aynı düzeyde)
 Tarih: 2026-11-22. Ölçüm, bütün kod değişikliklerinden sonra (`main` `70d363f`, #138).
 
-**Set B.** 0008'deki üreticiyle hiç görülmemiş yeni tohum (20261122): 5 belge × 6 sayfa (set A ile aynı sayfa türleri), 2.118 değer; 0009'daki benzetimle (aynı tohum) 5 tarama ve 12 telefon fotoğrafı, toplam 2.889 puanlanan değer. Dosyalar repoda değil (aynı tohumla yeniden üretilir: `python -m evals.render.techpack_pdf --seed 20261122 --count 5 --set-label B`, ardından `degrade_set(..., 20261122)`).
+**Set B.** 0008'deki üreticiyle hiç görülmemiş yeni tohum (20261122): 5 belge × 6 sayfa (set A ile aynı sayfa türleri), 2.118 değer; 0009'daki benzetimle (aynı tohum) 5 tarama ve 12 telefon fotoğrafı, toplam 2.889 puanlanan değer. Dosyalar repoda değil; aynı tohumla yeniden üretilir: `uv run python -m evals.render.techpack_pdf --seed 20261122 --count 5 --set-label B --output <set klasörü>`, ardından `evals.render.imaging.degrade_set(<set klasörü>, <çıktı klasörü>, 20261122)`.
 
 **Nasıl ölçüldü.** Her dosya uygulamanın bugünkü belge hattından geçti (`ingest_document`, okuyucu MLX, istekler tek tek, Tesseract ikinci okuması); parçalar dondurulmuş puanlamayla (`evals/ocr_score.py`, `pipeline_pages`, `score_page`) ve 0008'in toplama kurallarıyla puanlandı. Tek koşu, 386 sn, bulut maliyeti 0. Koşucu tek seferlik betik (repoda değil); donmuş `hat.py` artık çalışmıyor (silinmiş `cell_reader`'ı içe aktarıyor).
 
@@ -1844,6 +1844,8 @@ Tarih: 2026-11-22. Ölçüm, bütün kod değişikliklerinden sonra (`main` `70d
 Tarama 758 / 67 (doğru / yanlış gösterilen), fotoğraf 227 / 18. Sayfa türüne göre yanlış gösterilen: fark tablosu 39 (bağ kopması 35), BOM 20, ölçü 16, değerlendirme 6, kapak 4, yorum 0.
 
 **Okuma.** Yanlış gösterilen oranı 0010'dakiyle aynı düzeyde (%2,9 ve %2,8); sayı küçülmedi, kural 1 açısından hat bugün de değerlerin yaklaşık 35'te 1'ini yanlış gösteriyor. Yanlışların türü değişti: yanlış karakter azaldı, bağ kopması (değer yanlış sütuna ya da etikete bağlı) arttı, en çok fark tablolarında. Gizlenen doğru değer %48'e çıktı. Karşılaştırma birebir değil: farklı tohum, farklı belge içeriği; set A ölçülen adayın okumalarıyla, set B uygulamanın hattıyla (çözünürlük, tek tek istekler, 0011–0025 kuralları) ölçüldü. Benzetim gerçek taramadan iyimser olabilir (0009).
+
+**Bu ölçümün cevaplamadıkları.** 0010'daki "set B'de ayrıca ölçülecek" maddeleri (görülmemiş belgede başlık kuralı, hücre sayısı uyuşmayan tablo, görsel küçültme) ve 0025'in kalan riski ayrıca incelenmedi; yalnız toplam okuma sonucu ölçüldü.
 
 **Karar gerektiren.** Kabul edilebilir yanlış gösterilen oranı açık bir ürün kararı değil (0012). Bağ kopmalarının fark tablolarında yoğunlaşması ayrı inceleme ister; bu ölçümle kural yazılmadı (her soru bir kez; sonuca göre ayar yapılmaz).
 
