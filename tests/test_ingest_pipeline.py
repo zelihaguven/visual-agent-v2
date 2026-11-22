@@ -296,7 +296,8 @@ def test_report_counts_a_heading_value_once_not_in_every_chunk(tmp_path: Path) -
             Element(ElementKind.TABLE_ROW, f"Bel: {n}", location, from_ocr=True, ocr_checked=True)
             for n in (70, 72, 74)
         ]
-        return [heading, *rows]
+        # Okuyucu değer taşıyan başlığı metin olarak da yazar (page_reader.page_elements).
+        return [heading, replace(heading, kind=ElementKind.TEXT), *rows]
 
     tools = replace(_fake_tools([], page_kind=PageKind.NONE), read_scanned_pages=read_scanned)
     result = ingest_document(path, META, tools, tmp_path)
