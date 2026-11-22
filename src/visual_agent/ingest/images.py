@@ -102,7 +102,9 @@ def replace_box(box: Box, *, left: float, top: float, right: float, bottom: floa
 
 
 def _element(kind: ElementKind, text: str, box: Box) -> Element:
-    return Element(kind, text, SourceLocation(page=box.page, boxes=(box,)), from_ocr=True)
+    return Element(
+        kind, text, SourceLocation(page=box.page, boxes=(box,)), from_ocr=True, legacy_ocr=True
+    )
 
 
 def lines_to_elements(lines: Sequence[Sequence[OcrSegment]], image_box: Box) -> list[Element]:

@@ -69,8 +69,10 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     # 17 (PDF, Office): gömülü görselin öğeleri sayfadaki yerine girer (sona değil).
     # 18 (PDF, Office): docling'in sayfa üst bilgisi de gezilir; kod taşıyan üst bilgi bölüm olur.
     # 19 (PDF, Office; görsel 15): okuyucu yolunda değer taşıyan başlık metin olarak da kalır.
-    InputFormat.PDF: 19,
-    InputFormat.OFFICE: 19,
+    # 20 (PDF, Office): eski OCR yolundan (gömülü görsel, ocrmypdf) gelen parçalar işaretlenir;
+    #    değerleri doğrulanmış gösterilmez (karar 0022). Okuyucu yolunun parçaları değişmedi.
+    InputFormat.PDF: 20,
+    InputFormat.OFFICE: 20,
     InputFormat.IMAGE: 15,
     InputFormat.SPREADSHEET: 4,
     InputFormat.LEGACY_SPREADSHEET: 4,
@@ -113,12 +115,14 @@ _CHANGED_PAGE_KINDS = {
     12: ("none", "scanned"),
     15: ("none", "weak", "scanned"),
     18: ("none", "scanned"),
+    19: ("text", "weak", "scanned"),
 }
 """Bu sürümden bir sonrakine geçiş yalnız bu tür sayfası olan belgelerin çıktısını değiştirdi:
 7→8 taranmış sayfalar sayfa okuyucusuna gitti ("scanned": OCR katmanlı tarama öyle kaydedilmiş
 olabilir); 8→9 eski OCR yolundaki (zayıf ya da taranmış metin katmanlı) sayfaların tabloları;
 9→10, 10→11 ve 11→12 sayfa okuyucusundan geçen sayfalardaki form tabloları; 12→13 aynı
-sayfalarda başlığı ile satırları aynı sayıda hücre taşımayan tablolar."""
+sayfalarda başlığı ile satırları aynı sayıda hücre taşımayan tablolar; 19→20 eski OCR yolunun
+parçaları (metinli sayfadaki gömülü görsel, zayıf ya da taranmış metin katmanlı sayfa)."""
 _PAGE_FORMATS = (InputFormat.PDF, InputFormat.OFFICE, InputFormat.IMAGE)
 
 
