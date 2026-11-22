@@ -164,9 +164,11 @@ def _parse_sheet(sheet: Worksheet) -> list[Element]:
     if not any(any(row) for row in grid):
         return []
     header_index = _find_header(grid)
-    if not any(any(row) for row in grid[header_index + 1 :]):
-        # Altında satır olmayan başlık başlık değildir (ör. yalnız A1'de bir not): sayfanın
-        # satırları etiketsiz yazılır, hücre metni kaybolmaz.
+    single_column = max(sum(1 for cell in row if cell) for row in grid) <= 1
+    if single_column or not any(any(row) for row in grid[header_index + 1 :]):
+        # Altında satır olmayan başlık başlık değildir (ör. yalnız A1'de bir not); tek sütunlu
+        # sayfa (not listesi) da başlıksızdır: ilk not ikincinin etiketi olmaz ("Not 1: Not 2").
+        # Satırlar etiketsiz yazılır, hücre metni kaybolmaz.
         header_index = -1
     labels = _labels(grid, header_index) if header_index >= 0 else []
     titles = _title_rows(grid, header_index) if header_index >= 0 else []

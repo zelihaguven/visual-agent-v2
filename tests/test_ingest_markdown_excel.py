@@ -367,6 +367,13 @@ def test_header_without_rows_below_is_written_as_a_row(tmp_path: Path) -> None:
 
 
 def test_header_with_rows_below_still_labels_them(tmp_path: Path) -> None:
-    rows = _rows(_workbook(tmp_path, [["Parça No"], ["PNT-1"], ["PNT-2"]]))
+    rows = _rows(_workbook(tmp_path, [["Kod", "Tork"], ["PNT-1", "12"], ["PNT-2", "8"]]))
 
-    assert rows == ["Parça No: PNT-1", "Parça No: PNT-2"]
+    assert rows == ["Kod: PNT-1 | Tork: 12", "Kod: PNT-2 | Tork: 8"]
+
+
+def test_single_column_sheet_writes_each_cell_as_its_own_unlabeled_row(tmp_path: Path) -> None:
+    """Tek sütunlu not sayfası: ilk not ikincinin etiketi olmaz (ürün sahibi kararı)."""
+    rows = _rows(_workbook(tmp_path, [["Not: tork 12 Nm"], ["Not: sıkma 8 Nm"], [""], ["Son not"]]))
+
+    assert rows == ["Not: tork 12 Nm", "Not: sıkma 8 Nm", "Son not"]
