@@ -164,9 +164,12 @@ def _parse_sheet(sheet: Worksheet) -> list[Element]:
     if not any(any(row) for row in grid):
         return []
     header_index = _find_header(grid)
-    if not any(any(row) for row in grid[header_index + 1 :]):
-        # Altında satır olmayan başlık başlık değildir (ör. yalnız A1'de bir not): sayfanın
-        # satırları etiketsiz yazılır, hücre metni kaybolmaz.
+    # Birleşik hücre değerini kapladığı sütunlara yayar (_read_grid): farklı değerler sayılır.
+    single_column = max(len({cell for cell in row if cell}) for row in grid) <= 1
+    if single_column or not any(any(row) for row in grid[header_index + 1 :]):
+        # Altında satır olmayan başlık başlık değildir (ör. yalnız A1'de bir not); tek sütunlu
+        # sayfa (not listesi) da başlıksızdır: ilk not ikincinin etiketi olmaz ("Not 1: Not 2").
+        # Satırlar etiketsiz yazılır, hücre metni kaybolmaz.
         header_index = -1
     labels = _labels(grid, header_index) if header_index >= 0 else []
     titles = _title_rows(grid, header_index) if header_index >= 0 else []
@@ -175,7 +178,10 @@ def _parse_sheet(sheet: Worksheet) -> list[Element]:
     heading = Element(ElementKind.HEADING, section, SourceLocation(sheet=sheet.title), level=1)
     elements = [heading]
     for offset, row in enumerate(grid[header_index + 1 :], start=header_index + 2):
-        text = labeled_row(labels, row)
+        # Tek sütunlu sayfada hücre olduğu gibi yazılır (boş sütun "(boş)" işareti almaz).
+        text = (
+            next((cell for cell in row if cell), "") if single_column else labeled_row(labels, row)
+        )
         if text:
             location = SourceLocation(sheet=sheet.title, row=offset)
             elements.append(Element(ElementKind.TABLE_ROW, text, location))

@@ -61,6 +61,13 @@ def test_bm25_normalization_keeps_codes_and_turkish_letters_searchable() -> None
     assert normalize_for_bm25("E-050 İğne") == "E050 iğne"
 
 
+@pytest.mark.parametrize("dash", ["\u2010", "\u2011"])
+def test_bm25_reads_hyphen_variants_like_the_verifier(dash: str) -> None:
+    """Word'ün bölünmez tiresiyle yazılmış kod, sorgudaki yazımla aynı aranır."""
+    assert normalize_for_bm25(f"PNT{dash}1162 bel") == normalize_for_bm25("PNT-1162 bel")
+    assert normalize_for_bm25(f"sıcaklık {dash}5") == normalize_for_bm25("sıcaklık -5")
+
+
 class FakeDense:
     size = 2
 

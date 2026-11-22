@@ -82,8 +82,9 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     InputFormat.OFFICE: 23,
     InputFormat.IMAGE: 16,
     # Excel 5: altında satır olmayan başlık satırı başlık sayılmaz; satırları etiketsiz yazılır.
-    InputFormat.SPREADSHEET: 5,
-    InputFormat.LEGACY_SPREADSHEET: 5,
+    # Excel 6: tek sütunlu sayfa başlıksızdır; her hücre ayrı, etiketsiz satır (ürün sahibi kararı).
+    InputFormat.SPREADSHEET: 6,
+    InputFormat.LEGACY_SPREADSHEET: 6,
     # SQL 3: içerikten sonra gelen kodsuz ilk başlık kök değildir (bölüm yolu ortak kodda).
     InputFormat.SQL: 3,
     InputFormat.TEXT: 2,
