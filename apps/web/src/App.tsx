@@ -29,6 +29,7 @@ import { DocumentsPanel, type DocumentSummary } from "./components/DocumentsPane
 import { Drawer } from "./components/Drawer";
 import { MicButton } from "./components/MicButton";
 import { SourcePanel } from "./components/SourcePanel";
+import { TopBar } from "./components/TopBar";
 import { TurnView, type SpeechStatus } from "./components/TurnView";
 import { LandingActions } from "./components/LandingActions";
 import { MAX_QUESTION_CHARS } from "./limits";
@@ -309,35 +310,16 @@ export function App() {
   }
 
   const isLanding = turns.length === 0;
+  const canTalk = canListen() && hasVoiceService;
   return (
     <div className={`layout ${isLanding ? "is-landing" : "is-asking"}`}>
-      <header className="topbar">
-        {isLanding ? (
-          <span className="brand">Visual Agent</span>
-        ) : (
-          <button
-            type="button"
-            className="home-button"
-            aria-label="Ana Sayfaya Dön"
-            title="Ana Sayfaya Dön"
-            onClick={goHome}
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-              <path fill="currentColor" d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3L12 3Z" />
-            </svg>
-            Ana Sayfa
-          </button>
-        )}
-        <button
-          type="button"
-          className="library-button"
-          aria-label={summary === null ? "Belgeler" : `Belgeler (${summary.total})`}
-          aria-expanded={isLibraryOpen}
-          onClick={() => setIsLibraryOpen(true)}
-        >
-          Belgeler{summary !== null && <span className="count">{summary.total}</span>}
-        </button>
-      </header>
+      <TopBar
+        isLanding={isLanding}
+        documentCount={summary?.total ?? null}
+        isLibraryOpen={isLibraryOpen}
+        onHome={goHome}
+        onOpenLibrary={() => setIsLibraryOpen(true)}
+      />
       <main className="conversation">
         {isLanding ? (
           <div className="hero">
@@ -389,7 +371,7 @@ export function App() {
               }}
             />
             <MicButton isDisabled={isAsking} onTranscript={handleTranscript} onError={setVoiceError} />
-            {canListen() && hasVoiceService && (
+            {canTalk && (
               <button
                 type="button"
                 className="icon-button"
@@ -417,9 +399,8 @@ export function App() {
           </form>
           {isLanding && (
             <LandingActions
-              canTalk={canListen() && hasVoiceService}
+              canTalk={canTalk}
               summary={summary}
-              onWrite={() => draftInput.current?.focus()}
               onTalk={openConversation}
               onAddDocument={() => {
                 // Aynı tıklama içinde: tarayıcı dosya seçiciyi ancak kullanıcı hareketiyle açar.

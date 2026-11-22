@@ -67,6 +67,23 @@
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
+  /* Büyük başlıklar ekrana göre akar; satır aralıkları başlık ve gövde için ayrı. */
+  --text-display: clamp(2.25rem, 1.4rem + 3.4vw, 3.5rem);
+  --text-display-sm: clamp(1.75rem, 1.2rem + 2.4vw, 2.5rem);
+  --leading-display: 1.1;
+  --leading-tight: 1.25;
+  --leading-body: 1.55;
+  --tracking-display: -0.02em;
+
+  /* Odak halkası: lacivert ve açık yüzeyde aynı mercan halka, içerikten biraz uzakta. */
+  --focus-ring-width: 3px;
+  --focus-ring-color: var(--coral);
+  --focus-ring-offset: 3px;
+
+  /* Okuma sütunu: çok geniş ekranda satırlar uzamaz. */
+  --content-width: 800px;
+  --content-width-narrow: 680px;
+  --gutter: clamp(16px, 4vw, 32px);
 
   --duration-fast: 120ms;
   --duration-base: 220ms;

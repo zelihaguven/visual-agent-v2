@@ -9,11 +9,16 @@ body,
   height: 100%;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   background: var(--color-page);
   color: var(--color-text);
-  font: 400 1rem/1.55 var(--font-body);
+  font: 400 var(--text-base) / var(--leading-body) var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -24,6 +29,7 @@ input {
 }
 
 button {
+  -webkit-tap-highlight-color: transparent;
   transition:
     opacity var(--ease),
     transform var(--ease);
@@ -34,8 +40,8 @@ button:not(:disabled):active {
 }
 
 :focus-visible {
-  outline: 3px solid var(--coral);
-  outline-offset: 3px;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .visually-hidden {
@@ -51,19 +57,20 @@ h1,
 h2 {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
 }
 
 h1 {
-  font-size: clamp(2.25rem, 1.4rem + 3.4vw, 3.5rem);
-  line-height: 1.08;
+  font-size: var(--text-display);
+  line-height: var(--leading-display);
 }
 
 h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.25;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
 }
 
 /* Ortak parçalar: bildirim, soluk metin ve çerçeveli düğme (ghost) birden çok yüzeyde kullanılır. */
@@ -79,18 +86,34 @@ h2 {
 .muted {
   margin: 0;
   color: var(--color-muted);
-  font-size: 0.9375rem;
+  font-size: var(--text-md);
 }
 
 .ghost {
   min-height: var(--touch-size);
-  padding: 0 16px;
+  padding: 0 var(--space-6);
   border: 1px solid var(--color-line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent;
   cursor: pointer;
+  transition:
+    border-color var(--ease),
+    background-color var(--ease),
+    transform var(--ease);
 }
 
-.ghost:hover {
-  border-color: currentcolor;
+@media (hover: hover) {
+  .ghost:not(:disabled):hover {
+    border-color: currentcolor;
+    background: var(--color-chip);
+  }
+}
+
+.ghost:not(:disabled):active {
+  background: var(--color-chip);
+}
+
+.ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
