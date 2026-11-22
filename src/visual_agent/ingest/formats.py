@@ -76,8 +76,9 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     InputFormat.PDF: 21,
     InputFormat.OFFICE: 21,
     InputFormat.IMAGE: 15,
-    InputFormat.SPREADSHEET: 4,
-    InputFormat.LEGACY_SPREADSHEET: 4,
+    # Excel 5: altında satır olmayan başlık satırı başlık sayılmaz; satırları etiketsiz yazılır.
+    InputFormat.SPREADSHEET: 5,
+    InputFormat.LEGACY_SPREADSHEET: 5,
     InputFormat.SQL: 2,
     InputFormat.TEXT: 2,
     InputFormat.MARKDOWN: 3,

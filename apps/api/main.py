@@ -324,6 +324,7 @@ async def _store_upload(file: UploadFile, services: ApiServices) -> StoredDocume
     directory = services.storage_directory / doc_id
     directory.mkdir(parents=True)
     target = directory / f"original{_safe_suffix(filename)}"
+    registering: asyncio.Future[None] | None = None
     try:
         await _save_upload(file, target)
         detect_format(target)
@@ -335,10 +336,17 @@ async def _store_upload(file: UploadFile, services: ApiServices) -> StoredDocume
             stored_path=str(target),
             language=UNDETECTED_LANGUAGE,
         )
-        await services.repository.create_document(document)
+        registering = asyncio.ensure_future(services.repository.create_document(document))
+        await asyncio.shield(registering)
     except BaseException as error:
         # Kaydı olmayan klasörü silme işi (retry_deletions) hiç bulmaz; kopan bağlantı dahil
-        # her hatada burada silinir.
+        # her hatada burada silinir. Kayıt yazıldıktan sonra hata (iptal, zaman aşımı) gelirse
+        # dosyası olmayan kayıt kalmasın: yazma bitince kayıt da silinir.
+        if registering is not None:
+            await asyncio.wait([registering])
+            await delete_document(
+                doc_id, services.repository, services.remove_vectors, services.storage_directory
+            )
         shutil.rmtree(directory, ignore_errors=True)
         if isinstance(error, UnsupportedFormat):
             reason = str(error).replace(target.name, filename)

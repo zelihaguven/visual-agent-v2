@@ -164,8 +164,13 @@ def _parse_sheet(sheet: Worksheet) -> list[Element]:
     if not any(any(row) for row in grid):
         return []
     header_index = _find_header(grid)
-    labels = _labels(grid, header_index)
-    section = SECTION_SEPARATOR.join([sheet.title, *_title_rows(grid, header_index)])
+    if not any(any(row) for row in grid[header_index + 1 :]):
+        # Altında satır olmayan başlık başlık değildir (ör. yalnız A1'de bir not): sayfanın
+        # satırları etiketsiz yazılır, hücre metni kaybolmaz.
+        header_index = -1
+    labels = _labels(grid, header_index) if header_index >= 0 else []
+    titles = _title_rows(grid, header_index) if header_index >= 0 else []
+    section = SECTION_SEPARATOR.join([sheet.title, *titles])
     # Her sayfa en üst düzey başlıktır: önceki sayfanın adı bu sayfanın bölüm yoluna girmez.
     heading = Element(ElementKind.HEADING, section, SourceLocation(sheet=sheet.title), level=1)
     elements = [heading]

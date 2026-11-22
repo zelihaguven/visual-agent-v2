@@ -2,17 +2,19 @@
 
 import asyncio
 import dataclasses
+import io
 import shutil
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
 import pytest
+from fastapi import UploadFile
 from fastapi.testclient import TestClient
 from qdrant_client import AsyncQdrantClient
 
 from apps.api.documents import delete_document, document_directory, retry_deletions
-from apps.api.main import ApiServices, create_app
+from apps.api.main import ApiServices, _store_upload, create_app
 from apps.worker.indexing import LazyIndexer, SharedEncoders
 from apps.worker.jobs import DocumentProcessor
 from tests.test_ask_pipeline import FakeClient, FakeRetriever, answer_payload, make_deps
@@ -322,3 +324,63 @@ def test_queued_document_is_fully_deleted_before_any_vector_exists(tmp_path: Pat
 
     assert asyncio.run(run()) == []
     assert not (storage / "d").exists()
+
+
+def test_upload_failing_after_the_record_is_written_leaves_no_record_or_folder(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository, storage = _repository(tmp_path), tmp_path / "belgeler"
+    write = repository.create_document
+
+    async def write_then_fail(document: StoredDocument) -> None:
+        await write(document)
+        raise TimeoutError("kayıt yazıldı, sonra zaman aşımı")
+
+    monkeypatch.setattr(repository, "create_document", write_then_fail)
+    services = ApiServices(repository=repository, ask=None, storage_directory=storage)  # type: ignore[arg-type]
+    client = TestClient(
+        create_app(Settings(_env_file=None, web_directory=None), services),
+        raise_server_exceptions=False,
+    )
+
+    response = client.post(
+        "/api/documents", files={"file": ("a.pdf", b"%PDF-1.7", "application/pdf")}
+    )
+
+    assert response.status_code == 500
+    assert asyncio.run(repository.list_documents()) == []
+    assert not any(storage.iterdir())
+
+
+def test_cancelled_upload_removes_the_record_written_after_the_cancel(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Kayıt iş parçacığında yazılır: istek iptal edilse de yazma biter. Dosyası silinmiş kayıt
+    kalmamalı (işçi bulamaz, belge "işlenemedi" olurdu)."""
+    repository, storage = _repository(tmp_path), tmp_path / "belgeler"
+    write = repository.create_document
+
+    async def run() -> list[StoredDocument]:
+        started, release = asyncio.Event(), asyncio.Event()
+
+        async def write_in_thread(document: StoredDocument) -> None:
+            async def work() -> None:
+                started.set()
+                await release.wait()
+                await write(document)
+
+            await asyncio.shield(asyncio.ensure_future(work()))
+
+        monkeypatch.setattr(repository, "create_document", write_in_thread)
+        services = ApiServices(repository=repository, ask=None, storage_directory=storage)  # type: ignore[arg-type]
+        upload = UploadFile(io.BytesIO(b"%PDF-1.7"), filename="a.pdf")
+        task = asyncio.create_task(_store_upload(upload, services))
+        await started.wait()
+        task.cancel()
+        release.set()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        return await repository.list_documents()
+
+    assert asyncio.run(run()) == []
+    assert not any(storage.iterdir())
