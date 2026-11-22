@@ -93,6 +93,21 @@ def test_unconfirmed_tokens(primary: str, second: str, expected: list[str]) -> N
     assert unconfirmed_tokens(primary, second) == expected
 
 
+def test_two_tesseract_modes_are_not_concatenated() -> None:
+    """Gömülü görselin gerçek okumaları (sql-ekran): blok kipi iki VARCHAR'ı okur ama sayıları
+    kaçırır, seyrek kip sayıları okur ama ilk satırı kaçırır. Art arda eklenince VARCHAR üç kez
+    sayılıyor ve doğru okunan değer belirsiz kalıyordu."""
+    primary = (
+        "Tablo Kolon Tip Uzunluk SIPARIS_KALEM MUSTERI_KODU VARCHAR 19 "
+        "SIPARIS_KALEM DEPO_KODU VARCHAR 59"
+    )
+    block = "SIPARIS KALEM | MUSTERI KODU | VARCHAR SIPARIS KALEM | DEPO KODU VARCHAR"
+    sparse = "Tablo Kolon Tip Uzunluk 19 SIPARIS KALEM | DEPO KODU VARCHAR | 59"
+
+    assert unconfirmed_tokens(primary, f"{block} {sparse}") == ["VARCHAR"]
+    assert unconfirmed_tokens(primary, block, sparse) == []
+
+
 def cell(row: int, column: int, text: str, header: bool = False, span: int = 1) -> TableCell:
     return TableCell(
         row_start=row,
