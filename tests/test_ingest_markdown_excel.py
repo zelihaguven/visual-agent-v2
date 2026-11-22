@@ -377,3 +377,20 @@ def test_single_column_sheet_writes_each_cell_as_its_own_unlabeled_row(tmp_path:
     rows = _rows(_workbook(tmp_path, [["Not: tork 12 Nm"], ["Not: sıkma 8 Nm"], [""], ["Son not"]]))
 
     assert rows == ["Not: tork 12 Nm", "Not: sıkma 8 Nm", "Son not"]
+
+
+def test_note_sheet_in_another_column_or_merged_cells_is_still_single_column(
+    tmp_path: Path,
+) -> None:
+    """Notlar B sütununda ya da satır satır A:D'ye birleştirilmiş: her not ayrı, işaretsiz."""
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Notlar"
+    sheet["B1"], sheet["B2"] = "Not 1", "Not 2"
+    sheet["A4"], sheet["A5"] = "Not 3", "Not 4"
+    sheet.merge_cells("A4:D4")
+    sheet.merge_cells("A5:D5")
+    target = tmp_path / "notlar.xlsx"
+    workbook.save(target)
+
+    assert _rows(target) == ["Not 1", "Not 2", "Not 3", "Not 4"]
