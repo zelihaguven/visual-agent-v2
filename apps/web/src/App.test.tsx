@@ -1360,7 +1360,7 @@ describe("App", () => {
       await open(fetchMock);
       await screen.findByText("Dinliyorum");
       expect(create).toHaveBeenCalledTimes(1);
-      fireEvent.click(screen.getByRole("button", { name: "Ana Sayfa" }));
+      fireEvent.click(screen.getByRole("button", { name: "Sesli Modu Kapat" }));
       await waitFor(() => expect(listening.close).toHaveBeenCalled());
       expect(screen.queryByText("Dinliyorum")).not.toBeInTheDocument();
 
@@ -1662,7 +1662,7 @@ describe("App", () => {
       );
       await open(conversationApi([]));
 
-      fireEvent.click(screen.getByRole("button", { name: "Ana Sayfa" }));
+      fireEvent.click(screen.getByRole("button", { name: "Sesli Modu Kapat" }));
       finishOpening({ stream: {}, level: () => 0, close: listening.close });
 
       await waitFor(() => expect(listening.close).toHaveBeenCalled());

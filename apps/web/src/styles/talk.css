@@ -404,7 +404,7 @@
   }
 }
 
-@container talk (max-width: 21rem) {
+@container talk (max-width: 26rem) {
   .talk-top .talk-pill {
     min-width: var(--talk-pill-height);
     padding-inline: 0;

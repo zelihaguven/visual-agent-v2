@@ -367,8 +367,8 @@ export function ConversationMode(props: Props) {
       </div>
       <header className="talk-top">
         <button type="button" className="ghost talk-pill" onClick={onClose}>
-          <Icon name="home" />
-          <span className="talk-pill-label">Ana Sayfa</span>
+          <Icon name="close" />
+          <span className="talk-pill-label">Sesli Modu Kapat</span>
         </button>
         <button type="button" className="ghost talk-pill" onClick={onWrite}>
           <Icon name="keyboard" />
@@ -380,7 +380,7 @@ export function ConversationMode(props: Props) {
 }
 
 const ICONS = {
-  home: ["M3 11l9-7 9 7", "M5 10v10h14V10"],
+  close: ["M6 6l12 12", "M18 6 6 18"],
   keyboard: [
     "M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z",
     "M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10",
