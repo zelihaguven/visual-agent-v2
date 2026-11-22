@@ -37,7 +37,9 @@ STEP_LABELS = {
     "context": "takip tamamlama",
     "scope": "kapsam",
     "intent": "niyet",
-    "translate": "çeviri",
+    # Aramanın çeviriyi beklediği süre: çeviri niyet adımıyla birlikte başladıysa çağrının
+    # tamamı değil, yalnız kalan bekleme (2026-11-22 öncesi kayıtlarda çağrının tamamıdır).
+    "translate": "çeviri bekleme",
     "retrieve": "arama",
     "generate": "cevap modeli",
     "verify": "doğrulama",

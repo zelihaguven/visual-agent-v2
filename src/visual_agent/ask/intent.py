@@ -7,10 +7,10 @@ from collections.abc import Sequence
 from dataclasses import replace
 
 from visual_agent.ask.deps import AskDeps
-from visual_agent.ask.steps import AskState
+from visual_agent.ask.steps import AskState, start_translation
 from visual_agent.catalog.memory import DocumentCatalog, squash
 from visual_agent.domain.result import AskResult, Inventory, InventoryDocument, SmallTalk
-from visual_agent.generation.intent import Intent
+from visual_agent.generation.intent import Intent, IntentClassifier
 from visual_agent.verification.text import identifiers_in, normalize
 
 logger = logging.getLogger(__name__)
@@ -124,27 +124,45 @@ def _result_for(intent: Intent, state: AskState, deps: AskDeps) -> AskResult | N
     return SmallTalk(text=replies[intent]) if intent in replies else None
 
 
-async def _classified(state: AskState, deps: AskDeps) -> Intent:
+def _known_intent(state: AskState, deps: AskDeps) -> Intent | None:
+    """Sınıflandırıcıya sormadan bilinen tür; None ise yardımcı modele sorulur. İçinde kod geçen
+    mesajlar belge sorusudur; denetim gecikme eklemez."""
     if state.request.doc_ids:
         return "question"
     common = common_small_talk(state.question)
     if common is not None:
         return common
-    classifier = deps.intent_classifier
-    if classifier is None or identifiers_in(state.question):
+    if deps.intent_classifier is None or identifiers_in(state.question):
         return "question"
+    return None
+
+
+async def _asked_intent(state: AskState, classifier: IntentClassifier, limit: float) -> Intent:
     try:
-        return await asyncio.wait_for(classifier(state.question), deps.intent_limit_seconds)
+        return await asyncio.wait_for(classifier(state.question), limit)
     except Exception:
         logger.warning("Mesajın türü anlaşılamadı", exc_info=True)
         return "question"
 
 
 async def resolve_intent(state: AskState, deps: AskDeps) -> AskState:
-    """İçinde kod geçen mesajlar belge sorusudur; denetim gecikme eklemez."""
-    result = _result_for(await _classified(state, deps), state, deps)
+    """Sınıflandırıcı beklenirken sorgu çevirisi de başlar; mesaj belge sorusu değilse çeviri
+    iptal edilir (başlamış çağrının maliyeti göze alınır: soruların çoğu belge sorusudur)."""
+    intent, translation = _known_intent(state, deps), None
+    if intent is None and deps.intent_classifier is not None:
+        translation = start_translation(state, deps)
+        try:
+            intent = await _asked_intent(state, deps.intent_classifier, deps.intent_limit_seconds)
+        except BaseException:
+            # İstek sınıflandırıcı beklenirken iptal edildi (kullanıcı söz kesti, bağlantı koptu):
+            # görev henüz duruma yazılmadı, burada kapatılmazsa açık kalır.
+            translation.cancel()
+            raise
+    result = _result_for(intent or "question", state, deps)
     if result is not None:
+        if translation is not None:
+            translation.cancel()
         return replace(state, result=result)
     if state.request.on_event is not None:
         state.request.on_event({"type": "searching"})
-    return state
+    return replace(state, translation=translation)

@@ -34,7 +34,8 @@ PIPELINE = (
 
 
 def _split_translation(timings: dict[str, float], translate: float | None) -> dict[str, float]:
-    """Çeviri arama adımının içinde çalışır; gecikme kararı için ayrı süre olarak görünür."""
+    """Aramanın çeviriyi beklediği süre arama adımından ayrılır: gecikme kararı için ayrı
+    görünür. Çeviri niyet adımıyla birlikte başladıysa bu yalnız kalan bekleme süresidir."""
     if translate is None or "retrieve" not in timings:
         return timings
     return {
@@ -49,14 +50,19 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
     helper_providers: list[str] = []
     HELPER_PROVIDERS.set(helper_providers)
     timings: dict[str, float] = {}
-    for step in PIPELINE:
-        started = time.perf_counter()
-        if request.on_event is not None:
-            request.on_event({"type": "status", "stage": step.name})
-        state = await step.run(state, deps)
-        timings = {**timings, step.name: time.perf_counter() - started}
-        if state.result is not None:
-            break
+    try:
+        for step in PIPELINE:
+            started = time.perf_counter()
+            if request.on_event is not None:
+                request.on_event({"type": "status", "stage": step.name})
+            state = await step.run(state, deps)
+            timings = {**timings, step.name: time.perf_counter() - started}
+            if state.result is not None:
+                break
+    finally:
+        # Erken başlatılan çeviri beklenmeden hat bittiyse (adımlar arasında hata) açık kalmaz.
+        if state.translation is not None:
+            state.translation.cancel()
     result = state.result or Failed(reason="Cevap üretilemedi.")
     final = replace(state, result=with_related_headings(result, state.hits, state.language))
     timings = _split_translation(timings, final.translate_seconds)

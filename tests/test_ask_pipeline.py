@@ -570,6 +570,148 @@ def test_translation_is_used_only_when_languages_differ() -> None:
     assert retriever.calls[0]["query"] == "iç paça nedir"
 
 
+ENGLISH = {"a": "en", "b": "en", "c": "en"}
+
+
+def test_translation_starts_while_the_intent_is_being_classified() -> None:
+    """İki yardımcı model çağrısı art arda beklenmez: sınıflandırıcı, çeviri başlamadan
+    bitmiyorsa (sıralı akışta kilitlenirdi) ikisi aynı anda çalışıyordur."""
+    order: list[str] = []
+    translation_started = asyncio.Event()
+
+    async def translator(question: str, source: str, targets: Sequence[str]) -> str:
+        order.append("çeviri başladı")
+        translation_started.set()
+        await asyncio.sleep(0.05)
+        return "inseam value"
+
+    async def classifier(question: str) -> str:
+        await asyncio.wait_for(translation_started.wait(), 1)
+        order.append("niyet bitti")
+        return "question"
+
+    retriever = FakeRetriever()
+    deps = make_deps(FakeClient(answer_payload("76,5")), retriever, translator, ENGLISH)
+    deps = replace(deps, intent_classifier=classifier)  # type: ignore[arg-type]
+
+    outcome = ask(deps, "iç paça nedir")
+
+    assert order == ["çeviri başladı", "niyet bitti"]
+    assert retriever.calls[0]["bm25"] == "inseam value"
+    assert not outcome.translation_failed
+    # Süre, aramanın çeviriyi beklediği kadardır; çağrının tamamı değil.
+    assert outcome.timings["translate"] < 0.2 and outcome.timings["retrieve"] >= 0
+
+
+def test_small_talk_cancels_the_translation_it_started() -> None:
+    cancelled: list[bool] = []
+
+    async def translator(question: str, source: str, targets: Sequence[str]) -> str:
+        try:
+            await asyncio.sleep(5)
+        except asyncio.CancelledError:
+            cancelled.append(True)
+            raise
+        return "geç"
+
+    async def classifier(question: str) -> str:
+        await asyncio.sleep(0.01)
+        return "thanks"
+
+    retriever = FakeRetriever()
+    deps = make_deps(FakeClient(answer_payload("76,5")), retriever, translator, ENGLISH)
+    deps = replace(deps, intent_classifier=classifier)  # type: ignore[arg-type]
+
+    async def run() -> tuple[object, list[bool], int]:
+        outcome = await answer_question(AskRequest(question="çok sağ olun yardımınız için"), deps)
+        await asyncio.sleep(0)  # iptal edilen görev kapanır
+        # Döngü kapanmadan bakılır: asyncio.run açık görevleri kendisi de iptal ederdi.
+        return outcome, list(cancelled), len(asyncio.all_tasks())
+
+    outcome, cancelled_in_time, open_tasks = asyncio.run(run())
+
+    assert type(outcome.result).__name__ == "SmallTalk"  # type: ignore[attr-defined]
+    assert cancelled_in_time == [True] and open_tasks == 1
+    assert retriever.calls == []
+
+
+def test_request_cancelled_while_classifying_closes_the_translation() -> None:
+    """Kullanıcı söz keser ya da bağlantı kopar: istek sınıflandırıcı beklenirken iptal edilir."""
+
+    async def translator(question: str, source: str, targets: Sequence[str]) -> str:
+        await asyncio.sleep(5)
+        return "geç"
+
+    async def classifier(question: str) -> str:
+        await asyncio.sleep(5)
+        return "question"
+
+    deps = make_deps(FakeClient(answer_payload("76,5")), FakeRetriever(), translator, ENGLISH)
+    deps = replace(deps, intent_classifier=classifier)  # type: ignore[arg-type]
+
+    async def run() -> int:
+        request = asyncio.create_task(answer_question(AskRequest(question="iç paça nedir"), deps))
+        await asyncio.sleep(0.01)
+        request.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await request
+        await asyncio.sleep(0)
+        return len(asyncio.all_tasks())
+
+    assert asyncio.run(run()) == 1
+
+
+def test_translation_started_early_can_fail_and_the_classifier_can_time_out() -> None:
+    """Erken başlayan çeviri düşerse arama özgün soruyla yapılır; sınıflandırıcı süre sınırına
+    takılırsa mesaj belge sorusu sayılır ve başarılı çeviri yine kullanılır."""
+
+    async def failing(question: str, source: str, targets: Sequence[str]) -> str:
+        raise RuntimeError("servis")
+
+    async def working(question: str, source: str, targets: Sequence[str]) -> str:
+        return "inseam value"
+
+    async def quick(question: str) -> str:
+        return "question"
+
+    async def slow(question: str) -> str:
+        await asyncio.sleep(5)
+        return "thanks"
+
+    retriever = FakeRetriever()
+    deps = make_deps(FakeClient(answer_payload("76,5")), retriever, failing, ENGLISH)
+    failed = ask(replace(deps, intent_classifier=quick), "iç paça nedir")  # type: ignore[arg-type]
+    assert failed.translation_failed and retriever.calls[0]["bm25"] == "iç paça nedir"
+    assert "translate" in failed.timings
+
+    retriever = FakeRetriever()
+    deps = make_deps(FakeClient(answer_payload("76,5")), retriever, working, ENGLISH)
+    deps = replace(deps, intent_classifier=slow, intent_limit_seconds=0.01)  # type: ignore[arg-type]
+    timed_out = ask(deps, "iç paça nedir")
+    assert not timed_out.translation_failed and retriever.calls[0]["bm25"] == "inseam value"
+
+
+def test_question_with_a_code_translates_inside_the_search_as_before() -> None:
+    """Kod taşıyan soruda sınıflandırıcı çağrılmaz; çeviri arama adımında yapılır."""
+    asked: list[str] = []
+
+    async def translator(question: str, source: str, targets: Sequence[str]) -> str:
+        return "PNT-4417 inseam"
+
+    async def classifier(question: str) -> str:
+        asked.append(question)
+        return "question"
+
+    retriever = FakeRetriever()
+    deps = make_deps(FakeClient(answer_payload("76,5")), retriever, translator, ENGLISH)
+    deps = replace(deps, intent_classifier=classifier)  # type: ignore[arg-type]
+
+    outcome = ask(deps, "PNT-4417 iç paça nedir")
+
+    assert asked == [] and retriever.calls[0]["bm25"] == "PNT-4417 inseam"
+    assert "translate" in outcome.timings
+
+
 def test_failed_translation_falls_back_to_the_original_question() -> None:
     async def translator(question: str, source: str, targets: Sequence[str]) -> str:
         raise RuntimeError("servis")

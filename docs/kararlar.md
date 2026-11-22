@@ -109,6 +109,31 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Yeniden düşünülür:** Belgeler ve sorular aynı dilde olursa gereksiz kalır. FastReact
   ölçümünde 18 sorunun birinde sınır aşıldı.
 
+- **Güncel ayar (2026-11-18, `b3d4552`):** sınır 1,5 sn; yardımcı model sağlayıcı sırası Parasail,
+  Venice, NextBit (yukarıdaki "1,2 sn" ve "NextBit" o tarihten önceki durumdur). 21–22 Kasım'da
+  47 sorunun 1'inde çeviri düştü.
+- **Niyet sınıflandırmasıyla birlikte başlar (2026-11-22, dal `niyet-ceviri-paralel`; ürün sahibi
+  onayı).** Niyet sınıflandırıcısı ve çeviri yardımcı modele ayrı çağrılardır ve art arda
+  bekleniyordu; 19 Kasım sonrası 3 sn'yi aşan 19 cevapta ortalama niyet 0,81 sn, çeviri 0,96 sn
+  (doğrulama 0,00 sn: süreyi doğruluk kuralları uzatmıyor). Artık sınıflandırıcı çağrılacaksa
+  çeviri de o anda başlar; arama adımı sonucunu bekler. Mesaj selam ya da envanter çıkarsa
+  başlamış çeviri iptal edilir (boşa giden küçük bir çağrı). Sınıflandırıcının atlandığı
+  yollarda (soruda kod, seçilmiş belge, bilinen selam) akış aynıdır.
+  - **Ölçüm (Mac, uygulama, 394 belge; kod içermeyen 15 soru, her biri önce `main` sonra dalda
+    birer kez; maliyet 0,009 USD).** İlk doğrulanmış cümle ortanca 3,02 → 2,25 sn, p95 4,84 →
+    3,14 sn, 3 sn'yi aşan 8 → 1; cevap öncesi adımların ortalaması 2,21 → 1,33 sn. İki turda da
+    15 soru cevaplandı, durumlar aynı (14 doğrulandı, 1 doğrulanamadı), sağlayıcı hep Makora.
+    Taban 7 ve 11 (önbellekten): 39/40, doğrulanmış yanlış 0, kırk sorunun kayıtları öncekiyle
+    aynı. Taban setlerinde belgeler Türkçe olduğu için çeviri hiç çalışmaz; süre farkı orada
+    ölçülemez, bu yüzden süre uygulamada ölçüldü. Tek tur ve küçük örnek: ikinci turda sağlayıcı
+    biraz hızlıydı (cevap modeli ortalaması 1,38 → 1,26 sn), kazancın o kadarı değişikliğe ait
+    değildir.
+  - **Günlükte anlam değişti:** `translate` süresi artık aramanın çeviriyi beklediği süredir
+    (özet satırı "çeviri bekleme"); çağrının kendi süresi kaydedilmiyor. 1,5 sn sınırını
+    yeniden ayarlamak için çağrı süresi gerekirse ayrıca kaydedilmelidir.
+  - **Ölçülmedi:** aynı sağlayıcıya eşzamanlı iki çağrının yük altında çeviri düşme payına
+    etkisi (bu ölçümde 15 soruda 0 düştü; öncesinde 1).
+
 ### Modele 8 kaynak gider (5'ten artırıldı)
 - **Ne zaman:** Eski pilot, Adım 2 (2026-11-06). Bu repoda `DEFAULT_TOP_K = 8` (0001).
 - **Neden:** Ölçüm `adim2/hat_rapor_2026-11-06.md`, Ek (onaylı 199 sorunun cevaplı 160'ı).

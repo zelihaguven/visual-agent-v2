@@ -151,7 +151,7 @@ def test_summary_counts_kinds_and_reads_each_step_apart() -> None:
     assert "(1 soru)" in lines[3]
     assert "  takip tamamlama: ortanca 0.60 sn, p95 0.60 sn (1 soru)" in lines
     assert "  niyet: ortanca 0.30 sn, p95 0.40 sn (3 soru)" in lines
-    assert "  çeviri: ortanca 0.30 sn, p95 0.30 sn (1 soru)" in lines
+    assert "  çeviri bekleme: ortanca 0.30 sn, p95 0.30 sn (1 soru)" in lines
     assert not any("arama" in line for line in lines)
 
 
