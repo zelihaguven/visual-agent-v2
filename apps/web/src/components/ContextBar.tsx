@@ -15,7 +15,7 @@ export function ContextBar({ context, onClear }: Props) {
         <span className="context-question">{context.question}</span>
       </p>
       <button type="button" className="ghost" onClick={onClear}>
-        Yeni konu
+        Yeni Konu
       </button>
     </div>
   );

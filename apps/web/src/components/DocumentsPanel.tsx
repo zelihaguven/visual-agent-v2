@@ -20,7 +20,7 @@ const STATUS_LABELS: Record<DocumentInfo["status"], string | null> = {
   processing: "İşleniyor",
   ready: null,
   failed: "Hata",
-  // Belge bozuk değil: taranmış sayfaların okuyucusu yok; gelince "Yeniden işle" ile okunur.
+  // Belge bozuk değil: taranmış sayfaların okuyucusu yok; gelince "Yeniden İşle" ile okunur.
   waiting_reader: "Okuyucu bekleniyor",
 };
 // Bu kadar ya da daha az belgeli grup açık başlar; kalabalık grup başlığıyla gelir.
@@ -184,12 +184,12 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
         </button>
       </header>
       <label className={`upload ${isUploading ? "is-busy" : ""}`}>
-        <span>{isUploading ? "Yükleniyor" : "Belge ekle"}</span>
+        <span>{isUploading ? "Yükleniyor" : "Belge Ekle"}</span>
         <input
           ref={uploadInput}
           type="file"
           accept={ACCEPTED_TYPES}
-          aria-label="Belge yükle"
+          aria-label="Belge Yükle"
           disabled={isUploading}
           onChange={(event) => void handleFile(event)}
         />
@@ -268,17 +268,17 @@ function DocumentRow({
       <div className="document-actions">
         <button
           type="button"
-          aria-label={`${document.title} belgesini yeniden işle`}
+          aria-label={`${document.title} Belgesini Yeniden İşle`}
           disabled={isBusy || pending}
           title={pending ? "Belge işlenirken yeniden işlenemez." : undefined}
           onClick={onReprocess}
         >
-          Yeniden işle
+          Yeniden İşle
         </button>
         <button
           type="button"
           className="is-danger"
-          aria-label={`${document.title} belgesini sil`}
+          aria-label={`${document.title} Belgesini Sil`}
           disabled={isBusy}
           onClick={onDelete}
         >

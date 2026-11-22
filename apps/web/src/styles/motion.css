@@ -1,0 +1,15 @@
+/* Hareket: yalnız opaklık ve dönüşüm; azaltılmış harekette kapalı. */
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

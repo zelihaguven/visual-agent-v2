@@ -11,7 +11,18 @@ import {
   type SpokenItem,
   type VoicePhrases,
 } from "./api";
-import "./App.css";
+// Sıra basamaklamayı (cascade) korur: sonraki dosya öncekini ezer; değiştirmeden önce bakın.
+import "./styles/tokens.css";
+import "./styles/base.css";
+import "./styles/layout.css";
+import "./styles/landing.css";
+import "./styles/composer.css";
+import "./styles/turn.css";
+import "./styles/drawer.css";
+import "./styles/documents.css";
+import "./styles/source.css";
+import "./styles/talk.css";
+import "./styles/motion.css";
 import { ContextBar } from "./components/ContextBar";
 import { ConversationMode } from "./components/ConversationMode";
 import { DocumentsPanel, type DocumentSummary } from "./components/DocumentsPanel";
@@ -27,7 +38,7 @@ import { applyEvent, newTurn, type Turn } from "./turn";
 
 const ASK_FAILED = "Cevap alınamadı. Bağlantınızı kontrol edip yeniden deneyin.";
 const ASK_STOPPED = "Soru durduruldu.";
-// App.css içindeki çalışma alanı kırılımıyla aynı.
+// styles/layout.css ve styles/drawer.css içindeki çalışma alanı kırılımıyla aynı.
 const WORKSPACE_QUERY = "(min-width: 1080px)";
 
 type AskOptions = {
@@ -307,14 +318,14 @@ export function App() {
           <button
             type="button"
             className="home-button"
-            aria-label="Ana sayfaya dön"
-            title="Ana sayfaya dön"
+            aria-label="Ana Sayfaya Dön"
+            title="Ana Sayfaya Dön"
             onClick={goHome}
           >
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
               <path fill="currentColor" d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3L12 3Z" />
             </svg>
-            Ana sayfa
+            Ana Sayfa
           </button>
         )}
         <button
@@ -382,8 +393,8 @@ export function App() {
               <button
                 type="button"
                 className="icon-button"
-                aria-label="Konuşma modu"
-                title="Konuşma modu"
+                aria-label="Konuşma Modu"
+                title="Konuşma Modu"
                 onClick={openConversation}
               >
                 <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">

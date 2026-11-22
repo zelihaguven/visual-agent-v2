@@ -1,0 +1,217 @@
+/* Belgeler */
+.documents {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 18px 16px;
+}
+
+.upload {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 52px;
+  border-radius: 999px;
+  background: var(--coral);
+  color: var(--color-on-accent);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--ease);
+}
+
+.upload span::before {
+  content: "+ ";
+}
+
+.upload:hover {
+  transform: translateY(-2px);
+}
+
+.upload:focus-within {
+  outline: 3px solid var(--white);
+  outline-offset: 3px;
+}
+
+.upload.is-busy {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.document-groups {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: var(--touch-size);
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.group-toggle:hover {
+  color: var(--color-text);
+}
+
+.group-toggle span:first-child::before {
+  content: "›";
+  display: inline-block;
+  width: 1.1em;
+  color: var(--coral);
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform var(--ease);
+}
+
+.group-toggle[aria-expanded="true"] span:first-child::before {
+  transform: rotate(90deg);
+}
+
+.group-count {
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: var(--color-chip);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.document-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.document-list[hidden] {
+  display: none;
+}
+
+/* Yuvarlak, koyu, tek tek ayrılmış satırlar. */
+.document {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  padding: 12px 14px 6px;
+  border-radius: var(--radius-small);
+  background: rgb(255 255 255 / 5%);
+  font-size: 0.9375rem;
+}
+
+.document:hover,
+.document:focus-within {
+  background: rgb(255 255 255 / 9%);
+}
+
+.document-title {
+  overflow-wrap: anywhere;
+}
+
+.document-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-self: start;
+  justify-content: end;
+}
+
+.status {
+  align-self: start;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: var(--color-chip);
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status.is-outdated,
+.status.is-waiting_reader,
+.status.is-queued,
+.status.is-processing {
+  background: var(--color-warn-surface);
+  color: var(--color-warn);
+}
+
+.status.is-failed {
+  background: var(--color-bad-surface);
+  color: var(--color-bad);
+}
+
+.document-error {
+  grid-column: 1 / -1;
+  color: var(--color-bad);
+  font-size: 0.8125rem;
+}
+
+.document-notes {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 2px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-warn);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+.document-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.document-actions button {
+  min-height: var(--touch-size);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .document-actions button {
+    min-height: 32px;
+  }
+}
+
+.document-actions button:not(:disabled):hover,
+.document-actions button:not(:disabled):focus-visible {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.document-actions button.is-danger:not(:disabled):hover,
+.document-actions button.is-danger:not(:disabled):focus-visible {
+  color: var(--color-bad);
+}
+
+.document-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

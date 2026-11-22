@@ -1,0 +1,332 @@
+/* Turlar */
+.turns {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 36px;
+  overflow-y: auto;
+  padding: 12px clamp(16px, 4vw, 40px) 24px;
+  scroll-padding-top: 12px;
+  container-type: size;
+}
+
+/* Son soru alanı en az görünür yükseklik kadar: yeni soru en üste kaydırılabilsin. */
+.turns > .turn:last-child {
+  min-height: 100cqh;
+  align-content: start;
+}
+
+.turn {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+  max-width: 800px;
+  animation: rise var(--ease);
+}
+
+.question {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.resolved {
+  margin: -8px 0 0;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+
+.answer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  padding: 16px 22px 20px;
+  border-radius: var(--radius-tile);
+  background: var(--cream);
+}
+
+.answer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--touch-size);
+}
+
+.stage {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+
+.badge {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentcolor;
+}
+
+.badge.is-ok {
+  color: var(--color-ok);
+  background: var(--color-ok-surface);
+}
+
+.badge.is-warn {
+  color: var(--color-warn);
+  background: var(--color-warn-surface);
+}
+
+.badge.is-bad {
+  color: var(--color-bad);
+  background: var(--color-bad-surface);
+}
+
+.speak-button {
+  display: grid;
+  place-items: center;
+  width: var(--touch-size);
+  height: var(--touch-size);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--navy-900);
+  color: var(--cream);
+  cursor: pointer;
+}
+
+.speak-button:hover,
+.speak-button:focus-visible {
+  background: var(--navy-600);
+}
+
+.speak-button.is-playing {
+  background: var(--coral);
+  color: var(--navy-900);
+}
+
+.speak-button.is-loading {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.answer-value {
+  margin: 4px 0 0;
+  font-family: var(--font-mono);
+  font-size: clamp(4rem, 3rem + 4vw, 6.5rem);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.answer-items {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1.125rem;
+  line-height: 1.5;
+}
+
+.answer-item {
+  padding: 12px 0 6px;
+  border-top: 1px solid var(--color-line);
+}
+
+.answer-item:first-child {
+  padding-top: 2px;
+  border-top: 0;
+}
+
+.answer-item.is-streaming {
+  color: var(--color-muted);
+}
+
+/* Gizlenen cümlenin mesajı uyarı rengiyle açıkça görünür; kaynak alıntısı nötr metindir. */
+.hidden-note {
+  color: var(--color-bad);
+}
+
+.source-quote {
+  color: var(--color-text);
+}
+
+/* Gizlenen cümlenin yerindeki alıntıyı doğrulanmış cümleden ayıran küçük, nötr etiket. */
+.quote-label {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: var(--color-chip);
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  vertical-align: 0.15em;
+}
+
+.value-mask {
+  display: inline-block;
+  width: 3.2em;
+  height: 0.9em;
+  border-radius: 6px;
+  background: var(--color-line);
+  vertical-align: -0.08em;
+}
+
+.citations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.citation {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  min-height: var(--touch-size);
+  padding: 0 14px 0 6px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-chip);
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Kaynak işareti: lacivert daire içinde belge simgesi. */
+.citation::before {
+  content: "";
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23f7eedd' d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm2 16H8v-2h8v2Zm0-4H8v-2h8v2Zm-3-5V3.5L18.5 9H13Z'/%3E%3C/svg%3E")
+      center / 16px no-repeat,
+    var(--navy-900);
+  transition: background-color var(--ease);
+}
+
+.citation:hover::before,
+.citation:focus-visible::before {
+  background-color: var(--coral-ink);
+}
+
+.citation-label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.code-block {
+  overflow-x: auto;
+  margin: 8px 0 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-small);
+  background: var(--navy-900);
+  color: var(--cream);
+  font: 0.875rem/1.5 var(--font-mono);
+}
+
+
+.clarify p {
+  margin: 0 0 12px;
+  font-size: 1.125rem;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.choice {
+  min-height: var(--touch-size);
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--navy-900);
+  color: var(--cream);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.choice:not(:disabled):hover {
+  background: var(--coral);
+  color: var(--navy-900);
+}
+
+.choice:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clarify .choices {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clarify .choice {
+  min-height: 72px;
+  padding: 0 22px;
+  border-radius: 18px;
+  font-size: 1.375rem;
+  text-align: left;
+}
+
+.small-talk {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.inventory ul {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inventory-total {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.inventory-codes {
+  margin: 2px 0 0;
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+}
+
+/* Yeni tur aşağıdan belirir. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

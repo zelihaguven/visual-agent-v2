@@ -13,7 +13,7 @@ describe("DocumentsPanel", () => {
     const big = new File(["x"], "buyuk.pdf", { type: "application/pdf" });
     Object.defineProperty(big, "size", { value: MAX_UPLOAD_BYTES + 1 });
 
-    fireEvent.change(screen.getByLabelText("Belge yükle"), { target: { files: [big] } });
+    fireEvent.change(screen.getByLabelText("Belge Yükle"), { target: { files: [big] } });
 
     expect(await screen.findByRole("alert")).toHaveTextContent("100 MB sınırını aşıyor");
     const posts = fetchMock.mock.calls.filter(
@@ -41,7 +41,7 @@ describe("DocumentsPanel", () => {
     for (const title of ["hazir", "isleniyor", "hatali"]) {
       const row = (await screen.findByText(title)).closest("li") as HTMLElement;
       const buttons = within(row).getAllByRole("button");
-      expect(buttons.map((button) => button.textContent)).toEqual(["Yeniden işle", "Sil"]);
+      expect(buttons.map((button) => button.textContent)).toEqual(["Yeniden İşle", "Sil"]);
       // Düğmeler uyarı ve hatalardan önce gelir; uyarı çıkınca aşağı kaymaz.
       const actions = row.querySelector(".document-actions") as HTMLElement;
       for (const note of row.querySelectorAll(".document-error, .document-notes")) {
@@ -49,8 +49,8 @@ describe("DocumentsPanel", () => {
       }
     }
     const pendingRow = screen.getByText("isleniyor").closest("li") as HTMLElement;
-    expect(within(pendingRow).getByRole("button", { name: /yeniden işle/ })).toBeDisabled();
-    expect(within(pendingRow).getByRole("button", { name: /sil/ })).toBeEnabled();
+    expect(within(pendingRow).getByRole("button", { name: /Yeniden İşle/ })).toBeDisabled();
+    expect(within(pendingRow).getByRole("button", { name: /Sil/ })).toBeEnabled();
   });
   it("shows a document waiting for the page reader and lets it be reprocessed", async () => {
     const waiting: DocumentInfo = {
@@ -67,6 +67,6 @@ describe("DocumentsPanel", () => {
     const row = (await screen.findByText("tarama")).closest("li") as HTMLElement;
     expect(within(row).getByText("Okuyucu bekleniyor")).toBeInTheDocument();
     expect(within(row).getByText(/okuyucuyu bekliyor/)).toBeInTheDocument();
-    expect(within(row).getByRole("button", { name: /yeniden işle/ })).toBeEnabled();
+    expect(within(row).getByRole("button", { name: /Yeniden İşle/ })).toBeEnabled();
   });
 });

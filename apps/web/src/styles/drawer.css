@@ -1,0 +1,91 @@
+/* Çekmeceler: dar ekranda sayfanın üstüne açılır. */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  background: rgb(4 8 24 / 60%);
+  animation: fade var(--ease);
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 4;
+  display: grid;
+  align-content: start;
+  width: min(var(--rail-width), 100%);
+  overflow-y: auto;
+  background: var(--color-raised);
+  box-shadow: 0 0 80px rgb(0 0 0 / 50%);
+}
+
+.drawer.is-left {
+  left: 0;
+  border-right: 1px solid var(--color-line);
+  animation: slide-left var(--ease);
+}
+
+.drawer.is-right {
+  right: 0;
+  width: min(560px, 100%);
+  background: var(--cream);
+  animation: slide-right var(--ease);
+}
+
+.drawer[hidden] {
+  display: none;
+}
+
+.drawer:focus {
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  .drawer,
+  .drawer.is-left,
+  .drawer.is-right {
+    width: 100%;
+  }
+}
+
+/* Çalışma alanı: geniş ekranda paneller sayfanın parçasıdır, sohbet ortada kullanılır kalır. */
+@media (min-width: 1080px) {
+  .drawer-backdrop {
+    display: none;
+  }
+
+  .drawer {
+    box-shadow: none;
+  }
+
+  .drawer.is-right {
+    width: var(--source-width);
+  }
+}
+
+.drawer-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.drawer-header h2 {
+  padding-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+@keyframes slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+@keyframes slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}

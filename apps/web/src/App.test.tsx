@@ -617,8 +617,8 @@ describe("App", () => {
     expect(await screen.findByText("L: 42,5")).toBeInTheDocument();
     expect(screen.getByText("Kaynaktaki metin")).toHaveClass("quote-label");
     expect(screen.queryByText(/42,5 cm/)).not.toBeInTheDocument();
-    fireEvent.click(await screen.findByRole("button", { name: "Cevabı seslendir" }));
-    await screen.findByRole("button", { name: "Seslendirmeyi durdur" });
+    fireEvent.click(await screen.findByRole("button", { name: "Cevabı Seslendir" }));
+    await screen.findByRole("button", { name: "Seslendirmeyi Durdur" });
     const body = fetchMock.mock.calls.find(([url]) => String(url) === "/api/speak")?.[1]?.body;
     expect(JSON.parse(String(body))).toEqual({
       items: [{ text: "Kaynaktaki satır ekranda gösteriliyor.", has_code: false }],
@@ -738,7 +738,7 @@ describe("App", () => {
     render(<App />);
     openDocuments();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Föy Belgesini Sil" }));
 
     expect(await screen.findByText("Belge bulunamadı.")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("Belge bulunamadı.")).toBeInTheDocument());
@@ -782,7 +782,7 @@ describe("App", () => {
     render(<App />);
     openDocuments();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Föy Belgesini Sil" }));
 
     await waitFor(() => expect(screen.queryByText("Föy")).not.toBeInTheDocument());
     expect(confirm).toHaveBeenCalledWith(expect.stringContaining('"Föy" silinsin mi?'));
@@ -795,7 +795,7 @@ describe("App", () => {
     render(<App />);
     openDocuments();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Föy Belgesini Sil" }));
 
     expect(screen.getByText("Föy")).toBeInTheDocument();
     expect(methodCalls(fetchMock, "DELETE")).toEqual([]);
@@ -807,7 +807,7 @@ describe("App", () => {
     render(<App />);
     openDocuments();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini sil" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Föy Belgesini Sil" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Belge bulunamadı.");
   });
@@ -817,11 +817,11 @@ describe("App", () => {
     render(<App />);
     openDocuments();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Föy belgesini yeniden işle" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Föy Belgesini Yeniden İşle" }));
 
     expect(await screen.findByText("Kuyrukta")).toBeInTheDocument();
     expect(methodCalls(fetchMock, "POST")).toEqual(["/api/documents/d1/reprocess"]);
-    expect(screen.getByRole("button", { name: "Föy belgesini yeniden işle" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Föy Belgesini Yeniden İşle" })).toBeDisabled();
   });
 
   it("shows skipped images and uncertain OCR values of a document", async () => {
@@ -899,7 +899,7 @@ describe("App", () => {
     render(<App />);
     openDocuments();
 
-    const input = await screen.findByLabelText("Belge yükle");
+    const input = await screen.findByLabelText("Belge Yükle");
     fireEvent.change(input, { target: { files: [new File(["MZ"], "virus.exe")] } });
 
     expect(await screen.findByRole("alert")).toHaveTextContent("desteklenmiyor");
@@ -946,7 +946,7 @@ describe("App", () => {
     });
     render(<App />);
     await ask("ilk soru");
-    fireEvent.click(await screen.findByRole("button", { name: "Yeni konu" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Yeni Konu" }));
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
 
     await ask("ikinci soru");
@@ -961,11 +961,11 @@ describe("App", () => {
       "/api/ask": () => sse([{ ...answered, context: CONTEXT }]),
     });
     render(<App />);
-    expect(screen.queryByRole("button", { name: "Ana sayfaya dön" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ana Sayfaya Dön" })).not.toBeInTheDocument();
     await ask("ilk soru");
     expect(await screen.findByText("İç paça 76,5 cm.")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Ana sayfaya dön" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ana Sayfaya Dön" }));
 
     expect(screen.getByRole("heading", { name: "Belgelerinize sorun." })).toBeInTheDocument();
     expect(screen.queryByText("İç paça 76,5 cm.")).not.toBeInTheDocument();
@@ -990,7 +990,7 @@ describe("App", () => {
     await ask("soru");
     expect(await screen.findByRole("button", { name: "Durdur" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Ana sayfaya dön" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ana Sayfaya Dön" }));
 
     expect(askSignal?.aborted).toBe(true);
     expect(screen.getByRole("heading", { name: "Belgelerinize sorun." })).toBeInTheDocument();
@@ -1017,7 +1017,7 @@ describe("App", () => {
     await ask("Peki kordon boyu?");
     expect(await screen.findByText("Bu bilgi bu belgede yok.")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Tüm belgelerde ara" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tüm Belgelerde Ara" }));
 
     await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
     expect(askBodies(fetchMock)[1]).toEqual({
@@ -1047,7 +1047,7 @@ describe("App", () => {
     await ask("GML-6473 kalibrasyon nasıl yapılır?");
 
     expect(await screen.findByText("Bu bilgi bu kodun geçtiği belgelerde yok.")).toBeInTheDocument();
-    fireEvent.click(await screen.findByRole("button", { name: "Tüm belgelerde ara" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Tüm Belgelerde Ara" }));
 
     await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(2));
     expect(askBodies(fetchMock)[1]).toEqual({
@@ -1065,7 +1065,7 @@ describe("App", () => {
     await ask("GML-6473 kalibrasyon nasıl yapılır?");
 
     expect(await screen.findByText("Bu bilgi belgelerde bulunamadı.")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Tüm belgelerde ara" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tüm Belgelerde Ara" })).not.toBeInTheDocument();
   });
 
   it("offers the documents that contain the asked code as choices", async () => {
@@ -1121,9 +1121,9 @@ describe("App", () => {
     render(<App />);
     await ask("soru");
 
-    fireEvent.click(await screen.findByRole("button", { name: "Cevabı seslendir" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Cevabı Seslendir" }));
 
-    const stop = await screen.findByRole("button", { name: "Seslendirmeyi durdur" });
+    const stop = await screen.findByRole("button", { name: "Seslendirmeyi Durdur" });
     const body = fetchMock.mock.calls.find(([url]) => String(url) === "/api/speak")?.[1]?.body;
     expect(JSON.parse(String(body))).toEqual({
       items: [{ text: "İç paça 76,5 cm.", has_code: false }],
@@ -1133,7 +1133,7 @@ describe("App", () => {
     pause.mockClear();
     fireEvent.click(stop);
 
-    expect(await screen.findByRole("button", { name: "Cevabı seslendir" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Cevabı Seslendir" })).toBeInTheDocument();
     expect(pause).toHaveBeenCalled();
     pause.mockRestore();
   });
@@ -1149,7 +1149,7 @@ describe("App", () => {
     await ask("soru");
 
     await screen.findByText("Doğrulanamadı");
-    expect(screen.queryByRole("button", { name: "Cevabı seslendir" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cevabı Seslendir" })).not.toBeInTheDocument();
   });
 
   it("explains a failed read-aloud", async () => {
@@ -1161,10 +1161,10 @@ describe("App", () => {
     render(<App />);
     await ask("soru");
 
-    fireEvent.click(await screen.findByRole("button", { name: "Cevabı seslendir" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Cevabı Seslendir" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("seslendirilemedi");
-    expect(await screen.findByRole("button", { name: "Cevabı seslendir" })).toBeEnabled();
+    expect(await screen.findByRole("button", { name: "Cevabı Seslendir" })).toBeEnabled();
   });
 
   it("tells the user when speech is unavailable and keeps the answer", async () => {
@@ -1275,7 +1275,7 @@ describe("App", () => {
         expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/voice/phrases")).toBe(true),
       );
       await new Promise((resolve) => setTimeout(resolve));
-      fireEvent.click(screen.getByRole("button", { name: "Konuşma modu" }));
+      fireEvent.click(screen.getByRole("button", { name: "Konuşma Modu" }));
     }
 
     function conversationApi(transcripts: string[]) {
@@ -1331,11 +1331,11 @@ describe("App", () => {
       await open(fetchMock);
       await screen.findByText("Dinliyorum");
       expect(create).toHaveBeenCalledTimes(1);
-      fireEvent.click(screen.getByRole("button", { name: "Ana sayfa" }));
+      fireEvent.click(screen.getByRole("button", { name: "Ana Sayfa" }));
       await waitFor(() => expect(listening.close).toHaveBeenCalled());
       expect(screen.queryByText("Dinliyorum")).not.toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole("button", { name: "Konuşma modu" }));
+      fireEvent.click(screen.getByRole("button", { name: "Konuşma Modu" }));
       await screen.findByText("Dinliyorum");
       expect(create).toHaveBeenCalledTimes(1);
     });
@@ -1491,7 +1491,7 @@ describe("App", () => {
       render(<App />);
 
       await waitFor(() =>
-        expect(screen.queryByRole("button", { name: "Konuşma modu" })).not.toBeInTheDocument(),
+        expect(screen.queryByRole("button", { name: "Konuşma Modu" })).not.toBeInTheDocument(),
       );
     });
 
@@ -1508,7 +1508,7 @@ describe("App", () => {
         expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/voice/phrases")).toBe(true),
       );
       await new Promise((resolve) => setTimeout(resolve));
-      expect(screen.getByRole("button", { name: "Konuşma modu" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Konuşma Modu" })).toBeInTheDocument();
     });
 
     it("asks to repeat instead of sending an empty transcript", async () => {
@@ -1532,7 +1532,7 @@ describe("App", () => {
 
       const heard = await screen.findByRole("region", { name: "Duyduğum" });
       expect(await within(heard).findByText("GML-6473", { selector: "code" })).toBeInTheDocument();
-      fireEvent.click(screen.getByRole("button", { name: "Yazarak sor" }));
+      fireEvent.click(screen.getByRole("button", { name: "Yazarak Sor" }));
       await waitFor(() => expect(listening.close).toHaveBeenCalled());
       expect(screen.queryByRole("region", { name: "Konuşma modu" })).not.toBeInTheDocument();
       expect(screen.getByLabelText("Sorunuz")).toHaveFocus();
@@ -1543,7 +1543,7 @@ describe("App", () => {
       hearInTurn();
       await open(conversationApi([]));
 
-      fireEvent.click(await screen.findByRole("button", { name: "Bitti, gönder" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Bitti, Gönder" }));
 
       const finishRequest = listening.listen.mock.calls[0][3];
       expect(finishRequest).toEqual({ requested: true });
@@ -1581,7 +1581,7 @@ describe("App", () => {
       });
       await open(fetchMock);
 
-      fireEvent.click(await screen.findByRole("button", { name: "Sözünü kes" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Sözünü Kes" }));
 
       await waitFor(() => expect(listening.listen).toHaveBeenCalledTimes(2));
     });
@@ -1633,7 +1633,7 @@ describe("App", () => {
       );
       await open(conversationApi([]));
 
-      fireEvent.click(screen.getByRole("button", { name: "Ana sayfa" }));
+      fireEvent.click(screen.getByRole("button", { name: "Ana Sayfa" }));
       finishOpening({ stream: {}, level: () => 0, close: listening.close });
 
       await waitFor(() => expect(listening.close).toHaveBeenCalled());
@@ -1661,8 +1661,8 @@ describe("App", () => {
       });
       render(<App />);
 
-      fireEvent.click(screen.getByRole("button", { name: "Konuşarak sor" }));
-      fireEvent.click(await screen.findByRole("button", { name: "Kaydı bitir" }));
+      fireEvent.click(screen.getByRole("button", { name: "Konuşarak Sor" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Kaydı Bitir" }));
 
       await waitFor(() => expect(screen.getByLabelText("Sorunuz")).toHaveValue("NT1162 bel kaç"));
       expect(stopTrack).toHaveBeenCalled();
@@ -1682,8 +1682,8 @@ describe("App", () => {
           .map(([, init]) => JSON.parse(String(init?.body)));
       render(<App />);
 
-      fireEvent.click(screen.getByRole("button", { name: "Konuşarak sor" }));
-      fireEvent.click(await screen.findByRole("button", { name: "Kaydı bitir" }));
+      fireEvent.click(screen.getByRole("button", { name: "Konuşarak Sor" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Kaydı Bitir" }));
       await waitFor(() => expect(screen.getByLabelText("Sorunuz")).toHaveValue("PNT-1162 bel kaç"));
       fireEvent.click(screen.getByRole("button", { name: "Sor" }));
       await waitFor(() => expect(askBodies(fetchMock)).toHaveLength(1));
@@ -1703,8 +1703,8 @@ describe("App", () => {
       });
       render(<App />);
 
-      fireEvent.click(screen.getByRole("button", { name: "Konuşarak sor" }));
-      fireEvent.click(await screen.findByRole("button", { name: "Kaydı bitir" }));
+      fireEvent.click(screen.getByRole("button", { name: "Konuşarak Sor" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Kaydı Bitir" }));
 
       expect(await screen.findByRole("alert")).toHaveTextContent("yazıya çevrilemedi");
     });
@@ -1715,8 +1715,8 @@ describe("App", () => {
       render(<App />);
 
       expect(await screen.findByRole("button", { name: "Sor" })).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Konuşarak sor" })).not.toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Konuşma modu" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Konuşarak Sor" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Konuşma Modu" })).not.toBeInTheDocument();
     });
   });
 });
@@ -1931,7 +1931,7 @@ describe("landing actions", () => {
     stubApi({ "/api/documents": () => jsonResponse([]) });
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Yazarak sor/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Yazarak Sor/ }));
 
     expect(screen.getByLabelText("Sorunuz")).toHaveFocus();
   });
@@ -1941,11 +1941,11 @@ describe("landing actions", () => {
     render(<App />);
     const picker = vi.spyOn(HTMLInputElement.prototype, "click");
 
-    fireEvent.click(screen.getByRole("button", { name: /Belge ekle/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Belge Ekle/ }));
 
     expect(screen.getByRole("list", { name: "Belgeler" })).toBeInTheDocument();
     expect(picker).toHaveBeenCalledTimes(1);
-    expect(picker.mock.contexts[0]).toBe(screen.getByLabelText("Belge yükle"));
+    expect(picker.mock.contexts[0]).toBe(screen.getByLabelText("Belge Yükle"));
   });
 
   it("shows the document state and opens the drawer when something failed", async () => {
@@ -1961,7 +1961,7 @@ describe("landing actions", () => {
     render(<App />);
 
     const card = await screen.findByRole("button", {
-      name: "2 belge hazır, 1 işleniyor, 1 hata. Belgeleri aç",
+      name: "2 belge hazır, 1 işleniyor, 1 hata. Belgeleri Aç",
     });
     fireEvent.click(card);
 
@@ -1982,7 +1982,7 @@ describe("landing actions", () => {
     await ask("soru");
 
     await screen.findByText("İç paça 76,5 cm.");
-    expect(screen.queryByRole("button", { name: /Yazarak sor/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Yazarak Sor/ })).not.toBeInTheDocument();
   });
 
   it("keeps the source quote of a hidden sentence apart from the hidden-sentence notice", async () => {

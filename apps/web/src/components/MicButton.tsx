@@ -14,8 +14,8 @@ type Props = {
 };
 
 const LABELS: Record<MicState, string> = {
-  idle: "Konuşarak sor",
-  recording: "Kaydı bitir",
+  idle: "Konuşarak Sor",
+  recording: "Kaydı Bitir",
   transcribing: "Yazıya çevriliyor",
 };
 

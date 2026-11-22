@@ -1,0 +1,70 @@
+/* Kaynak paneli */
+.source-panel {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 18px 20px 24px;
+}
+
+.source-location {
+  margin: 4px 0 0;
+}
+
+.source-page {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-small);
+  background: var(--white);
+  box-shadow: 0 10px 30px -12px rgb(10 18 48 / 35%);
+}
+
+.source-text {
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--white);
+  white-space: pre-wrap;
+}
+
+.sheet-scroll {
+  overflow: auto;
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.sheet {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.sheet caption {
+  padding: 12px 14px;
+  color: var(--color-muted);
+  font-weight: 700;
+  text-align: left;
+}
+
+.sheet th,
+.sheet td {
+  padding: 8px 14px;
+  border-top: 1px solid var(--color-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.sheet th {
+  color: var(--color-muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet .is-highlighted {
+  background: var(--color-highlight);
+  box-shadow: inset 5px 0 0 var(--coral);
+}
+
+.sheet .is-highlighted th {
+  color: var(--color-text);
+}

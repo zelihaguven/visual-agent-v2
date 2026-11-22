@@ -1,0 +1,147 @@
+/* Soru kutusu */
+.composer-area {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  max-width: 800px;
+  justify-self: center;
+  padding: 8px clamp(16px, 4vw, 24px) max(16px, env(safe-area-inset-bottom));
+}
+
+.is-landing .composer-area {
+  max-width: 680px;
+  padding-bottom: 0;
+}
+
+/* Izgara öğeleri içeriklerinin doğal genişliğine kilitlenmesin: dar ekranda taşmaz. */
+.composer-area > * {
+  min-width: 0;
+}
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 6px 6px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-raised);
+  transition: border-color var(--ease);
+}
+
+.composer:focus-within {
+  border-color: var(--coral);
+}
+
+.composer input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--touch-size);
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  font-size: 1.0625rem;
+}
+
+.composer input::placeholder {
+  color: var(--color-muted);
+}
+
+.composer input:focus-visible {
+  outline: none;
+}
+
+.is-landing .composer input {
+  min-height: 56px;
+}
+
+.composer button {
+  min-width: 76px;
+  min-height: var(--touch-size);
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--coral);
+  color: var(--color-on-accent);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.is-landing .composer button {
+  min-height: 56px;
+}
+
+.composer .icon-button {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--touch-size);
+  min-width: var(--touch-size);
+  min-height: var(--touch-size);
+  padding: 0;
+  background: transparent;
+  color: var(--color-muted);
+}
+
+.composer .icon-button:hover {
+  background: var(--color-raised-hover);
+  color: var(--color-text);
+}
+
+.composer .icon-button.is-active {
+  background: var(--coral);
+  color: var(--color-on-accent);
+}
+
+.composer .stop-button {
+  background: var(--white);
+}
+
+.composer button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.composer-notice {
+  margin: 0;
+  padding: 0 16px;
+}
+
+/* Bağlam çubuğu: soru kutusunun üstünde, süren konuyu gösterir. */
+.context-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 6px 6px 18px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-raised);
+  font-size: 0.875rem;
+}
+
+.context-bar p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.context-label {
+  align-self: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+}
+
+.context-question {
+  color: var(--color-muted);
+}
+
+.context-bar .ghost {
+  flex: none;
+}

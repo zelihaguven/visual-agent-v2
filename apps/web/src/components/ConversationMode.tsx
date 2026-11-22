@@ -15,7 +15,7 @@ import { TurnView } from "./TurnView";
 
 const LEVEL_GAIN = 7;
 export const WAITING_DELAY_MS = 2000;
-/** "Bitti, gönder"in hemen ardından gelen ikinci dokunuş soruyu iptal etmesin. */
+/** "Bitti, Gönder"in hemen ardından gelen ikinci dokunuş soruyu iptal etmesin. */
 const DOUBLE_TAP_MS = 600;
 
 type Phase = "starting" | "listening" | "thinking" | "speaking";
@@ -49,10 +49,10 @@ function withCodes(text: string) {
     .split(CODE_RE)
     .map((part, index) => (index % 2 === 1 ? <code key={index}>{part}</code> : part));
 }
-const VOICE_FAILED = "Ses servisine ulaşılamadı. \"Yazarak sor\"a basıp yazarak sorabilirsiniz.";
+const VOICE_FAILED = "Ses servisine ulaşılamadı. \"Yazarak Sor\"a basıp yazarak sorabilirsiniz.";
 const NO_MICROPHONE = "Mikrofona erişilemedi. Tarayıcı iznini kontrol edin.";
 
-/** Ekrandaki netleştirme ya da "Tüm belgelerde ara" seçimi: soru o belgelerde yeniden sorulur. */
+/** Ekrandaki netleştirme ya da "Tüm Belgelerde Ara" seçimi: soru o belgelerde yeniden sorulur. */
 export type Choice = { question: string; docIds: string[] | null; allDocuments?: boolean };
 
 type Props = {
@@ -288,14 +288,14 @@ export function ConversationMode(props: Props) {
       <header className="talk-top">
         <button type="button" className="talk-nav" onClick={onClose}>
           <Icon name="home" />
-          Ana sayfa
+          Ana Sayfa
         </button>
         <h2 className="talk-title">
           Sesli mod <span>· eller serbest</span>
         </h2>
         <button type="button" className="talk-nav" onClick={onWrite}>
           <Icon name="keyboard" />
-          Yazarak sor
+          Yazarak Sor
         </button>
       </header>
       <div className="talk-body">
@@ -304,7 +304,7 @@ export function ConversationMode(props: Props) {
             ref={bars}
             type="button"
             className={`talk-ring is-${ring}`}
-            aria-label={canInterrupt ? "Sözünü kes" : canFinish ? "Bitti, gönder" : STATUS[ring]}
+            aria-label={canInterrupt ? "Sözünü Kes" : canFinish ? "Bitti, Gönder" : STATUS[ring]}
             disabled={!canInterrupt && !canFinish}
             onClick={canInterrupt ? interrupt : finish}
           >
@@ -348,7 +348,7 @@ export function ConversationMode(props: Props) {
             )}
             {canInterrupt && (
               <button type="button" className="talk-again" onClick={interrupt}>
-                Tekrar söyleyeceğim
+                Tekrar Söyleyeceğim
               </button>
             )}
           </section>

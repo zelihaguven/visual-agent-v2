@@ -1,0 +1,101 @@
+/* Lacivert zemin, mercan vurgu, krem ve beyaz yüzeyler. Büyük yuvarlak karolar (bento),
+   hap biçimli düğmeler. Harici yazı tipi yok (internetsiz açılış).
+   Geniş ekranda belgeler solda, kaynak sağda sabit durur; dar ekranda çekmecedir.
+   Renkler iki bağlamda tanımlı: lacivert zemin (varsayılan) ve açık yüzeyler. */
+:root {
+  --navy-900: #0a1230;
+  --navy-800: #101b42;
+  --navy-700: #182656;
+  --navy-600: #22336e;
+  --coral: #ff6f4f;
+  --coral-ink: #c23c1c;
+  --cream: #f7eedd;
+  --white: #ffffff;
+
+  --color-page: var(--navy-900);
+  --color-raised: var(--navy-800);
+  --color-raised-hover: var(--navy-700);
+  --color-text: var(--white);
+  --color-muted: #a9b4d6;
+  --color-line: rgb(255 255 255 / 12%);
+  --color-accent-text: var(--coral);
+  --color-on-accent: var(--navy-900);
+  --color-highlight: #ffd9a8;
+  --color-ok: #7fe0a7;
+  --color-ok-surface: rgb(127 224 167 / 14%);
+  --color-warn: #ffcf7a;
+  --color-warn-surface: rgb(255 207 122 / 14%);
+  --color-bad: #ffa193;
+  --color-bad-surface: rgb(255 161 147 / 14%);
+  --color-chip: rgb(255 255 255 / 8%);
+
+  --font-body: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, Roboto,
+    sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, ui-monospace, Menlo, monospace;
+  --radius-tile: 28px;
+  --radius: 20px;
+  --radius-small: 12px;
+  --touch-size: 48px;
+  --rail-width: 340px;
+  --source-width: min(520px, 38vw);
+  --radius-pill: 999px;
+  --radius-round: 50%;
+
+  /* Boşluk ölçeği: yüzeyler ham piksel yerine bunları kullanır. */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 20px;
+  --space-8: 24px;
+  --space-9: 32px;
+  --space-10: 40px;
+
+  /* Yazı ölçeği: gövde boyutları sabit, büyük başlıklar ekrana göre akar. */
+  --text-2xs: 0.75rem;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-md: 0.9375rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.375rem;
+  --text-3xl: 2rem;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --duration-slow: 360ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease: var(--duration-base) var(--ease-out-expo);
+
+  --color-row: rgb(255 255 255 / 5%);
+  --color-row-hover: rgb(255 255 255 / 9%);
+  --color-scrim: rgb(4 8 24 / 60%);
+  color-scheme: dark;
+}
+
+/* Açık yüzeyler: cevap kartı, kaynak paneli, krem ve beyaz karolar. */
+.answer,
+.drawer.is-right,
+.action-card.is-write,
+.action-card.is-add {
+  --color-text: var(--navy-900);
+  --color-muted: #4d5878;
+  --color-line: rgb(10 18 48 / 13%);
+  --color-accent-text: var(--coral-ink);
+  --color-ok: #17663a;
+  --color-ok-surface: #d9f0df;
+  --color-warn: #8a4b06;
+  --color-warn-surface: #fbe6bd;
+  --color-bad: #b3261e;
+  --color-bad-surface: #fbdcd6;
+  --color-chip: rgb(10 18 48 / 7%);
+  color: var(--color-text);
+  color-scheme: light;
+}

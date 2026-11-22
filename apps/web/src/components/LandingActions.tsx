@@ -88,7 +88,7 @@ export function LandingActions({
         <ActionCard
           tone="write"
           icon={ICONS.write}
-          title="Yazarak sor"
+          title="Yazarak Sor"
           text="Soruyu kutuya yazın."
           onClick={onWrite}
         />
@@ -96,7 +96,7 @@ export function LandingActions({
           <ActionCard
             tone="talk"
           icon={ICONS.talk}
-            title="Sesli sor"
+            title="Sesli Sor"
             text="Konuşma modunu açın."
             onClick={onTalk}
           />
@@ -104,7 +104,7 @@ export function LandingActions({
         <ActionCard
           tone="add"
           icon={ICONS.add}
-          title="Belge ekle"
+          title="Belge Ekle"
           text="PDF, Word, Excel ya da görsel yükleyin."
           onClick={onAddDocument}
         />
@@ -114,7 +114,7 @@ export function LandingActions({
           <button
             type="button"
             className="status-card is-attention"
-            aria-label={`${statusText(summary)}. Belgeleri aç`}
+            aria-label={`${statusText(summary)}. Belgeleri Aç`}
             onClick={onOpenDocuments}
           >
             <StatusParts summary={summary} />

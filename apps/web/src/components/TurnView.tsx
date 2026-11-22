@@ -82,9 +82,9 @@ function headlineValue(result: AnsweredResult): string | null {
 export type SpeechStatus = "idle" | "loading" | "playing";
 
 const SPEECH_LABELS: Record<SpeechStatus, string> = {
-  idle: "Cevabı seslendir",
+  idle: "Cevabı Seslendir",
   loading: "Ses hazırlanıyor",
-  playing: "Seslendirmeyi durdur",
+  playing: "Seslendirmeyi Durdur",
 };
 
 type Props = {
@@ -92,7 +92,7 @@ type Props = {
   speechStatus?: SpeechStatus;
   onSpeak?: (items: SpokenItem[]) => void;
   onOpenSource: (citation: Citation) => void;
-  /** allDocuments: "Tüm belgelerde ara"; sorudaki kod aramayı daraltmaz. */
+  /** allDocuments: "Tüm Belgelerde Ara"; sorudaki kod aramayı daraltmaz. */
   onAskAgain: (question: string, docIds: string[] | null, allDocuments?: boolean) => void;
   /** Bir soru sürerken yeniden sorma düğmeleri kilitlenir; eski turlardakiler dahil. */
   isBusy?: boolean;
@@ -461,7 +461,7 @@ function ResultView({ turn, onOpenSource, onAskAgain, speechStatus, onSpeak, isB
                 disabled={isBusy}
                 onClick={() => onAskAgain(fullQuestion, null, true)}
               >
-                Tüm belgelerde ara
+                Tüm Belgelerde Ara
               </button>
             </div>
           )}
