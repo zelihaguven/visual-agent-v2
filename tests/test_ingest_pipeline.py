@@ -276,6 +276,37 @@ def test_report_summarizes_what_was_read(tmp_path: Path) -> None:
     assert report.chunks_by_kind["figure"] == 1
 
 
+def test_report_counts_a_heading_value_once_not_in_every_chunk(tmp_path: Path) -> None:
+    """Başlıkta belirsiz okunan değer altındaki her parçaya taşınır (doğrulama için); belgenin
+    "net okunamadı" sayısı onu bir kez sayar."""
+    path = tmp_path / "tarama.pdf"
+    path.write_bytes(b"%PDF-x")
+
+    def read_scanned(path: Path, pages: list[int], work: Path, image: Path | None) -> list[Element]:
+        location = SourceLocation(page=1)
+        heading = Element(
+            ElementKind.HEADING,
+            "Föy -603186",
+            location,
+            from_ocr=True,
+            ocr_checked=True,
+            ocr_uncertain=("-603186",),
+        )
+        rows = [
+            Element(ElementKind.TABLE_ROW, f"Bel: {n}", location, from_ocr=True, ocr_checked=True)
+            for n in (70, 72, 74)
+        ]
+        # Okuyucu değer taşıyan başlığı metin olarak da yazar (page_reader.page_elements).
+        return [heading, replace(heading, kind=ElementKind.TEXT), *rows]
+
+    tools = replace(_fake_tools([], page_kind=PageKind.NONE), read_scanned_pages=read_scanned)
+    result = ingest_document(path, META, tools, tmp_path)
+
+    rows = [chunk for chunk in result.chunks if chunk.kind is ChunkKind.TABLE_ROW]
+    assert [chunk.ocr_uncertain for chunk in rows] == [("-603186",)] * 3
+    assert result.report.uncertain_values == 1
+
+
 def test_unreadable_document_is_reported_as_a_warning(tmp_path: Path) -> None:
     path = tmp_path / "notlar.txt"
     path.write_text("   \n", encoding="utf-8")

@@ -214,7 +214,16 @@ def _build_report(
         page_count=len(pages),
         page_kinds=dict(Counter(page.kind.value for page in pages)),
         ocr_pages=tuple(sorted(outcome.ocr_pages)) if outcome else (),
-        uncertain_values=sum(len(chunk.ocr_uncertain) for chunk in chunks),
+        # Sayfa başına tekil değer: başlıktaki belirsiz değer altındaki her parçaya taşınır
+        # (doğrulama için), değer taşıyan başlık metin olarak da kalır, satır bağlamı gruptaki
+        # her satıra yazılır; belgenin "net okunamadı" sayısında aynı değer bir kez geçer.
+        uncertain_values=len(
+            {
+                (element.location.page, element.location.sheet, token)
+                for element in parsed.elements
+                for token in element.ocr_uncertain
+            }
+        ),
         chunks_by_kind=dict(Counter(chunk.kind.value for chunk in chunks)),
         warnings=warnings,
         input_format=input_format,
