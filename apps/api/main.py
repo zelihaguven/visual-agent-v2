@@ -318,6 +318,23 @@ def _safe_suffix(filename: str) -> str:
     return Path(filename.replace("\\", "/")).suffix.lower()
 
 
+async def _discard_upload(
+    registering: asyncio.Future[None] | None, doc_id: str, directory: Path, services: ApiServices
+) -> None:
+    """Kaydı olmayan klasörü silme işi (retry_deletions) hiç bulmaz; kopan bağlantı dahil her
+    hatada burada silinir. Kayıt yazıldıktan sonra hata (iptal, zaman aşımı) gelirse dosyası
+    olmayan kayıt kalmasın: yazma bitince kayıt da silinir."""
+    if registering is not None:
+        await asyncio.wait([registering])
+        try:
+            await delete_document(
+                doc_id, services.repository, services.remove_vectors, services.storage_directory
+            )
+        except Exception:
+            logger.exception("Yarım kalan yüklemenin kaydı silinemedi: %s", doc_id)
+    shutil.rmtree(directory, ignore_errors=True)
+
+
 async def _store_upload(file: UploadFile, services: ApiServices) -> StoredDocument:
     filename = Path((file.filename or "belge").replace("\\", "/")).name
     doc_id = uuid.uuid4().hex
@@ -339,15 +356,8 @@ async def _store_upload(file: UploadFile, services: ApiServices) -> StoredDocume
         registering = asyncio.ensure_future(services.repository.create_document(document))
         await asyncio.shield(registering)
     except BaseException as error:
-        # Kaydı olmayan klasörü silme işi (retry_deletions) hiç bulmaz; kopan bağlantı dahil
-        # her hatada burada silinir. Kayıt yazıldıktan sonra hata (iptal, zaman aşımı) gelirse
-        # dosyası olmayan kayıt kalmasın: yazma bitince kayıt da silinir.
-        if registering is not None:
-            await asyncio.wait([registering])
-            await delete_document(
-                doc_id, services.repository, services.remove_vectors, services.storage_directory
-            )
-        shutil.rmtree(directory, ignore_errors=True)
+        # Temizlik ikinci bir iptalde de yarıda kalmaz.
+        await asyncio.shield(_discard_upload(registering, doc_id, directory, services))
         if isinstance(error, UnsupportedFormat):
             reason = str(error).replace(target.name, filename)
             raise HTTPException(status_code=415, detail=reason) from error
