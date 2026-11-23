@@ -246,6 +246,15 @@ def numbers_in(text: str) -> set[str]:
     return {canonical_number(match.group(0)) for match in _SIGNED_NUMBER_RE.finditer(cleaned)}
 
 
+def list_mark_numbers(text: str) -> set[str]:
+    """`numbers_in`'in liste numarası diye dışarıda bıraktığı sayılar ("30. Gün", "1. Kaydet")."""
+    cleaned = strip_citations(_LINE_BREAK_RE.sub("\n", canon_chars(text)))
+    return {
+        canonical_number(match.group(0).strip().rstrip(".)"))
+        for match in _LIST_MARK_RE.finditer(cleaned)
+    }
+
+
 def word_numbers(text: str) -> set[str]:
     """Metinde yazıyla geçen, başka sözcükle karışmayan sayılar."""
     values = (_word_value(word) for word in _WORD_NUMBER_RE.findall(text))

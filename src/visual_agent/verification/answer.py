@@ -23,6 +23,7 @@ from visual_agent.verification.text import (
     contains_token,
     header_units,
     identifiers_in,
+    list_mark_numbers,
     measures_in,
     model_numbers,
     normalize,
@@ -258,8 +259,12 @@ def _token_problems(
     joined = " ".join(text for text, _ in evidence)
     backed = numbers_in(joined) | word_numbers(joined)
     backed |= _asked_model_numbers(item, sources, user) | _asked_cell_labels(item, sources, user)
+    # Cümle başındaki "30. Gün" de değerdir; kaynağın liste numarası yalnız cümlede aynı
+    # konumdaki sayıyı karşılar.
+    listed = list_mark_numbers(item.text) - backed - list_mark_numbers(joined)
     stray_numbers = (
         (numbers_in(item.text) - backed)
+        | listed
         | (word_numbers(item.text) - _ARTICLE_NUMBERS - backed)
         | _stray_tens(item.text, language, backed, evidence)
     )
