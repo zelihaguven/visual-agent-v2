@@ -10,7 +10,12 @@ from pydantic import ValidationError
 from visual_agent.domain.answer import ItemCheck, ModelItem, PromptSource
 from visual_agent.verification.answer import code_source_number, verify_item
 from visual_agent.verification.qualifier import build_qualifiers
-from visual_agent.verification.text import UNIT_PATTERN, identifier_spans, word_number_spans
+from visual_agent.verification.text import (
+    UNIT_PATTERN,
+    identifier_spans,
+    normalize,
+    word_number_spans,
+)
 
 Event = dict[str, object]
 EventSink = Callable[[Event], None]
@@ -183,6 +188,7 @@ class StreamAssembler:
 
     def _clear(self) -> None:
         self._shown: dict[int, str] = {}
+        self._said: set[str] = set()
         self._checked: list[tuple[ModelItem | None, ItemCheck | None]] = []
         self._cursor = 0
         self.verified: list[tuple[ModelItem, ItemCheck]] = []
@@ -226,7 +232,12 @@ class StreamAssembler:
         while self._cursor < len(self._checked):
             index = self._cursor
             item, check = self._checked[index]
-            if item is not None and check is not None and check.ok:
+            if item is not None and check is not None and check.ok and self._repeats(item):
+                # Son cevapta da bir kez gösterilir (steps._without_repeats); akışta tekrar
+                # ekrandan kalkar, seslendirilmez.
+                self._emit({"type": "item_repeat", "index": index})
+            elif item is not None and check is not None and check.ok:
+                self._said.add(normalize(item.text))
                 self.verified.append((item, check))
                 if self.first_verified_seconds is None:
                     self.first_verified_seconds = seconds
@@ -251,6 +262,9 @@ class StreamAssembler:
                     }
                 )
             self._cursor += 1
+
+    def _repeats(self, item: ModelItem) -> bool:
+        return normalize(item.text) in self._said
 
     def may_retry(self) -> bool:
         """Doğrulanmış içerik gösterildiyse başka sağlayıcıya geçilmez."""

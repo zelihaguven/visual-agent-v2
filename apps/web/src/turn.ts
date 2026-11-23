@@ -74,6 +74,13 @@ export function applyEvent(turn: Turn, event: AskEvent): Turn {
         sourceNumbers: event.source_numbers,
         quote: event.quote ?? null,
       });
+    case "item_repeat":
+      return {
+        ...turn,
+        items: Object.fromEntries(
+          Object.entries(turn.items).filter(([index]) => Number(index) !== event.index),
+        ),
+      };
     case "searching":
     case "item_audio":
       return turn;

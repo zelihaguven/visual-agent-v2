@@ -138,6 +138,15 @@ describe("applyEvent", () => {
     expect(turn.items[0].text).toBe("76,5");
   });
 
+  it("withdraws a repeated sentence from the stream", () => {
+    let turn = newTurn("1", "soru");
+    turn = applyEvent(turn, { type: "item_stream", index: 0, text: "İç paça ▒▒▒" });
+    turn = applyEvent(turn, { type: "item_stream", index: 1, text: "İç paça ▒▒▒" });
+    turn = applyEvent(turn, { type: "item_repeat", index: 1 });
+
+    expect(Object.keys(turn.items)).toEqual(["0"]);
+  });
+
   it("clears streamed items when the provider is switched", () => {
     let turn = newTurn("1", "soru");
     turn = applyEvent(turn, { type: "item_stream", index: 0, text: "Metin" });
@@ -1053,6 +1062,33 @@ describe("App", () => {
       question: "PNT-4417 kordon boyu kaç?",
       all_documents: true,
     });
+  });
+
+  it("announces only the latest turn to screen readers", async () => {
+    stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () =>
+        sse([
+          {
+            type: "done",
+            timings: {},
+            question: "soru",
+            scope_inherited: false,
+            context: null,
+            result: { kind: "not_found", reason: "", suggestions: [] },
+          },
+        ]),
+    });
+    const { container } = render(<App />);
+    await ask("Birinci soru?");
+    await screen.findByRole("heading", { name: "Birinci soru?" });
+    await ask("İkinci soru?");
+    await screen.findByRole("heading", { name: "İkinci soru?" });
+
+    await waitFor(() => expect(container.querySelectorAll("article.turn")).toHaveLength(2));
+    const live = container.querySelectorAll("[aria-live]");
+    expect(live).toHaveLength(1);
+    expect(live[0].closest("article")).toBe(container.querySelectorAll("article.turn")[1]);
   });
 
   function notFoundAfterCodeSearch(scopeNarrowed: boolean) {

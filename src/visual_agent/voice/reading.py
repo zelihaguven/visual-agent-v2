@@ -163,6 +163,34 @@ def _code_words(code: str) -> str:
     return " ".join(_spell(part) for part in parts)
 
 
+_VOWELS = "aeıioöuü"
+_BACK_VOWELS = "aıou"
+_ROUNDED_VOWELS = "oöuü"
+_INVARIANT_TAIL_RE = re.compile(r"(?P<head>.*?)(?P<tail>(?:ki|ken)\w*)?")
+"""-ki ve -ken ünlü uyumuna girmez ("kg'daki" → "kilogramdaki"); ardından gelen ek ona uyar."""
+
+
+def _harmonized(suffix: str, word: str) -> str:
+    """Ek, yazılan kısaltmaya göre yazılmıştır ("TL'dir"); okunan sözcüğün son ünlüsüne uyar
+    ("Türk lirasıdır"). İki yönlü (e/a) ve dört yönlü (ı/i/u/ü) ünlüler sırayla uyum sağlar."""
+    parts = _INVARIANT_TAIL_RE.fullmatch(suffix)
+    head, tail = (parts["head"], parts["tail"] or "") if parts else (suffix, "")
+    previous = next((char for char in reversed(turkish_lower(word)) if char in _VOWELS), None)
+    if previous is None:
+        return suffix
+    harmonized = []
+    for char in head:
+        back, rounded = previous in _BACK_VOWELS, previous in _ROUNDED_VOWELS
+        if char in "ea":
+            char = "a" if back else "e"
+        elif char in "ıiuü":
+            char = ("u" if rounded else "ı") if back else ("ü" if rounded else "i")
+        if char in _VOWELS:
+            previous = char
+        harmonized.append(char)
+    return "".join(harmonized) + tail
+
+
 def _replace(match: re.Match[str]) -> str:
     if match["percent"] is not None:
         return f"yüzde {_number_words(match['percent'])}"
@@ -172,11 +200,13 @@ def _replace(match: re.Match[str]) -> str:
             spoken = f"eksi {spoken}"
         if match["to"]:
             spoken += f" tire {_number_words(match['to'])}"
+        suffix = (match["suffix"] or "")[1:]
         if match["percent_after"]:
             spoken = f"yüzde {spoken}"
         elif match["unit"]:
             spoken += f"{match['close']} {_SPOKEN_UNITS[match['unit'].casefold()]}"
-        return f"{spoken}{(match['suffix'] or '')[1:]}"
+            suffix = _harmonized(suffix, spoken)
+        return f"{spoken}{suffix}"
     return f"{_code_words(match['code'])}{(match['code_suffix'] or '')[1:]}"
 
 

@@ -105,12 +105,6 @@ uv run python -m evals.run_questions --set evals/output/set7 --work evals/output
 
 Model cevapları `evals/output/answer-cache` altında saklanır; aynı istek yeniden gönderilmez. Önbellekten gelen soruların süresi ve maliyeti rapora girmez, sayıları yazılır. Yeniden sormak için `--refresh-cache`. Uygulama bu önbelleği kullanmaz.
 
-Belge işleme kapsamını ölçmek için (`--work` o setin parça önbelleği; önbellek varsa belgeler yeniden işlenmez, işleme kodunu ölçmek için boş bir klasör verin):
-
-```bash
-uv run python -m evals.ingest_check --set evals/output/set7 --work evals/output/n10/w7
-```
-
 Diğer ölçüm araçları:
 
 | Komut | Ne yapar |
@@ -121,8 +115,6 @@ Diğer ölçüm araçları:
 | `evals.run_questions … --repeat 10` | Aynı soruları önbelleksiz tekrar sorar (kararlılık ölçümü) |
 | `evals.run_questions … --retrieval-only` | Yalnız aramayı ölçer, modele gitmez |
 | `evals.run_documents --documents ornek-belgeler/FastReact_Knowledge --questions … --work … --output …` | Bir belge klasörünü (FastReact) kendi soru listesiyle ölçer; `--offline` aynı anlamda |
-| `evals.replay --rows … --work … --cache-dir … --output …` | Kayıtlı `run_documents` ölçümünü önbellekten yeniden değerlendirir |
-| `evals.rescore --set … --answers …` | Kayıtlı cevapları ağa gitmeden yeniden puanlar |
 
 Hepsi `uv run python -m` ile çalışır.
 

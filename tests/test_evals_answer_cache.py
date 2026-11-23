@@ -8,17 +8,19 @@ from typing import Any
 import httpx
 import pytest
 
-from evals.answer_cache import CacheCounts, CachingTransport, Usage, usage_from_body
-from evals.gold import GoldQuestion, GoldSet, Outcome, QuestionKind
+from evals.answer_cache import CacheCounts, CachingTransport, OfflineMiss, Usage, usage_from_body
+from evals.gold import Carrier, GoldDocument, GoldQuestion, GoldSet, Outcome, QuestionKind
 from evals.run_questions import (
     DEFAULT_CACHE_DIR,
     NO_CACHE_NOTE,
     _full_run,
     cache_label,
     check_cache_arguments,
+    gold_documents,
     select_questions,
 )
 from tests.test_ask_pipeline import FakeClient, make_deps
+from visual_agent.domain.document import UNDETECTED_LANGUAGE
 
 URL = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -345,3 +347,44 @@ def test_offline_misses_are_kept_out_of_the_score(tmp_path: Path) -> None:
     assert summary["questions_missed_offline"] == ["netlestir"]
     assert summary["total"] == 0
     assert summary["passed"] == 0
+
+
+def test_offline_cache_never_sends_a_missing_model_request(tmp_path: Path) -> None:
+    sent: list[httpx.Request] = []
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        sent.append(request)
+        return httpx.Response(200, json={"data": []})
+
+    async def run() -> CacheCounts:
+        transport = CachingTransport(httpx.MockTransport(handle), tmp_path, offline=True)
+        async with httpx.AsyncClient(transport=transport) as client:
+            with pytest.raises(OfflineMiss):
+                await client.post(URL, json={"soru": "bel"})
+            await client.get("https://openrouter.ai/api/v1/endpoints/zdr")
+        return transport.counts
+
+    counts = asyncio.run(run())
+
+    assert counts == CacheCounts(hits=0, misses=1)
+    assert [request.method for request in sent] == ["GET"]
+
+
+def test_set_documents_are_read_like_the_application(tmp_path: Path) -> None:
+    """Ölçümde belge uygulamadaki gibi dili bilinmeden işlenir; başlık metnin ilk satırıdır."""
+    gold = GoldSet(
+        seed=1,
+        documents=(
+            GoldDocument(doc_id="a.md", filename="a.md", domain="d", carrier=Carrier.PDF),
+            GoldDocument(doc_id="b.md", filename="b.md", domain="d", carrier=Carrier.SCAN),
+        ),
+        questions=(),
+        document_texts={"a.md": "A belgesi\nmetin", "b.md": "B belgesi\nmetin"},
+    )
+
+    documents = gold_documents(gold, tmp_path)
+
+    assert [(path, meta.doc_id, meta.title, meta.language) for path, meta in documents] == [
+        (tmp_path / "a.md", "a.md", "A belgesi", UNDETECTED_LANGUAGE),
+        (tmp_path / "b.md", "b.md", "B belgesi", UNDETECTED_LANGUAGE),
+    ]
