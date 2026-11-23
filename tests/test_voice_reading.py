@@ -13,6 +13,9 @@ from visual_agent.voice.reading import CODE_ON_SCREEN, VALUE_ON_SCREEN, spoken_t
         ("Ölçü 42,5 cm'dir.", "Ölçü kırk iki virgül beş santimetredir."),
         ("Tolerans 0,05 mm.", "Tolerans sıfır virgül sıfır beş milimetre."),
         ("Fiyat 1200 TL.", "Fiyat bin iki yüz Türk lirası."),
+        ("Fiyat 1500 TL'dir.", "Fiyat bin beş yüz Türk lirasıdır."),  # ek okunuşa uyar
+        ("Ağırlık 2 kg'dir.", "Ağırlık iki kilogramdır."),
+        ("Ölçü 5 mm'dir.", "Ölçü beş milimetredir."),
         ("Oran %5.", "Oran yüzde beş."),
         ("Ölçü 11 (± 1) cm.", "Ölçü on bir (artı eksi bir) santimetre."),
         ("Süre 75 saniyedir.", "Süre yetmiş beş saniyedir."),
