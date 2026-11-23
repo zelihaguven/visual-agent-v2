@@ -16,6 +16,9 @@ from visual_agent.voice.reading import CODE_ON_SCREEN, VALUE_ON_SCREEN, spoken_t
         ("Fiyat 1500 TL'dir.", "Fiyat bin beş yüz Türk lirasıdır."),  # ek okunuşa uyar
         ("Ağırlık 2 kg'dir.", "Ağırlık iki kilogramdır."),
         ("Ölçü 5 mm'dir.", "Ölçü beş milimetredir."),
+        ("Fark 2 kg'den az.", "Fark iki kilogramdan az."),
+        ("Yükü 5 kg'daki gibi.", "Yükü beş kilogramdaki gibi."),  # -ki uyuma girmez
+        ("Ağırlık 5 kg'ken.", "Ağırlık beş kilogramken."),
         ("Oran %5.", "Oran yüzde beş."),
         ("Ölçü 11 (± 1) cm.", "Ölçü on bir (artı eksi bir) santimetre."),
         ("Süre 75 saniyedir.", "Süre yetmiş beş saniyedir."),

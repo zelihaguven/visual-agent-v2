@@ -121,7 +121,7 @@ Hücrelerin iki okumayla doğrulanması (`tablo-hucre-okuma`), tablo bağlamı, 
 - Tablet Safari'de otomatik ses çalma denenmedi.
 - Ağdaki tabletlerden mikrofon için HTTPS gerekiyor.
 - Kural 1 riski, seste (2026-11-20, `ses-bitisik-sayi` incelemesinde bulundu, düzeltilmedi): boşlukla gruplanmış binlik ("1 500"; bölünmez ya da dar boşlukla da) iki sözcüğe bölünüyor ve "bir beş yüz" okunuyor; dinleyen 1500 değil 1 ve 500 duyabilir. Yüklü 394 belgede bu yazım 0 kez, 0 belgede geçiyor (sayım: 1–3 rakam, ardından boşlukla 3'lü gruplar, harfe ya da koda bitişik olmayan; kodun sonundaki rakamla ardından gelen sayı, örn. "ECO100 100", sayılmadı). Gerçek belgeler gelince yeniden sayılacak; görülürse sesteki bitişik sayı kuralına bu yazım da eklenebilir.
-- Kozmetik: birimden sonraki ek okunuşun ünlüsüne uyuyor ("TL'dir" → "Türk lirasıdır"), ama iyelikli okunuşta durum ekinin kaynaştırma ünsüzü eklenmiyor: "5 TL'de" "Türk lirasıda" okunur ("lirasında" olmalı); "-ki" eki de uyuma sokulur. Seyrek; dokunulmadı.
+- Kozmetik: birimden sonraki ek okunuşun ünlüsüne uyuyor ("TL'dir" → "Türk lirasıdır"; -ki ve -ken uyuma girmez), ama iyelikli okunuşta ("Türk lirası") ek doğru kurulmuyor: "TL'de" → "lirasıda", "TL'ye" → "lirasıya", "TL'yi" → "lirasıyı" (kaynaştırma "n" yok), "TL'lik" → "lirasılık" ("liralık" olmalı). Sayı ve kod dalında ek yazıldığı gibi kalır ("E050'de" → "… sıfırde"). Seyrek; dokunulmadı.
 
 ## Cevap kalitesi
 

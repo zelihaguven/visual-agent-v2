@@ -166,16 +166,20 @@ def _code_words(code: str) -> str:
 _VOWELS = "aeıioöuü"
 _BACK_VOWELS = "aıou"
 _ROUNDED_VOWELS = "oöuü"
+_INVARIANT_TAIL_RE = re.compile(r"(?P<head>.*?)(?P<tail>(?:ki|ken)\w*)?")
+"""-ki ve -ken ünlü uyumuna girmez ("kg'daki" → "kilogramdaki"); ardından gelen ek ona uyar."""
 
 
 def _harmonized(suffix: str, word: str) -> str:
     """Ek, yazılan kısaltmaya göre yazılmıştır ("TL'dir"); okunan sözcüğün son ünlüsüne uyar
     ("Türk lirasıdır"). İki yönlü (e/a) ve dört yönlü (ı/i/u/ü) ünlüler sırayla uyum sağlar."""
+    parts = _INVARIANT_TAIL_RE.fullmatch(suffix)
+    head, tail = (parts["head"], parts["tail"] or "") if parts else (suffix, "")
     previous = next((char for char in reversed(turkish_lower(word)) if char in _VOWELS), None)
     if previous is None:
         return suffix
     harmonized = []
-    for char in suffix:
+    for char in head:
         back, rounded = previous in _BACK_VOWELS, previous in _ROUNDED_VOWELS
         if char in "ea":
             char = "a" if back else "e"
@@ -184,7 +188,7 @@ def _harmonized(suffix: str, word: str) -> str:
         if char in _VOWELS:
             previous = char
         harmonized.append(char)
-    return "".join(harmonized)
+    return "".join(harmonized) + tail
 
 
 def _replace(match: re.Match[str]) -> str:
