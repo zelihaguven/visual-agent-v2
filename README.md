@@ -68,7 +68,7 @@ Sonra `baslat.bat`: yeni paketler kurulur, arayüz değiştiyse yeniden derlenir
 
 ### Ağdan erişim
 
-Arayüz yalnız bu bilgisayardan (`127.0.0.1`) açılır. Tabletlerden kullanmadan önce [açık notlardaki](docs/acik-notlar.md) "Yayına almadan önce" maddelerine bakın: giriş yokken ağdaki herkes belgeleri görebilir, yerel kurulumda güvenlik başlıkları ve hız sınırı yoktur, mikrofon da yalnız HTTPS üzerinden açılır.
+Arayüz yalnız bu bilgisayardan (`127.0.0.1`) açılır. Tabletlerden kullanmadan önce [açık notlardaki](docs/acik-notlar.md) "Canlıya alırken" maddelerine bakın: giriş yokken ağdaki herkes belgeleri görebilir, yerel kurulumda güvenlik başlıkları ve hız sınırı yoktur, mikrofon da yalnız HTTPS üzerinden açılır.
 
 ## Geliştirme
 
@@ -102,6 +102,8 @@ Soru hattını uçtan uca ölçmek için (gömülü Qdrant, `--work` klasöründ
 ```bash
 uv run python -m evals.run_questions --set evals/output/set7 --work evals/output/run7
 ```
+
+Ölçüm koşucuları `--work` altındaki parça önbelleğini kullanır, belgeyi yeniden işlemez (`evals/index_cache.py`); belge işleme kodu değiştiğinde ölçüm, çalışma klasörünün bir kopyasında yapılır (`chunks.json` ve `ingest.json` silinerek; ya da elle, yalnız kural sürümü eskiyen belgelerin parçaları yeniden üretilip `chunks.json`'a yazılarak).
 
 Model cevapları `evals/output/answer-cache` altında saklanır; aynı istek yeniden gönderilmez. Önbellekten gelen soruların süresi ve maliyeti rapora girmez, sayıları yazılır. Yeniden sormak için `--refresh-cache`. Uygulama bu önbelleği kullanmaz.
 
