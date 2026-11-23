@@ -806,7 +806,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
     tamamlama hatasından gelen netleştirme de ("soruyu birleştiremedim") geçer sayılır.
     Ölçümde tamamlanmış soru elle doğrulandı: iki sette de model var, beden yok. (2)
     `evals/baselines/taban` altındaki eski özetler (2026-11-23'te silindi; git geçmişinde) bu
-    turu hâlâ kalan soru sayıyor; 38 → 39
+    turu hâlâ kalan soru sayıyordu; 38 → 39
     iyileşme değil, beklenti değişikliğidir.
 
 ### Gizlenen cevabın turunda da kullanıcının sorusu bağlama girer (değiştirildi)
