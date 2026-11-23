@@ -325,9 +325,10 @@ export function App() {
           </div>
         ) : (
           <div className="turns" ref={turnList}>
-            {turns.map((turn) => (
+            {turns.map((turn, index) => (
               <TurnView
                 key={turn.id}
+                isLatest={index === turns.length - 1}
                 turn={turn}
                 onOpenSource={setSource}
                 onAskAgain={(question, docIds, allDocuments) =>

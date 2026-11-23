@@ -89,6 +89,18 @@ def test_failed_item_is_reported_and_does_not_block_the_next() -> None:
     assert of_type(events, "item_verified")[0]["index"] == 1
 
 
+def test_repeated_verified_sentence_is_withdrawn_not_revealed_again() -> None:
+    """Model aynı doğrulanmış cümleyi tekrar yazarsa akışta ikinci kez açılmaz (sesli modda
+    ikinci kez okunurdu); tekrarın satırı ekrandan kalkar."""
+    assembler, events = assemble()
+
+    feed_all(assembler, content(item("İç paça 76,5."), item("İç  paça 76,5."), item("Değer 76,5.")))
+
+    assert [event["index"] for event in of_type(events, "item_verified")] == [0, 2]
+    assert of_type(events, "item_repeat") == [{"type": "item_repeat", "index": 1}]
+    assert [item.text for item, _ in assembler.verified] == ["İç paça 76,5.", "Değer 76,5."]
+
+
 def test_half_written_word_is_not_sent() -> None:
     assembler, events = assemble()
     partial = '{"tur":"cevap","cevap":[{"alintilar":[],"metin":"Ölçü tablo'
