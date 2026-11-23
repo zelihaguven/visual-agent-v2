@@ -29,7 +29,7 @@ Tesseract ya da LibreOffice yoksa uygulama yine açılır: açılışta hangi be
 
 2. `baslat.bat` dosyasına çift tıklayın. Paketleri kurar, arayüz eskiyse derler, eksik araçları bildirir ve tarayıcıda <http://127.0.0.1:8080> adresini açar. Kapatmak için pencerede Ctrl+C. macOS/Linux'ta: `uv sync --frozen --no-dev --extra retrieval --extra ingest && uv run --no-sync python -m apps.local`.
 
-İlk açılış internetten modelleri indirir ve uzun sürer: arama modeli (bge-m3, ~2,3 GB) açılışta, belge işleme modelleri (Docling, RapidOCR) ilk belgede. Modeller kullanıcının önbellek klasöründe kalır (BM25 modeli `data/models/fastembed`), sonraki açılışlar hızlıdır. İlk açılış ve ilk belge işlendikten sonra `.env`'e `VA_MODELS_OFFLINE=true` yazın: uygulama modelleri yalnız yerel önbellekten yükler, internetsiz açılır; model eksikse ne eksik olduğunu söyleyip durur. Soru sormak için önce soldan belge yükleyin; işlenip "Hazır" olunca sorulabilir.
+İlk açılış internetten modelleri indirir ve uzun sürer: arama modeli (bge-m3, ~2,3 GB) açılışta, belge işleme modelleri (Docling) ilk belgede. Modeller kullanıcının önbellek klasöründe kalır (BM25 modeli `data/models/fastembed`), sonraki açılışlar hızlıdır. İlk açılış ve ilk belge işlendikten sonra `.env`'e `VA_MODELS_OFFLINE=true` yazın: uygulama modelleri yalnız yerel önbellekten yükler, internetsiz açılır; model eksikse ne eksik olduğunu söyleyip durur. Soru sormak için önce soldan belge yükleyin; işlenip "Hazır" olunca sorulabilir.
 
 Örnek belgeler (`ornek-belgeler/`: FastReact kılavuzu ve üretilmiş test belgeleri) yalnız deneme ve ölçüm içindir, üretimde kullanılmaz. Yeni bilgisayarda uygulama açıkken `uv run --no-sync python -m apps.sample_documents` ile yüklenir; yüklü olanlar atlanır, kökteki test soruları yüklenmez.
 
@@ -48,7 +48,7 @@ Uygulama araçları PATH'te ya da ayarla verilen yolda arar (`VA_TESSERACT_PATH`
 
 ### Taranmış sayfaların okuyucusu
 
-Metin katmanı olmayan sayfalar (tarama, fotoğraf) PaddleOCR-VL ile okunur, Tesseract ikinci kez okur; sayısı tutmayan değer cevapta gizlenir ([0011](docs/kararlar.md)). Okuyucu `.env` içindeki tek ayarla seçilir:
+Tek OCR yapısı vardır: metin katmanı olmayan ya da zayıf metin katmanlı sayfalar (tarama, fotoğraf) ve metinli sayfadaki gömülü görseller PaddleOCR-VL ile okunur, Tesseract ikinci kez okur; sayısı tutmayan değer cevapta gizlenir, gösterilen değer "Taramadan okundu" rozetini taşır ([0011, 0028](docs/kararlar.md)). Okuyucu `.env` içindeki tek ayarla seçilir:
 
 | `VA_PAGE_READER` | Nerede | Başlatma |
 | --- | --- | --- |
@@ -56,7 +56,7 @@ Metin katmanı olmayan sayfalar (tarama, fotoğraf) PaddleOCR-VL ile okunur, Tes
 | `mlx-vlm-server@http://localhost:8111/` | Apple Silicon | Ayrı pencerede `uvx --from "mlx-vlm>=0.3.11" mlx_vlm.server --host 127.0.0.1 --port 8111`. Model (3,6 GB) ilk sayfada iner. |
 | `llama-cpp-server@http://adres/` | İşlemcide ayrı sunucu | llama.cpp `llama-server`, PaddleOCR-VL-1.6 GGUF dosyalarıyla. Bu repoda denenmedi. |
 
-Ayar boşsa ya da okuyucuya ulaşılamıyorsa taranmış sayfası olan belge indekslenmez, listede "Okuyucu bekleniyor" olarak kalır; okuyucu çalışınca belgede "Yeniden işle"ye basılır. Bu sayfalar başka yoldan okunmaz. Metin katmanı olan belgeler okuyucusuz işlenir. `local` kipi Windows'ta ve işlemcide denenmedi; hızı ölçülmedi.
+Ayar boşsa ya da okuyucuya ulaşılamıyorsa taranmış sayfası ya da gömülü görseli olan belge indekslenmez, listede "Okuyucu bekleniyor" olarak kalır; okuyucu çalışınca belgede "Yeniden işle"ye basılır. Bu sayfalar ve görseller başka yoldan okunmaz. Görselsiz metinli belgeler okuyucusuz işlenir. `local` kipi Windows'ta ve işlemcide denenmedi; hızı ölçülmedi.
 
 ### Güncelleme
 
@@ -68,7 +68,7 @@ Sonra `baslat.bat`: yeni paketler kurulur, arayüz değiştiyse yeniden derlenir
 
 ### Ağdan erişim
 
-Arayüz yalnız bu bilgisayardan (`127.0.0.1`) açılır. Tabletlerden kullanmadan önce [açık notlardaki](docs/acik-notlar.md) "Yayına almadan önce" maddelerine bakın: giriş yokken ağdaki herkes belgeleri görebilir, yerel kurulumda güvenlik başlıkları ve hız sınırı yoktur, mikrofon da yalnız HTTPS üzerinden açılır.
+Arayüz yalnız bu bilgisayardan (`127.0.0.1`) açılır. Tabletlerden kullanmadan önce [açık notlardaki](docs/acik-notlar.md) "Canlıya alırken" maddelerine bakın: giriş yokken ağdaki herkes belgeleri görebilir, yerel kurulumda güvenlik başlıkları ve hız sınırı yoktur, mikrofon da yalnız HTTPS üzerinden açılır.
 
 ## Geliştirme
 
@@ -103,13 +103,9 @@ Soru hattını uçtan uca ölçmek için (gömülü Qdrant, `--work` klasöründ
 uv run python -m evals.run_questions --set evals/output/set7 --work evals/output/run7
 ```
 
+Ölçüm koşucuları `--work` altındaki parça önbelleğini kullanır, belgeyi yeniden işlemez (`evals/index_cache.py`); belge işleme kodu değiştiğinde ölçüm, çalışma klasörünün bir kopyasında yapılır (`chunks.json` ve `ingest.json` silinerek; ya da elle, yalnız kural sürümü eskiyen belgelerin parçaları yeniden üretilip `chunks.json`'a yazılarak).
+
 Model cevapları `evals/output/answer-cache` altında saklanır; aynı istek yeniden gönderilmez. Önbellekten gelen soruların süresi ve maliyeti rapora girmez, sayıları yazılır. Yeniden sormak için `--refresh-cache`. Uygulama bu önbelleği kullanmaz.
-
-Belge işleme kapsamını ölçmek için (`--work` o setin parça önbelleği; önbellek varsa belgeler yeniden işlenmez, işleme kodunu ölçmek için boş bir klasör verin):
-
-```bash
-uv run python -m evals.ingest_check --set evals/output/set7 --work evals/output/n10/w7
-```
 
 Diğer ölçüm araçları:
 
@@ -121,9 +117,6 @@ Diğer ölçüm araçları:
 | `evals.run_questions … --repeat 10` | Aynı soruları önbelleksiz tekrar sorar (kararlılık ölçümü) |
 | `evals.run_questions … --retrieval-only` | Yalnız aramayı ölçer, modele gitmez |
 | `evals.run_documents --documents ornek-belgeler/FastReact_Knowledge --questions … --work … --output …` | Bir belge klasörünü (FastReact) kendi soru listesiyle ölçer; `--offline` aynı anlamda |
-| `evals.replay --rows … --work … --cache-dir … --output …` | Kayıtlı `run_documents` ölçümünü önbellekten yeniden değerlendirir |
-| `evals.rescore --set … --answers …` | Kayıtlı cevapları ağa gitmeden yeniden puanlar |
-| `evals.run_embedded_images --output …` | Set A benzetimini gömülü görsel olarak bugünkü eski OCR yolundan geçirir, dondurulmuş puanlamayla ölçer (karar 0022); okuyucu çalıştırmaz |
 
 Hepsi `uv run python -m` ile çalışır.
 

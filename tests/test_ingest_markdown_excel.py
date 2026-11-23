@@ -172,7 +172,7 @@ def _no_tools() -> IngestTools:
     def unused(*_: object) -> object:
         raise AssertionError("bu biçimde dış araç kullanılmaz")
 
-    return IngestTools(*([unused] * 10))  # type: ignore[arg-type]
+    return IngestTools(*([unused] * 8))  # type: ignore[arg-type]
 
 
 def test_report_records_the_format_and_rules_version(tmp_path: Path) -> None:
@@ -337,6 +337,19 @@ def test_legacy_ocr_rules_outdate_only_documents_the_old_path_could_read(
     çalışır; tamamı okuyucudan geçen taranmış belge yeniden işlenmez."""
     monkeypatch.setitem(RULES_VERSIONS, InputFormat.PDF, 20)
     report = {"input_format": "pdf", "rules_version": 19, "page_kinds": kinds}
+
+    assert is_outdated(report, "belge.pdf") is outdated
+
+
+@pytest.mark.parametrize(
+    ("kinds", "outdated"),
+    [({"text": 2}, True), ({"scanned": 1}, True), ({"weak": 1}, True), ({"none": 29}, False)],
+)
+def test_removing_the_legacy_ocr_path_does_not_outdate_scanned_sheets(
+    kinds: dict[str, int], outdated: bool
+) -> None:
+    """23→24 (karar 0028): tamamı okuyucudan geçen taranmış föyler yeniden okunmaz."""
+    report = {"input_format": "pdf", "rules_version": 23, "page_kinds": kinds}
 
     assert is_outdated(report, "belge.pdf") is outdated
 

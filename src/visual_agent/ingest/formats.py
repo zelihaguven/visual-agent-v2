@@ -78,8 +78,11 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     # 23 (PDF, Office; görsel 16): okuyucu yolunda önceki sayfada yapıdan kabul edilen başlık
     #    satırının aynısı başlıktır; içerikten sonra gelen kodsuz ilk başlık kök değildir,
     #    düzeyi bilinmeyen başlıklar kardeştir (bütün yollar; SQL 3, Markdown ve Excel düzeyli).
-    InputFormat.PDF: 23,
-    InputFormat.OFFICE: 23,
+    # 24 (PDF, Office): eski OCR yolu kaldırıldı (karar 0028). Zayıf ya da taranmış metin
+    #    katmanlı sayfa okuyucuya gider; metinli sayfadaki gömülü görsel okunmaz, uyarı çıkar.
+    # 25 (PDF, Office): metinli sayfadaki gömülü görseller sayfa okuyucusuyla okunur (0028).
+    InputFormat.PDF: 25,
+    InputFormat.OFFICE: 25,
     InputFormat.IMAGE: 16,
     # Excel 5: altında satır olmayan başlık satırı başlık sayılmaz; satırları etiketsiz yazılır.
     # Excel 6: tek sütunlu sayfa başlıksızdır; her hücre ayrı, etiketsiz satır (ürün sahibi kararı).
@@ -129,6 +132,8 @@ _CHANGED_PAGE_KINDS = {
     20: ("text",),
     21: ("text",),
     22: ("none", "weak", "scanned", "text"),
+    23: ("weak", "scanned", "text"),
+    24: ("text",),
 }
 """Bu sürümden bir sonrakine geçiş yalnız bu tür sayfası olan belgelerin çıktısını değiştirdi:
 7→8 taranmış sayfalar sayfa okuyucusuna gitti ("scanned": OCR katmanlı tarama öyle kaydedilmiş
@@ -137,7 +142,9 @@ olabilir); 8→9 eski OCR yolundaki (zayıf ya da taranmış metin katmanlı) sa
 sayfalarda başlığı ile satırları aynı sayıda hücre taşımayan tablolar; 19→20 eski OCR yolunun
 parçaları (metinli sayfadaki gömülü görsel, zayıf ya da taranmış metin katmanlı sayfa); 20→21
 metinli sayfadaki gömülü görsellerin belirsiz değerleri; 21→22 metinli sayfaların üst bilgisi;
-22→23 bütün sayfa türleri (bölüm yolu ortak kodda)."""
+22→23 bütün sayfa türleri (bölüm yolu ortak kodda); 23→24 zayıf ya da taranmış metin katmanlı
+sayfalar (okuyucuya) ve metinli sayfalar (gömülü görseller okunmaz); 24→25 metinli sayfalar
+(gömülü görseller okuyucuyla okunur)."""
 _PAGE_FORMATS = (InputFormat.PDF, InputFormat.OFFICE, InputFormat.IMAGE)
 
 

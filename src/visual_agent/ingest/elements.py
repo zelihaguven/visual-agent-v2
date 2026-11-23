@@ -59,12 +59,6 @@ class Element:
     location: SourceLocation
     from_ocr: bool = False
     ocr_uncertain: tuple[str, ...] = ()
-    legacy_ocr: bool = False
-    """Eski OCR yolundan (gömülü görsel ya da ocrmypdf) okundu; değerleri doğrulanmış
-    gösterilmez (karar 0022)."""
-    ocr_checked: bool = False
-    """Belirsiz değerler okuyucu yolunda öğenin kendisinde belirlendi; sayfa düzeyi karşılaştırma
-    uygulanmaz."""
     level: int | None = None
     """Başlığın düzeyi (1 en üst); biçim düzeyi bildirmiyorsa None."""
     context: str = ""

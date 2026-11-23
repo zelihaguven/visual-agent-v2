@@ -303,26 +303,6 @@ def test_item_from_ocr_text_is_marked_and_makes_answer_partial() -> None:
     assert verify_answer(answer(candidate), sources, "tr").status is VerificationStatus.PARTIAL
 
 
-def test_item_resting_on_the_legacy_ocr_path_is_never_verified() -> None:
-    """Karar 0022: eski OCR yolundan (gömülü görsel, ocrmypdf) okunan değer, okuma belirsiz
-    işaretlenmemiş olsa da doğrulanmış gösterilmez; okuyucu kaynağı kısmi doğrulanır."""
-    row = "Kolon: DEPO_KODU | Uzunluk: 59"
-    legacy = {1: PromptSource(number=1, text=row, from_ocr=True, legacy_ocr=True)}
-    reader = {1: PromptSource(number=1, text=row, from_ocr=True)}
-    candidate = item("DEPO_KODU uzunluğu 59.", quote=row)
-
-    check = verify_item(candidate, legacy, "tr")
-
-    assert not check.ok and check.from_ocr and check.quote is None
-    assert check.problems == ("eski OCR yolundan okundu",) and check.source_numbers == (1,)
-    assert verify_answer(answer(candidate), legacy, "tr").status is VerificationStatus.FAILED
-    assert verify_answer(answer(candidate), reader, "tr").status is VerificationStatus.PARTIAL
-    # Kaynakta yazmayan birim tek sorun olsaydı alıntı gösterilirdi; eski yolda o da gösterilmez.
-    with_unit = item("DEPO_KODU uzunluğu 59 cm.", quote=row)
-    assert verify_item(with_unit, reader, "tr").quote == row
-    assert verify_item(with_unit, legacy, "tr").quote is None
-
-
 def test_one_ocr_item_makes_the_whole_answer_partial() -> None:
     sources = {
         1: PromptSource(number=1, text="M: 76,5"),

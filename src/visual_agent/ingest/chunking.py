@@ -47,7 +47,6 @@ def _split_element(element: Element) -> list[Element]:
             element.location,
             element.from_ocr,
             tuple(token for token in element.ocr_uncertain if contains_token(piece, token)),
-            legacy_ocr=element.legacy_ocr,
         )
         for piece in _split_long_text(element.text)
     ]
@@ -69,7 +68,6 @@ def _merge_group(group: Sequence[Element]) -> Element:
         location=SourceLocation(page=first.page, boxes=boxes, sheet=first.sheet, row=first.row),
         from_ocr=any(element.from_ocr for element in group),
         ocr_uncertain=tuple(token for element in group for token in element.ocr_uncertain),
-        legacy_ocr=any(element.legacy_ocr for element in group),
     )
 
 
@@ -165,7 +163,6 @@ def build_chunks(elements: Iterable[Element], meta: DocumentMeta) -> list[Chunk]
             location=_location(element, section),
             ocr_uncertain=tuple(dict.fromkeys((*element.ocr_uncertain, *section_uncertain))),
             from_ocr=element.from_ocr,
-            legacy_ocr=element.legacy_ocr,
             table_note=element.context,
         )
         for index, (element, section, section_uncertain) in enumerate(_sectioned_chunks(elements))

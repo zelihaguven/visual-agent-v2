@@ -109,19 +109,6 @@ def _ocr_problems(item: ModelItem, sources: Sources) -> list[str]:
     return [f"OCR değeri belirsiz: {uncertain}"] if uncertain else []
 
 
-LEGACY_OCR_PROBLEM = "eski OCR yolundan okundu"
-
-
-def _legacy_ocr_problems(item: ModelItem, sources: Sources) -> list[str]:
-    """Eski OCR yolundan (gömülü görsel, ocrmypdf) okunan kaynağa dayanan cümle doğrulanmış
-    gösterilmez: ölçümde değerler yanlış etikete bağlandı (karar 0022). Okuyucu yolu ayrıdır."""
-    numbers = [quote.source_no for quote in item.quotes]
-    if item.code_source_no is not None:
-        numbers.append(item.code_source_no)
-    legacy = any(number in sources and sources[number].legacy_ocr for number in numbers)
-    return [LEGACY_OCR_PROBLEM] if legacy else []
-
-
 def _absence_problems(item: ModelItem, language: str) -> list[str]:
     """Cümle belgede bir şeyin olmadığını söylüyorsa doğrulanamaz: alıntı bir şeyin var olduğunu
     gösterebilir, olmadığını gösteremez. Bu iddia yalnız "bulunamadı" olarak verilebilir.
@@ -312,7 +299,6 @@ def verify_item(
         problems.append(f"kod kaynağı [{item.code_source_no}] geçersiz")
     evidence = _evidence(item, sources, code_source)
     problems += _ocr_problems(item, sources)
-    problems += _legacy_ocr_problems(item, sources)
     user = f"{qualifiers.asked} {qualifiers.previous}"
     problems += _token_problems(item, evidence, sources, language, user)
     problems += _tolerance_problems(item.text, " ".join(text for text, _ in evidence))

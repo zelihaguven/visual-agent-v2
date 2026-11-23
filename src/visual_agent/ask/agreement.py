@@ -36,11 +36,10 @@ def candidate_documents(hits: Sequence[Hit], option_numbers: Sequence[int]) -> l
 
 
 def _unreliable(quote: str, hit: Hit) -> bool:
-    """Eski OCR yolundan okunan parça (karar 0022) ve alıntıdaki değeri belirsiz okunmuş parça
-    eşleşme sayılmaz: tek belgeden gelseydi cümle gizlenirdi, burada netleştirme kalır."""
+    """Alıntıdaki değeri belirsiz okunmuş parça eşleşme sayılmaz: tek belgeden gelseydi cümle
+    gizlenirdi, burada netleştirme kalır."""
     text = normalize(quote)
-    uncertain = any(contains_token(text, normalize(t)) for t in hit.chunk.ocr_uncertain)
-    return hit.chunk.legacy_ocr or uncertain
+    return any(contains_token(text, normalize(t)) for t in hit.chunk.ocr_uncertain)
 
 
 def _shared_hit(quote: str, hits: Sequence[Hit], language_of: LanguageOf) -> Hit | None:

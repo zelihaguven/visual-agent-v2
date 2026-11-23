@@ -64,6 +64,8 @@ export type AskEvent =
       from_ocr: boolean;
       has_code: boolean;
     }
+  /** Aynı doğrulanmış cümlenin tekrarı: akışta gösterilmez, seslendirilmez. */
+  | { type: "item_repeat"; index: number }
   | { type: "item_audio"; index: number; audio: string; mime: string }
   | { type: "audio_unavailable" }
   | {
