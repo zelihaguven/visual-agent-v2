@@ -162,6 +162,25 @@ def test_quote_without_backticks_matches_inline_code_with_underscores_or_stars()
     assert not quote_matches("Kolon my_var ile x**3 hesaplanır", source, "tr")
 
 
+@pytest.mark.parametrize(
+    "source",
+    [
+        "Tork değeri \\`2*3*4\\` Nm",  # kaçışlı ters tırnak kod değildir
+        "Tork değeri `2*3*4 Nm",  # kapanmayan ters tırnak
+        "Tork değeri \\\\`2*3*4` Nm",  # kaçışlı ters bölüden sonraki kod
+    ],
+)
+def test_text_that_is_not_inline_code_keeps_its_stars(source: str) -> None:
+    """Yıldızlar içerik olarak kalır; vurgu sanılıp silinseydi "234" doğrulanırdı."""
+    assert not quote_matches("234", source, "tr")
+    assert not quote_matches("değeri 234 Nm", source, "tr")
+
+
+def test_same_text_inside_and_outside_code_is_read_the_same() -> None:
+    assert markdown_plain_form("`my_var` ve my_var") == "my_var ve my_var"
+    assert markdown_plain_form("`a\n_b_`") == "a _b_"
+
+
 def test_verbatim_way_changes_only_quote_marks_and_spacing() -> None:
     assert quote_form("**A** ‘x’  y") == '**a** "x" y'
 

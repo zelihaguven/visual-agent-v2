@@ -158,8 +158,11 @@ _QUOTE_MARKS = str.maketrans({mark: '"' for mark in "'‘’‚‛“”„‟«
 _MARKDOWN = MarkdownIt("zero").enable(["emphasis", "backticks", "escape"])
 _INTRAWORD_STARS_RE = re.compile(r"(?<=[^\W_])\*+(?=[^\W_])")
 _UNESCAPED_UNDERSCORE_RE = re.compile(r"(?<!\\)_")
-_CODE_SPAN_RE = re.compile(r"(?<!`)(`+)(?!`).*?(?<!`)\1(?!`)", re.DOTALL)
-"""Satır içi kod: aynı uzunlukta ters tırnak dizileri arası (CommonMark)."""
+_CODE_SPAN_RE = re.compile(r"(?<![`\\])(`+)(?!`).*?(?<!`)\1(?!`)", re.DOTALL)
+"""Satır içi kod: aynı uzunlukta iki ters tırnak dizisinin arası. Önünde ters bölü olan diziyle
+aralık başlamaz (kaçışlı ters tırnak düz harftir; "\\\\`" de sayılmaz). Bilinen uyuşmazlıkta
+ayrıştırıcı kod görüp bu desen görmezse içerik kaçışlanır: sonuç haksız ret olur, yanlış kabul
+değil."""
 _PLAIN_TOKENS = {"text", "text_special", "code_inline"}
 
 
