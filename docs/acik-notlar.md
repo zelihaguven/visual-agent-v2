@@ -8,6 +8,14 @@ Sonraya bırakılan konular, dört başlıkta. Biten madde ve durum kaydı silin
 - **İş:** karar gerektirmeyen, yapılabilir iş.
 - **Windows'a veri gönderme:** işlenmiş verinin Mac'ten Windows'a taşınma yordamı.
 
+"Nerede kaldık" son durumu tek bakışta verir; her iş sonunda güncellenir.
+
+## Nerede kaldık (2026-11-23)
+
+- Tek OCR yapısı `main`'de (#145, #151; karar 0028): taranmış sayfalar ve gömülü görseller yalnız sayfa okuyucusundan geçer, eski OCR yolu kalktı. #144 (cümle başındaki "30. Gün" denetimi) birleşti.
+- Mac verisi kural sürümü 25'te (PDF ve Office): 394 belge, 6.295 parça; "Eski kural" 0. #145 öncesi yedek: `~/va-yedek-2026-11-23` (veritabanı ve vektörler).
+- Windows'a veri paketi: `~/va-veri-20261123.zip` (196 MB, Mac'te, repo dışı; `PAKET.txt` commit `7949004`, kural sürümleri PDF/Office 25, görsel 16, Excel 6, SQL 3, metin 2, Markdown 3; 394 belge, 6.295 parça). Henüz Windows'a taşınmadı. Windows'un son bilinen commit'i #117 (20 Kasım).
+
 ## Karar bekliyor
 
 - Set B'de bağ kopmaları fark tablolarında yoğun (karar 0026); ayrı inceleme ister, yapılıp yapılmayacağı açık. Büyük sayfa görselini küçültmenin süreye etkisi ölçülmedi; şimdilik yapılmıyor (0024).
@@ -110,7 +118,7 @@ Sonraya bırakılan konular, dört başlıkta. Biten madde ve durum kaydı silin
 - OpenCV tek paket: `opencv-contrib-python` 4.10 (paddleocr'ın istediği). Docling'in kurduğu rapidocr'ın (kullanılmıyor; Docling'de OCR kapalı, 0028) istediği `opencv-python-headless` `pyproject.toml`'daki `override-dependencies` ile dışarıda; contrib onu kapsar. Paket başsız (headless) olmadığı için Linux'ta `libGL` ister; işçi imajında `libgl1` var. Eski ortamı güncellerken `cv2` bozulursa: `uv sync --reinstall-package opencv-contrib-python` (iki paket aynı klasöre yazıyordu, biri silinince dosyalar gidiyor).
 - LibreOffice dönüştürmesinin 180 sn sınırı işlemci doluyken aşılabiliyor: iki vektörleme işi aynı anda çalışırken taban ölçümünde `sql-ekran.docx` ve `sql-notlar.docx` PDF'e çevrilemedi (`TimeoutExpired`). İşlemci boşken aynı belgeler sorunsuz çevrildi. Uygulamada belge yüklemesi büyük bir yeniden işlemeyle çakışırsa Office belgesi "işlenemedi" olabilir; sınırın yükle ilişkisi ölçülmedi.
 - LibreOffice dönüştürmesi bu Windows bilgisayarında zaman zaman sessizce başarısız (2026-11-19, LibreOffice 26.8.2.2): `soffice` hiçbir şey yazmadan 0 koduyla çıkıyor, PDF oluşmuyor. Başarısızlıklar zamanda kümeleniyor: aynı ayarla 37 denemenin ilk 10'u başarısız, sonraki 27'si başarılı; başka bir anda 16/16 başarısız. Kod yolu (doğrudan ya da hattan), ortam değişkenleri, yol biçimi, açık `soffice` süreci (hiç yoktu) ve profil kipi (her çağrıda taze profil, önceden `--terminate_after_init` ile kurulmuş profil, ortak profil) neden değil: kurulmuş profil bir kez 10/10, sonra 27/37. Neden bulunamadı. Artık çıktı yoksa belge "LibreOffice … çeviremedi" mesajıyla işlenemedi olur (`ConversionFailed`); yeniden işleme elle denenir. Otomatik yeniden deneme eklenmedi: başarısız aralık dakikalarca sürüyor.
-- **Veri taşıma** (iki yönde, Windows'ta sınandı): iki bilgisayar aynı commit'te olmalı (kural sürümleri farklıysa "Eski kural" çıkar); kaynak bilgisayarda uygulama kapalı (Qdrant klasörü kilitlidir); `data/` kopyalanır, `data/models` gerekmez; hedefte mevcut `data/` yeniden adlandırılıp saklanır; uygulama repo kökünden açılır ve belge sayısı, "Eski kural" olmadığı ve birkaç soru kaynağıyla denetlenir. Belge yolları belge klasörüne göre ve düz eğik çizgiyle tutulur (#103); eski kayıtlar açılışta bir kez dönüştürülür. Hedefin soru günlüğü kaynağınkiyle değişir.
+- **Veri taşıma** (iki yönde, Windows'ta sınandı; yordam "Windows'a veri gönderme"de): iki bilgisayarda kural sürümleri aynı olmalı (farklıysa "Eski kural" çıkar; commit farkı yalnız uyarı); kaynak bilgisayarda uygulama kapalı (Qdrant klasörü kilitlidir); `data/` kopyalanır, `data/models` gerekmez; hedefte mevcut `data/` yeniden adlandırılıp saklanır; uygulama repo kökünden açılır ve belge sayısı, "Eski kural" olmadığı ve birkaç soru kaynağıyla denetlenir. Belge yolları belge klasörüne göre ve düz eğik çizgiyle tutulur (#103); eski kayıtlar açılışta bir kez dönüştürülür. Hedefin soru günlüğü kaynağınkiyle değişir.
 - Sorgu çevirisinin süre sınırı (1,5 sn) tek yardımcı sağlayıcının hızına bağlı (Parasail; 2026-11-18): yavaşlarsa çeviri düşer ve İngilizce belgelerde arama zayıflar; özet satırı bunu gösterir. Günlükteki "çeviri bekleme" 22 Kasım'dan sonra aramanın beklediği kısımdır.
 
 ## İş
@@ -125,7 +133,7 @@ Sonraya bırakılan konular, dört başlıkta. Biten madde ve durum kaydı silin
 
 ## Windows'a veri gönderme
 
-Taranmış ve görselli belgeler Mac'te işlenir (0015, 0028); işlenmiş veri Windows'a paketle taşınır. Paket gerçek müşteri belgelerini içerir: **GitHub'a konmaz**, şirketin onaylı yoluyla (OneDrive, Teams ya da USB) taşınır. İki bilgisayar aynı commit'te olmalı: kural sürümleri farklıysa belgeler "Eski kural" görünür.
+Taranmış ve görselli belgeler Mac'te işlenir (0015, 0028); işlenmiş veri Windows'a paketle taşınır. Paket gerçek müşteri belgelerini içerir: **GitHub'a konmaz**, şirketin onaylı yoluyla (OneDrive, Teams ya da USB) taşınır. Verinin geçerliliğini kural sürümleri belirler: paketin sürümleri Windows'taki kodun sürümleriyle (`formats.py`) aynı olmalı, farklıysa belgeler "Eski kural" görünür. Commit farkı yalnız uyarıdır.
 
 **Mac'te** (uygulama kapalı, repo kökünde, tek komut). Paket repo dışına, `~/va-veri-<tarih>.zip` olarak yazılır. `data/PAKET.txt` içine commit, kural sürümleri ve belge sayısı girer. Model önbelleği (`data/models`), `.DS_Store`, `__pycache__` ve SQLite geçici dosyaları girmez; macOS `zip` `__MACOSX` eklemez.
 
@@ -133,10 +141,10 @@ Taranmış ve görselli belgeler Mac'te işlenir (0015, 0028); işlenmiş veri W
 sqlite3 data/visual_agent.db "pragma wal_checkpoint(TRUNCATE);" >/dev/null && { echo "commit: $(git rev-parse HEAD)"; echo "tarih: $(date -u +%Y-%m-%dT%H:%MZ)"; uv run --no-sync python -c "from visual_agent.ingest.formats import RULES_VERSIONS as r; print('kural sürümleri: ' + ', '.join(f'{k.value} {v}' for k, v in r.items()))"; echo "belge: $(sqlite3 data/visual_agent.db 'select count(*) from documents')"; echo "parça: $(sqlite3 data/visual_agent.db 'select count(*) from chunks')"; } > data/PAKET.txt && zip -qrX ~/va-veri-$(date +%Y%m%d).zip data -x 'data/models/*' '*.DS_Store' '*/__pycache__/*' 'data/*.db-wal' 'data/*.db-shm' && ls -lh ~/va-veri-$(date +%Y%m%d).zip && cat data/PAKET.txt
 ```
 
-**Windows'ta** (uygulama kapalı, repo kökünde, tek PowerShell komutu). `$z` paketin indirildiği yer. Mevcut `data/` `data-yedek-<tarih>` adıyla saklanır, paket repo köküne açılır, `PAKET.txt`'deki commit `git log -1` ile karşılaştırılır.
+**Windows'ta** (uygulama kapalı, repo kökünde, tek PowerShell komutu). `$z` paketin indirildiği yer. Mevcut `data/` `data-yedek-<tarih>` adıyla saklanır, paket repo köküne açılır. `PAKET.txt`'deki kural sürümleri koddakilerle aynıysa veri geçerlidir; değilse uyarı çıkar ve kod ya da paket güncellenir. Commit farklıysa yalnız uyarı yazar.
 
 ```powershell
-$z = "$HOME\Downloads\va-veri-20261123.zip"; if (Test-Path data) { Rename-Item data ("data-yedek-" + (Get-Date -Format yyyyMMdd-HHmm)) }; Expand-Archive -Path $z -DestinationPath .; $p = (Select-String -Path data\PAKET.txt -Pattern '^commit: (\S+)').Matches[0].Groups[1].Value; $g = git log -1 --format=%H; if ($p -eq $g) { "Commit aynı: $g" } else { Write-Warning "Commit farklı: paket $p, depo $g (git pull ya da git checkout $p)" }
+$z = "$HOME\Downloads\va-veri-20261123.zip"; if (Test-Path data) { Rename-Item data ("data-yedek-" + (Get-Date -Format yyyyMMdd-HHmm)) }; Expand-Archive -Path $z -DestinationPath .; $paket = Get-Content data\PAKET.txt -Encoding UTF8; $ps = ($paket | Where-Object { $_ -like 'kural*' }) -replace '^[^:]+: ', ''; $ks = uv run --no-sync python -c "from visual_agent.ingest.formats import RULES_VERSIONS as r; print(', '.join(f'{k.value} {v}' for k, v in r.items()))"; if ($ps -eq $ks) { "Veri geçerli; kural sürümleri aynı: $ks" } else { Write-Warning "Veri geçersiz; kural sürümleri farklı. Paket: $ps / Kod: $ks" }; $pc = ($paket | Where-Object { $_ -like 'commit*' }) -replace '^[^:]+: ', ''; $g = git log -1 --format=%H; if ($pc -ne $g) { Write-Warning "Commit farklı (yalnız bilgi): paket $pc, depo $g" }
 ```
 
-Sonra uygulama açılır; belge ve parça sayısının `PAKET.txt` ile aynı olduğu, "Eski kural" belge olmadığı ve birkaç sorunun kaynağıyla döndüğü denetlenir. `data/models` ilk açılışta yeniden oluşur. Hedefin soru günlüğü kaynağınkiyle değişir. PowerShell komutu Windows'ta henüz denenmedi (Mac'te `pwsh` yok).
+Sonra uygulama açılır; belge ve parça sayısının `PAKET.txt` ile aynı olduğu, "Eski kural" belge olmadığı ve birkaç sorunun kaynağıyla döndüğü denetlenir. `data/models` ilk açılışta yeniden oluşur. Hedefin soru günlüğü kaynağınkiyle değişir. PowerShell komutu Windows'ta henüz denenmedi (Mac'te `pwsh` yok); ilk kullanımda çıktısı kontrol edilmeli.
