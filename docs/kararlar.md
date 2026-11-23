@@ -1,7 +1,7 @@
 # Karar kaydı
 
 Bugüne kadar alınmış önemli kararlar: ne, ne zaman, neden, hangi durumda yeniden düşünülür.
-Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0027) tam metni en
+Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0028) tam metni en
 sonda: [Karar belgeleri](#karar-belgeleri).
 
 **Kural:** Burada "çıkarıldı", "eklenmedi" ya da "reddedildi" yazan bir şeyi yeniden önermek
@@ -294,6 +294,9 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   sürüm artışları yeniden onay ister.
 
 ### OCR: OCRmyPDF, belge başına dil (ilk okuma tur+eng), iki okuma
+**Tarihsel kayıt.** Bu yol [0028](#karar-0028) ile kaldırıldı (OCRmyPDF, RapidOCR ve gömülü görsel
+okuması); taranmış sayfalar 0011'den beri sayfa okuyucusundan geçiyor.
+
 - **Ne zaman:**
   - Eski pilotta plan Docling ve Tesseract'tı (`docs/PLAN-OCR.md` §7). Yerine OCRmyPDF
     geldi (Ghostscript'siz, §9).
@@ -694,7 +697,8 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   adayda eşleşen parça taramadan okunduysa (sayfa okuyucusu) cevap yine verilir ama "kısmen
   doğrulandı" kalır, rozeti "Taramadan okundu" olur; önceden "doğrulandı" çıkıyordu
   (`ask/agreement.py`, 0022'nin kod incelemesinde bulundu). Dijital adayla eşleşen cevap
-  "doğrulandı" kalır; eski OCR yolundan okunan aday eşleşme sayılmaz (0022). Alıntıdaki
+  "doğrulandı" kalır; eski OCR yolundan okunan aday eşleşme sayılmazdı (0022; yol 0028 ile
+  kaldırıldı). Alıntıdaki
   değeri taranmış adayda belirsiz okunmuşsa o aday da eşleşme sayılmaz, netleştirme kalır (tek
   belgede cümle gizlenirdi; kod incelemesinde bulundu, bu dalda kapatıldı). İlk aday
   taranmışsa eskisi gibi netleştirme sorulur (ilk adayın cevabı tam doğrulanmış olmalı).
@@ -1639,7 +1643,7 @@ Tarih: 2026-11-19. Ürün sahibi kararı.
 <a id="karar-0018"></a>
 
 ### 0018: Eski OCR yolu (ocrmypdf, RapidOCR) kalıyor
-Tarih: 2026-11-19. Ürün sahibi kararı.
+Tarih: 2026-11-19. Ürün sahibi kararı. **Tersine döndü: [0028](#karar-0028).**
 
 **Ne.** Görünür ama zayıf metin katmanlı sayfalar ve büyük görselli dijital sayfalar (`WEAK`, `SCANNED`) ocrmypdf ile, dijital sayfalardaki gömülü görseller RapidOCR ve Tesseract ile okunmaya devam eder; bu yol silinmez.
 
@@ -1721,6 +1725,8 @@ Tarih: 2026-11-21. Ürün sahibi kararı. Dal: `ocr-belirsiz-komsu-hucre` (`7b9b
 **Yeniden düşünülür.** İkinci okuma serbest metinli hücrelerdeki boşluk ve ayraç hatalarını da işaretler hâle gelirse, ya da kural yalnız kısa sayısal hücrelerle sınırlanıp o hücrelerde ayrı ve daha büyük bir görüntü denetimi temiz çıkarsa. İkisi de set B ölçümü ister.
 
 ### 0022: Eski OCR yolunun (gömülü görsel) set A ölçümü; eşikler ölçümden önce belirlendi
+**Tarihsel kayıt:** yol [0028](#karar-0028) ile kaldırıldı; `legacy_ocr` işareti ve `evals/run_embedded_images.py` silindi (koşucu git geçmişinde).
+
 Tarih: 2026-11-21. Ürün sahibi kararı. Dal: `eski-yol-olcumu`. Araç: `evals/run_embedded_images.py`. **Bu kayıt sonuçtan önce yazıldı; sonuç ve karar en altta (2026-11-21).**
 
 **Neden.** Eski OCR yolunun (karar 0018) bugünkü doğruluğu ölçülmemiş. 0010'daki "mevcut hat" sayıları (3.121 değerin 788'i yanlış) `c79e4ce`'deki koda ait: o hat taranmış sayfayı ocrmypdf ile okuyor, tablo hücrelerini bulut modeliyle yeniden okuyordu. O günden beri hücre okuyucu ve ızgara okuma silindi (0013), ikinci okuma sayımla karşılaştırılıyor, ortak tablo korumaları eklendi. Pilotta gömülü görseller bu yoldan geçecek.
@@ -1828,7 +1834,7 @@ Tarih: 2026-11-22. Ürün sahibi kararı.
 
 **Karar.**
 - llama.cpp işlemci yolu bırakıldı: Windows'ta okumayı hızlandırması beklenmiyor.
-- Eski OCR yolu (ocrmypdf, RapidOCR) kalıyor ([0018](#karar-0018)). Kaldırılması, sunucu ya da ekran kartı kararına kadar kapandı.
+- Eski OCR yolu (ocrmypdf, RapidOCR) kalıyor ([0018](#karar-0018)). Kaldırılması, sunucu ya da ekran kartı kararına kadar kapandı. **Bu madde tersine döndü: [0028](#karar-0028).**
 - Taranmış belgeler [0015](#karar-0015)'e göre Mac'te işlenir, veri taşınır.
 - Okuyucuya verilen görüntü şimdilik küçültülmez (set B'de denenecekler listesinde kalır, 0010).
 - İndirilen model dosyaları (`data/models/paddleocr-vl-gguf/`) ve Homebrew'deki llama.cpp (ve yalnız onun için kurulan ggml, libomp, openssl@4) 22 Kasım'da silindi.
@@ -1887,3 +1893,30 @@ Tarih: 2026-11-23. Ürün sahibi kararı.
 
 **Set B görülmüş sayılır.** Sonuçlarına bakıldı; bundan sonra set B'ye bakılarak OCR ayarı yapılmaz. Okuma katmanında yeni bir tasarım ölçülecekse yeni tohumla set C üretilir ya da gerçek taramalar kullanılır.
 
+<a id="karar-0028"></a>
+
+### 0028: Eski OCR yolu kaldırıldı; 0018 ve 0024 tersine döndü
+Tarih: 2026-11-23. Ürün sahibi kararı. Dal: `eski-ocr-yolu-kaldir`.
+
+**Neden.** Eski yoldan okunan değerler 0022'den beri doğrulanmış gösterilmiyordu (set A benzetiminde alt sınır 172 yanlış gösterilen). Bugünkü veride yolun ürettiği 2 parça vardı (`sql-ekran`, ikisi de gizli); yol ≈ 1.000 satır kod, test ve ölçüm aracı ile 7 paket taşıyordu.
+
+**Ne değişti.**
+- Zayıf ya da taranmış metin katmanlı sayfa (`WEAK`, `SCANNED`) metin katmanı olmayan sayfa gibi sayfa okuyucusuna gider. Okuyucu yoksa belge bekler (0011). Bedeli: büyük görselli dijital sayfanın (sayfanın en az yarısını kaplayan görsel) görünür metni de okuyucudan okunur; Windows'ta sayfa başına dakikalar (0015) ve cevap "Kısmen doğrulandı" olur. Bugünkü veride böyle sayfa 0.
+- Metinli sayfadaki gömülü görseller okunmaz; görselli belgenin raporunda bir uyarı çıkar: "Bu belgedeki görsellerin içeriği aranmaz." Küçük görsel eşiği (50 pt, %2) kalktı: her boyuttaki görsel için tek uyarı.
+- Silinen: ocrmypdf çağrısı ve katman seçimi (`junk_score`), RapidOCR + iki Tesseract kipli gömülü görsel okuması (`images.py`, `two_reading.py`), `legacy_ocr` işareti ve doğrulayıcı kuralı (0022), okuyucu öğesindeki `ocr_checked`, Tesseract dil eşlemesi (`tesseract_language`; okuyucunun ikinci okuması her zaman `tur+eng`), `evals/run_embedded_images.py`. `count_mismatches` dondurulmuş kopyadaki gibi iki okumayı karşılaştırır (çok kipli karşılaştırma yalnız gömülü görsel içindi).
+- Paketler: `ocrmypdf`, `pikepdf` doğrudan bağımlılıklardan, `onnxruntime` ve `rapidocr` `ingest` listesinden çıktı. Kilitten düşenler: ocrmypdf, pikepdf, img2pdf, fpdf2, pdfminer-six, uharfbuzz, fonttools (7). `rapidocr` ve `onnxruntime` kilitte kalıyor: rapidocr Docling'in kendi bağımlılığı (Docling'de OCR kapalı, kullanılmıyor), onnxruntime fastembed'in. OpenCV yaması bu yüzden kalıyor. Tesseract kalır (okuyucunun ikinci okuması).
+- Kural sürümü PDF ve Office 24 (23→24 yalnız metinli, zayıf ya da taranmış katmanlı sayfası olan belgeyi eskitir).
+
+**Mac verisi.** "Eski kural" olan 9 belge (dikim-pdf, dikim-rev-a, dikim-rev-b, dikim-word, ik-ihbar, ik-izin, sql-ekran, sql-kilavuz, sql-notlar) uygulamada yeniden işlendi: 27 sn, okuyucusuz, bulutsuz. Yalnız `sql-ekran` değişti (3 → 1 parça; görseldeki iki kolon satırı gitti, uyarı eklendi); öteki 8 belgenin parçaları `legacy_ocr` alanı dışında bayt bayt aynı. Taranmış 19 belge (2.580 parça) eskimedi, dokunulmadı, parçaları aynı. 394 belge, 6.293 parça.
+
+**Kaybolan.** `sql-ekran`'ın kolon sözlüğü görseli (SIPARIS_KALEM: MUSTERI_KODU 19, DEPO_KODU 59) aranmıyor. Sınır setinde A5 ve B7, taban setlerinde `sql-ekran-uzunluk` artık "bulunamadı" döner (sorudaki `SIPARIS_KALEM` hiçbir parçada geçmiyor; modele gidilmez); önceden cevap gizlenip kaynak görüntüsü veriliyordu. Bu üç sorunun beklentisi "bulunamadı"dır (ürün sahibi kararı); set dosyaları değiştirilmedi.
+
+**Ölçüm (Mac, `evals/output/eski-ocr-kaldir-2026-11-23`).** 23 Kasım önbelleği ve çalışma klasörleri kopyalandı; yalnız kural sürümü eskiyen belgeler yeni kodla yeniden işlendi (uygulamanın yaptığı gibi; taranmışlar okuyucu çalıştırılmadan aynen kaldı). Taban 7 ve 11'de yalnız `sql-ekran` değişti. Önbellekten olmayan sorular (kaynak listesi değiştiği için istem değişti) bir kez canlı soruldu (taban 7: 3, taban 11: 5 soru; ≈ 0,0004 $).
+- `sql-ekran-uzunluk`: gizli → "bulunamadı" (iki sette).
+- `sql-zaman-asimi`, `sql-yok`, `ik-ihbar-suresi`, `ik-yok`: yine geçti.
+- **`sql-netlestir` ("MUSTERI_KODU kolonunun uzunluğu kaç?"): netleştirme → doğrulanmış cevap "MUSTERI_KODU kolonunun uzunluğu 66." (taban 11'de 67), kaynak `sql-sozluk` (FATURA_BASLIK).** Netleştirmenin öbür adayı (19) yalnız görseldeydi. Değer kendi tablosu için doğru, ama soru iki tabloya ait ve puanlayıcı bunu doğrulanmış yanlış sayar (0004). Taban 7 ve 11: doğrulanmış yanlış 0 → 1. **Karar bekliyor** (aşağıda).
+- FastReact: yalnız Markdown; parçalar ve 18 cevap aynı.
+
+**Karar bekliyor.** Görselin içeriği aranmayınca, değeri yalnız görselde olan aday netleştirmeden düşer ve kalan tek adayın değeri doğrulanmış gösterilir. Seçenekler ürün sahibinindir (bu kayıt sonucu yazar, seçim yapmaz).
+
+**Yeniden düşünülür.** Ekran kartlı bir makine ya da sunucu gelirse gömülü görseller sayfa okuyucusuna gönderilir (kırpılmış görselle okuma yeni kod ister).

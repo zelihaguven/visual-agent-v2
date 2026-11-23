@@ -1,11 +1,9 @@
-import os
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
-from visual_agent.domain.document import UNDETECTED_LANGUAGE
 from visual_agent.ingest.external import (
     SOFFICE_MISSING,
     TESSERACT_MISSING,
@@ -15,7 +13,6 @@ from visual_agent.ingest.external import (
     find_tool,
     list_tesseract_languages,
     locate_tools,
-    tesseract_language,
 )
 
 INSTALLED = {"soffice": "/opt/lo/soffice", "tesseract": "/opt/tess/tesseract"}
@@ -125,17 +122,6 @@ def test_ocr_fails_with_a_clear_message_without_tesseract_or_language() -> None:
     )
 
 
-def test_tesseract_folder_is_put_first_on_the_ocr_path() -> None:
-    tools = ExternalTools(None, str(Path("/opt/tess/tesseract")), frozenset({"tur"}))
-
-    environment = tools.subprocess_environment({"PATH": "/usr/bin", "LANG": "tr"})
-
-    assert environment["PATH"] == str(Path("/opt/tess")) + os.pathsep + "/usr/bin"
-    assert environment["LANG"] == "tr"
-    assert ExternalTools(None, None).subprocess_environment({"PATH": "/x"}) == {"PATH": "/x"}
-    assert tools.subprocess_environment({})["PATH"] == str(Path("/opt/tess"))
-
-
 def test_language_list_is_read_from_tesseract(monkeypatch: pytest.MonkeyPatch) -> None:
     def fake_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:
         output = b'List of available languages in "C:/tessdata/" (3):\r\neng\r\nosd\r\ntur\r\n'
@@ -148,13 +134,6 @@ def test_language_list_is_read_from_tesseract(monkeypatch: pytest.MonkeyPatch) -
 
 def test_unrunnable_tesseract_has_no_languages() -> None:
     assert list_tesseract_languages(str(Path(sys.executable).parent / "yok.exe")) == frozenset()
-
-
-def test_first_ocr_reads_turkish_and_english_together() -> None:
-    assert tesseract_language(UNDETECTED_LANGUAGE) == "tur+eng"
-    assert tesseract_language("tr") == "tur"
-    assert tesseract_language("en") == "eng"
-    assert tesseract_language("xx") == "eng"
 
 
 def test_combined_ocr_language_needs_every_part() -> None:

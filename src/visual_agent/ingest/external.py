@@ -4,28 +4,16 @@ Araç PATH'ten ya da ayarla verilen yoldan bulunur. Eksik araç yalnız ona ihti
 belgeyi anlaşılır bir mesajla durdurur; diğer belgeler işlenmeye devam eder.
 """
 
-import os
 import shutil
 import subprocess
 import tempfile
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-
-from visual_agent.domain.document import UNDETECTED_LANGUAGE
 
 _LIST_LANGUAGES_TIMEOUT_SECONDS = 30
 _CONVERT_TIMEOUT_SECONDS = 180
 _EXPECTED_LANGUAGES = {"tur": "Türkçe", "eng": "İngilizce"}
-_TESSERACT_LANGUAGES = {
-    UNDETECTED_LANGUAGE: "tur+eng",
-    "tr": "tur",
-    "en": "eng",
-    "fr": "fra",
-    "es": "spa",
-    "de": "deu",
-}
-_FALLBACK_TESSERACT_LANGUAGE = "eng"
 
 
 def tesseract_text(
@@ -41,16 +29,6 @@ def tesseract_text(
     return completed.stdout.decode("utf-8", errors="replace").replace("\r\n", "\n")
 
 
-def tesseract_language(language: str) -> str:
-    """Belge dilinin Tesseract karşılığı.
-
-    Dil henüz bilinmiyorsa (ilk yükleme) Türkçe ve İngilizce birlikte okunur: 8 okumalık
-    ölçümde tek başına Türkçe, İngilizce sayfada bir değeri değiştirdi, birlikte okuma
-    değiştirmedi (docs/kararlar.md, OCR).
-    """
-    return _TESSERACT_LANGUAGES.get(language, _FALLBACK_TESSERACT_LANGUAGE)
-
-
 Which = Callable[[str], str | None]
 ListLanguages = Callable[[str], frozenset[str]]
 
@@ -59,7 +37,7 @@ SOFFICE_MISSING = (
     " işlenemiyor."
 )
 TESSERACT_MISSING = (
-    "Tesseract kurulu değil; taranmış sayfa, fotoğraf ya da görsel içeren belgeler işlenemiyor."
+    "Tesseract kurulu değil; taranmış sayfa ya da fotoğraf içeren belgeler işlenemiyor."
 )
 
 
@@ -146,15 +124,6 @@ class ExternalTools:
         if missing:
             raise MissingTool(f"Tesseract'ta '{missing[0]}' dil verisi yok; bu belge okunamıyor.")
         return self.tesseract
-
-    def subprocess_environment(self, base: Mapping[str, str] | None = None) -> dict[str, str]:
-        """OCRmyPDF Tesseract'ı PATH'te arar; bulunan Tesseract'ın klasörü öne eklenir."""
-        environment = dict(os.environ if base is None else base)
-        if self.tesseract is not None:
-            folder = str(Path(self.tesseract).parent)
-            current = environment.get("PATH", "")
-            environment["PATH"] = folder + os.pathsep + current if current else folder
-        return environment
 
     def problems(self) -> list[str]:
         """Açılışta gösterilecek, eksik araçları ve ne yapılacağını anlatan mesajlar."""
