@@ -30,6 +30,8 @@ type Props = {
   onAskAgain: (question: string, docIds: string[] | null, allDocuments?: boolean) => void;
   /** Bir soru sürerken yeniden sorma düğmeleri kilitlenir; eski turlardakiler dahil. */
   isBusy?: boolean;
+  /** Yalnız son tur ekran okuyucuya duyurulur; eski turlar sessizdir. */
+  isLatest?: boolean;
 };
 
 function MaskedText({ text }: { text: string }) {
@@ -224,7 +226,7 @@ export function TurnView(props: Props) {
     <article className="turn">
       <h2 className="question">{turn.question}</h2>
       {isRephrased(turn) && <p className="resolved">Anlaşılan soru: {turn.resolvedQuestion}</p>}
-      <div className="answer" aria-live="polite">
+      <div className="answer" aria-live={props.isLatest ? "polite" : undefined}>
         {turn.stage !== null && (
           <p className="stage">{STAGE_LABELS[turn.stage] ?? "Hazırlanıyor"}</p>
         )}
