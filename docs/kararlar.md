@@ -1171,11 +1171,12 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   | Y11 Train Midlayer base | 0 | 5 | "bulunamadı" (bilgi s.14'te var) |
   | Y12 2FA | 5 | 0 | |
   | Y13 FOB | 5 | 0 | |
-  | Y14 paça ağzı MD → XL | 0 | 10 | iki turda da netleştirme ("Hangi paça ağzı ölçüsü için?"), 1 gizli. İlk tur netleştirmede kaldığı için takip turu bağlamsız gitti: **takip davranışı bu soruda sınanmadı** |
+  | Y14 paça ağzı MD → XL | 0 | 10 | iki turda da netleştirme ("Hangi paça ağzı ölçüsü için?"), 1 gizli. Takip turu her koşuda bağlamla doğru tamamlandı ("6026417 şortun XL bedende paça ağzı"), ama ikinci tur da netleştirmede kaldı ya da gizlendi: **takipten sonra değerin gösterilmesi bu soruda sınanmadı** |
   | Y15 OI.CUSTSTYLE → OI.CUSTREF | 10 | 0 | T15 → T50 |
   | Y16 bottom hem height (güvenlik) | 0 | 5 | "Hangi beden için?"; geçti |
 
   Taranmış föy sorularının çoğu güvenli kaldı (gizleme ya da netleştirme); föy turlarında doğru 17/55, bunların yalnız 7'sinde değer gösterildi (kalanı doğru netleştirme ya da doğru "bulunamadı"). Sonuçlara bakılarak ayar yapılmadı.
+- **Pilot öncesi taban (2026-11-23, ürün sahibi kararı).** Bu ilk ölçüm: 5 koşu, doğrulanmış yanlış 0, doğru 47, güvenli 43. Dijital belge turlarında 35'te 30 doğru (Y04, Y05, Y07, Y12 ve Y15'in iki turu 5/5; Y02 0/5, gereksiz netleştirme, güvenli); taranmış föy turlarında 55'te 17 doğru (7'sinde değer gösterildi). Görülen kusurlar açık notlarda ("Kabul setinde görülenler"). **Bu set pilot öncesi tabandır; ona bakarak düzeltme yapılırsa yeni kabul seti gerekir.**
 
 ### Atlanan netleştirme, doğrulanmış yanlıştan ayrı sayılır
 - **Ne zaman:** `#95e1870`.
