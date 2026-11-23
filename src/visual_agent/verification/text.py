@@ -158,6 +158,11 @@ _QUOTE_MARKS = str.maketrans({mark: '"' for mark in "'‘’‚‛“”„‟«
 _MARKDOWN = MarkdownIt("zero").enable(["emphasis", "backticks", "escape"])
 _INTRAWORD_STARS_RE = re.compile(r"(?<=[^\W_])\*+(?=[^\W_])")
 _UNESCAPED_UNDERSCORE_RE = re.compile(r"(?<!\\)_")
+_CODE_SPAN_RE = re.compile(r"(?<![`\\])(`+)(?!`).*?(?<!`)\1(?!`)", re.DOTALL)
+"""Satır içi kod: aynı uzunlukta iki ters tırnak dizisinin arası. Önünde ters bölü olan diziyle
+aralık başlamaz (kaçışlı ters tırnak düz harftir; "\\\\`" de sayılmaz). Bilinen uyuşmazlıkta
+ayrıştırıcı kod görüp bu desen görmezse içerik kaçışlanır: sonuç haksız ret olur, yanlış kabul
+değil."""
 _PLAIN_TOKENS = {"text", "text_special", "code_inline"}
 
 
@@ -173,10 +178,19 @@ def quote_form(text: str) -> str:
     return normalize(_CELL_SEPARATOR_RE.sub(" | ", text.translate(_QUOTE_MARKS)))
 
 
-def _escape_content_marks(text: str) -> str:
-    """Biçim bilinmediği için kelime içindeki yıldız (2*3, x**2) ve alt çizgi içerik sayılır."""
+def _escape_marks(text: str) -> str:
     stars = _INTRAWORD_STARS_RE.sub(lambda match: "\\*" * len(match.group()), text)
     return _UNESCAPED_UNDERSCORE_RE.sub(r"\\_", stars)
+
+
+def _escape_content_marks(text: str) -> str:
+    """Biçim bilinmediği için kelime içindeki yıldız (2*3, x**2) ve alt çizgi içerik sayılır.
+    Satır içi kodun içi kaçışlanmaz: orada ters bölü harfiyen kalır (`my_var` "my\\_var" olurdu)."""
+    pieces, last = [], 0
+    for span in _CODE_SPAN_RE.finditer(text):
+        pieces += [_escape_marks(text[last : span.start()]), span.group()]
+        last = span.end()
+    return "".join([*pieces, _escape_marks(text[last:])])
 
 
 def markdown_plain_form(text: str) -> str:
