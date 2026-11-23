@@ -80,7 +80,6 @@ class PromptSource(_Frozen):
     is_table_row: bool = False
     """Tablo satırı tek bir ölçüye aittir; satırdaki kod o satırın değerini tanımlar."""
     from_ocr: bool = False
-    legacy_ocr: bool = False
     language: str = ""
     """Belgenin katalogdaki dili; kaynaktaki yazıyla sayılar bu dile göre okunur."""
     title: str = ""

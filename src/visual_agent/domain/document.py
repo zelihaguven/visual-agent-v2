@@ -58,8 +58,6 @@ class Chunk(FrozenModel):
     location: SourceLocation
     ocr_uncertain: tuple[str, ...] = ()
     from_ocr: bool = False
-    legacy_ocr: bool = False
-    """Eski OCR yolundan okundu (gömülü görsel, ocrmypdf); doğrulanmış gösterilmez (0022)."""
     table_note: str = ""
     """Tablo satırının bağlı olduğu tablo notu ve bölüm etiketi (bölüm adında da geçer)."""
 

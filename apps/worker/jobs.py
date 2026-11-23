@@ -97,8 +97,7 @@ class DocumentProcessor:
 
     async def _process(self, document: StoredDocument) -> None:
         source = Path(document.stored_path)
-        # OCR dili kayıtlı dile bağlı değil: yeniden işleme de ilk yükleme gibi tur+eng okur.
-        # Belgenin dili yine parçalardan belirlenir (aşağıda document_language).
+        # Belgenin dili yeniden işlemede de parçalardan belirlenir (aşağıda document_language).
         meta = DocumentMeta(
             doc_id=document.doc_id,
             title=document.title,

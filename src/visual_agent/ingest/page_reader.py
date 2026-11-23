@@ -155,15 +155,10 @@ def value_tokens(text: str) -> list[str]:
     return tokens
 
 
-def count_mismatches(primary: str, second: str, *more: str) -> list[str]:
+def count_mismatches(primary: str, second: str) -> list[str]:
     """Birinci okumanın sayı ve kod parçalarından, iki okumada geçiş sayısı farklı olanlar.
-    İkinci okuma birden çok kipte yapıldıysa her parça, kiplerin en çok okuduğu sayıyla
-    karşılaştırılır; kiplerin metni art arda eklenmez (iki kipin de okuduğu değer çift sayılırdı).
-    Bilinen zayıflıklar: aynı bloktaki iki hata birbirini dengelerse sayılar tutar ve geçer; eksik
-    okuyan kip onayı engellemez (birinci okumayla aynı hatayı yapan başka bir kip varsa geçer)."""
-    first, other = Counter(value_tokens(primary)), Counter[str]()
-    for reading in (second, *more):
-        other |= Counter(value_tokens(reading))
+    Bilinen zayıflık: aynı bloktaki iki hata birbirini dengelerse sayılar tutar ve geçer."""
+    first, other = Counter(value_tokens(primary)), Counter(value_tokens(second))
     return sorted(token for token, count in first.items() if other[token] != count)
 
 
@@ -294,7 +289,6 @@ def _table_elements(
             from_ocr=True,
             # Bölüm etiketi ve tablo notu satırın bağlamına girer; değerleri de satıra bağlanır.
             ocr_uncertain=_uncertain(f"{row.text} {row.context}", tokens),
-            ocr_checked=True,
             context=row.context,
         )
         for row in group_table_rows(cells, infer_header=False)
@@ -343,7 +337,6 @@ def page_elements(
             location,
             from_ocr=True,
             ocr_uncertain=_uncertain(text, tokens),
-            ocr_checked=True,
         )
         elements.append(element)
         # Değer taşıyan başlık metin olarak da kalır (docling yolundaki kural).
@@ -523,8 +516,9 @@ def read_scanned_pages(
     second: SecondReader,
     source_image: Path | None = None,
 ) -> list[Element]:
-    """Metin katmanı olmayan sayfaları okur. Okuyucu yoksa ya da ulaşılamıyorsa
-    `ReaderUnavailable`: sayfa başka yoldan okunmaz, belge okuyucuyu bekler.
+    """Metin katmanı olmayan, zayıf ya da taranmış metin katmanlı sayfaları okur (0011, 0028).
+    Okuyucu yoksa ya da ulaşılamıyorsa `ReaderUnavailable`: sayfa başka yoldan okunmaz, belge
+    okuyucuyu bekler.
 
     source_image: belge bir görsel dosyasıysa (jpg, png) dosyanın kendisi. Okuyucuya PDF'e
     çevrilmiş kopyası değil, kendi pikselleri verilir (yalnız çekim yönü düzeltilir)."""

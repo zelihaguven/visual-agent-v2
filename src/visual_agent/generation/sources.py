@@ -24,7 +24,6 @@ def to_prompt_sources(
             is_code=hit.chunk.kind is ChunkKind.CODE,
             is_table_row=hit.chunk.kind is ChunkKind.TABLE_ROW,
             from_ocr=hit.chunk.from_ocr,
-            legacy_ocr=hit.chunk.legacy_ocr,
             language=language_of(hit.chunk.doc_id),
             title=hit.chunk.title,
         )

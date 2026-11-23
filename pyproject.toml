@@ -25,11 +25,7 @@ retrieval = [
 ingest = [
     "docling>=2.137",
     "numpy>=1.26",
-    "ocrmypdf>=16.10",
     "openpyxl>=3.1.5",
-    "pikepdf>=9.0",
-    "rapidocr>=3.4",
-    "onnxruntime>=1.20",
     "torch>=2.5",
     "torchvision>=0.20",
     "paddleocr[doc-parser]>=3.3",
@@ -37,8 +33,9 @@ ingest = [
 ]
 
 [tool.uv]
-# Tek OpenCV: paddleocr `opencv-contrib-python` ister, rapidocr `opencv-python-headless`; ikisi
-# aynı `cv2` klasörüne yazar, kalan sürüm kurulum sırasına bağlı kalırdı. contrib öbürünü kapsar.
+# Tek OpenCV: paddleocr `opencv-contrib-python` ister, docling'in kurduğu rapidocr (biz
+# kullanmıyoruz; Docling'de OCR kapalı) `opencv-python-headless`; ikisi aynı `cv2` klasörüne
+# yazar, kalan sürüm kurulum sırasına bağlı kalırdı. contrib öbürünü kapsar.
 override-dependencies = ["opencv-python-headless ; sys_platform == 'never'"]
 required-environments = [
     "sys_platform == 'darwin' and platform_machine == 'arm64'",
@@ -107,5 +104,5 @@ explicit_package_bases = true
 mypy_path = ["src", "."]
 
 [[tool.mypy.overrides]]
-module = ["fastembed.*", "paddleocr.*", "sentence_transformers.*", "huggingface_hub.*", "docling.*", "numpy.*", "docx.*", "openpyxl.*", "pikepdf.*", "pypdfium2.*", "rapidocr.*", "reportlab.*"]
+module = ["fastembed.*", "paddleocr.*", "sentence_transformers.*", "huggingface_hub.*", "docling.*", "numpy.*", "docx.*", "openpyxl.*", "pypdfium2.*", "reportlab.*"]
 ignore_missing_imports = true

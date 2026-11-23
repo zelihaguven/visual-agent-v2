@@ -88,12 +88,27 @@ def test_copied_counting_gives_the_same_marks_as_the_measured_code(result: Path)
     assert copied, "sahte okuma en az bir bloğu işaretlemeli"
 
 
-def test_several_second_readings_compare_with_the_highest_count() -> None:
-    """Gömülü görselin iki Tesseract kipi art arda eklenmez: iki kipin de okuduğu değer çift
-    sayılmaz. Tek okumalı okuyucu yolu bundan etkilenmez."""
-    assert page_reader.count_mismatches("VARCHAR 19 VARCHAR 59", "VARCHAR VARCHAR", "19 59") == []
-    assert page_reader.count_mismatches("12 12", "12", "12") == ["12"]  # hiçbir kip ikisini okumadı
-    assert page_reader.count_mismatches("12", "12 12", "12") == ["12"]  # bir kip fazla okudu
+@pytest.mark.parametrize(
+    ("primary", "second", "expected"),
+    [
+        ("İç paça 77.0", "İç paça 77,0", ["77.0"]),  # virgül ve nokta farklı okumadır (0008)
+        ("Ölçü 812", "Ölçü B12", ["812"]),  # harf-rakam eşdeğerliği yok
+        ("Beden XS-AXL", "Beden XS-4XL", ["XS-AXL"]),  # rakamsız kod da karşılaştırılır
+        ("Tolerans 10", "Tolerans 1,0 ölçü 104,5", ["10"]),  # başka sayının parçası onaylamaz
+        ("Uzunluk 59", "Uzunluk | 59|", []),  # tablo çizgisi değeri belirsiz yapmaz
+        ("12", "12 12", ["12"]),  # geçiş sayısı da tutmalı
+        ("Değer 112 cm", "Değer /12 cm", ["112"]),  # eğik çizgi "1" sayılmaz
+        ("Kol 318 ölçü", "Kol 3/8 ölçü", ["318"]),  # kesir çizgisi "1" okuması değildir
+        ("Tolerans ±1/2", "Tolerans +1/2", ["±1/2"]),
+        ("40lbs yük", "40 lbs yük", ["40lbs"]),  # farklı bölünen parça da uyuşmaz
+        ("43-3/8 ölçü", "43.3/8 ölçü", ["43-3/8"]),
+    ],
+)
+def test_second_reading_confirms_a_value_only_with_the_same_token(
+    primary: str, second: str, expected: list[str]
+) -> None:
+    assert page_reader.count_mismatches(primary, second) == expected
+    assert ocr_score.count_mismatches(primary, second) == expected  # dondurulmuş kopyayla aynı
 
 
 @pytest.mark.parametrize("result", RESULTS, ids=lambda path: f"{path.parent.name}/{path.stem}")
@@ -152,8 +167,7 @@ def test_table_rows_carry_headers_boxes_and_only_their_own_uncertain_values() ->
     assert rows[0].text == "Kod: BL010 | S: 27 1/2 | M: 28"
     assert rows[1].text == "Kod: BL020 | S: 14 7/8 | M: 15"
     assert (rows[0].ocr_uncertain, rows[1].ocr_uncertain) == ((), ("7/8",))
-    assert all(row.from_ocr and row.ocr_checked for row in rows)
-    assert not any(row.legacy_ocr for row in rows)
+    assert all(row.from_ocr for row in rows)
     box = rows[0].location.boxes[0]
     assert (box.page, box.left, box.top, box.right, box.bottom) == (2, 50.0, 100.0, 250.0, 200.0)
 

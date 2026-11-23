@@ -2,7 +2,7 @@
 
 import re
 from collections import Counter
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -18,7 +18,6 @@ from visual_agent.ingest.formats import (
 from visual_agent.ingest.plain_text import parse_plain_text
 from visual_agent.ingest.spreadsheet import parse_workbook
 from visual_agent.ingest.text_layer import PageKind
-from visual_agent.verification.text import contains_token
 
 _MIN_CAPTURED_TEXT_RATIO = 0.5
 _SQL_STATEMENT = (
@@ -27,6 +26,8 @@ _SQL_STATEMENT = (
 )
 _SQL_KEYWORDS_RE = re.compile(_SQL_STATEMENT, re.DOTALL)
 _SQL_ANY_CASE_RE = re.compile(_SQL_STATEMENT, re.DOTALL | re.IGNORECASE)
+IMAGES_NOT_SEARCHED = "Bu belgedeki görsellerin içeriği aranmaz."
+"""Metinli sayfadaki gömülü görseller okunmaz (karar 0028)."""
 
 
 @dataclass(frozen=True)
@@ -38,25 +39,17 @@ class PageInfo:
 
 
 @dataclass(frozen=True)
-class OcrOutcome:
-    pdf_path: Path
-    ocr_pages: Mapping[int, tuple[str, ...]]
-
-
-@dataclass(frozen=True)
 class IngestTools:
     office_to_pdf: Callable[[Path, Path], Path]
     legacy_spreadsheet_to_xlsx: Callable[[Path, Path], Path]
     image_to_pdf: Callable[[Path, Path], Path]
     inspect_pdf: Callable[[Path], list[PageInfo]]
     read_scanned_pages: Callable[[Path, list[int], Path, Path | None], list[Element]]
-    """Metin katmanı olmayan sayfalar (karar 0011). Son değer: belge bir görsel dosyasıysa
-    dosyanın kendisi (doğrudan okunur). Okuyucu yoksa `ReaderUnavailable`."""
-    run_ocr: Callable[[Path, list[PageInfo], str, Path], OcrOutcome]
+    """Metin katmanı olmayan, zayıf ya da taranmış metin katmanlı sayfalar (karar 0011, 0028).
+    Son değer: belge bir görsel dosyasıysa dosyanın kendisi (doğrudan okunur). Okuyucu yoksa
+    `ReaderUnavailable`."""
     parse_pdf: Callable[[Path], list[Element]]
-    read_embedded_images: Callable[[Path, list[PageInfo], str], list[Element]]
     recover_page_text: Callable[[Path, int], list[Element]]
-    skipped_image_warnings: Callable[[list[PageInfo]], list[str]]
 
 
 class IngestReport(FrozenModel):
@@ -76,54 +69,6 @@ class IngestResult:
     chunks: tuple[Chunk, ...]
     report: IngestReport
     display_pdf: Path | None
-
-
-def _top(element: Element) -> float | None:
-    boxes = element.location.boxes
-    return boxes[0].top if boxes else None
-
-
-def with_images_in_place(elements: Sequence[Element], images: Sequence[Element]) -> list[Element]:
-    """Gömülü görselin öğesi, sayfasında kendisinden aşağıda başlayan ilk öğenin önüne girer.
-    Sona eklenince sayfanın son başlığının bölümüne düşüyordu: iki ürünlü sayfada görseldeki
-    tablo öteki ürünün bölüm adını alabilirdi. Öbür öğelerin sırası (okuma sırası) değişmez."""
-    placed = list(elements)
-    for image in images:
-        page, top = image.location.page or 0, _top(image)
-        index = next(
-            (
-                position
-                for position, element in enumerate(placed)
-                if (element.location.page or 0) > page
-                or (
-                    (element.location.page or 0) == page
-                    and top is not None
-                    and (element_top := _top(element)) is not None
-                    and element_top > top
-                )
-            ),
-            len(placed),
-        )
-        placed.insert(index, image)
-    return placed
-
-
-def annotate_ocr_pages(
-    elements: Sequence[Element], ocr_pages: Mapping[int, tuple[str, ...]]
-) -> list[Element]:
-    """Eski OCR yolundan (ocrmypdf) gelen sayfaların öğelerini işaretler, belirsiz değerleri
-    bağlar. Okuyucu yolunun öğeleri kendi denetiminden geçmiştir, işaretlenmez."""
-    annotated = []
-    for element in elements:
-        page = element.location.page
-        if page is None or page not in ocr_pages or element.ocr_checked:
-            annotated.append(element)
-            continue
-        # Satırın bağlamı (bölüm etiketi, tablo notu) da cümleye kod olarak girebilir.
-        text = f"{element.text} {element.context}"
-        uncertain = tuple(t for t in ocr_pages[page] if contains_token(text, t))
-        annotated.append(replace(element, from_ocr=True, legacy_ocr=True, ocr_uncertain=uncertain))
-    return annotated
 
 
 def _looks_like_sql(text: str) -> bool:
@@ -156,40 +101,27 @@ def pages_missing_text(elements: Sequence[Element], pages: Sequence[PageInfo]) -
 
 
 def _elements_from_pdf(
-    pdf_path: Path, meta: DocumentMeta, tools: IngestTools, work: Path, image: Path | None = None
-) -> tuple[list[Element], list[PageInfo], OcrOutcome]:
+    pdf_path: Path, tools: IngestTools, work: Path, image: Path | None = None
+) -> tuple[list[Element], list[PageInfo], list[int]]:
     pages = tools.inspect_pdf(pdf_path)
-    # Metin katmanı olmayan sayfalar yalnız sayfa okuyucusundan geçer; eski OCR yolu onlara
-    # uygulanmaz. Okuyucu yoksa belge hiç indekslenmez (ReaderUnavailable yükselir).
-    scanned = [page.page for page in pages if page.kind is PageKind.NONE]
+    # Metin katmanı olmayan, zayıf ya da taranmış metin katmanlı sayfalar yalnız sayfa
+    # okuyucusundan geçer (karar 0028). Okuyucu yoksa belge hiç indekslenmez
+    # (ReaderUnavailable yükselir).
+    scanned = [page.page for page in pages if page.kind is not PageKind.TEXT]
     read = tools.read_scanned_pages(pdf_path, scanned, work, image) if scanned else []
-    layered = [page for page in pages if page.kind is not PageKind.NONE]
-    outcome = tools.run_ocr(pdf_path, layered, meta.language, work)
-    parsed = annotate_ocr_pages(
-        [
-            element
-            for element in promote_code_elements(tools.parse_pdf(outcome.pdf_path))
-            if element.location.page not in scanned
-        ],
-        outcome.ocr_pages,
-    )
-    recovered = annotate_ocr_pages(
-        [
-            element
-            for page in pages_missing_text(parsed, pages)
-            for element in tools.recover_page_text(outcome.pdf_path, page)
-        ],
-        outcome.ocr_pages,
-    )
-    images = tools.read_embedded_images(outcome.pdf_path, pages, meta.language)
-    by_page = sorted([*parsed, *recovered], key=lambda element: element.location.page or 0)
-    combined = [*with_images_in_place(by_page, images), *read]
-    read_pages = {**outcome.ocr_pages, **dict.fromkeys(scanned, ())}
-    return (
-        sorted(combined, key=lambda element: element.location.page or 0),
-        pages,
-        replace(outcome, ocr_pages=read_pages),
-    )
+    parsed = [
+        element
+        for element in promote_code_elements(tools.parse_pdf(pdf_path))
+        if element.location.page not in scanned
+    ]
+    text_pages = [page for page in pages if page.kind is PageKind.TEXT]
+    recovered = [
+        element
+        for page in pages_missing_text(parsed, text_pages)
+        for element in tools.recover_page_text(pdf_path, page)
+    ]
+    combined = [*parsed, *recovered, *read]
+    return sorted(combined, key=lambda element: element.location.page or 0), pages, scanned
 
 
 @dataclass(frozen=True)
@@ -197,7 +129,8 @@ class _Parsed:
     elements: list[Element]
     warnings: Sequence[str] = ()
     pages: Sequence[PageInfo] = ()
-    outcome: OcrOutcome | None = None
+    read_pages: Sequence[int] = ()
+    display_pdf: Path | None = None
 
 
 def _build_report(
@@ -208,12 +141,12 @@ def _build_report(
 ) -> IngestReport:
     empty = () if chunks else ("Belgeden okunabilir içerik çıkarılamadı.",)
     warnings = (*empty, *parsed.warnings)
-    pages, outcome = parsed.pages, parsed.outcome
+    pages = parsed.pages
     return IngestReport(
         doc_id=meta.doc_id,
         page_count=len(pages),
         page_kinds=dict(Counter(page.kind.value for page in pages)),
-        ocr_pages=tuple(sorted(outcome.ocr_pages)) if outcome else (),
+        ocr_pages=tuple(sorted(parsed.read_pages)),
         # Sayfa başına tekil değer: başlıktaki belirsiz değer altındaki her parçaya taşınır
         # (doğrulama için), değer taşıyan başlık metin olarak da kalır, satır bağlamı gruptaki
         # her satıra yazılır; belgenin "net okunamadı" sayısında aynı değer bir kez geçer.
@@ -239,9 +172,7 @@ def _pdf_source(path: Path, input_format: InputFormat, tools: IngestTools, work:
     return path
 
 
-def _parse(
-    path: Path, input_format: InputFormat, meta: DocumentMeta, tools: IngestTools, work: Path
-) -> _Parsed:
+def _parse(path: Path, input_format: InputFormat, tools: IngestTools, work: Path) -> _Parsed:
     if input_format in (InputFormat.SQL, InputFormat.TEXT, InputFormat.MARKDOWN):
         return _Parsed(parse_plain_text(path, input_format))
     if input_format is InputFormat.SPREADSHEET:
@@ -250,15 +181,15 @@ def _parse(
         return _Parsed(*parse_workbook(tools.legacy_spreadsheet_to_xlsx(path, work)))
     pdf_path = _pdf_source(path, input_format, tools, work)
     image = path if input_format is InputFormat.IMAGE else None
-    elements, pages, outcome = _elements_from_pdf(pdf_path, meta, tools, work, image)
-    warnings = tools.skipped_image_warnings(pages)
-    return _Parsed(elements, warnings, pages, outcome)
+    elements, pages, read_pages = _elements_from_pdf(pdf_path, tools, work, image)
+    has_images = any(page.kind is PageKind.TEXT and page.image_boxes for page in pages)
+    warnings = (IMAGES_NOT_SEARCHED,) if has_images else ()
+    return _Parsed(elements, warnings, pages, read_pages, pdf_path)
 
 
 def ingest_document(path: Path, meta: DocumentMeta, tools: IngestTools, work: Path) -> IngestResult:
     input_format = detect_format(path)
-    parsed = _parse(path, input_format, meta, tools, work)
+    parsed = _parse(path, input_format, tools, work)
     chunks = tuple(build_chunks(parsed.elements, meta))
     report = _build_report(meta, input_format, chunks, parsed)
-    display_pdf = parsed.outcome.pdf_path if parsed.outcome else None
-    return IngestResult(chunks, report, display_pdf)
+    return IngestResult(chunks, report, parsed.display_pdf)
