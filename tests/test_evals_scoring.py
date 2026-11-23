@@ -1,7 +1,6 @@
 import pytest
 
-from evals.gold import Badge, GoldQuestion, GoldSet, GoldSource, Outcome, QuestionKind
-from evals.rescore import rescore
+from evals.gold import Badge, GoldQuestion, GoldSource, Outcome, QuestionKind
 from evals.scoring import (
     AnswerItem,
     AnswerRecord,
@@ -256,28 +255,6 @@ def test_summary_counts_skipped_clarifications_separately() -> None:
     summary = summarize([REVISIONS, REVISIONS], scores)
 
     assert (summary.skipped_clarifications, summary.verified_wrong) == (1, 1)
-
-
-def test_saved_answers_are_rescored_without_the_model() -> None:
-    gold = GoldSet(seed=11, documents=(), questions=(LOOKUP, REVISIONS), document_texts=DOCUMENTS)
-    skipped = listed(("Rev A: 74,0.", (REV_A,)), ("Rev B: 75,0.", (REV_B,)))
-    rows = [
-        {"question": "q3", "record": skipped.model_dump(mode="json"), "score": {"eski": True}},
-        {"question": "q1", "record": answered("İç paça 76,5 cm.").model_dump(mode="json")},
-    ]
-
-    updated, summary = rescore(gold, rows)
-
-    assert [row["question"] for row in updated] == ["q1", "q3"]
-    assert updated[1]["score"]["skipped_clarification"] is True
-    assert (summary.passed, summary.verified_wrong, summary.skipped_clarifications) == (1, 0, 1)
-
-
-def test_rescoring_refuses_a_run_with_missing_answers() -> None:
-    gold = GoldSet(seed=11, documents=(), questions=(LOOKUP,), document_texts={})
-
-    with pytest.raises(ValueError, match="q1"):
-        rescore(gold, [])
 
 
 WORD_VALUE = LOOKUP.model_copy(

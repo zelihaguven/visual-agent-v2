@@ -805,7 +805,8 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   - **Bilinen sınırlar (inceleme turu).** (1) Bu tur artık her netleştirmeyle geçer;
     tamamlama hatasından gelen netleştirme de ("soruyu birleştiremedim") geçer sayılır.
     Ölçümde tamamlanmış soru elle doğrulandı: iki sette de model var, beden yok. (2)
-    `evals/baselines/taban` altındaki eski özetler bu turu hâlâ kalan soru sayıyor; 38 → 39
+    `evals/baselines/taban` altındaki eski özetler (2026-11-23'te silindi; git geçmişinde) bu
+    turu hâlâ kalan soru sayıyor; 38 → 39
     iyileşme değil, beklenti değişikliğidir.
 
 ### Gizlenen cevabın turunda da kullanıcının sorusu bağlama girer (değiştirildi)
@@ -1349,7 +1350,7 @@ Bundan sonraki karşılaştırmalar bu bilgisayarda alınan tabana göre yapıl�
 
 **Not (2026-11-21):** Bu tabanın yerini Mac tabanı aldı (`evals/output/mac-main-2026-11-21`; Ölçüm bölümündeki "Geçerli taban bu bilgisayarda" kaydı ve 0019). Aşağıdaki sayılar yalnız referans.
 
-Tarih: 2026-11-10. Ölçümler üretilmiş test setiyle, Docker'sız yerel kurulumda ([0003](#karar-0003)) yapıldı. Soru bazındaki sonuçlar ve ölçüm bilgileri: [`evals/baselines/taban/`](../evals/baselines/taban).
+Tarih: 2026-11-10. Ölçümler üretilmiş test setiyle, Docker'sız yerel kurulumda ([0003](#karar-0003)) yapıldı. Soru bazındaki sonuçlar ve ölçüm bilgileri `evals/baselines/taban/` klasöründeydi; 2026-11-23'te silindi (yalnız referanstı), git geçmişinde.
 
 #### Geçerli taban
 
