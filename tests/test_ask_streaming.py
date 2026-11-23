@@ -101,6 +101,17 @@ def test_repeated_verified_sentence_is_withdrawn_not_revealed_again() -> None:
     assert [item.text for item, _ in assembler.verified] == ["İç paça 76,5.", "Değer 76,5."]
 
 
+def test_sentence_shown_before_a_provider_switch_is_revealed_again_after_it() -> None:
+    assembler, events = assemble()
+
+    feed_all(assembler, content(item("İç paça 76,5.")))
+    assembler.reset()
+    feed_all(assembler, content(item("İç paça 76,5.")))
+
+    assert [event["index"] for event in of_type(events, "item_verified")] == [0, 0]
+    assert not of_type(events, "item_repeat")
+
+
 def test_half_written_word_is_not_sent() -> None:
     assembler, events = assemble()
     partial = '{"tur":"cevap","cevap":[{"alintilar":[],"metin":"Ölçü tablo'
