@@ -1,4 +1,5 @@
-"""Metin katmanı olmayan sayfaların okuyucusu: PaddleOCR-VL okur, Tesseract ikinci kez okur.
+"""Taranmış sayfaların ve gömülü görsellerin okuyucusu: PaddleOCR-VL okur, Tesseract ikinci
+kez okur (0011, 0028).
 
 Karar 0010: sayfa PaddleOCR-VL'nin resmi akışıyla (düzen + bölge) okunur; her bloğun sayı ve
 kodları Tesseract'ın aynı bloktaki okumasıyla sayılarak karşılaştırılır, sayısı tutmayan değer
@@ -53,7 +54,8 @@ _BLANK_LEVEL = 250
 _HEADING_LABELS = frozenset({"paragraph_title", "doc_title"})
 
 NOT_CONFIGURED = (
-    "Taranmış sayfalar için okuyucu ayarlanmamış (VA_PAGE_READER); belge okuyucuyu bekliyor."
+    "Taranmış sayfalar ve görseller için okuyucu ayarlanmamış (VA_PAGE_READER); belge okuyucuyu"
+    " bekliyor."
 )
 UNREACHABLE = "Taranmış sayfaların okuyucusuna ulaşılamadı; belge okuyucuyu bekliyor."
 
@@ -307,7 +309,8 @@ def page_elements(
     """Okuyucunun sayfa sonucu, okuma sırasıyla öğelere çevrilir. Metin karşılaştırılan yazımla
     yazılır ("14⅞" → "14 7/8"): belirsiz değerler cevap denetiminde aynı yazımla aranır.
     Tabloda hücre konumu yoktur; satırın kaynağı tablonun kutusudur. region: okunan görüntü
-    sayfanın bir bölgesiyse (gömülü görsel) kutular o bölgeden sayfaya taşınır."""
+    sayfanın bir bölgesiyse (gömülü görsel) kutular o bölgeden sayfaya taşınır; görseldeki başlık
+    bölüm açmaz, metin olarak kalır (altındaki dijital metin görselin başlığına bağlanmasın)."""
     page_width, page_height = page_size
     left0, top0 = (region.left, region.top) if region else (0.0, 0.0)
     width = region.right - region.left if region else page_width
@@ -335,7 +338,7 @@ def page_elements(
             elements += _table_elements(content, location, tokens, known_headers, learned)
             continue
         text = canonical(content)
-        heading = block.get("block_label") in _HEADING_LABELS
+        heading = region is None and block.get("block_label") in _HEADING_LABELS
         element = Element(
             ElementKind.HEADING if heading else ElementKind.TEXT,
             text,
@@ -527,6 +530,26 @@ def _read_image(
     return data, second_reading_marks(data, image, second)
 
 
+_MIN_IMAGE_SCALE = 1.0
+_MAX_IMAGE_SCALE = 600 / POINTS_PER_INCH
+"""Görsel 72–600 dpi arasında kendi çözünürlüğüyle çizilir: çok küçük çözünürlük okunamaz,
+çok büyüğü (küçültülerek konmuş fotoğraf) belleği taşırır."""
+
+
+def _image_scale(page: Any, box: Box) -> float:
+    """Kutuyla en çok örtüşen görsel nesnesinin kendi çözünürlüğü (sınırlar içinde)."""
+    height = page.get_size()[1]
+    best, scale = 0.0, RENDER_DPI / POINTS_PER_INCH
+    for image in page.get_objects(filter=[pdfium_c.FPDF_PAGEOBJ_IMAGE], max_depth=4):
+        left, bottom, right, top = image.get_bounds()
+        overlap = max(0.0, min(right, box.right) - max(left, box.left)) * max(
+            0.0, min(height - bottom, box.bottom) - max(height - top, box.top)
+        )
+        if overlap > best and right > left:
+            best, scale = overlap, image.get_px_size()[0] / (right - left)
+    return min(max(scale, _MIN_IMAGE_SCALE), _MAX_IMAGE_SCALE)
+
+
 def read_embedded_images(
     path: Path,
     images: Sequence[Box],
@@ -534,18 +557,18 @@ def read_embedded_images(
     read_page: ReadPage | None,
     second: SecondReader,
 ) -> list[Element]:
-    """Metinli sayfadaki gömülü görseller sayfa okuyucusuyla okunur (karar 0028): sayfa
-    görselin kendi çözünürlüğünde çizilir, görselin kutusu kırpılır, öğelerin kutuları sayfaya
-    taşınır. Okuyucu yoksa `ReaderUnavailable`: belge okuyucuyu bekler."""
+    """Metinli sayfadaki gömülü görseller sayfa okuyucusuyla okunur (karar 0028): yalnız görselin
+    bölgesi kendi çözünürlüğünde çizilir, öğelerin kutuları sayfaya taşınır. Okuyucu yoksa
+    `ReaderUnavailable`: belge okuyucuyu bekler."""
     document = pypdfium2.PdfDocument(path)
     try:
         elements: list[Element] = []
         for index, box in enumerate(images):
             page = document[box.page - 1]
-            scale = _native_scale(page)
-            rendered = page.render(scale=scale).to_pil().convert("RGB")
-            edges = (box.left, box.top, box.right, box.bottom)
-            crop = rendered.crop(tuple(int(edge * scale) for edge in edges))
+            width, height = page.get_size()
+            margins = (box.left, height - box.bottom, width - box.right, box.top)
+            bitmap = page.render(scale=_image_scale(page, box), crop=margins)
+            crop = bitmap.to_pil().convert("RGB")
             source = work / f"okuyucu-s{box.page}-g{index}.png"
             read = _read_image(crop, source, read_page, second)
             if read is not None:

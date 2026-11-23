@@ -15,6 +15,7 @@ from visual_agent.ingest.pipeline import (
     ingest_document,
     pages_missing_text,
     promote_code_elements,
+    with_images_in_place,
 )
 from visual_agent.ingest.text_layer import PageKind
 from visual_agent.verification.answer import verify_item
@@ -140,6 +141,25 @@ def test_embedded_image_is_read_by_the_page_reader_in_its_own_section(tmp_path: 
     [row] = [chunk for chunk in result.chunks if chunk.kind is ChunkKind.TABLE_ROW]
     assert (row.section, row.from_ocr) == ("PNT-1162 ölçü föyü", True)
     assert result.report.warnings == ()
+
+
+def test_image_elements_keep_the_order_of_pages_and_go_last_when_nothing_is_below() -> None:
+    page_one = [_at(ElementKind.TEXT, "Üst", 10), _at(ElementKind.TEXT, "Alt", 300)]
+    no_box = Element(ElementKind.TEXT, "Kutusuz", SourceLocation(page=1))
+    next_page = Element(ElementKind.TEXT, "İkinci", SourceLocation(page=2))
+    bottom = _at(ElementKind.TABLE_ROW, "En alt", 600)
+    middle = _at(ElementKind.TABLE_ROW, "Orta", 100)
+
+    placed = with_images_in_place([*page_one, no_box, next_page], [bottom, middle])
+
+    assert [element.text for element in placed] == [
+        "Üst",
+        "Orta",
+        "Alt",
+        "Kutusuz",
+        "En alt",
+        "İkinci",
+    ]
 
 
 def test_document_with_an_image_waits_for_the_page_reader(tmp_path: Path) -> None:

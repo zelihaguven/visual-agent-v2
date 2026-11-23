@@ -47,18 +47,27 @@ def _image_boxes(page: Any, number: int, width: float, height: float) -> tuple[B
     boxes = []
     for item in page.get_objects(filter=[pdfium_c.FPDF_PAGEOBJ_IMAGE], max_depth=4):
         left, bottom, right, top = item.get_bounds()
-        boxes.append(
-            Box(
-                page=number,
-                left=left,
-                top=height - top,
-                right=right,
-                bottom=height - bottom,
-                page_width=width,
-                page_height=height,
+        # Kırpılmış (clip) görselin sınırları sayfa dışına taşabilir: kutu sayfayla kesişir.
+        left, right = max(left, 0.0), min(right, width)
+        top, bottom = max(height - top, 0.0), min(height - bottom, height)
+        if right > left and bottom > top:
+            boxes.append(
+                Box(
+                    page=number,
+                    left=left,
+                    top=top,
+                    right=right,
+                    bottom=bottom,
+                    page_width=width,
+                    page_height=height,
+                )
             )
-        )
     return tuple(boxes)
+
+
+def _shifted(page: Any) -> bool:
+    """Dönmüş ya da başlangıcı kaydırılmış sayfada görsel kutusu çizimle örtüşmez."""
+    return bool(page.get_rotation()) or tuple(page.get_cropbox()[:2]) != (0.0, 0.0)
 
 
 def _page_text(page: Any) -> str:
@@ -79,6 +88,8 @@ def inspect_pdf(path: Path) -> list[PageInfo]:
             kind = classify_page(chars, cover, quality_score(text))
             if is_ocr_layer(page, width * height):
                 kind, chars = PageKind.NONE, 0  # OCR katmanı metin katmanı sayılmaz
+            elif kind is PageKind.TEXT and boxes and _shifted(page):
+                kind = PageKind.SCANNED  # görselli sayfa bütünüyle okuyucuya gider
             result.append(PageInfo(page=number, kind=kind, chars=chars, image_boxes=boxes))
         return result
     finally:

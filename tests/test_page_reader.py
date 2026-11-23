@@ -377,6 +377,65 @@ def test_embedded_image_is_cropped_read_and_placed_back_on_its_page(tmp_path: Pa
     assert (box.left, box.top, box.right, box.bottom, box.page_width) == (100, 100, 300, 160, 600)
 
 
+def _two_images(path: Path, rotate: int = 0) -> Path:
+    """Sayfada iki görsel: biri 2 kat, öbürü 0,5 kat çözünürlükte; biri sayfadan taşar."""
+    canvas = Canvas(str(path), pagesize=(600, 800))
+    canvas.setPageRotation(rotate)
+    for size, at, drawn in [
+        ((600, 200), (0, 600), (300, 100)),
+        ((100, 50), (-100, 300), (200, 100)),
+    ]:
+        image = Image.new("RGB", size, "white")  # işaret görselin sağında: sayfada görünür
+        ImageDraw.Draw(image).rectangle((size[0] * 0.6, 10, size[0] - 5, 30), fill="black")
+        canvas.drawImage(ImageReader(image), *at, *drawn)
+    canvas.drawString(100, 100, "Metinli sayfa " * 6)
+    canvas.save()
+    return path
+
+
+def test_each_embedded_image_is_read_at_its_own_resolution_within_limits(tmp_path: Path) -> None:
+    from visual_agent.ingest.tools import inspect_pdf
+
+    sizes: list[tuple[int, int]] = []
+
+    def read_page(image: Path) -> dict[str, Any]:
+        sizes.append(Image.open(image).size)
+        return {"width": 1, "height": 1, "parsing_res_list": []}
+
+    pdf = _two_images(tmp_path / "iki.pdf")
+    [page] = inspect_pdf(pdf)
+    boxes = sorted(page.image_boxes, key=lambda box: box.top)
+    # Sayfadan taşan görselin kutusu sayfayla kesişir; 0,5 kat çözünürlük 72 dpi'ye çıkar.
+    assert [(box.left, box.top, box.right, box.bottom) for box in boxes] == [
+        (0, 100, 300, 200),
+        (0, 400, 100, 500),
+    ]
+    read_embedded_images(pdf, boxes, tmp_path, read_page, str)
+    assert sizes == [(600, 200), (100, 100)]
+
+
+def test_image_on_a_rotated_text_page_sends_the_whole_page_to_the_reader(tmp_path: Path) -> None:
+    from visual_agent.ingest.text_layer import PageKind
+    from visual_agent.ingest.tools import inspect_pdf
+
+    [page] = inspect_pdf(_two_images(tmp_path / "doner.pdf", rotate=90))
+
+    assert page.kind is PageKind.SCANNED
+
+
+def test_heading_inside_an_embedded_image_opens_no_section() -> None:
+    region = _region(100, 100, 300, 300)
+    [element] = page_elements(
+        _page([_block(0, "paragraph_title", "PNT-1162 etiketi")]),
+        1,
+        (600.0, 800.0),
+        {},
+        region=region,
+    )
+
+    assert element.kind is ElementKind.TEXT
+
+
 def test_embedded_image_waits_for_the_reader_unless_it_is_blank(tmp_path: Path) -> None:
     scan = _scan(tmp_path / "t.pdf")
     with pytest.raises(ReaderUnavailable):
