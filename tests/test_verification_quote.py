@@ -146,10 +146,39 @@ def test_labeled_quote_matches_through_emphasis() -> None:
         ("# Başlık [bağlantı](x) | a | b", "# başlık [bağlantı](x) | a | b"),
         ("C:\\Program Files\\FastReact", "c:\\program files\\fastreact"),
         ("“possible”  date\nnext", '"possible" date next'),
+        ("`my_var` değişkeni", "my_var değişkeni"),  # kod içinde kaçış kalmaz
+        ("``x**2`` ve `a_b`", "x**2 ve a_b"),
     ],
 )
 def test_parser_removes_only_emphasis_code_marks_and_escapes(text: str, expected: str) -> None:
     assert markdown_plain_form(text) == expected
+
+
+def test_quote_without_backticks_matches_inline_code_with_underscores_or_stars() -> None:
+    """PR #4 (Bugbot): kod içindeki alt çizgi ve yıldız kaçışla korununca ters bölü kodda
+    kalıyordu; kodu ters tırnaksız alıntılayan doğru alıntı reddediliyordu."""
+    source = "Kolon `my_var` ile `x**2` hesaplanır"
+    assert quote_matches("Kolon my_var ile x**2 hesaplanır", source, "tr")
+    assert not quote_matches("Kolon my_var ile x**3 hesaplanır", source, "tr")
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "Tork değeri \\`2*3*4\\` Nm",  # kaçışlı ters tırnak kod değildir
+        "Tork değeri `2*3*4 Nm",  # kapanmayan ters tırnak
+        "Tork değeri \\\\`2*3*4` Nm",  # kaçışlı ters bölüden sonraki kod
+    ],
+)
+def test_text_that_is_not_inline_code_keeps_its_stars(source: str) -> None:
+    """Yıldızlar içerik olarak kalır; vurgu sanılıp silinseydi "234" doğrulanırdı."""
+    assert not quote_matches("234", source, "tr")
+    assert not quote_matches("değeri 234 Nm", source, "tr")
+
+
+def test_same_text_inside_and_outside_code_is_read_the_same() -> None:
+    assert markdown_plain_form("`my_var` ve my_var") == "my_var ve my_var"
+    assert markdown_plain_form("`a\n_b_`") == "a _b_"
 
 
 def test_verbatim_way_changes_only_quote_marks_and_spacing() -> None:
