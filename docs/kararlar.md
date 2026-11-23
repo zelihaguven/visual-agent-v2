@@ -113,7 +113,7 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
   ölçümünde 18 sorunun birinde sınır aşıldı.
 
 - **Sınır ve sağlayıcı değişikliği (2026-11-18, `b3d4552`):** yukarıdaki 1,5 sn ve sağlayıcı
-  sırası bu commit'ten (açık notlar, Cevap kalitesi). 21–22 Kasım'da 47 sorunun 1'inde çeviri
+  sırası bu commit'ten (açık notlar). 21–22 Kasım'da 47 sorunun 1'inde çeviri
   düştü.
 - **Niyet sınıflandırmasıyla birlikte başlar (2026-11-22, dal `niyet-ceviri-paralel`; ürün sahibi
   onayı).** Niyet sınıflandırıcısı ve çeviri yardımcı modele ayrı çağrılardır ve art arda
@@ -967,7 +967,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   `access` sütunu yerinde kaldı (yeniden indeksleme ve göç yok); kod artık okumuyor. Yeni
   parçalar ve yeni veritabanları bu alanı taşımıyor.
 - **Sonra:** Giriş ve departman bazlı yetki, arayüz ağa açılmadan önce ayrıca tasarlanacak
-  (açık notlar, "Yayına almadan önce").
+  (açık notlar, "Canlıya alırken").
 
 ### Yükleme yarım kayıt bırakmaz (2026-11-22, #136)
 - SQLite bağlantısı autocommit ve yazma iş parçacığında: istek iptal edilse de kayıt yazılıyor, klasör siliniyordu (dosyasız kayıt, "işlenemedi"). Artık yazma korunur; hata ya da iptalde yazmanın bitmesi beklenir, kayıt mevcut `delete_document` ile silinir, sonra klasör; temizlik tek, korunan bir görevde (ikinci iptal yarıda bırakmaz, silme hatası asıl hatayı örtmez).
@@ -984,7 +984,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Neden:** 20 Kasım teşhisinde hangi sayının gizlemeye yol açtığı kayıttan okunamadı;
   cevap yeniden kurguyla bulundu.
 - **Sınır:** Cevap cümlesi yine yazılmaz (ayrı karar). İstemciye yalnız türler gider; kaydın
-  HTTP ucu yok. Saklama süresi açık notlarda ("Yayına almadan önce").
+  HTTP ucu yok. Saklama süresi açık notlarda ("Canlıya alırken").
 
 ## Arayüz
 
@@ -1338,7 +1338,7 @@ Pilot, Docker kurulamayan ve yönetici yetkisi olmayan bir Windows bilgisayarda 
 
 - `compose.yaml` içinde postgres servisi yok. API ve işçi ayrı konteyner, aynı SQLite birimini (`/data/db`) paylaşıyor; işçi API'nin içinde çalışmıyor (`VA_WORKER_IN_PROCESS=false`).
 - Qdrant ayrı servis olarak kalıyor (`VA_QDRANT_URL`); ayrı işçi gömülü klasörle açılmayı reddediyor.
-- Arayüzü nginx sunuyor; güvenlik başlıkları ve hız sınırı yalnız orada. Yerelde bunlar yok ([açık notlar](acik-notlar.md), "Yayına almadan önce").
+- Arayüzü nginx sunuyor; güvenlik başlıkları ve hız sınırı yalnız orada. Yerelde bunlar yok ([açık notlar](acik-notlar.md), "Canlıya alırken").
 - Docling modelleri sunucuda `docling-tools` komutuyla birime iniyor; yerelde ilk belgede kendiliğinden iniyor.
 - Paket bu bilgisayarda denenemedi. Yalnız CI'daki `services` işi derleyip açılışı sınıyor.
 
@@ -1416,7 +1416,7 @@ Tarih: 2026-11-14. Dal: `tablo-hucre-okuma`. Kural sürümü PDF, Office ve gör
 
 **Geliştirme seti (`--seed 7`).** 37/40, doğrulanmış yanlış değer 0, gereksiz ret 0 (taban 37/40, 1 gereksiz ret). `direct` 9/9 ve `in_image` 3/3 (taban 8/9, 2/3). `dikim-pdf-olcu` ve `dikim-pdf-yanlis-onay` bu koşuda geçmedi: kaynak metin katmanlı `dikim-pdf` (bu değişiklik dokunmuyor); model cümleye alıntıda olmayan "cm" ekledi, birim kuralı gizledi. Tekrar ölçülmedi.
 
-**Açık kalanlar** [açık notlarda](acik-notlar.md): değer/fark sayfası bağlamı, kodun alıntıda geçmemesi, docling'in kaçırdığı hücreler, kapak sayfası form düzeni, s.5 satır kaybı.
+**Açık kalanlar** [açık notlarda](acik-notlar.md): değer/fark sayfası bağlamı, kodun alıntıda geçmemesi, docling'in kaçırdığı hücreler, kapak sayfası form düzeni (2026-11-23'te kapandı: okuyucu yolunda C1 5/5 doğru), s.5 satır kaybı.
 
 <a id="karar-0006"></a>
 
@@ -1529,7 +1529,7 @@ Tarih: 2026-11-16. Ölçüm: set A benzetimi (0009), 5 taranmış belge (30 sayf
 
 **Set B'de ayrıca ölçülecek: hücre sayısı uyuşmayan tablo (2026-11-18).** Başlık sayılan ilk satırın hücre sayısı bir veri satırınınkinden farklıysa tablo başlıksız, okunduğu gibi yazılıyor. Yüklü 17 föyün saklı ham okumalarında 446 tablonun 6'sını etkiliyor: 3 kapak formu (başlık 6 hücre, satırlar 5/4/2; bunlar zaten kaymış yazılıyordu) ve 6013448'in 3 ölçü karşılaştırma tablosu (iki katlı başlık; alt başlık satırı 4 hücre, 45 değer satırı etiketini kaybediyor). Başlık satırı satırlarla aynı sayıda hücre taşıdığı hâlde kaymışsa (düşen hücrenin yerine boş hücre gelmişse) bu kural yakalamaz; fotoğrafta görülen kaymanın hangi türden olduğu saptanamadı.
 
-**Set B'de ayrıca denenecek: büyük sayfa görselini küçültmek (2026-11-19).** Okuyucu taramayı kendi çözünürlüğünde alıyor. Windows'ta işlemcide bir tech pack sayfası 5–16 dakika sürdü (karar 0015); 16,7 MB'lık 29 sayfalık föyün sayfa görselleri büyük. Görseli belli bir kenar uzunluğuna küçültmenin süreye ve okumaya etkisi set B ile ölçülecek. Dikkat: 120 dpi taramayı 300 dpi'ye büyütmek Tesseract'ın bütün değerleri doğrulayamamasına yol açmıştı (açık notlar, Sayfa okuyucusu); küçültme ikinci okumayı da etkileyebilir. Şimdilik değiştirilmedi.
+**Set B'de ayrıca denenecek: büyük sayfa görselini küçültmek (2026-11-19).** Okuyucu taramayı kendi çözünürlüğünde alıyor. Windows'ta işlemcide bir tech pack sayfası 5–16 dakika sürdü (karar 0015); 16,7 MB'lık 29 sayfalık föyün sayfa görselleri büyük. Görseli belli bir kenar uzunluğuna küçültmenin süreye ve okumaya etkisi set B ile ölçülecek. Dikkat: 120 dpi taramayı 300 dpi'ye büyütmek Tesseract'ın bütün değerleri doğrulayamamasına yol açmıştı (açık notlar); küçültme ikinci okumayı da etkileyebilir. Şimdilik değiştirilmedi.
 
 **Kayıt.** Rapor (`rapor.json`), mevcut hattın okuması (`hat_cikti.json`) ve PaddleOCR-VL + Tesseract ham okumaları (`paddle/`): `evals/results/2026-11-16-set-a-benzetim/` (1 MB). Okuyucuları yeniden çalıştırmadan yeniden puanlama ve gerçek taramalarla yan yana karşılaştırma için repoda tutulur. Ölçümü yapan dört betik (`hat.py`, `paddle_calistir.py`, `tesseract.py`, `puanla.py`) aynı klasörde, ölçüldükleri haliyle durur; gerçek taramalar bunlarla, değiştirilmeden ölçülür. Bu yüzden klasör ruff ve mypy denetiminin dışındadır. `paddle_calistir.py` MLX sunucusunu `http://localhost:8111/` adresinde bekler.
 
@@ -1700,7 +1700,7 @@ Tarih: 2026-11-20 (karar), 2026-11-21 (deneme ve geri çekme). Ürün sahibi kar
 
 - Hedef soru `dikim-excel-netlestir`: ilk istemde iki sette de listeledi (taban 7'de üç ayrı cümle, geçti; taban 11'de üç bedeni tek cümlede, kaldı). Düzeltilmiş istemde ("değerleri tek cümlede birleştirme", "seçenek sorudaysa kısa ver") iki sette de yeniden netleştirme sordu. `ik-netlestir` hiçbir ölçümde listelemedi.
 - İki belgeli netleştirme soruları (`dikim-revizyon-netlestir`, `sql-netlestir`) üç ölçümde de netleştirme sordu.
-- "Doğrulanmış yanlış" sayılan tek soru `dikim-sohbet-1-t4` (takip sorusu; beklenen yalnız M bedenin değeri). Dal üç bedeni adlarıyla listeledi; değerler ve bedenler kaynakta doğru, ekranda yanlış değer yok. Puanlayıcı beklenmeyen iki değeri yabancı saydı. Kök neden cevap isteminde değil (açık notlar, Cevap kalitesi).
+- "Doğrulanmış yanlış" sayılan tek soru `dikim-sohbet-1-t4` (takip sorusu; beklenen yalnız M bedenin değeri). Dal üç bedeni adlarıyla listeledi; değerler ve bedenler kaynakta doğru, ekranda yanlış değer yok. Puanlayıcı beklenmeyen iki değeri yabancı saydı. Kök neden cevap isteminde değil (açık notlar).
 - Tek değerli cevapların biçimi bozuldu: çıplak değer ("103,0") tam cümleye döndü ("PNT-1126 modelinde S beden dış paça 103,0."). Düzeltilmiş istemde iki sette 25 cevap `main`'dekinden belirgin uzundu (taban 7'de 11, taban 11'de 14); ilk istemde de görüldü, sayılmadı. Hepsi doğru ve geçiyordu.
 - FastReact ve sınır seti ölçülmedi; kabul koşulları taban setlerinde tutmayınca ölçüm durduruldu. Harcanan toplam 0,027 USD. "Aynı belgede farklı ürün" cümlesini sınayan soru ölçüm setlerinde yoktu.
 
@@ -1708,12 +1708,12 @@ Tarih: 2026-11-20 (karar), 2026-11-21 (deneme ve geri çekme). Ürün sahibi kar
 
 **Karar.** A yolu geri çekildi; `varyant-listeleme` birleştirilmedi. Düğme etiketli netleştirme de reddedilmişti (2026-11-20: kaynaktan türetilen etiketler kullanıcıya bir şey söylemiyordu, plan büyüktü, her tıklama ikinci bir model çağrısı istiyordu). Netleştirme bugünkü hâliyle kalır: iki ve daha çok belgede düğmeli, tek belgede seçeneksiz soru. `#a2eaf46` ve `#2ad898d`'nin kuralları geçerli.
 
-**Dalda kalan, ileride işe yarayabilecekler.** Aynı adlı belgeleri modele ayrı gösteren `format_sources` değişikliği ("Ad (2)"; açık notlar, Belge yönetimi); puanlayıcıdaki `listed_variants`; istem metni.
+**Dalda kalan, ileride işe yarayabilecekler.** Aynı adlı belgeleri modele ayrı gösteren `format_sources` değişikliği ("Ad (2)"; açık notlar, Karar bekliyor); puanlayıcıdaki `listed_variants`; istem metni.
 
 ### 0021: Belirsiz komşu hücreyi yok sayma (t2) denendi, geri çekildi; A5 yerinde kalır
 Tarih: 2026-11-21. Ürün sahibi kararı. Dal: `ocr-belirsiz-komsu-hucre` (`7b9b115`; birleştirilmedi, referans olarak `origin`'de duruyor).
 
-**Sorun.** Taramadan okunan bir tablo satırında bir hücre belirsizse (iki okuma uyuşmamışsa) ve model satırın tamamını alıntılarsa cümle gizleniyor; değeri sorulan hücre belirsiz olmasa da. Günlükteki tanı (2026-11-21, uygulama): "SIPARIS_KALEM tablosunda DEPO_KODU uzunluğu kaç?" → `OCR değeri belirsiz: ['VARCHAR']`; alıntı "Tablo: SIPARIS_KALEM | Kolon: DEPO_KODU | Tip: VARCHAR | Uzunluk: 59", gizlenen cümle "…DEPO_KODU uzunluğu 59'dur." (59 belirsiz değil, doğru). Taban 7 ve taban 11'de `sql-ekran-uzunluk` aynı nedenle kalıyor. 19 Kasım'da bu gizleme kabul edilmişti (A5; açık notlar, Doğrulama).
+**Sorun.** Taramadan okunan bir tablo satırında bir hücre belirsizse (iki okuma uyuşmamışsa) ve model satırın tamamını alıntılarsa cümle gizleniyor; değeri sorulan hücre belirsiz olmasa da. Günlükteki tanı (2026-11-21, uygulama): "SIPARIS_KALEM tablosunda DEPO_KODU uzunluğu kaç?" → `OCR değeri belirsiz: ['VARCHAR']`; alıntı "Tablo: SIPARIS_KALEM | Kolon: DEPO_KODU | Tip: VARCHAR | Uzunluk: 59", gizlenen cümle "…DEPO_KODU uzunluğu 59'dur." (59 belirsiz değil, doğru). Taban 7 ve taban 11'de `sql-ekran-uzunluk` aynı nedenle kalıyor. 19 Kasım'da bu gizleme kabul edilmişti (A5; açık notlar).
 
 **Denenen (t2, dar hâliyle).** Belirsiz parça alıntıda geçiyor ama cümlede geçmiyorsa, yalnız şu durumda yok sayılır: tablo satırı, parça etiketli bir hücrenin değerinde ("Tip: VARCHAR") ve cümle o hücreye değinmiyor (sütunun adını ekleriyle anmıyor, hücrenin değerinden sayı ya da kod taşımıyor, parçanın alt parçasını yazmıyor). Etiketsiz hücrede ve tablo dışı metinde bugünkü gizleme kalır. A5'in riskini sınayan testler yazıldı ve geçti ("tipi metin", "metin tipinde 59", "uzunluğu on dokuz", "TR0001 onaylı", föy satırında "eksi toleransı -3 1/8" gizli; "DEPO_KODU uzunluğu 59" ve belirsiz toleransın yanındaki kesin ölçü geçiyor); `pytest` 1524.
 
@@ -1840,7 +1840,7 @@ Tarih: 2026-11-22. Ürün sahibi kararı.
 - Okuyucuya verilen görüntü şimdilik küçültülmez (set B'de denenecekler listesinde kalır, 0010).
 - İndirilen model dosyaları (`data/models/paddleocr-vl-gguf/`) ve Homebrew'deki llama.cpp (ve yalnız onun için kurulan ggml, libomp, openssl@4) 22 Kasım'da silindi.
 
-**Yeniden düşünülür.** Okuyucu için ekran kartlı bir makine ya da sunucu gündeme gelirse; ya da Windows'ta ayar denemesi (iş parçacığı sayısı) yetmez ve GPU'lu llama.cpp (Vulkan, Intel Iris Xe) ayrı süreç olarak onaylanırsa (açık notlar, Sayfa okuyucusu, Windows hız teşhisi).
+**Yeniden düşünülür.** Okuyucu için ekran kartlı bir makine ya da sunucu gündeme gelirse; ya da Windows'ta ayar denemesi (iş parçacığı sayısı) yetmez ve GPU'lu llama.cpp (Vulkan, Intel Iris Xe) ayrı süreç olarak onaylanırsa (açık notlar, Windows hız teşhisi).
 
 <a id="karar-0025"></a>
 
@@ -1856,7 +1856,7 @@ Tarih: 2026-11-22. Ürün sahibinin bu tur için verdiği iş (açık notlar, S�
 
 **Yapılmayanlar.** Sonraki sayfaya başlık taşımak (veride örnek yok; yeni tablo yanlış etiket alır, Kural B yanlış varyantı onaylayabilir). Karşı kanıtı gevşetmek (form tablolarında "Style #: Style Name" gibi yanlış etiket). Okuyucu etiketinden düzey (kod taşıyan kök başlık bölüm yolundan düşer).
 
-**Ölçüm (Mac, `main` #138 koduyla).** 32 belge yeniden işlendi (42 dk, bulut 0), "Eski kural" 0. Okuyucudan geçen 252 sayfada eski ve yeni parçalar: yeniden okuma hiçbir değeri değiştirmedi; belirsiz işareti kalkan değer 0; bölüm yolu değişen parça 557; başlık kazanan satır 41 (4 tablo). **Kural 1 denetimi:** başlık kazanan satırlardan rastgele 10'u sayfa görüntüsüyle karşılaştırıldı, 10/10 uyuşuyor. Saklı set A okumalarında (73 tablo) kural hiçbir tabloyu değiştirmiyor. Taban 7, 11 ve FastReact belgeleri bu kodla yeniden işlendi: parçalar birebir aynı, cevaplar aynı (32/33, doğrulanmış yanlış 0; FastReact 18/18). Föy soruları (bir kez canlı): C1 ve C2 doğru, D6 netleştirme (bilinen), göğüs logosu ve poly bag netleştirme (yanlış doğrulama yok), TT-100157/001 gizlendi (açık notlar, Cevap kalitesi).
+**Ölçüm (Mac, `main` #138 koduyla).** 32 belge yeniden işlendi (42 dk, bulut 0), "Eski kural" 0. Okuyucudan geçen 252 sayfada eski ve yeni parçalar: yeniden okuma hiçbir değeri değiştirmedi; belirsiz işareti kalkan değer 0; bölüm yolu değişen parça 557; başlık kazanan satır 41 (4 tablo). **Kural 1 denetimi:** başlık kazanan satırlardan rastgele 10'u sayfa görüntüsüyle karşılaştırıldı, 10/10 uyuşuyor. Saklı set A okumalarında (73 tablo) kural hiçbir tabloyu değiştirmiyor. Taban 7, 11 ve FastReact belgeleri bu kodla yeniden işlendi: parçalar birebir aynı, cevaplar aynı (32/33, doğrulanmış yanlış 0; FastReact 18/18). Föy soruları (bir kez canlı): C1 ve C2 doğru, D6 netleştirme (bilinen), göğüs logosu ve poly bag netleştirme (yanlış doğrulama yok), TT-100157/001 gizlendi (açık notlar).
 
 **Kalan risk.** 1. sayfada yapıdan yanlışlıkla başlık sayılan bir satır artık sonraki sayfalarda karşı kanıta rağmen başlık olur (birebir aynı ilk satır ve rakamlılığı değişen gövde gerekir; nadir). Set B ile ölçülecekler arasında.
 
@@ -1890,7 +1890,7 @@ Tarama 758 / 67 (doğru / yanlış gösterilen), fotoğraf 227 / 18. Sayfa tür�
 ### 0027: Okuyucu hattının yanlış oranı pilotta "Taramadan okundu" rozetiyle kabul edilir; set B görülmüş sayılır
 Tarih: 2026-11-23. Ürün sahibi kararı.
 
-**Karar.** Taranmış belgelerde okuyucu hattı set B'de değerlerin %2,9'unu yanlış gösterdi (0026). Pilotta bu oran, taramadan okunan her cevapta "Taramadan okundu · kaynaktan kontrol edin" rozetiyle kabul edilir; rozet kaldırılmaz (açık notlar, Doğrulama). Gerçek taramalar gelince yanlış oranı yeniden ölçülür.
+**Karar.** Taranmış belgelerde okuyucu hattı set B'de değerlerin %2,9'unu yanlış gösterdi (0026). Pilotta bu oran, taramadan okunan her cevapta "Taramadan okundu · kaynaktan kontrol edin" rozetiyle kabul edilir; rozet kaldırılmaz (açık notlar). Gerçek taramalar gelince yanlış oranı yeniden ölçülür.
 
 **Set B görülmüş sayılır.** Sonuçlarına bakıldı; bundan sonra set B'ye bakılarak OCR ayarı yapılmaz. Okuma katmanında yeni bir tasarım ölçülecekse yeni tohumla set C üretilir ya da gerçek taramalar kullanılır.
 
