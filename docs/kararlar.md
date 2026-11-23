@@ -1895,7 +1895,7 @@ Tarih: 2026-11-23. Ürün sahibi kararı.
 
 <a id="karar-0028"></a>
 
-### 0028: Eski OCR yolu kaldırıldı; 0018 ve 0024 tersine döndü
+### 0028: Eski OCR yolu kaldırıldı; 0018 ve 0024'ün eski yol maddesi tersine döndü
 Tarih: 2026-11-23. Ürün sahibi kararı. Dal: `eski-ocr-yolu-kaldir`.
 
 **Neden.** Eski yoldan okunan değerler 0022'den beri doğrulanmış gösterilmiyordu (set A benzetiminde alt sınır 172 yanlış gösterilen). Bugünkü veride yolun ürettiği 2 parça vardı (`sql-ekran`, ikisi de gizli); yol ≈ 1.000 satır kod, test ve ölçüm aracı ile 7 paket taşıyordu.
@@ -1904,8 +1904,10 @@ Tarih: 2026-11-23. Ürün sahibi kararı. Dal: `eski-ocr-yolu-kaldir`.
 - Zayıf ya da taranmış metin katmanlı sayfa (`WEAK`, `SCANNED`) metin katmanı olmayan sayfa gibi sayfa okuyucusuna gider. Okuyucu yoksa belge bekler (0011). Bedeli: büyük görselli dijital sayfanın (sayfanın en az yarısını kaplayan görsel) görünür metni de okuyucudan okunur; Windows'ta sayfa başına dakikalar (0015) ve cevap "Kısmen doğrulandı" olur. Bugünkü veride böyle sayfa 0.
 - Metinli sayfadaki gömülü görseller okunmaz; görselli belgenin raporunda bir uyarı çıkar: "Bu belgedeki görsellerin içeriği aranmaz." Küçük görsel eşiği (50 pt, %2) kalktı: her boyuttaki görsel için tek uyarı.
 - Silinen: ocrmypdf çağrısı ve katman seçimi (`junk_score`), RapidOCR + iki Tesseract kipli gömülü görsel okuması (`images.py`, `two_reading.py`), `legacy_ocr` işareti ve doğrulayıcı kuralı (0022), okuyucu öğesindeki `ocr_checked`, Tesseract dil eşlemesi (`tesseract_language`; okuyucunun ikinci okuması her zaman `tur+eng`), `evals/run_embedded_images.py`. `count_mismatches` dondurulmuş kopyadaki gibi iki okumayı karşılaştırır (çok kipli karşılaştırma yalnız gömülü görsel içindi).
-- Paketler: `ocrmypdf`, `pikepdf` doğrudan bağımlılıklardan, `onnxruntime` ve `rapidocr` `ingest` listesinden çıktı. Kilitten düşenler: ocrmypdf, pikepdf, img2pdf, fpdf2, pdfminer-six, uharfbuzz, fonttools (7). `rapidocr` ve `onnxruntime` kilitte kalıyor: rapidocr Docling'in kendi bağımlılığı (Docling'de OCR kapalı, kullanılmıyor), onnxruntime fastembed'in. OpenCV yaması bu yüzden kalıyor. Tesseract kalır (okuyucunun ikinci okuması).
+- Paketler: `ocrmypdf`, `pikepdf`, `rapidocr` ve `onnxruntime` `ingest` listesinden çıktı. Kilitten düşenler: ocrmypdf, pikepdf, img2pdf, fpdf2, pdfminer-six, uharfbuzz, fonttools (7). `rapidocr` ve `onnxruntime` kilitte kalıyor: rapidocr Docling'in kendi bağımlılığı (Docling'de OCR kapalı, kullanılmıyor), onnxruntime fastembed'in. OpenCV yaması bu yüzden kalıyor. Tesseract kalır (okuyucunun ikinci okuması).
 - Kural sürümü PDF ve Office 24 (23→24 yalnız metinli, zayıf ya da taranmış katmanlı sayfası olan belgeyi eskitir).
+
+**Başka makinede.** Kural sürümü eskiyen belgede eski yolun parçaları (işareti okunmaz, 0022 kuralı yok) yeniden işlenene kadar aranır; `git pull` sonrası "Eski kural" görünen PDF ve Office belgeleri soru sorulmadan önce yeniden işlenmeli (açık notlar).
 
 **Mac verisi.** "Eski kural" olan 9 belge (dikim-pdf, dikim-rev-a, dikim-rev-b, dikim-word, ik-ihbar, ik-izin, sql-ekran, sql-kilavuz, sql-notlar) uygulamada yeniden işlendi: 27 sn, okuyucusuz, bulutsuz. Yalnız `sql-ekran` değişti (3 → 1 parça; görseldeki iki kolon satırı gitti, uyarı eklendi); öteki 8 belgenin parçaları `legacy_ocr` alanı dışında bayt bayt aynı. Taranmış 19 belge (2.580 parça) eskimedi, dokunulmadı, parçaları aynı. 394 belge, 6.293 parça.
 

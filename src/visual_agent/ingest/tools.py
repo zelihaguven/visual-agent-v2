@@ -121,8 +121,8 @@ def _read_scanned(
 def default_tools(
     external: ExternalTools | None = None, read_page: ReadPage | None = None
 ) -> IngestTools:
-    """Araç yolları verilmezse PATH'te aranır. Sayfa okuyucusu yoksa metin katmanı olmayan
-    sayfası olan belge okuyucuyu bekler."""
+    """Araç yolları verilmezse PATH'te aranır. Sayfa okuyucusu yoksa yalnız metinli olmayan
+    sayfası (metin katmansız, zayıf ya da taranmış katmanlı) olan belge okuyucuyu bekler."""
     found = external if external is not None else locate_tools(None, None)
     return IngestTools(
         read_scanned_pages=partial(_read_scanned, external=found, read_page=read_page),

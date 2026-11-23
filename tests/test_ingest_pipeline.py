@@ -124,9 +124,15 @@ def test_pages_that_are_not_plain_text_go_to_the_page_reader(
     path.write_bytes(b"%PDF-x")
     calls: list[str] = []
 
-    result = ingest_document(path, META, _fake_tools(calls, page_kind=kind), tmp_path)
+    def recover(path: Path, page: int) -> list[Element]:
+        calls.append(f"recover:{page}")
+        return [Element(ElementKind.TEXT, "Bozuk katman 99", SourceLocation(page=page))]
+
+    tools = replace(_fake_tools(calls, page_kind=kind), recover_page_text=recover)
+    result = ingest_document(path, META, tools, tmp_path)
 
     assert "reader:[1]" in calls
+    assert not any(call.startswith("recover:") for call in calls)  # katmanın metni alınmaz
     assert [chunk.text for chunk in result.chunks] == ["Taranmış sayfa 42 mm"]
     assert result.report.ocr_pages == (1,)
     assert result.report.warnings == ()

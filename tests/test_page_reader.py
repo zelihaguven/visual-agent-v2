@@ -97,12 +97,18 @@ def test_copied_counting_gives_the_same_marks_as_the_measured_code(result: Path)
         ("Tolerans 10", "Tolerans 1,0 ölçü 104,5", ["10"]),  # başka sayının parçası onaylamaz
         ("Uzunluk 59", "Uzunluk | 59|", []),  # tablo çizgisi değeri belirsiz yapmaz
         ("12", "12 12", ["12"]),  # geçiş sayısı da tutmalı
+        ("Değer 112 cm", "Değer /12 cm", ["112"]),  # eğik çizgi "1" sayılmaz
+        ("Kol 318 ölçü", "Kol 3/8 ölçü", ["318"]),  # kesir çizgisi "1" okuması değildir
+        ("Tolerans ±1/2", "Tolerans +1/2", ["±1/2"]),
+        ("40lbs yük", "40 lbs yük", ["40lbs"]),  # farklı bölünen parça da uyuşmaz
+        ("43-3/8 ölçü", "43.3/8 ölçü", ["43-3/8"]),
     ],
 )
 def test_second_reading_confirms_a_value_only_with_the_same_token(
     primary: str, second: str, expected: list[str]
 ) -> None:
     assert page_reader.count_mismatches(primary, second) == expected
+    assert ocr_score.count_mismatches(primary, second) == expected  # dondurulmuş kopyayla aynı
 
 
 @pytest.mark.parametrize("result", RESULTS, ids=lambda path: f"{path.parent.name}/{path.stem}")

@@ -516,8 +516,9 @@ def read_scanned_pages(
     second: SecondReader,
     source_image: Path | None = None,
 ) -> list[Element]:
-    """Metin katmanı olmayan sayfaları okur. Okuyucu yoksa ya da ulaşılamıyorsa
-    `ReaderUnavailable`: sayfa başka yoldan okunmaz, belge okuyucuyu bekler.
+    """Metin katmanı olmayan, zayıf ya da taranmış metin katmanlı sayfaları okur (0011, 0028).
+    Okuyucu yoksa ya da ulaşılamıyorsa `ReaderUnavailable`: sayfa başka yoldan okunmaz, belge
+    okuyucuyu bekler.
 
     source_image: belge bir görsel dosyasıysa (jpg, png) dosyanın kendisi. Okuyucuya PDF'e
     çevrilmiş kopyası değil, kendi pikselleri verilir (yalnız çekim yönü düzeltilir)."""
