@@ -19,6 +19,7 @@ FOREIGN_SCRIPT_RE = re.compile("[぀-ヺー-ヿ㐀-鿿가-힯＀-､ｦ-￯Ѐ-ӿ
 _LETTER_PREFIXED_CODE_RE = re.compile(r"\b[A-Za-z]{1,5}-?\d+[A-Za-z]*\b")
 _LIST_MARK_RE = re.compile(r"(?:^\s*|(?<=[.:;])\s+)\d{1,2}[.)]\s+(?=[A-ZÇĞİÖŞÜ*])", re.MULTILINE)
 _LINE_BREAK_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
+_MARKED_WORD_RE = re.compile(r"\**(\w+)")
 _LEADING_DECIMAL_RE = re.compile(r"(?<![\d.,])[.,](\d)")
 _MAX_CITATION_RANGE = 20
 
@@ -246,13 +247,16 @@ def numbers_in(text: str) -> set[str]:
     return {canonical_number(match.group(0)) for match in _SIGNED_NUMBER_RE.finditer(cleaned)}
 
 
-def list_mark_numbers(text: str) -> set[str]:
-    """`numbers_in`'in liste numarası diye dışarıda bıraktığı sayılar ("30. Gün", "1. Kaydet")."""
+def list_marks(text: str) -> set[tuple[str, str]]:
+    """`numbers_in`'in liste numarası diye dışarıda bıraktığı sayılar, ardındaki sözcükle
+    birlikte: "30. Gün" → ("30", "gün"), "1. Kaydet" → ("1", "kaydet")."""
     cleaned = strip_citations(_LINE_BREAK_RE.sub("\n", canon_chars(text)))
-    return {
-        canonical_number(match.group(0).strip().rstrip(".)"))
-        for match in _LIST_MARK_RE.finditer(cleaned)
-    }
+    marks = set()
+    for match in _LIST_MARK_RE.finditer(cleaned):
+        word = _MARKED_WORD_RE.match(cleaned, match.end())
+        number = canonical_number(match.group(0).strip().rstrip(".)"))
+        marks.add((number, fold_identifier(word.group(1)) if word else ""))
+    return marks
 
 
 def word_numbers(text: str) -> set[str]:

@@ -58,24 +58,27 @@ def test_number_must_come_from_its_own_quote() -> None:
     assert "78" in check.problems[0]
 
 
-def test_number_at_the_start_of_a_sentence_is_checked_like_a_list_mark() -> None:
-    sources = {
-        1: PromptSource(number=1, text="Başvuru 30. Gün içinde yapılır."),
-        2: PromptSource(number=2, text="1. Kaydet düğmesine basın.\n2. Pencereyi kapatın."),
-    }
+def test_number_at_the_start_of_a_sentence_is_checked_like_any_value() -> None:
+    sources = {1: PromptSource(number=1, text="Başvuru 30. Gün içinde yapılır.")}
     quote = "Başvuru 30. Gün içinde yapılır"
 
     wrong = verify_item(item("45. Gün içinde başvurulur.", quote=quote), sources, "tr")
     assert not wrong.ok
     assert "45" in wrong.problems[0]
     assert verify_item(item("30. Gün içinde başvurulur.", quote=quote), sources, "tr").ok
-    # Kaynağın liste numarası, cümlede değer olarak geçen sayıya dayanak olmaz.
-    steps = "1. Kaydet düğmesine basın"
-    listed = item("1. Kaydet düğmesine basın.", quote=steps, source_no=2)
-    assert verify_item(listed, sources, "tr").ok
-    assert not verify_item(
-        item("Kaydet düğmesine 1 kez basın.", quote=steps, source_no=2), sources, "tr"
-    ).ok
+
+
+def test_list_mark_in_the_source_only_backs_the_same_mark() -> None:
+    steps = "Adımlar: 1. Vanayı açın. 2. Bekleyin. Bakım 30. Gün yapılır"
+    sources = {1: PromptSource(number=1, text=steps)}
+
+    def check(text: str) -> bool:
+        return verify_item(item(text, quote=steps), sources, "tr").ok
+
+    assert check("1. Vanayı açın.")
+    assert check("2) Bekleyin [1].")
+    assert not check("Bakım: 2. Gün yapılır.")  # "2. Bekleyin" adımı gün değeri değil
+    assert not check("Vanayı 1 kez açın.")
 
 
 def test_identifier_not_in_quote_or_source_context_fails() -> None:
