@@ -6,10 +6,10 @@ Sonraya bırakılan konular, dört başlıkta. Biten madde ve durum kaydı silin
 - **Gerçek belgeden sonra:** üretilmiş belgelerde görüldü ya da ölçülemedi; gerçek belge ve gerçek kullanımla bakılacak.
 - **Canlıya alırken:** pilot cihazı, ağ, kurulum ve kapasite kararıyla birlikte ele alınacak.
 - **İş:** karar gerektirmeyen, yapılabilir iş.
+- **Windows'a veri gönderme:** işlenmiş verinin Mac'ten Windows'a taşınma yordamı.
 
 ## Karar bekliyor
 
-- **Eski OCR yolunun kaldırılması (PR #145, karar 0028), birleştirilmedi:** gömülü görsel aranmayınca değeri yalnız görselde olan aday netleştirmeden düşüyor; taban 7 ve 11'de `sql-netlestir` netleştirme yerine doğrulanmış "MUSTERI_KODU kolonunun uzunluğu 66." verdi (doğrulanmış yanlış 0 → 1). Ürün sahibinin seçimi bekleniyor.
 - Cümle başında büyük harfle başlayan sayı ("30. Gün") hâlâ madde işareti sayılıp denetimden çıkıyor; küçük harfle başlayan artık denetleniyor. Düzeltme PR #144'te hazır; boyut tahmini aşıldığı için ürün sahibi kararı bekliyor.
 - Set B'de bağ kopmaları fark tablolarında yoğun (karar 0026); ayrı inceleme ister, yapılıp yapılmayacağı açık. Büyük sayfa görselini küçültmenin süreye etkisi ölçülmedi; şimdilik yapılmıyor (0024).
 - Taranmış tablolarda satır vurgusu (incelendi 2026-11-22, uygulanmadı): bugün satırın kutusu tablonun kutusu (`page_reader.py`, `page_elements`). Tasarım: Tesseract'ın aynı çağrısı TSV (kelime kutuları) döndürür; her satır, satırda ve Tesseract'ta tek geçen ≥3 karakterli kelimelerle (en az 2 çapa) dikey banda eşlenir; çelişen satır tablo kutusuna düşer. Mac'te Tesseract ile denendi (okuyucusuz): 6013448'de 261 satırın 183'ü (%70), 6029322 s.7–9'da 34 satırın 23'ü bulundu; görsel denetlenen ≈35 bantta yanlış satır 0; sayım parçaları TSV ile düz metinde 180 blokta aynı. Boyut ≈ +75 / −10 kod, ≈ +70 test; ikinci okumanın arayüzünü (`SecondReader`, doğrulama sayımının girdisi) değiştirdiği ve eşleştirme sezgisi taşıdığı için bu turda küçük sayılmadı. Uygulanırsa kural sürümü artar, taranmış belgeler yeniden işlenir (Mac, ≈40 dk).
@@ -41,7 +41,7 @@ Sonraya bırakılan konular, dört başlıkta. Biten madde ve durum kaydı silin
 - Tarama okuyucuya kendi çözünürlüğünde verilir. İlk denemede 300 dpi'ye büyütülen 120 dpi taramada Tesseract tablodaki 13 değerin hiçbirini doğrulayamadı (hepsi gizlendi); kendi çözünürlüğünde hepsi uyuştu. Çok düşük ya da çok yüksek çözünürlüklü gerçek taramalarda davranış ölçülmedi.
 - OCR katmanlı taramalar okuyucuya gidiyor (0011). Görünür ama zayıf metin katmanı (`WEAK`) ve büyük görselli dijital sayfa (`SCANNED`) da okuyucuya gider (0028). Kuralın eşiği (%90 gizli metin nesnesi) gerçek tarayıcı çıktılarında denenmedi: yalnız eski hattın ürettiği 252 ocrmypdf sayfasında (hepsi yakalandı) ve üretilmiş test sayfalarında denendi. Yüklü belgelerde bu türden sayfa yok.
 - Fotoğraf doğrudan okutulunca (2026-11-17, `dikim-foto.jpg`, iki koşu) sayılar aynı ve doğru kaldı, ama etiketler bozuldu: "Ổḷc̃u noktasi", "Toierans". PDF'e çevrilmiş kopyadan okunurken "Ölçü noktası", "Tolerans" okunmuştu. Tek örnek; neden ve yaygınlık incelenmedi. Sayı içermeyen yanlış gizlenmediği için arama ve cevap metnini etkiler. Düzeltme yapılmadı (ürün sahibi kararı, 2026-11-17); gerçek fotoğraflarla bakılacak. Türkçe harfli etiketlerde (ö, ç, ü, ı) görülüyor.
-- Fotoğraf ve taramadan okunan değerlerde iki okuma uyuşursa değer gösterilir, cevap "Kısmen doğrulandı" olur; uyuşmazsa değer gizlenir, cevap "Doğrulanamadı" olur. Metinli sayfadaki gömülü görseller hiç okunmaz; belge listesinde "Bu belgedeki görsellerin içeriği aranmaz." uyarısı çıkar (0028). Gerçek fotoğraflarla denenecek.
+- Fotoğraf ve taramadan okunan değerlerde iki okuma uyuşursa değer gösterilir, cevap "Kısmen doğrulandı" olur; uyuşmazsa değer gizlenir, cevap "Doğrulanamadı" olur. Metinli sayfadaki gömülü görseller de okuyucudan geçer (0028); kısa kenarı 50 pt'den küçük görsel okunmaz, belge listesinde uyarı çıkar. Gerçek fotoğraflarla denenecek.
 - İkinci okuma doğru okunmuş toleransı da gizleyebiliyor: OCR dil ölçümünde Türkçe taranmış sayfadaki "±0,5", ikinci okumada "*0,5" okunup belirsiz sayıldı ve değer gizlendi (doğru değerin haksız reddi). Gerçek taramalarda ne sıklıkla olduğu ölçülmedi.
 - OCR ve dönüştürme: taranmış sayfa başına süre bu bilgisayarda ölçüldü (karar 0015); OCR doğruluğu gerçek belgelerle ölçülecek. Tika yalnız Office yolu için bir alternatif (OCR için yine Tesseract'ı kullanır); sayfa konumu ve tablo yapısı kaybı ölçülmeden geçilmesin.
 
@@ -115,10 +115,28 @@ Sonraya bırakılan konular, dört başlıkta. Biten madde ve durum kaydı silin
 
 ## İş
 
-- **Windows'ta (elle):** `git pull`; taranmış belgeler Windows'ta yeniden işlenmez (0015): Mac'ten bugünkü kodla işlenmiş bir `data/` kopyası taşınır (Mac masaüstündeki 19 Kasım kopyası `visual-agent-data-mac-2026-11-19.zip` eski kurallarla; taşınırsa föyler de "Eski kural" olur) (Canlıya alırken, veri taşıma) ya da yalnız metinli belgeler okuyucusuz yeniden işlenir. 0028'den sonra "Eski kural" görünen PDF ve Office belgeleri soru sorulmadan önce yeniden işlenmeli: eski yolun işaretsiz değerleri yeniden işlenene kadar aranır, 0022 kuralı artık yok. Eski yerel `varyant-listeleme` dalı silinir; uygulama birkaç soruyla denenir. Windows'taki `evals/output` klasörleri eski; orada ölçüm yapılacaksa önce setler yeniden üretilmeli. Windows'un hangi commit'te olduğu yazılmadı (son bilinen #117).
+- **Windows'ta (elle):** `git pull`; taranmış belgeler Windows'ta yeniden işlenmez (0015): Mac'ten bugünkü kodla işlenmiş bir `data/` paketi taşınır ("Windows'a veri gönderme"; Mac masaüstündeki 19 Kasım kopyası `visual-agent-data-mac-2026-11-19.zip` eski kurallarla, taşınırsa föyler de "Eski kural" olur) ya da yalnız metinli belgeler okuyucusuz yeniden işlenir. 0028'den sonra "Eski kural" görünen PDF ve Office belgeleri soru sorulmadan önce yeniden işlenmeli: eski yolun işaretsiz değerleri yeniden işlenene kadar aranır, 0022 kuralı artık yok. Görselli belge de okuyucu ister (Windows'ta yavaş, 0015). Eski yerel `varyant-listeleme` dalı silinir; uygulama birkaç soruyla denenir. Windows'taki `evals/output` klasörleri eski; orada ölçüm yapılacaksa önce setler yeniden üretilmeli. Windows'un hangi commit'te olduğu yazılmadı (son bilinen #117).
 - `apps/api/main.py` çok iş yapıyor: belge yükleme ve listeleme `documents.py`'ye, `/ask` akışı ayrı modüle taşınabilir; yalnız yer değişikliği.
 - Test yardımcıları test dosyalarına dağılmış (`conftest.py` yok); ortak sahte nesneler tek dosyada toplanabilir.
 - Bazı kullanıcı metinleri ("servis kullanılamıyor", "belgelerde geçmiyor", "doğrulanamadığı için gösterilmiyor") yalnız Türkçe; İngilizce soruda da Türkçe geliyor.
 - Süre sınırları (çeviri 1,5 sn, takip 4 sn, niyet 1,5 sn, durma 10 sn, LibreOffice 180 sn, `top_k` 8) kodda sabit; ölçümle değişecek olanlar `Settings`'e taşınabilir.
 - Ekranda OCR işareti yok: ses OCR'dan gelen cümlede "kaynağı ekrandan kontrol edin" diyor, ama ekranda hangi cümlenin taramadan okunduğu görünmüyor. Akış ve sonuç `from_ocr` alanını taşıyor; cümlenin yanında bir işaret gösterilebilir.
 - Kozmetik: birimden sonraki ek okunuşun ünlüsüne uyuyor ("TL'dir" → "Türk lirasıdır"; -ki ve -ken uyuma girmez), ama iyelikli okunuşta ("Türk lirası") ek doğru kurulmuyor: "TL'de" → "lirasıda", "TL'ye" → "lirasıya", "TL'yi" → "lirasıyı" (kaynaştırma "n" yok), "TL'lik" → "lirasılık" ("liralık" olmalı). Sayı ve kod dalında ek yazıldığı gibi kalır ("E050'de" → "… sıfırde"). Seyrek; dokunulmadı.
+
+## Windows'a veri gönderme
+
+Taranmış ve görselli belgeler Mac'te işlenir (0015, 0028); işlenmiş veri Windows'a paketle taşınır. Paket gerçek müşteri belgelerini içerir: **GitHub'a konmaz**, şirketin onaylı yoluyla (OneDrive, Teams ya da USB) taşınır. İki bilgisayar aynı commit'te olmalı: kural sürümleri farklıysa belgeler "Eski kural" görünür.
+
+**Mac'te** (uygulama kapalı, repo kökünde, tek komut). Paket repo dışına, `~/va-veri-<tarih>.zip` olarak yazılır. `data/PAKET.txt` içine commit, kural sürümleri ve belge sayısı girer. Model önbelleği (`data/models`), `.DS_Store`, `__pycache__` ve SQLite geçici dosyaları girmez; macOS `zip` `__MACOSX` eklemez.
+
+```bash
+sqlite3 data/visual_agent.db "pragma wal_checkpoint(TRUNCATE);" >/dev/null && { echo "commit: $(git rev-parse HEAD)"; echo "tarih: $(date -u +%Y-%m-%dT%H:%MZ)"; uv run --no-sync python -c "from visual_agent.ingest.formats import RULES_VERSIONS as r; print('kural sürümleri: ' + ', '.join(f'{k.value} {v}' for k, v in r.items()))"; echo "belge: $(sqlite3 data/visual_agent.db 'select count(*) from documents')"; echo "parça: $(sqlite3 data/visual_agent.db 'select count(*) from chunks')"; } > data/PAKET.txt && zip -qrX ~/va-veri-$(date +%Y%m%d).zip data -x 'data/models/*' '*.DS_Store' '*/__pycache__/*' 'data/*.db-wal' 'data/*.db-shm' && ls -lh ~/va-veri-$(date +%Y%m%d).zip && cat data/PAKET.txt
+```
+
+**Windows'ta** (uygulama kapalı, repo kökünde, tek PowerShell komutu). `$z` paketin indirildiği yer. Mevcut `data/` `data-yedek-<tarih>` adıyla saklanır, paket repo köküne açılır, `PAKET.txt`'deki commit `git log -1` ile karşılaştırılır.
+
+```powershell
+$z = "$HOME\Downloads\va-veri-20261123.zip"; if (Test-Path data) { Rename-Item data ("data-yedek-" + (Get-Date -Format yyyyMMdd-HHmm)) }; Expand-Archive -Path $z -DestinationPath .; $p = (Select-String -Path data\PAKET.txt -Pattern '^commit: (\S+)').Matches[0].Groups[1].Value; $g = git log -1 --format=%H; if ($p -eq $g) { "Commit aynı: $g" } else { Write-Warning "Commit farklı: paket $p, depo $g (git pull ya da git checkout $p)" }
+```
+
+Sonra uygulama açılır; belge ve parça sayısının `PAKET.txt` ile aynı olduğu, "Eski kural" belge olmadığı ve birkaç sorunun kaynağıyla döndüğü denetlenir. `data/models` ilk açılışta yeniden oluşur. Hedefin soru günlüğü kaynağınkiyle değişir. PowerShell komutu Windows'ta henüz denenmedi (Mac'te `pwsh` yok).

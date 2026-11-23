@@ -10,12 +10,12 @@ from visual_agent.ingest.docling_parser import page_header_identifies
 from visual_agent.ingest.elements import Element, ElementKind, carries_value
 from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.pipeline import (
-    IMAGES_NOT_SEARCHED,
     IngestTools,
     PageInfo,
     ingest_document,
     pages_missing_text,
     promote_code_elements,
+    with_images_in_place,
 )
 from visual_agent.ingest.text_layer import PageKind
 from visual_agent.verification.answer import verify_item
@@ -75,6 +75,10 @@ def _fake_tools(calls: list[str], page_kind: PageKind = PageKind.TEXT) -> Ingest
             for page in pages
         ]
 
+    def read_images(path: Path, images: list[Box], work: Path) -> list[Element]:
+        calls.append("images")
+        return []
+
     return IngestTools(
         read_scanned_pages=read_scanned,
         office_to_pdf=office_to_pdf,
@@ -83,22 +87,95 @@ def _fake_tools(calls: list[str], page_kind: PageKind = PageKind.TEXT) -> Ingest
         inspect_pdf=inspect,
         parse_pdf=parse,
         recover_page_text=lambda path, page: [],
+        read_embedded_images=read_images,
     )
 
 
-def test_word_file_goes_through_pdf_and_its_images_are_not_read(tmp_path: Path) -> None:
-    """Karar 0028: metinli sayfadaki gömülü görsel okunmaz; belge listesi bunu söyler."""
+def test_word_file_goes_through_pdf_and_a_tiny_image_is_skipped_with_a_warning(
+    tmp_path: Path,
+) -> None:
     path = tmp_path / "belge.docx"
     path.write_bytes(b"PK\x03\x04x")
     calls: list[str] = []
 
     result = ingest_document(path, META, _fake_tools(calls), tmp_path)
 
-    assert calls == ["office", "inspect", "parse:converted.pdf"]
+    assert calls == ["office", "inspect", "parse:converted.pdf"]  # 20 pt'lik görsel okunmaz
     assert result.display_pdf == tmp_path / "converted.pdf"
-    assert {chunk.kind for chunk in result.chunks} == {ChunkKind.TEXT}
-    assert not any(chunk.from_ocr for chunk in result.chunks)
-    assert result.report.warnings == (IMAGES_NOT_SEARCHED,)
+    assert result.report.warnings == (
+        "Sayfa 1: görsel okunmadı (kısa kenarı 20 pt, en az 50 pt gerekir).",
+    )
+
+
+def _at(kind: ElementKind, text: str, top: float, **fields: object) -> Element:
+    at = Box(page=1, left=0, top=top, right=200, bottom=top + 80, page_width=600, page_height=800)
+    return Element(kind, text, SourceLocation(page=1, boxes=(at,)), **fields)  # type: ignore[arg-type]
+
+
+def test_embedded_image_is_read_by_the_page_reader_in_its_own_section(tmp_path: Path) -> None:
+    """Karar 0028: görsel okuyucudan geçer, değeri taramadan okunmuş sayılır ("Taramadan
+    okundu"); öğesi sayfadaki yerine girer, iki ürünlü sayfada kendi ürününün bölümünde kalır."""
+    path = tmp_path / "belge.pdf"
+    path.write_bytes(b"%PDF-x")
+    image = _at(ElementKind.TABLE_ROW, "Bel | M: 40,5", 120)
+    read: list[list[Box]] = []
+
+    def images(path: Path, boxes: list[Box], work: Path) -> list[Element]:
+        read.append(boxes)
+        return [_at(ElementKind.TABLE_ROW, "Bel | M: 40,5", 120, from_ocr=True)]
+
+    def inspect(path: Path) -> list[PageInfo]:
+        return [PageInfo(page=1, kind=PageKind.TEXT, chars=50, image_boxes=image.location.boxes)]
+
+    def parse(path: Path) -> list[Element]:
+        return [
+            _at(ElementKind.HEADING, "PNT-1162 ölçü föyü", 10),
+            _at(ElementKind.HEADING, "CKT-7308 ölçü föyü", 400),
+            _at(ElementKind.TEXT, "Kalça ölçüleri aşağıda.", 420),
+        ]
+
+    tools = replace(_fake_tools([]), inspect_pdf=inspect, parse_pdf=parse)
+    result = ingest_document(path, META, replace(tools, read_embedded_images=images), tmp_path)
+
+    assert read == [list(image.location.boxes)]
+    [row] = [chunk for chunk in result.chunks if chunk.kind is ChunkKind.TABLE_ROW]
+    assert (row.section, row.from_ocr) == ("PNT-1162 ölçü föyü", True)
+    assert result.report.warnings == ()
+
+
+def test_image_elements_keep_the_order_of_pages_and_go_last_when_nothing_is_below() -> None:
+    page_one = [_at(ElementKind.TEXT, "Üst", 10), _at(ElementKind.TEXT, "Alt", 300)]
+    no_box = Element(ElementKind.TEXT, "Kutusuz", SourceLocation(page=1))
+    next_page = Element(ElementKind.TEXT, "İkinci", SourceLocation(page=2))
+    bottom = _at(ElementKind.TABLE_ROW, "En alt", 600)
+    middle = _at(ElementKind.TABLE_ROW, "Orta", 100)
+
+    placed = with_images_in_place([*page_one, no_box, next_page], [bottom, middle])
+
+    assert [element.text for element in placed] == [
+        "Üst",
+        "Orta",
+        "Alt",
+        "Kutusuz",
+        "En alt",
+        "İkinci",
+    ]
+
+
+def test_document_with_an_image_waits_for_the_page_reader(tmp_path: Path) -> None:
+    path = tmp_path / "belge.pdf"
+    path.write_bytes(b"%PDF-x")
+
+    def unavailable(path: Path, boxes: list[Box], work: Path) -> list[Element]:
+        raise ReaderUnavailable("okuyucu yok")
+
+    def inspect(path: Path) -> list[PageInfo]:
+        big = Box(page=1, left=0, top=0, right=300, bottom=200, page_width=600, page_height=800)
+        return [PageInfo(page=1, kind=PageKind.TEXT, chars=500, image_boxes=(big,))]
+
+    tools = replace(_fake_tools([]), inspect_pdf=inspect, read_embedded_images=unavailable)
+    with pytest.raises(ReaderUnavailable):
+        ingest_document(path, META, tools, tmp_path)
 
 
 def test_text_page_without_images_has_no_image_warning(tmp_path: Path) -> None:

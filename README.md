@@ -48,7 +48,7 @@ Uygulama araçları PATH'te ya da ayarla verilen yolda arar (`VA_TESSERACT_PATH`
 
 ### Taranmış sayfaların okuyucusu
 
-Metin katmanı olmayan sayfalar (tarama, fotoğraf) PaddleOCR-VL ile okunur, Tesseract ikinci kez okur; sayısı tutmayan değer cevapta gizlenir ([0011](docs/kararlar.md)). Okuyucu `.env` içindeki tek ayarla seçilir:
+Tek OCR yapısı vardır: metin katmanı olmayan ya da zayıf metin katmanlı sayfalar (tarama, fotoğraf) ve metinli sayfadaki gömülü görseller PaddleOCR-VL ile okunur, Tesseract ikinci kez okur; sayısı tutmayan değer cevapta gizlenir, gösterilen değer "Taramadan okundu" rozetini taşır ([0011, 0028](docs/kararlar.md)). Okuyucu `.env` içindeki tek ayarla seçilir:
 
 | `VA_PAGE_READER` | Nerede | Başlatma |
 | --- | --- | --- |
@@ -56,7 +56,7 @@ Metin katmanı olmayan sayfalar (tarama, fotoğraf) PaddleOCR-VL ile okunur, Tes
 | `mlx-vlm-server@http://localhost:8111/` | Apple Silicon | Ayrı pencerede `uvx --from "mlx-vlm>=0.3.11" mlx_vlm.server --host 127.0.0.1 --port 8111`. Model (3,6 GB) ilk sayfada iner. |
 | `llama-cpp-server@http://adres/` | İşlemcide ayrı sunucu | llama.cpp `llama-server`, PaddleOCR-VL-1.6 GGUF dosyalarıyla. Bu repoda denenmedi. |
 
-Ayar boşsa ya da okuyucuya ulaşılamıyorsa taranmış sayfası olan belge indekslenmez, listede "Okuyucu bekleniyor" olarak kalır; okuyucu çalışınca belgede "Yeniden işle"ye basılır. Bu sayfalar başka yoldan okunmaz. Metin katmanı olan belgeler okuyucusuz işlenir. `local` kipi Windows'ta ve işlemcide denenmedi; hızı ölçülmedi.
+Ayar boşsa ya da okuyucuya ulaşılamıyorsa taranmış sayfası ya da gömülü görseli olan belge indekslenmez, listede "Okuyucu bekleniyor" olarak kalır; okuyucu çalışınca belgede "Yeniden işle"ye basılır. Bu sayfalar ve görseller başka yoldan okunmaz. Görselsiz metinli belgeler okuyucusuz işlenir. `local` kipi Windows'ta ve işlemcide denenmedi; hızı ölçülmedi.
 
 ### Güncelleme
 

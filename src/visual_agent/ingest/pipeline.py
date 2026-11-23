@@ -26,8 +26,8 @@ _SQL_STATEMENT = (
 )
 _SQL_KEYWORDS_RE = re.compile(_SQL_STATEMENT, re.DOTALL)
 _SQL_ANY_CASE_RE = re.compile(_SQL_STATEMENT, re.DOTALL | re.IGNORECASE)
-IMAGES_NOT_SEARCHED = "Bu belgedeki görsellerin içeriği aranmaz."
-"""Metinli sayfadaki gömülü görseller okunmaz (karar 0028)."""
+_MIN_IMAGE_SIDE_POINTS = 50.0
+"""Kısa kenarı bundan küçük gömülü görsel (simge, çizgi) okunmaz; raporda uyarı çıkar."""
 
 
 @dataclass(frozen=True)
@@ -50,6 +50,9 @@ class IngestTools:
     `ReaderUnavailable`."""
     parse_pdf: Callable[[Path], list[Element]]
     recover_page_text: Callable[[Path, int], list[Element]]
+    read_embedded_images: Callable[[Path, list[Box], Path], list[Element]]
+    """Metinli sayfadaki gömülü görseller sayfa okuyucusuyla (karar 0028). Okuyucu yoksa
+    `ReaderUnavailable`."""
 
 
 class IngestReport(FrozenModel):
@@ -69,6 +72,52 @@ class IngestResult:
     chunks: tuple[Chunk, ...]
     report: IngestReport
     display_pdf: Path | None
+
+
+def _top(element: Element) -> float | None:
+    boxes = element.location.boxes
+    return boxes[0].top if boxes else None
+
+
+def with_images_in_place(elements: Sequence[Element], images: Sequence[Element]) -> list[Element]:
+    """Gömülü görselin öğesi, sayfasında kendisinden aşağıda başlayan ilk öğenin önüne girer.
+    Sona eklenince sayfanın son başlığının bölümüne düşüyordu: iki ürünlü sayfada görseldeki
+    tablo öteki ürünün bölüm adını alabilirdi. Öbür öğelerin sırası (okuma sırası) değişmez."""
+    placed = list(elements)
+    for image in images:
+        page, top = image.location.page or 0, _top(image)
+        index = next(
+            (
+                position
+                for position, element in enumerate(placed)
+                if (element.location.page or 0) > page
+                or (
+                    (element.location.page or 0) == page
+                    and top is not None
+                    and (element_top := _top(element)) is not None
+                    and element_top > top
+                )
+            ),
+            len(placed),
+        )
+        placed.insert(index, image)
+    return placed
+
+
+def embedded_images(pages: Sequence[PageInfo]) -> tuple[list[Box], list[str]]:
+    """Metinli sayfadaki okunacak gömülü görseller ve çok küçük olduğu için okunmayanların
+    uyarıları. Öteki sayfalar bütünüyle okuyucudan geçer, görselleri de okunur."""
+    images, warnings = [], []
+    for box in (box for page in pages if page.kind is PageKind.TEXT for box in page.image_boxes):
+        side = min(box.right - box.left, box.bottom - box.top)
+        if side >= _MIN_IMAGE_SIDE_POINTS:
+            images.append(box)
+        else:
+            warnings.append(
+                f"Sayfa {box.page}: görsel okunmadı (kısa kenarı {side:.0f} pt,"
+                f" en az {_MIN_IMAGE_SIDE_POINTS:.0f} pt gerekir)."
+            )
+    return images, warnings
 
 
 def _looks_like_sql(text: str) -> bool:
@@ -120,7 +169,10 @@ def _elements_from_pdf(
         for page in pages_missing_text(parsed, text_pages)
         for element in tools.recover_page_text(pdf_path, page)
     ]
-    combined = [*parsed, *recovered, *read]
+    targets, _ = embedded_images(pages)
+    images = tools.read_embedded_images(pdf_path, targets, work) if targets else []
+    by_page = sorted([*parsed, *recovered], key=lambda element: element.location.page or 0)
+    combined = [*with_images_in_place(by_page, images), *read]
     return sorted(combined, key=lambda element: element.location.page or 0), pages, scanned
 
 
@@ -182,8 +234,7 @@ def _parse(path: Path, input_format: InputFormat, tools: IngestTools, work: Path
     pdf_path = _pdf_source(path, input_format, tools, work)
     image = path if input_format is InputFormat.IMAGE else None
     elements, pages, read_pages = _elements_from_pdf(pdf_path, tools, work, image)
-    has_images = any(page.kind is PageKind.TEXT and page.image_boxes for page in pages)
-    warnings = (IMAGES_NOT_SEARCHED,) if has_images else ()
+    _, warnings = embedded_images(pages)
     return _Parsed(elements, warnings, pages, read_pages, pdf_path)
 
 

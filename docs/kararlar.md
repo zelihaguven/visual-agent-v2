@@ -1896,30 +1896,35 @@ Tarih: 2026-11-23. Ürün sahibi kararı.
 
 <a id="karar-0028"></a>
 
-### 0028: Eski OCR yolu kaldırıldı; 0018 ve 0024'ün eski yol maddesi tersine döndü
-Tarih: 2026-11-23. Ürün sahibi kararı. Dal: `eski-ocr-yolu-kaldir`.
+### 0028: Tek OCR yapısı; eski OCR yolu kaldırıldı, gömülü görseller sayfa okuyucusunda (0018 ve 0024'ün eski yol maddesi tersine döndü)
+Tarih: 2026-11-23. Ürün sahibi kararı. Dallar: `eski-ocr-yolu-kaldir` (#145), `gomulu-gorsel-okuyucuya`.
 
-**Neden.** Eski yoldan okunan değerler 0022'den beri doğrulanmış gösterilmiyordu (set A benzetiminde alt sınır 172 yanlış gösterilen). Bugünkü veride yolun ürettiği 2 parça vardı (`sql-ekran`, ikisi de gizli); yol ≈ 1.000 satır kod, test ve ölçüm aracı ile 7 paket taşıyordu.
+**Karar.** Taramadan okunan her şey tek yoldan geçer: PaddleOCR-VL okur, Tesseract ikinci kez okur, sayısı tutmayan değer gizlenir (0011). Eski yol (ocrmypdf, RapidOCR, Tesseract'ın iki kipi) tamamen kalktı. Belgeler şimdilik Mac'te işlenir; canlıda sunucuda.
+
+**Neden.**
+- Eski yoldan okunan değerler 0022'den beri doğrulanmış gösterilmiyordu (set A benzetiminde alt sınır 172 yanlış gösterilen). Yol ≈ 1.000 satır kod, test ve ölçüm aracı ile 7 paket taşıyordu.
+- Önce gömülü görselleri hiç okumamak denendi (#145'in ilk hâli): taban 7 ve 11'de `sql-netlestir` netleştirme yerine doğrulanmış "MUSTERI_KODU kolonunun uzunluğu 66." verdi (doğrulanmış yanlış 0 → 1). Görseldeki seçenek (19) netleştirmeden sessizce düşüyordu. Bu kural 1 riski; altın seti değiştirme yolu reddedildi. Bu yüzden görseller de okuyucuya gider.
 
 **Ne değişti.**
-- Zayıf ya da taranmış metin katmanlı sayfa (`WEAK`, `SCANNED`) metin katmanı olmayan sayfa gibi sayfa okuyucusuna gider. Okuyucu yoksa belge bekler (0011). Bedeli: büyük görselli dijital sayfanın (sayfanın en az yarısını kaplayan görsel) görünür metni de okuyucudan okunur; Windows'ta sayfa başına dakikalar (0015) ve cevap "Kısmen doğrulandı" olur. Bugünkü veride böyle sayfa 0.
-- Metinli sayfadaki gömülü görseller okunmaz; görselli belgenin raporunda bir uyarı çıkar: "Bu belgedeki görsellerin içeriği aranmaz." Küçük görsel eşiği (50 pt, %2) kalktı: her boyuttaki görsel için tek uyarı.
-- Silinen: ocrmypdf çağrısı ve katman seçimi (`junk_score`), RapidOCR + iki Tesseract kipli gömülü görsel okuması (`images.py`, `two_reading.py`), `legacy_ocr` işareti ve doğrulayıcı kuralı (0022), okuyucu öğesindeki `ocr_checked`, Tesseract dil eşlemesi (`tesseract_language`; okuyucunun ikinci okuması her zaman `tur+eng`), `evals/run_embedded_images.py`. `count_mismatches` dondurulmuş kopyadaki gibi iki okumayı karşılaştırır (çok kipli karşılaştırma yalnız gömülü görsel içindi).
-- Paketler: `ocrmypdf`, `pikepdf`, `rapidocr` ve `onnxruntime` `ingest` listesinden çıktı. Kilitten düşenler: ocrmypdf, pikepdf, img2pdf, fpdf2, pdfminer-six, uharfbuzz, fonttools (7). `rapidocr` ve `onnxruntime` kilitte kalıyor: rapidocr Docling'in kendi bağımlılığı (Docling'de OCR kapalı, kullanılmıyor), onnxruntime fastembed'in. OpenCV yaması bu yüzden kalıyor. Tesseract kalır (okuyucunun ikinci okuması).
-- Kural sürümü PDF ve Office 24 (23→24 yalnız metinli, zayıf ya da taranmış katmanlı sayfası olan belgeyi eskitir).
+- Zayıf ya da taranmış metin katmanlı sayfa (`WEAK`, `SCANNED`) metin katmanı olmayan sayfa gibi bütünüyle okuyucudan geçer. Büyük görselli dijital sayfanın görünür metni de okuyucudan okunur (cevap "Kısmen doğrulandı"); bugünkü veride böyle sayfa 0. Dönmüş ya da başlangıcı kaydırılmış görselli metin sayfası da böyle (görsel kutusu çizimle örtüşmez).
+- Metinli sayfadaki gömülü görsel kendi çözünürlüğünde (72–600 dpi) ve yalnız kendi bölgesi çizilip okuyucuya verilir; kutu sayfayla kesişir. Öğeleri sayfadaki yerine girer (B5: iki ürünlü sayfada görseldeki tablo kendi ürününün bölümünde kalır); görseldeki başlık bölüm açmaz, metin olarak kalır. Değerleri taramadan okunmuş sayılır ("Taramadan okundu" rozeti, 0027). Kısa kenarı 50 pt'den küçük görsel okunmaz, raporda uyarı çıkar.
+- Okuyucu yoksa görseli olan metinli belge de bekler ("Okuyucu bekleniyor", 0011: belge ya tamamen okunur ya hiç). Önceden okuyucusuz işlenirdi.
+- Silinen: ocrmypdf çağrısı ve katman seçimi (`junk_score`), RapidOCR okuması (`images.py`, `two_reading.py`), `legacy_ocr` işareti ve doğrulayıcı kuralı (0022), `ocr_checked`, `tesseract_language` (ikinci okuma her zaman `tur+eng`), `evals/run_embedded_images.py`. `count_mismatches` dondurulmuş kopyadaki gibi iki okumayı karşılaştırır.
+- Paketler: `ocrmypdf`, `pikepdf`, `rapidocr`, `onnxruntime` `ingest` listesinden çıktı; kilitten 7 paket düştü (ocrmypdf, pikepdf, img2pdf, fpdf2, pdfminer-six, uharfbuzz, fonttools). `rapidocr` Docling'in kendi bağımlılığı olarak kilitte kalıyor (Docling'de OCR kapalı, kullanılmıyor); OpenCV yaması bu yüzden kalıyor. Tesseract kalır.
+- Kural sürümü PDF ve Office 25 (24: eski yolun kaldırılması; 25: gömülü görseller okuyucuda). İkisi de yalnız metinli, zayıf ya da taranmış katmanlı sayfası olan belgeyi eskitir; tamamı okuyucudan geçen taranmış föyler eskimez.
 
-**Başka makinede.** Kural sürümü eskiyen belgede eski yolun parçaları (işareti okunmaz, 0022 kuralı yok) yeniden işlenene kadar aranır; `git pull` sonrası "Eski kural" görünen PDF ve Office belgeleri soru sorulmadan önce yeniden işlenmeli (açık notlar).
+**Windows ve 0015.** Okuyucu Windows'ta işlemcide sayfa başına 50 sn ile 16 dk arası sürer (0015); bir gömülü görsel de bir okuma demektir. Görselli Office ve PDF belgeleri bu yüzden Windows'ta yavaş işlenir; okuyucu ayarlı değilse bekler. Belgeler Mac'te işlenip veri taşınır (açık notlar, "Windows'a veri gönderme"); canlıda sunucu.
 
-**Mac verisi.** "Eski kural" olan 9 belge (dikim-pdf, dikim-rev-a, dikim-rev-b, dikim-word, ik-ihbar, ik-izin, sql-ekran, sql-kilavuz, sql-notlar) uygulamada yeniden işlendi: 27 sn, okuyucusuz, bulutsuz. Yalnız `sql-ekran` değişti (3 → 1 parça; görseldeki iki kolon satırı gitti, uyarı eklendi); öteki 8 belgenin parçaları `legacy_ocr` alanı dışında bayt bayt aynı. Taranmış 19 belge (2.580 parça) eskimedi, dokunulmadı, parçaları aynı. 394 belge, 6.293 parça.
+**Mac verisi.** Önce eski yolsuz kodla (24, 27 sn), sonra görsel okumasıyla (25, 31 sn, MLX okuyucu, bulut 0) aynı 9 metinli belge yeniden işlendi. Sonuç: 394 belge, 6.295 parça (#145 öncesiyle aynı sayı). Yalnız `sql-ekran` farklı: görseldeki iki kolon satırı artık okuyucudan ("Tablo: SIPARIS_KALEM | Kolon: MUSTERI_KODU | Tip: VARCHAR | Uzunluk: 19" ve "… DEPO_KODU … 59"), taramadan okunmuş işaretli, belirsiz değer yok; metni eski yolunkiyle aynı. Kural 1 denetimi: iki satır `sql-ekran` görüntüsüyle (görselden çizilip bakıldı) birebir. Taranmış 19 belgenin 2.580 parçası #145 öncesiyle bayt bayt aynı; öteki 8 belgenin içeriği aynı. Yedek: `~/va-yedek-2026-11-23` (#145 öncesi veritabanı ve vektörler).
 
-**Kaybolan.** `sql-ekran`'ın kolon sözlüğü görseli (SIPARIS_KALEM: MUSTERI_KODU 19, DEPO_KODU 59) aranmıyor. Sınır setinde A5 ve B7, taban setlerinde `sql-ekran-uzunluk` artık "bulunamadı" döner (sorudaki `SIPARIS_KALEM` hiçbir parçada geçmiyor; modele gidilmez); önceden cevap gizlenip kaynak görüntüsü veriliyordu. Bu üç sorunun beklentisi "bulunamadı"dır (ürün sahibi kararı); set dosyaları değiştirilmedi.
+**Ölçüm (Mac, `evals/output/tek-ocr-2026-11-23`).** 23 Kasım önbelleği ve çalışma klasörleri kopyalandı; yalnız kural sürümü eskiyen belgeler okuyucuyla yeniden işlendi (taranmışlar aynen). Kaynak metni değişen sorular bir kez canlı soruldu (taban 11: 2 soru; ≈ 0,0006 $).
+- Taban 7: 33/33, doğrulanmış yanlış 0. Taban 11: 33/33, doğrulanmış yanlış 0 (7 takip turu iki koşuda da çevrimdışı önbellekte yok, sorulmadı).
+- `sql-netlestir`: iki sette de netleştirme.
+- `sql-ekran-uzunluk`: iki sette de görseldeki değerle cevaplandı, "kısmen doğrulandı" (önceden 0022 yüzünden gizliydi, #145'in ilk hâlinde "bulunamadı").
+- Sınır setinde A5 ve B7 uygulamaya birer kez soruldu: "… MUSTERI_KODU kolonunun uzunluğu 19." ve "… DEPO_KODU kolonunun uzunluğu 59'dur.", ikisi de "kısmen doğrulandı". A5'teki gizleme (0021, `VARCHAR` iki okumada uyuşmuyordu) okuyucuda oluşmadı.
+- FastReact: 18 cevap birebir aynı.
+- İnceleme düzeltmesinden (ölçek, kutu, başlık) sonra taban setlerinin parçaları yeniden üretildi: metin aynı, yalnız taban 11'de tablo kutusunun sağ kenarında 0,001 pt yuvarlama farkı.
 
-**Ölçüm (Mac, `evals/output/eski-ocr-kaldir-2026-11-23`).** 23 Kasım önbelleği ve çalışma klasörleri kopyalandı; yalnız kural sürümü eskiyen belgeler yeni kodla yeniden işlendi (uygulamanın yaptığı gibi; taranmışlar okuyucu çalıştırılmadan aynen kaldı). Taban 7 ve 11'de yalnız `sql-ekran` değişti. Önbellekten olmayan sorular (kaynak listesi değiştiği için istem değişti) bir kez canlı soruldu (taban 7: 3, taban 11: 5 soru; ≈ 0,0004 $).
-- `sql-ekran-uzunluk`: gizli → "bulunamadı" (iki sette).
-- `sql-zaman-asimi`, `sql-yok`, `ik-ihbar-suresi`, `ik-yok`: yine geçti.
-- **`sql-netlestir` ("MUSTERI_KODU kolonunun uzunluğu kaç?"): netleştirme → doğrulanmış cevap "MUSTERI_KODU kolonunun uzunluğu 66." (taban 11'de 67), kaynak `sql-sozluk` (FATURA_BASLIK).** Netleştirmenin öbür adayı (19) yalnız görseldeydi. Değer kendi tablosu için doğru, ama soru iki tabloya ait ve puanlayıcı bunu doğrulanmış yanlış sayar (0004). Taban 7 ve 11: doğrulanmış yanlış 0 → 1. **Karar bekliyor** (aşağıda).
-- FastReact: yalnız Markdown; parçalar ve 18 cevap aynı.
+**Başka makinede.** Kural sürümü eskiyen belgede eski yolun parçaları (işareti okunmaz, 0022 kuralı yok) yeniden işlenene kadar aranır; `git pull` sonrası "Eski kural" görünen PDF ve Office belgeleri soru sorulmadan önce yeniden işlenmeli. Görselli belge okuyucu ister.
 
-**Karar bekliyor.** Görselin içeriği aranmayınca, değeri yalnız görselde olan aday netleştirmeden düşer ve kalan tek adayın değeri doğrulanmış gösterilir. Seçenekler ürün sahibinindir (bu kayıt sonucu yazar, seçim yapmaz).
-
-**Yeniden düşünülür.** Ekran kartlı bir makine ya da sunucu gelirse gömülü görseller sayfa okuyucusuna gönderilir (kırpılmış görselle okuma yeni kod ister).
+**Yeniden düşünülür.** Gerçek belgelerde görsel sayısı okuma süresini pilot için kabul edilemez kılarsa (ör. her sayfada logo), ya da gerçek fotoğraflarda okuyucunun yanlış gösterdiği değer set B oranını (%2,9, 0026) belirgin aşarsa.
