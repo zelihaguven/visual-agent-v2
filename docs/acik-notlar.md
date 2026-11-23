@@ -6,7 +6,7 @@ Kararı ya da işi sonraya bırakılan konular. Biten madde silinir.
 
 `main` #141'den önce #140'ta (`b6b0db9`). 22 Kasım'da birleşenler: #130 arayüz, #132 çeviri niyetle aynı anda, #133 gömülü görsel sayım hatası, #134 ve #139 belge temizlikleri, #135 birleştirme izni, #136 üç küçük hata, #137 panel "net okunamadı" sayısı, #138 tekrarlanan tablo başlığı ve içerikten sonra gelen başlıklar (karar 0025). 23 Kasım: #140 Excel tek sütun ve BM25 tire, #141 kabul seti. Mac bu commit'te; "Eski kural" 0 (Veri). Windows'un hangi commit'te olduğu bu nota yazılmadı (son bilinen: #117, 20 Kasım).
 
-Kabul seti onaylandı ve repoda (`evals/kabul_seti.json`, kararlar "Kabul seti"); 23 Kasım'da 5 koşu ölçüldü.
+Kabul seti onaylandı ve repoda (`evals/kabul_seti.json`, kararlar "Kabul seti"); 23 Kasım'da 5 koşu ölçüldü ve sonuç pilot öncesi taban olarak kaydedildi. Görülen kusurlar "Kabul setinde görülenler" bölümünde; gerçek belgelerden önce düzeltilmez.
 
 **Veri**
 
@@ -67,6 +67,16 @@ Denenip geri çekilen ya da ilkeye aykırı fikirler. Yeniden önermek için yen
 
 - **Kod türleri ve biçimleri:** Kodlar belge işlenirken metinden otomatik çıkarılıyor, ama gerçek belgelerde kodların biçimi ve sırası aynı olmayabilir. Harf ve rakam içeren her şey "kod" sayılıyor: etiket kodu ile ürün kodu ayrılmıyor, `A4` gibi ifadeler fazladan sayılabilir, `1162/A` gibi biçimler kaçabilir. Gerçek dosyalar gelince ölçülecek; gerekirse belge işlerken kodları türüne ayıran bir adım eklenecek.
 - **Tablo düzenleri:** Üretilmiş tablolar düzenli. Farklı sütun sırası ve başlıklarda bedene göre netleştirme yeniden denenecek.
+
+## Kabul setinde görülenler (düzeltme bekliyor, gerçek belgelerden sonra)
+
+23 Kasım kabul seti ölçümünde görüldü (kararlar, "Kabul seti"). Hiçbiri yanlış değer göstermedi. Kabul seti pilot öncesi tabandır: bunlardan biri ona bakılarak düzeltilirse yeni kabul seti gerekir.
+
+- **Y11 yanlış "bulunamadı":** Train Midlayer base sorusu 5 koşuda da "bulunamadı" döndü; beklenen, iki model (6026399, 6026411) arasında netleştirmeydi, değerler iki belgenin s.14'ünde.
+- **Y02 gereksiz netleştirme:** iki revizyonda (Rev A, Rev B) değer aynıyken 5 koşuda da hangi revizyon olduğu soruldu.
+- **Y08 ve Y14 beden belirtilmişken netleştirme:** soruda MD bedeni yazılı olduğu hâlde ölçü ya da satır soruldu ("Hangi Inseam … ölçüsü için?", "Hangi paça ağzı ölçüsü için?").
+- **Y10 netleştirmede yanlış belge seçeneği:** iki doğru adayın yanında her koşuda üçüncü seçenek olarak yanlış belge sunuldu (6028355 ya da 6026411).
+- **Y14 takip turunda değer sınanamadı:** "Peki XL?" 5 koşuda da önceki turun bağlamıyla doğru tamamlandı (6026417, XL, paça ağzı; netleştirmede de bağlam döner), ama ikinci tur da netleştirmede kaldı (4) ya da gizlendi (1). Takipten sonra değerin gösterilmesi bu soruda sınanmadı (Y15'te sınandı, 5/5).
 
 ## Tech pack (taranmış ölçü föyü) ölçümünden kalanlar
 
