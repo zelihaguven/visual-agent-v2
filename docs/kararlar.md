@@ -539,6 +539,7 @@ Bu kurallar haksız kabulü kapatır:
   (`#40f0850`, `#2ec350a`, `#c9d44c5`).
 - Binlik ayraç ve eksi işareti değeri değiştiremez (`#9104a31`, `#2c1fca6`).
 - Netleştirme sorusu kullanıcının söylemediği değeri taşıyamaz (`#c96aede`).
+- Cümle başındaki "sayı + nokta" ("30. Gün içinde") liste numarası sayılıp denetimden çıkıyordu; artık değer gibi denetlenir. Kaynağın liste numarası yalnız aynı numarayı aynı sözcükle karşılar ("2. Bekleyin" adımı "2. Gün"ü karşılamaz), değer olarak geçen sayıya dayanak olmaz. Netleştirme sorusundaki "30. Gün" de kullanıcının söylemediği değer sayılır (2026-11-23, mimari raporunda doğrulanan kural 1 açığı). Önbellekten ölçüm: taban 7 ve 11 (33+33) ile FastReact (18) cevapları önce ve sonra birebir aynı.
 
 Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f603b5f`.
 

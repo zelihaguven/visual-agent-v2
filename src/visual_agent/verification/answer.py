@@ -23,6 +23,7 @@ from visual_agent.verification.text import (
     contains_token,
     header_units,
     identifiers_in,
+    list_marks,
     measures_in,
     model_numbers,
     normalize,
@@ -245,8 +246,13 @@ def _token_problems(
     joined = " ".join(text for text, _ in evidence)
     backed = numbers_in(joined) | word_numbers(joined)
     backed |= _asked_model_numbers(item, sources, user) | _asked_cell_labels(item, sources, user)
+    # Cümle başındaki "30. Gün" de değerdir; kaynağın liste numarası yalnız aynı numarayı aynı
+    # sözcükle karşılar ("2. Bekleyin" adımı "2. Gün"ü karşılamaz).
+    source_marks = list_marks(joined)
+    listed = {n for n, w in list_marks(item.text) if n not in backed and (n, w) not in source_marks}
     stray_numbers = (
         (numbers_in(item.text) - backed)
+        | listed
         | (word_numbers(item.text) - _ARTICLE_NUMBERS - backed)
         | _stray_tens(item.text, language, backed, evidence)
     )
@@ -335,7 +341,9 @@ def _values_in(text: str, language: str) -> set[str]:
 def safe_clarify_question(question: str, user_question: str, language: str) -> str:
     """Netleştirme sorusu kaynağa karşı denetlenmez; kullanıcının söylemediği sayı ya da kod
     taşıyorsa ya da boşsa yerine sabit soru gelir."""
-    if question.strip() and _values_in(question, language) <= _values_in(user_question, language):
+    said = _values_in(user_question, language) | {n for n, _ in list_marks(user_question)}
+    values = _values_in(question, language) | {n for n, _ in list_marks(question)}
+    if question.strip() and values <= said:
         return question
     return _SAFE_CLARIFY_QUESTION.get(language, _SAFE_CLARIFY_QUESTION["tr"])
 

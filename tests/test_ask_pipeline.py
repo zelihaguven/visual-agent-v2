@@ -495,7 +495,12 @@ def _clarify_client(question: str) -> FakeClient:
 
 @pytest.mark.parametrize(
     "model_question",
-    ["Genişlik 999 cm mi, 1000 cm mi?", "M beden için 76,5 mi?", "PNT-9999 için mi soruyorsunuz?"],
+    [
+        "Genişlik 999 cm mi, 1000 cm mi?",
+        "M beden için 76,5 mi?",
+        "PNT-9999 için mi soruyorsunuz?",
+        "30. Gün için mi soruyorsunuz?",
+    ],
 )
 def test_clarification_cannot_carry_a_value_the_user_did_not_say(model_question: str) -> None:
     result = ask(make_deps(_clarify_client(model_question)), "iç paça kaç?").result
