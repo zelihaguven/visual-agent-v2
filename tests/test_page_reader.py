@@ -13,6 +13,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
 
 from evals import ocr_score, ocr_truth
+from visual_agent.domain.document import Box
 from visual_agent.ingest import page_reader
 from visual_agent.ingest.elements import ElementKind
 from visual_agent.ingest.external import ReaderUnavailable
@@ -22,6 +23,7 @@ from visual_agent.ingest.page_reader import (
     is_ocr_layer,
     page_elements,
     parse_reader_setting,
+    read_embedded_images,
     read_scanned_pages,
 )
 
@@ -340,6 +342,46 @@ def test_blank_page_needs_no_reader(tmp_path: Path) -> None:
     blank = _scan(tmp_path / "bos.pdf", blank=True)
 
     assert read_scanned_pages(blank, [1], tmp_path, None, lambda _: "") == []
+
+
+def _region(left: float, top: float, right: float, bottom: float) -> Box:
+    return Box(
+        page=1, left=left, top=top, right=right, bottom=bottom, page_width=600, page_height=800
+    )
+
+
+def test_embedded_image_is_cropped_read_and_placed_back_on_its_page(tmp_path: Path) -> None:
+    """Karar 0028: gömülü görsel kendi pikselleriyle kırpılıp okunur; kutular sayfaya taşınır."""
+    sizes: list[tuple[int, int]] = []
+
+    def read_page(image: Path) -> dict[str, Any]:
+        sizes.append(Image.open(image).size)
+        block = {**_block(0, "text", "Basınç 185 bar"), "block_bbox": [50, 20, 250, 80]}
+        return {"width": 300, "height": 100, "parsing_res_list": [block]}
+
+    [element] = read_embedded_images(
+        _scan(tmp_path / "t.pdf"),
+        [_region(50, 80, 350, 180)],
+        tmp_path,
+        read_page,
+        lambda _: "Basınç 135 bar",
+    )
+
+    assert sizes == [(300, 100)]
+    assert (element.text, element.from_ocr, element.ocr_uncertain) == (
+        "Basınç 185 bar",
+        True,
+        ("185",),
+    )
+    box = element.location.boxes[0]
+    assert (box.left, box.top, box.right, box.bottom, box.page_width) == (100, 100, 300, 160, 600)
+
+
+def test_embedded_image_waits_for_the_reader_unless_it_is_blank(tmp_path: Path) -> None:
+    scan = _scan(tmp_path / "t.pdf")
+    with pytest.raises(ReaderUnavailable):
+        read_embedded_images(scan, [_region(50, 80, 350, 180)], tmp_path, None, lambda _: "")
+    assert read_embedded_images(scan, [_region(400, 400, 500, 500)], tmp_path, None, str) == []
 
 
 def test_unreachable_server_means_waiting_not_failure(tmp_path: Path) -> None:

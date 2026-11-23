@@ -14,7 +14,9 @@ from visual_agent.ingest.elements import Element, ElementKind
 from visual_agent.ingest.external import ExternalTools, locate_tools
 from visual_agent.ingest.page_reader import (
     ReadPage,
+    SecondReader,
     is_ocr_layer,
+    read_embedded_images,
     read_scanned_pages,
     tesseract_reader,
 )
@@ -102,6 +104,14 @@ def recover_page_text(path: Path, page: int) -> list[Element]:
     return [Element(ElementKind.TEXT, " ".join(text.split()), SourceLocation(page=page))]
 
 
+def _second_reader(external: ExternalTools, read_page: ReadPage | None) -> SecondReader:
+    """İkinci okuma ölçümdeki gibi Tesseract tur+eng; Tesseract yoksa belge bunu söyler.
+    Okuyucu yoksa boş olmayan görüntü zaten okunamaz; Tesseract aranmaz."""
+    if read_page is None:
+        return lambda _: ""
+    return tesseract_reader(external.require_tesseract("tur+eng"))
+
+
 def _read_scanned(
     path: Path,
     pages: list[int],
@@ -110,12 +120,15 @@ def _read_scanned(
     external: ExternalTools,
     read_page: ReadPage | None,
 ) -> list[Element]:
-    """İkinci okuma ölçümdeki gibi Tesseract tur+eng; Tesseract yoksa belge bunu söyler."""
-    if read_page is None:
-        # Boş sayfalar dışında okunacak sayfa varsa okuyucu gerekir; Tesseract sonra aranır.
-        return read_scanned_pages(path, pages, work, None, lambda _: "", image)
-    second = tesseract_reader(external.require_tesseract("tur+eng"))
+    second = _second_reader(external, read_page)
     return read_scanned_pages(path, pages, work, read_page, second, image)
+
+
+def _read_images(
+    path: Path, images: list[Box], work: Path, external: ExternalTools, read_page: ReadPage | None
+) -> list[Element]:
+    second = _second_reader(external, read_page)
+    return read_embedded_images(path, images, work, read_page, second)
 
 
 def default_tools(
@@ -132,4 +145,5 @@ def default_tools(
         inspect_pdf=inspect_pdf,
         parse_pdf=parse_pdf,
         recover_page_text=recover_page_text,
+        read_embedded_images=partial(_read_images, external=found, read_page=read_page),
     )

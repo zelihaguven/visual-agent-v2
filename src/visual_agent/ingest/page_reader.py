@@ -302,11 +302,16 @@ def page_elements(
     marks: Mapping[int, Sequence[str]],
     known_headers: frozenset[HeaderKey] = frozenset(),
     learned: set[HeaderKey] | None = None,
+    region: Box | None = None,
 ) -> list[Element]:
     """Okuyucunun sayfa sonucu, okuma sırasıyla öğelere çevrilir. Metin karşılaştırılan yazımla
     yazılır ("14⅞" → "14 7/8"): belirsiz değerler cevap denetiminde aynı yazımla aranır.
-    Tabloda hücre konumu yoktur; satırın kaynağı tablonun kutusudur."""
-    width, height = page_size
+    Tabloda hücre konumu yoktur; satırın kaynağı tablonun kutusudur. region: okunan görüntü
+    sayfanın bir bölgesiyse (gömülü görsel) kutular o bölgeden sayfaya taşınır."""
+    page_width, page_height = page_size
+    left0, top0 = (region.left, region.top) if region else (0.0, 0.0)
+    width = region.right - region.left if region else page_width
+    height = region.bottom - region.top if region else page_height
     scale_x = width / float(data.get("width") or width)
     scale_y = height / float(data.get("height") or height)
     elements: list[Element] = []
@@ -317,12 +322,12 @@ def page_elements(
         left, top, right, bottom = block["block_bbox"]
         box = Box(
             page=page,
-            left=left * scale_x,
-            top=top * scale_y,
-            right=right * scale_x,
-            bottom=bottom * scale_y,
-            page_width=width,
-            page_height=height,
+            left=left0 + left * scale_x,
+            top=top0 + top * scale_y,
+            right=left0 + right * scale_x,
+            bottom=top0 + bottom * scale_y,
+            page_width=page_width,
+            page_height=page_height,
         )
         location = SourceLocation(page=page, boxes=(box,))
         tokens = marks.get(int(block.get("block_id", -1)), ())
@@ -508,6 +513,49 @@ def page_reader_from_setting(value: str | None) -> ReadPage | None:
     return PaddleVlReader(config).read
 
 
+def _read_image(
+    image: Image.Image, source: Path, read_page: ReadPage | None, second: SecondReader
+) -> tuple[dict[str, Any], dict[int, list[str]]] | None:
+    """Okuyucu sonucu ve ikinci okumanın işaretleri; görüntü boşsa None (okuyucu gerekmez)."""
+    darkest, _ = cast(tuple[int, int], image.convert("L").getextrema())
+    if darkest >= _BLANK_LEVEL:
+        return None
+    if read_page is None:
+        raise ReaderUnavailable(NOT_CONFIGURED)
+    image.save(source)
+    data = read_page(source)
+    return data, second_reading_marks(data, image, second)
+
+
+def read_embedded_images(
+    path: Path,
+    images: Sequence[Box],
+    work: Path,
+    read_page: ReadPage | None,
+    second: SecondReader,
+) -> list[Element]:
+    """Metinli sayfadaki gömülü görseller sayfa okuyucusuyla okunur (karar 0028): sayfa
+    görselin kendi çözünürlüğünde çizilir, görselin kutusu kırpılır, öğelerin kutuları sayfaya
+    taşınır. Okuyucu yoksa `ReaderUnavailable`: belge okuyucuyu bekler."""
+    document = pypdfium2.PdfDocument(path)
+    try:
+        elements: list[Element] = []
+        for index, box in enumerate(images):
+            page = document[box.page - 1]
+            scale = _native_scale(page)
+            rendered = page.render(scale=scale).to_pil().convert("RGB")
+            edges = (box.left, box.top, box.right, box.bottom)
+            crop = rendered.crop(tuple(int(edge * scale) for edge in edges))
+            source = work / f"okuyucu-s{box.page}-g{index}.png"
+            read = _read_image(crop, source, read_page, second)
+            if read is not None:
+                data, marks = read
+                elements += page_elements(data, box.page, page.get_size(), marks, region=box)
+        return elements
+    finally:
+        document.close()
+
+
 def read_scanned_pages(
     path: Path,
     pages: Sequence[int],
@@ -533,15 +581,10 @@ def read_scanned_pages(
                     image = ImageOps.exif_transpose(opened).convert("RGB")
             else:
                 image = page.render(scale=_native_scale(page)).to_pil().convert("RGB")
-            darkest, _ = cast(tuple[int, int], image.convert("L").getextrema())
-            if darkest >= _BLANK_LEVEL:
+            read = _read_image(image, work / f"okuyucu-s{number}.png", read_page, second)
+            if read is None:
                 continue  # boş sayfa: okunacak bir şey yok, okuyucu da gerekmez
-            if read_page is None:
-                raise ReaderUnavailable(NOT_CONFIGURED)
-            source = work / f"okuyucu-s{number}.png"
-            image.save(source)
-            data = read_page(source)
-            marks = second_reading_marks(data, image, second)
+            data, marks = read
             learned: set[HeaderKey] = set()
             elements += page_elements(data, number, page.get_size(), marks, known_headers, learned)
             known_headers |= learned  # yalnız sonraki sayfalar için
