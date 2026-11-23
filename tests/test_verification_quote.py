@@ -146,10 +146,20 @@ def test_labeled_quote_matches_through_emphasis() -> None:
         ("# Başlık [bağlantı](x) | a | b", "# başlık [bağlantı](x) | a | b"),
         ("C:\\Program Files\\FastReact", "c:\\program files\\fastreact"),
         ("“possible”  date\nnext", '"possible" date next'),
+        ("`my_var` değişkeni", "my_var değişkeni"),  # kod içinde kaçış kalmaz
+        ("``x**2`` ve `a_b`", "x**2 ve a_b"),
     ],
 )
 def test_parser_removes_only_emphasis_code_marks_and_escapes(text: str, expected: str) -> None:
     assert markdown_plain_form(text) == expected
+
+
+def test_quote_without_backticks_matches_inline_code_with_underscores_or_stars() -> None:
+    """PR #4 (Bugbot): kod içindeki alt çizgi ve yıldız kaçışla korununca ters bölü kodda
+    kalıyordu; kodu ters tırnaksız alıntılayan doğru alıntı reddediliyordu."""
+    source = "Kolon `my_var` ile `x**2` hesaplanır"
+    assert quote_matches("Kolon my_var ile x**2 hesaplanır", source, "tr")
+    assert not quote_matches("Kolon my_var ile x**3 hesaplanır", source, "tr")
 
 
 def test_verbatim_way_changes_only_quote_marks_and_spacing() -> None:
