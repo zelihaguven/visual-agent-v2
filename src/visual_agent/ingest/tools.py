@@ -14,7 +14,9 @@ from visual_agent.ingest.elements import Element, ElementKind
 from visual_agent.ingest.external import ExternalTools, locate_tools
 from visual_agent.ingest.page_reader import (
     ReadPage,
+    SecondReader,
     is_ocr_layer,
+    read_embedded_images,
     read_scanned_pages,
     tesseract_reader,
 )
@@ -45,18 +47,27 @@ def _image_boxes(page: Any, number: int, width: float, height: float) -> tuple[B
     boxes = []
     for item in page.get_objects(filter=[pdfium_c.FPDF_PAGEOBJ_IMAGE], max_depth=4):
         left, bottom, right, top = item.get_bounds()
-        boxes.append(
-            Box(
-                page=number,
-                left=left,
-                top=height - top,
-                right=right,
-                bottom=height - bottom,
-                page_width=width,
-                page_height=height,
+        # Kırpılmış (clip) görselin sınırları sayfa dışına taşabilir: kutu sayfayla kesişir.
+        left, right = max(left, 0.0), min(right, width)
+        top, bottom = max(height - top, 0.0), min(height - bottom, height)
+        if right > left and bottom > top:
+            boxes.append(
+                Box(
+                    page=number,
+                    left=left,
+                    top=top,
+                    right=right,
+                    bottom=bottom,
+                    page_width=width,
+                    page_height=height,
+                )
             )
-        )
     return tuple(boxes)
+
+
+def _shifted(page: Any) -> bool:
+    """Dönmüş ya da başlangıcı kaydırılmış sayfada görsel kutusu çizimle örtüşmez."""
+    return bool(page.get_rotation()) or tuple(page.get_cropbox()[:2]) != (0.0, 0.0)
 
 
 def _page_text(page: Any) -> str:
@@ -77,6 +88,8 @@ def inspect_pdf(path: Path) -> list[PageInfo]:
             kind = classify_page(chars, cover, quality_score(text))
             if is_ocr_layer(page, width * height):
                 kind, chars = PageKind.NONE, 0  # OCR katmanı metin katmanı sayılmaz
+            elif kind is PageKind.TEXT and boxes and _shifted(page):
+                kind = PageKind.SCANNED  # görselli sayfa bütünüyle okuyucuya gider
             result.append(PageInfo(page=number, kind=kind, chars=chars, image_boxes=boxes))
         return result
     finally:
@@ -102,6 +115,14 @@ def recover_page_text(path: Path, page: int) -> list[Element]:
     return [Element(ElementKind.TEXT, " ".join(text.split()), SourceLocation(page=page))]
 
 
+def _second_reader(external: ExternalTools, read_page: ReadPage | None) -> SecondReader:
+    """İkinci okuma ölçümdeki gibi Tesseract tur+eng; Tesseract yoksa belge bunu söyler.
+    Okuyucu yoksa boş olmayan görüntü zaten okunamaz; Tesseract aranmaz."""
+    if read_page is None:
+        return lambda _: ""
+    return tesseract_reader(external.require_tesseract("tur+eng"))
+
+
 def _read_scanned(
     path: Path,
     pages: list[int],
@@ -110,12 +131,15 @@ def _read_scanned(
     external: ExternalTools,
     read_page: ReadPage | None,
 ) -> list[Element]:
-    """İkinci okuma ölçümdeki gibi Tesseract tur+eng; Tesseract yoksa belge bunu söyler."""
-    if read_page is None:
-        # Boş sayfalar dışında okunacak sayfa varsa okuyucu gerekir; Tesseract sonra aranır.
-        return read_scanned_pages(path, pages, work, None, lambda _: "", image)
-    second = tesseract_reader(external.require_tesseract("tur+eng"))
+    second = _second_reader(external, read_page)
     return read_scanned_pages(path, pages, work, read_page, second, image)
+
+
+def _read_images(
+    path: Path, images: list[Box], work: Path, external: ExternalTools, read_page: ReadPage | None
+) -> list[Element]:
+    second = _second_reader(external, read_page)
+    return read_embedded_images(path, images, work, read_page, second)
 
 
 def default_tools(
@@ -132,4 +156,5 @@ def default_tools(
         inspect_pdf=inspect_pdf,
         parse_pdf=parse_pdf,
         recover_page_text=recover_page_text,
+        read_embedded_images=partial(_read_images, external=found, read_page=read_page),
     )
