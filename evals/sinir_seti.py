@@ -1,6 +1,6 @@
 """Sınır seti ölçümü: soruları çalışan uygulamanın `/api/ask` yolundan sorar (yazılı). Soru
-bağlamsızdır; takip turları (`follow_ups`) önceki turun bağlamıyla sorulur (ilk tur netleştirme ya
-da "bulunamadı" ise bağlam yoktur, arayüzdeki gibi).
+bağlamsızdır; takip turları (`follow_ups`) önceki turun döndürdüğü bağlamla sorulur, arayüzdeki
+gibi (netleştirme ve "bulunamadı" turları da bağlam döndürür; `ask/context.py`).
 
 Her koşu × tur için bir satır yazar (JSON lines) ve özet verir. Süre kullanıcının gördüğüdür:
 isteğin gönderilmesinden ilk doğrulanmış cümleye. Sınıflar (doğru / güvenli / yanlış) cevap
