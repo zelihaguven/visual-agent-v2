@@ -13,6 +13,7 @@ from visual_agent.ask.intent import SMALL_TALK_REPLIES
 from visual_agent.ask.language import detect_language
 from visual_agent.ask.streaming import INCOMPLETE_MESSAGE, Event
 from visual_agent.domain.answer import VerificationStatus
+from visual_agent.domain.conversation import MAX_QUESTION_CHARS
 from visual_agent.domain.result import (
     Answered,
     AskResult,
@@ -99,6 +100,10 @@ class SpeakItem(BaseModel):
 
 class SpeakBody(BaseModel):
     items: list[SpeakItem] = Field(min_length=1, max_length=_MAX_SPOKEN_ITEMS)
+    question: str | None = Field(default=None, max_length=MAX_QUESTION_CHARS)
+    """Cevabın sorusu (takipte tamamlanmış hali): cevap sorunun dilinde verilir, ses de o dilde
+    okunur. Kısa İngilizce cevaptan ("It is 32 cm.") dil çıkmaz. Soru yoksa dil cevaptan
+    tespit edilir."""
 
 
 class SpeakResponse(BaseModel):
@@ -194,7 +199,10 @@ class SpokenAnswer:
 
     def on_event(self, event: Event) -> None:
         self._emit(event)
-        if event["type"] == "item_verified":
+        if event["type"] == "resolved":
+            # Cevap tamamlanmış sorunun dilinde verilir ("ve L?" İngilizce sorunun takibiyse).
+            self._language = detect_language(str(event["question"]))
+        elif event["type"] == "item_verified":
             text = spoken_text(str(event["text"]), self._language, has_code=bool(event["has_code"]))
             self._speak(int(str(event["index"])), text)
         elif event["type"] == "item_unverified" and event.get("quote"):
@@ -280,7 +288,8 @@ def voice_router(dependency: Callable[[], Voice | None]) -> APIRouter:
         body: SpeakBody, voice: Annotated[Voice | None, Depends(dependency)]
     ) -> SpeakResponse:
         service = _available(voice)
-        language = detect_language(" ".join(item.text for item in body.items))
+        answer = " ".join(item.text for item in body.items)
+        language = detect_language((body.question or "").strip() or answer)
         try:
             speeches = await asyncio.gather(
                 *(

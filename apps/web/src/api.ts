@@ -257,11 +257,14 @@ export async function fetchVoicePhrases(signal: AbortSignal): Promise<VoicePhras
 
 export type SpokenItem = { text: string; has_code: boolean };
 
-export async function requestSpeech(items: SpokenItem[]): Promise<PhraseAudio[]> {
+export async function requestSpeech(
+  items: SpokenItem[],
+  question: string,
+): Promise<PhraseAudio[]> {
   const response = await fetch("/api/speak", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items }),
+    body: JSON.stringify({ items, question }),
   });
   if (!response.ok) {
     throw new Error(await readError(response));

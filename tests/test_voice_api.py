@@ -231,6 +231,17 @@ def test_partial_notice_follows_the_question_language(
     assert voice.spoken == [expected]
 
 
+def test_follow_up_is_read_in_the_completed_question_language(tmp_path: Path) -> None:
+    """Takip sorusu ("ve L?") Türkçe sayılır; cevap tamamlanmış İngilizce sorunun dilindedir."""
+    voice = FakeVoice()
+    resolved: dict[str, object] = {"type": "resolved", "question": "What is the L waist?"}
+    events = [resolved, verified(0, "It is 32 cm.")]
+
+    ask_events(make_client(tmp_path, voice, events, ANSWERED))
+
+    assert voice.spoken == ["It is 32 cm."]
+
+
 def test_speech_failure_keeps_the_text_answer(tmp_path: Path) -> None:
     voice = FakeVoice(fail_on="Birinci.")
     events = [verified(0, "Birinci."), verified(1, "İkinci.")]
@@ -311,6 +322,29 @@ def test_speak_reads_each_answer_item_in_order(tmp_path: Path) -> None:
     assert response.status_code == 200
     spoken = [base64.b64decode(a["audio"]).decode() for a in response.json()["audios"]]
     assert spoken == ["Birinci.", "Bel beş santimetre.", "Komut ekranda gösteriliyor."]
+
+
+@pytest.mark.parametrize(
+    ("question", "expected"),
+    [
+        ("What is the waist?", "It is 32 cm."),
+        ("Bel kaç?", "It is otuz iki santimetre."),
+        (None, "It is otuz iki santimetre."),
+    ],
+    ids=["ingilizce-soru", "turkce-soru", "sorusuz"],
+)
+def test_speak_reads_in_the_question_language(
+    tmp_path: Path, question: str | None, expected: str
+) -> None:
+    """Kısa İngilizce cevaptan dil çıkmaz; sorusu verilince ses sorunun dilindedir."""
+    voice = FakeVoice()
+    client = make_client(tmp_path, voice, [], ANSWERED)
+    body: dict[str, object] = {"items": [{"text": "It is 32 cm."}]}
+    if question is not None:
+        body["question"] = question
+
+    assert client.post("/api/speak", json=body).status_code == 200
+    assert voice.spoken == [expected]
 
 
 @pytest.mark.parametrize(

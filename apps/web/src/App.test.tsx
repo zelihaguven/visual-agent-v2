@@ -633,6 +633,7 @@ describe("App", () => {
     const body = fetchMock.mock.calls.find(([url]) => String(url) === "/api/speak")?.[1]?.body;
     expect(JSON.parse(String(body))).toEqual({
       items: [{ text: "Kaynaktaki satır ekranda gösteriliyor.", has_code: false }],
+      question: "soru",
     });
   });
 
@@ -1174,6 +1175,25 @@ describe("App", () => {
     expect(await screen.findAllByText(command)).toHaveLength(1);
   });
 
+  it("sends the completed follow-up question with the speech request", async () => {
+    URL.createObjectURL = vi.fn(() => "blob:ses");
+    URL.revokeObjectURL = vi.fn();
+    const resolved = { type: "resolved", question: "What is the inseam of PNT-4417?" };
+    const fetchMock = stubApi({
+      "/api/documents": () => jsonResponse([]),
+      "/api/ask": () => sse([resolved, answered]),
+      "/api/speak": () => jsonResponse({ audios: [{ audio: btoa("ses"), mime: "audio/wav" }] }),
+    });
+    render(<App />);
+    await ask("ve L?");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Cevabı Seslendir" }));
+
+    await screen.findByRole("button", { name: "Seslendirmeyi Durdur" });
+    const body = fetchMock.mock.calls.find(([url]) => String(url) === "/api/speak")?.[1]?.body;
+    expect(JSON.parse(String(body)).question).toBe("What is the inseam of PNT-4417?");
+  });
+
   it("reads an answer aloud from the button beside it and stops on a second press", async () => {
     URL.createObjectURL = vi.fn(() => "blob:ses");
     URL.revokeObjectURL = vi.fn();
@@ -1192,6 +1212,7 @@ describe("App", () => {
     const body = fetchMock.mock.calls.find(([url]) => String(url) === "/api/speak")?.[1]?.body;
     expect(JSON.parse(String(body))).toEqual({
       items: [{ text: "İç paça 76,5 cm.", has_code: false }],
+      question: "soru",
     });
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
 

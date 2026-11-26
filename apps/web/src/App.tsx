@@ -258,7 +258,7 @@ export function App() {
     setIsTalking(false);
   }
 
-  async function speakAnswer(turnId: string, items: SpokenItem[]) {
+  async function speakAnswer(turnId: string, items: SpokenItem[], question: string) {
     const isSameTurn = speech?.turnId === turnId;
     stopAnswerSpeech();
     if (isSameTurn) {
@@ -268,7 +268,7 @@ export function App() {
     audioQueue().unlock();
     setSpeech({ turnId, status: "loading" });
     try {
-      const audios = await requestSpeech(items);
+      const audios = await requestSpeech(items, question);
       if (token !== speechToken.current) {
         return;
       }
@@ -336,7 +336,9 @@ export function App() {
                 }
                 isBusy={isAsking}
                 speechStatus={speech?.turnId === turn.id ? speech.status : "idle"}
-                onSpeak={(items) => void speakAnswer(turn.id, items)}
+                onSpeak={(items) =>
+                  void speakAnswer(turn.id, items, turn.resolvedQuestion ?? turn.question)
+                }
               />
             ))}
           </div>
