@@ -2211,27 +2211,27 @@ Tarih: 2026-11-26. Ürün sahibi onayı (dondurmanın tek istisnası, tek deneme
 **Teşhis (Mac, #2181 ve #2186).**
 - Doğru satır ilk 8'de, iki soruda da 3. sırada. 1. sırada s.24'teki şablon satırı var: "Measurement Chart | 6013448-FW27-MMC-US | Chart Size Range | Apparel (XS-5XL) | Fit Type Regular". İki satır modele aynı belge adıyla gidiyor; s.1 satırının bölümü "FW · Properties", s.24'ünki "FW · BOM"; kaynakta sayfa yok. s.1 satırında ürün numarası geçmiyor, şablon satırında "6013448-FW27-MMC-US" geçiyor.
 - Model şablon satırını alıntılayıp "6013448-FW27-MMC-US için beden aralığı XS-5XL'dir." dedi; Kural E gizledi. Model doğru değeri hiç söylemedi; doğru cevabı gizleyen kural yok ("Actual Sizes" izleme maddesi tetiklenmedi).
-- Sabit bağlam (aynı 8 kaynak), Türkçe ve İngilizce 5'er koşu: doğru 0/10. Altı koşuda XS-5XL söylendi ve Kural E ile gizlendi; dört koşuda 1, 3 ve 7. kaynaklar arasında netleştirme soruldu. 1. ve 3. kaynak yer değiştirince Türkçe 5/5 doğru ve doğrulanmış.
-- Arama (çevrimdışı, 0 $): soru numarası "6013448" iki kolda şablon satırını 1. sıraya çekiyor (yoğun 1, BM25 1). Doğru satır yoğun kolun ilk 30'unda yok, BM25'te 2. Numara sorgudan çıkınca BM25'te doğru satır 1., şablon 2.; birleşik sırada 2. ve 4.
+- Sabit bağlam (aynı 8 kaynak; cevap ve doğrulama adımları doğrudan çağrıldı, soru günlüğüne yazılmadı, çıktılar repoda değil), Türkçe ve İngilizce 5'er koşu: doğru 0/10. Altı koşuda XS-5XL söylendi ve Kural E ile gizlendi; dört koşuda 1, 3 ve 7. kaynaklar arasında netleştirme soruldu. 1. ve 3. kaynak yer değiştirince Türkçe 5/5 doğru ve doğrulanmış.
+- Arama (çevrimdışı, 0 $): soru numarası "6013448" iki kolda şablon satırını 1. sıraya çekiyor (yoğun 1, BM25 1). Doğru satır yoğun kolun ilk 30'unda yok, BM25'te 2. Numara sorgudan çıkınca BM25'te doğru satır 1., şablon 2.; birleşik sırada 2. ve 4. (İngilizce soru)
 - **Kök neden:** soruda belgeyi seçen model numarası sıralama sorgusunda kalıyor ve onu metninde taşıyan şablon satırını ürünün kendi satırının önüne geçiriyor.
 
 **Değişiklik (dalda).** Soruda adı geçen kapsam belgelerinin başlık kodu ve sayısal model numarası (`mentioned_in` ile aynı tanım) yoğun ve BM25 sıralama sorgularından çıkar (`DocumentCatalog.without_names`, `retrieve`). Kesmeli ekiyle çıkar ("6013448'in"); sorgu boş kalırsa olduğu gibi kalır. Modele giden soru ve kayıttaki çeviri değişmez. S1 öbek kuralıyla (#165) aynı ilke: kapsamı belirleyen ad belge içinde ayırt edici değil. Kural sürümü değişmez, yeniden işleme yok. Kod +20/−4 satır (`steps.py`, `memory.py`); 2 yeni test (biri 4 durumlu), 2 test yeni kurala göre değişti.
 
-**Ölçüm (ölçüt önceden yazıldı; Mac, canlı, her koşu bir kez).**
+**Ölçüm (Mac, canlı, her koşu bir kez).** Ölçüt ölçümden önce sabit: Türkçe ve İngilizce 5'er koşuda doğru aralık doğrulanmış en az 4/5, "XS-5XL" doğrulanmış 0/5, İngilizce soruda cevap İngilizce; S1 3 koşuda yanlış değer 0; taban 7, 11 ve FastReact'ta kötüleşen soru ve doğrulanmış yanlış 0; sınır setinde doğrulanmış yanlış 0. "Önce" sütunu D6 için sabit bağlam (canlı "önce": #2181 ve #2186, birer koşu, ikisinde de XS-5XL gizli).
 
 | Soru | Koşu | Önce | Sonra | Doğrulanmış yanlış |
 |---|---|---|---|---|
 | Türkçe D6 | 5 | sabit bağlam: doğru 0/5 (3 gizli XS-5XL, 2 netleştirme) | doğru 0/5; 5/5 seçeneksiz netleştirme (#2188–2192) | 0 |
-| İngilizce D6 | 5 | sabit bağlam: doğru 0/5 (3 gizli XS-5XL, 2 netleştirme) | doğru 5/5 doğrulanmış, İngilizce; ayrıca "The apparel chart size range is XS-5XL." 5/5 doğrulanmış (#2193–2197) | 0 (aşağıda) |
+| İngilizce D6 | 5 | sabit bağlam: doğru 0/5 (3 gizli XS-5XL, 2 netleştirme) | doğru 5/5 doğrulanmış ("Taramadan okundu"), İngilizce; ayrıca "The apparel chart size range is XS-5XL." 5/5 doğrulanmış (#2193–2197) | 0 (aşağıda) |
 | S1 (6026412 seçili) | 3 | "bulunamadı" | 3/3 "bulunamadı" (#2198–2200) | 0 |
-| Taban 7 | 1 | 33/33 (dondurma, önbellek) | 40/40 (23 soru canlı) | 0 |
-| Taban 11 | 1 | 33/33 (dondurma, önbellek) | 40/40 (20 soru canlı) | 0 |
+| Taban 7 | 1 | 33/33 (dondurma, önbellek; 7 sohbet sorusu önbellekte yoktu) | 40/40 (23 soru canlı) | 0 |
+| Taban 11 | 1 | 33/33 (dondurma, önbellek; 7 sohbet sorusu önbellekte yoktu) | 40/40 (20 soru canlı) | 0 |
 | FastReact | 1 | 18 soru | 18/18 aynı (kaynak değişmedi, önbellek) | 0 |
 | Yüklü sınır seti | 1 | — | 32 soru: 26 cevap, 4 netleştirme, 2 "bulunamadı" | 0 |
 
-Ölçüm klasörü `evals/output/d6-2026-11-26` (repoda değil). Maliyet 0,023 $. Sınır setinde 4 soruda sorgu çevirisi düştü.
+Ölçüm klasörü `evals/output/d6-2026-11-26` (repoda değil). Maliyet: ölçüm 0,0197 $ (günlük #2188–2232 0,0109 $, taban 7 0,0049 $, taban 11 0,0039 $, FastReact önbellek), teşhisteki sabit bağlam koşuları ≈0,0036 $; toplam ≈0,023 $. Sınır setinde 4 soruda sorgu çevirisi düştü.
 
-**Sonuç: ölçüt tutmadı, birleştirilmedi.** Sıralama düzeldi: Türkçede doğru satır 1. sırada. Ama şablon satırı 2. sırada kaldı ve "Style Actual Sizes" satırı ilk 8'e girdi. Model Türkçede 5/5 bu satırlar arasında netleştirme sordu; adaylar tek belgede olduğu için seçeneksiz netleştirme göründü. İngilizcede doğru aralık 5/5 doğrulanmış gösterildi, ama şablon aralığı da 5/5 ikinci cümle olarak doğrulanmış gösterildi. Bu cümle şablonu adıyla anıyor ("chart"), söylediği doğru ve Kural E onu muaf tutuyor; yine de ölçüt "XS-5XL doğrulanmış 0/5" idi. Kalan katman model ve istem: kaynakta birden çok beden etiketi ("Size Range", "Chart Size Range", "Style Actual Sizes", "Actual Sizes") varken ürünün kendi etiketini seçmek. D6 güvenli bilinen sınır kalır (yanlış değer gösterilmiyor).
+**Sonuç: ölçüt tutmadı, birleştirilmedi.** Sıralama düzeldi: Türkçede doğru satır 1. sırada. Ama model Türkçede 5/5 "Size Range" (1), "Chart Size Range" (2) ve "Actual Sizes" (7) arasında netleştirme sordu: düzeltmeden önceki netleştirmelerle aynı üç satır (önce sabit bağlamda 2/5). Adaylar tek belgede olduğu için seçeneksiz netleştirme göründü. Sıralama modelin kararsız kaldığı satırları değiştirmedi; "Style Actual Sizes" satırı da ilk 8'e girdi (seçeneklerde yok). İngilizcede doğru aralık 5/5 doğrulanmış gösterildi, ama şablon aralığı da 5/5 ikinci cümle olarak doğrulanmış gösterildi; 4 koşuda model çelişki işaretledi, arayüz "Kaynaklar birbiriyle çelişiyor." uyarısı gösterir. Bu cümle şablonu adıyla anıyor ("chart"), söylediği doğru ve Kural E onu muaf tutuyor; yine de ölçüt "XS-5XL doğrulanmış 0/5" idi. Kalan katman model ve istem: kaynakta birden çok beden etiketi ("Size Range", "Chart Size Range", "Style Actual Sizes", "Actual Sizes") varken ürünün kendi etiketini seçmek. D6 güvenli bilinen sınır kalır (yanlış değer gösterilmiyor).
 
 **Yan etki (dalda).** Başlığında kod ya da model numarası taşıyan belgeyi adıyla soran her soruda sıralama sorgusu değişir: yüklü 394 belgenin 17'si; taban setlerinde bütün `dikim-*` belgeleri (başlıkta ürün kodu). Ölçülen setlerde kötüleşen soru yok.
 
