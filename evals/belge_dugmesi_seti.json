@@ -1,0 +1,122 @@
+{
+ "not": "Belge düğmesi seti (S1, 2026-11-26, ürün sahibi onayı). Yalnız arama ölçümü içindir: beklenen parçalar indeksteki metinden alındı, sayfa görüntüsüyle karşılaştırılmadı. Set değer ölçümünde kullanılacaksa önce her beklenen parça sayfa görüntüsüyle denetlenmeli.",
+ "sorular": [
+  {
+   "id": "M1",
+   "question": "Challenger Train Pant hangi bedenlerde üretiliyor?",
+   "doc_id": "119bde3c52a64be7beb168673afe173c",
+   "doc": "6026412",
+   "expected": [
+    "119bde3c52a64be7beb168673afe173c:11",
+    "119bde3c52a64be7beb168673afe173c:12",
+    "119bde3c52a64be7beb168673afe173c:103"
+   ]
+  },
+  {
+   "id": "M2",
+   "question": "Challenger Train Pant hangi bedenlerde üretiliyor?",
+   "doc_id": "ea9548d712cb4522b4aa80c9acfde200",
+   "doc": "6026400",
+   "expected": [
+    "ea9548d712cb4522b4aa80c9acfde200:11",
+    "ea9548d712cb4522b4aa80c9acfde200:12",
+    "ea9548d712cb4522b4aa80c9acfde200:103"
+   ]
+  },
+  {
+   "id": "M3",
+   "question": "Challenger Train Pant'ın kumaşı ne?",
+   "doc_id": "119bde3c52a64be7beb168673afe173c",
+   "doc": "6026412",
+   "expected": [
+    "119bde3c52a64be7beb168673afe173c:61"
+   ]
+  },
+  {
+   "id": "M4",
+   "question": "Challenger Train Pant hangi renklerde var?",
+   "doc_id": "ea9548d712cb4522b4aa80c9acfde200",
+   "doc": "6026400",
+   "expected": [
+    "ea9548d712cb4522b4aa80c9acfde200:23"
+   ]
+  },
+  {
+   "id": "M5",
+   "question": "Challenger Train Pant MD beden bel genişliği kaç?",
+   "doc_id": "119bde3c52a64be7beb168673afe173c",
+   "doc": "6026412",
+   "expected": [
+    "119bde3c52a64be7beb168673afe173c:109",
+    "119bde3c52a64be7beb168673afe173c:110"
+   ]
+  },
+  {
+   "id": "M6",
+   "question": "Challenger Train Midlayer hangi bedenlerde üretiliyor?",
+   "doc_id": "4d812b9b881b4db1b7d7df210ce8d58c",
+   "doc": "6026411",
+   "expected": [
+    "4d812b9b881b4db1b7d7df210ce8d58c:10",
+    "4d812b9b881b4db1b7d7df210ce8d58c:11",
+    "4d812b9b881b4db1b7d7df210ce8d58c:113"
+   ]
+  },
+  {
+   "id": "M7",
+   "question": "Train Midlayer'ın kumaşı ne?",
+   "doc_id": "cc198e4089bc48479d60f316b84ccd81",
+   "doc": "6026399",
+   "expected": [
+    "cc198e4089bc48479d60f316b84ccd81:53"
+   ]
+  },
+  {
+   "id": "M8",
+   "question": "Train Midlayer MD beden göğüs genişliği kaç?",
+   "doc_id": "cc198e4089bc48479d60f316b84ccd81",
+   "doc": "6026399",
+   "expected": [
+    "cc198e4089bc48479d60f316b84ccd81:126"
+   ]
+  },
+  {
+   "id": "M9",
+   "question": "Challenger Team Pro Short hangi bedenlerde üretiliyor?",
+   "doc_id": "164af44fb1bc4501927783fa7626da8e",
+   "doc": "6026419",
+   "expected": [
+    "164af44fb1bc4501927783fa7626da8e:11",
+    "164af44fb1bc4501927783fa7626da8e:12",
+    "164af44fb1bc4501927783fa7626da8e:86"
+   ]
+  },
+  {
+   "id": "M10",
+   "question": "Challenger Team Pro Short'un kumaşı ne?",
+   "doc_id": "ba776b2820b54df7ad5c2628f1215810",
+   "doc": "6026417",
+   "expected": [
+    "ba776b2820b54df7ad5c2628f1215810:49"
+   ]
+  },
+  {
+   "id": "M11",
+   "question": "Challenger Team Pro Jersey hangi renklerde var?",
+   "doc_id": "543b718a402b48a581c2399d97bcb93e",
+   "doc": "6026418",
+   "expected": [
+    "543b718a402b48a581c2399d97bcb93e:21"
+   ]
+  },
+  {
+   "id": "M12",
+   "question": "Challenger Team Pro Jersey MD beden kol boyu kaç?",
+   "doc_id": "be1e21b408bb4fe5b1e71353f2512f0e",
+   "doc": "6026416",
+   "expected": [
+    "be1e21b408bb4fe5b1e71353f2512f0e:100"
+   ]
+  }
+ ]
+}

@@ -5,7 +5,8 @@ sorunlar, atıf yapılan belgeler, sağlayıcı, maliyet, ilk doğrulanmış cü
 cevap sağlayıcısı denemeleri (sağlayıcı ve hata metni), sesli ya da yazılı oluşu ve adım adım
 süreler. Sorunlar iki biçimde tutulur: `problems` yalnız türleri (özet ve sayım için),
 `problem_details` tam tanıyı (gizlenen cümlenin hangi sayısı, adı ya da alıntısı).
-`diagnosis` teşhis içindir (JSON): BM25 sorgusu, cevap dili, modele giden soru, ilk 8 parça,
+`diagnosis` teşhis içindir (JSON): BM25 sorgusu, belge düğmesinde öbekleri çıkarılmış sıralama
+sorguları, cevap dili, modele giden soru, ilk 8 parça,
 modelin ham çıktısı (alıntılar dahil), doc_ids, sorunun nereden geldiği ve netleştirme
 adayları. Ham çıktı belge alıntısı taşır; saklama süresi "Canlıya alırken" kararına bağlıdır.
 Ses kaydedilmez. Kayıt başarısız olursa cevap etkilenmez. Okumak için HTTP ucu yoktur:
@@ -171,6 +172,8 @@ def _diagnosis(
         ],
         "raw_output": outcome.raw_output,
     }
+    if outcome.ranking_query is not None:
+        found["ranking_query"] = list(outcome.ranking_query)
     if isinstance(outcome.result, Clarify):
         found["clarify"] = {
             "question": outcome.result.question,
