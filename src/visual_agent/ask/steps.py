@@ -4,7 +4,7 @@ import asyncio
 import logging
 import re
 import time
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, replace
 
 from visual_agent.ask.agreement import agreed_answer, candidate_documents
@@ -257,13 +257,70 @@ Increment"). Bu satırların sayısı ölçü değil, bedenler arası farktır. 
 "Incremental Updates" gibi bir başlığın altındaki metin fark değildir."""
 
 
-def _without_relative_tables(question: str, hits: Sequence[Hit]) -> tuple[Hit, ...]:
+ChunkOf = Callable[[str], Chunk | None]
+
+
+def _same_table(row: Chunk, other: Chunk | None) -> bool:
+    """Sayfadaki tablo satırları tablonun kutusunu taşır: aynı sayfa ve aynı ilk kutu aynı
+    tablodur."""
+    return (
+        other is not None
+        and other.kind is ChunkKind.TABLE_ROW
+        and other.location.page == row.location.page
+        and other.location.boxes[:1] == row.location.boxes[:1]
+    )
+
+
+def _is_note_row(last: Chunk, previous: Chunk | None, row: Chunk) -> bool:
+    """Fark ifadesi yalnız son satırdaysa o satır nottur. Önceki satırda da geçiyorsa ifade bir
+    sütun adıdır ("Fark: 2" her satırda yazılı): tablo fark tablosu sayılmaz. Tek satırlı tabloda
+    not satırı ayırt edilemez."""
+    return (
+        previous is not None
+        and _same_table(row, previous)
+        and bool(_RELATIVE_RE.search(last.text))
+        and not _RELATIVE_RE.search(previous.text)
+    )
+
+
+def _table_note(row: Chunk, chunk_of: ChunkOf) -> str:
+    """Satırın tablo notu. Boşsa ve satır sayfada bir tablodaysa not komşu parçadan okunur: sayfa
+    okuyucusu notu tablonun son satırı ya da tablodan hemen sonra aynı sayfada ayrı bir metin
+    olarak verebiliyor (karar 0029). Okuyucu notu satıra yazdığında bu arama devreden çıkar.
+
+    Parça kimliği "belge:sıra"dır; sonraki parça sıra + 1'dir.
+    """
+    if row.table_note or row.kind is not ChunkKind.TABLE_ROW:
+        return row.table_note
+    doc_id, _, position = row.chunk_id.rpartition(":")
+    if row.location.page is None or not row.location.boxes or not position.isdigit():
+        return ""
+    index, last = int(position), row
+    while (following := chunk_of(f"{doc_id}:{index + 1}")) is not None and _same_table(
+        row, following
+    ):
+        index, last = index + 1, following
+    if _is_note_row(last, chunk_of(f"{doc_id}:{index - 1}"), row):
+        return last.text
+    after = chunk_of(f"{doc_id}:{index + 1}")
+    if (
+        after is not None
+        and after.kind is ChunkKind.TEXT
+        and after.location.page == row.location.page
+    ):
+        return after.text
+    return ""
+
+
+def _without_relative_tables(
+    question: str, hits: Sequence[Hit], chunk_of: ChunkOf
+) -> tuple[Hit, ...]:
     """Fark tablosunun satırları, soru farkı sormuyorsa kaynak olmaz: model farkı değer diye
     verebiliyor ve alıntı kaynakta birebir olduğu için doğrulama bunu yakalayamıyor (karar
     0006)."""
     if _RELATIVE_RE.search(question):
         return tuple(hits)
-    return tuple(hit for hit in hits if not _RELATIVE_RE.search(hit.chunk.table_note))
+    return tuple(hit for hit in hits if not _RELATIVE_RE.search(_table_note(hit.chunk, chunk_of)))
 
 
 async def retrieve(state: AskState, deps: AskDeps) -> AskState:
@@ -276,7 +333,9 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     waited = time.perf_counter() - started if tried else None
     state = replace(state, translate_seconds=waited, translation_failed=failed)
     found = await deps.retriever.search(state.question, bm25_query, domain, deps.top_k)
-    hits = _without_relative_tables(state.question, _with_exact_chunks(state, found, deps.top_k))
+    hits = _without_relative_tables(
+        state.question, _with_exact_chunks(state, found, deps.top_k), deps.identifiers.chunk
+    )
     if not hits:
         return replace(state, result=NotFound())
     if state.request.on_event is not None:

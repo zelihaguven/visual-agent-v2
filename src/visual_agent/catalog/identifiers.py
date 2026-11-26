@@ -44,6 +44,9 @@ class IdentifierIndex:
             )
         )
 
+    def chunk(self, chunk_id: str) -> Chunk | None:
+        return self._chunks.get(chunk_id)
+
     def documents_with(self, identifier: str) -> tuple[str, ...]:
         return tuple(dict.fromkeys(doc_id for doc_id, _ in self._postings_of(identifier)))
 

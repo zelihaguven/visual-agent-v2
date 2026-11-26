@@ -10,7 +10,7 @@ from visual_agent.ask.orchestrator import AskDeps, AskRequest, answer_question
 from visual_agent.catalog.identifiers import build_identifier_index
 from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
+from visual_agent.domain.document import Box, Chunk, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.domain.result import (
     Answered,
     AskOutcome,
@@ -1033,6 +1033,146 @@ def test_difference_rows_are_used_when_the_question_asks_for_the_difference() ->
     ask(make_deps(client, retriever), "MD beden kol boyu farkı (increment) kaç?")
 
     assert "MD: -3/8" in client.calls[0][1]["content"]
+
+
+_HEADER_BOX = (12.0, 25.0, 780.0, 70.0)
+_POM_BOX = (13.0, 105.0, 643.0, 570.0)
+_INCREMENT_ROW = "Dim: RS005 | Description: Front Rise | MD: -3 3/8"
+_ABSOLUTE_ROW = "Dim: RS005 | Description: Front Rise | MD: 12 1/4"
+
+
+def _on_page(
+    position: int,
+    text: str,
+    kind: ChunkKind = ChunkKind.TABLE_ROW,
+    box: tuple[float, float, float, float] | None = _POM_BOX,
+    page: int | None = 13,
+) -> Chunk:
+    """Sayfa okuyucusunun parçası: tablo satırı tablonun kutusunu taşır."""
+    boxes: tuple[Box, ...] = ()
+    if box is not None and page is not None:
+        left, top, right, bottom = box
+        boxes = (
+            Box(
+                page=page,
+                left=left,
+                top=top,
+                right=right,
+                bottom=bottom,
+                page_width=792.0,
+                page_height=612.0,
+            ),
+        )
+    return Chunk(
+        chunk_id=f"p:{position}",
+        doc_id="p",
+        kind=kind,
+        text=text,
+        title="Ölçü föyü",
+        location=SourceLocation(page=page, boxes=boxes),
+    )
+
+
+def _prompt_with(chunks: list[Chunk], hits: list[Chunk]) -> str:
+    client = FakeClient(answer_payload("12 1/4.", quote="MD: 12 1/4"))
+    deps = _deps_with(chunks, {"p": "Ölçü föyü"}, client, hits=hits)
+    ask(deps, "MD ön ağ kaç?")
+    return str(client.calls[0][1]["content"])
+
+
+def test_note_read_after_the_table_marks_its_rows_as_differences() -> None:
+    """Okuyucu notu tablodan sonra ayrı metin olarak verdi; satırın table_note'u boş."""
+    absolute = _on_page(1, _ABSOLUTE_ROW, page=11)
+    chunks = [
+        absolute,
+        _on_page(2, _INCREMENT_ROW),
+        _on_page(3, "Dim: RS010 | Description: Back Rise | MD: -3 3/8"),
+        _on_page(4, "Displaying 1 -18 of 19 results Grade Rule Display: Increment", ChunkKind.TEXT),
+    ]
+
+    prompt = _prompt_with(chunks, hits=[chunks[1], absolute])
+
+    assert "-3 3/8" not in prompt
+    assert "MD: 12 1/4" in prompt
+
+
+def test_note_read_as_the_last_row_marks_the_table_as_differences() -> None:
+    chunks = [
+        _on_page(1, _ABSOLUTE_ROW, page=11),
+        _on_page(2, _INCREMENT_ROW),
+        _on_page(3, "Sort Order: Displaying 19 -19 of 19 | LG: Grade Rule Display: Increment"),
+        _on_page(4, "Page 13 of 14", ChunkKind.TEXT),
+    ]
+
+    prompt = _prompt_with(chunks, hits=[chunks[1], chunks[0]])
+
+    assert "-3 3/8" not in prompt
+
+
+def test_difference_column_does_not_make_the_table_a_difference_table() -> None:
+    """Sütun adı her satırda yazılıdır; "Fark" sütunlu ölçü tablosu görünür kalır."""
+    chunks = [
+        _on_page(1, "Ölçü: Ön ağ | Nominal: 12 1/4 | Fark: 1/4"),
+        _on_page(2, "Ölçü: Arka ağ | Nominal: 15 7/8 | Fark: 1/4"),
+        _on_page(3, "Page 13 of 14", ChunkKind.TEXT),
+    ]
+
+    prompt = _prompt_with(chunks, hits=[chunks[0], chunks[1]])
+
+    assert "Nominal: 12 1/4" in prompt
+    assert "Nominal: 15 7/8" in prompt
+
+
+def test_the_note_row_itself_is_not_a_source() -> None:
+    chunks = [
+        _on_page(1, _ABSOLUTE_ROW, page=11),
+        _on_page(2, _INCREMENT_ROW),
+        _on_page(3, "Sort Order: Displaying 19 -19 of 19 | MD: Grade Rule Display: Increment"),
+    ]
+
+    prompt = _prompt_with(chunks, hits=[chunks[2], chunks[0]])
+
+    assert "Grade Rule Display" not in prompt
+
+
+def test_note_belongs_only_to_the_table_right_before_it() -> None:
+    """Sayfanın üstündeki başlık tablosu, sayfanın altındaki notu taşıyan tablo değildir."""
+    header = _on_page(1, "Style: 6026417 | MD: 12 1/4", box=_HEADER_BOX)
+    chunks = [
+        header,
+        _on_page(2, _INCREMENT_ROW),
+        _on_page(3, "Displaying 1 -18 of 19 results Grade Rule Display: Increment", ChunkKind.TEXT),
+    ]
+
+    prompt = _prompt_with(chunks, hits=[header, chunks[1]])
+
+    assert "Style: 6026417 | MD: 12 1/4" in prompt
+    assert "-3 3/8" not in prompt
+
+
+def test_table_without_a_note_keeps_its_rows() -> None:
+    chunks = [
+        _on_page(1, _ABSOLUTE_ROW),
+        _on_page(2, "Dim: RS010 | Description: Back Rise | MD: 15 7/8"),
+        _on_page(3, "Page 13 of 14", ChunkKind.TEXT),
+    ]
+
+    prompt = _prompt_with(chunks, hits=[chunks[0], chunks[1]])
+
+    assert "MD: 12 1/4" in prompt
+    assert "MD: 15 7/8" in prompt
+
+
+def test_rows_without_a_page_box_do_not_look_for_a_neighbouring_note() -> None:
+    """Excel ve düz metin parçalarında tablo kutusu yok; sonraki metin not sayılmaz."""
+    chunks = [
+        _on_page(1, "Ölçü noktası: Ön ağ | Beden M: 12 1/4", box=None, page=None),
+        _on_page(2, "İki sürüm arasındaki fark aşağıdadır.", ChunkKind.TEXT, box=None, page=None),
+    ]
+
+    prompt = _prompt_with(chunks, hits=[chunks[0]])
+
+    assert "Beden M: 12 1/4" in prompt
 
 
 def _repeated_payload(*texts: str) -> dict[str, object]:
