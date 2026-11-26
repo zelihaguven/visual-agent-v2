@@ -2,7 +2,10 @@ import json
 
 import pytest
 
+from visual_agent.domain.document import Chunk, ChunkKind, SourceLocation
+from visual_agent.domain.result import Hit
 from visual_agent.generation.prompts import load_answer_prompt, load_answer_schema
+from visual_agent.generation.sources import format_sources
 
 
 @pytest.mark.parametrize(
@@ -74,3 +77,36 @@ def test_schema_allows_a_code_reference_and_is_valid_json() -> None:
     assert json.dumps(schema)
     assert item["properties"]["kod_kaynak_no"]["type"] == "integer"
     assert item["properties"]["alintilar"]["minItems"] == 0
+
+
+def _hit(doc_id: str, title: str, text: str = "Bel | S: 38,0 | M: 40,0") -> Hit:
+    chunk = Chunk(
+        chunk_id=f"{doc_id}:0",
+        doc_id=doc_id,
+        kind=ChunkKind.TABLE_ROW,
+        text=text,
+        title=title,
+        location=SourceLocation(page=1),
+    )
+    return Hit(chunk=chunk, score=1.0)
+
+
+def test_documents_uploaded_under_the_same_name_look_different_to_the_model() -> None:
+    """İstem belge sayısına göre karar verir: aynı adlı iki belge tek belge görünmemeli."""
+    hits = [_hit("a", "Ölçü föyü"), _hit("b", "Ölçü föyü"), _hit("a", "Ölçü föyü"), _hit("c", "X")]
+
+    text = format_sources(hits)
+
+    assert text.count('belge="Ölçü föyü"') == 2  # a belgesinin iki parçası
+    assert text.count('belge="Ölçü föyü (2)"') == 1
+    assert text.count('belge="X"') == 1
+    assert "(1)" not in text and "(3)" not in text
+
+
+def test_generated_document_name_never_collides_with_a_real_title() -> None:
+    """İnceleme bulgusu: "Föy", "Föy", "Föy (2)" adlı üç belge üç ayrı ad almalı."""
+    hits = [_hit("a", "Föy"), _hit("b", "Föy"), _hit("c", "Föy (2)")]
+
+    text = format_sources(hits)
+
+    assert [text.count(f'belge="{name}"') for name in ("Föy", "Föy (2)", "Föy (3)")] == [1, 1, 1]
