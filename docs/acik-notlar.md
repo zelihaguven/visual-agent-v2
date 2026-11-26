@@ -128,6 +128,7 @@ Sonraya bırakılan konular, dört başlıkta; ayrıca en üstte "Nerede kaldık
 - Süre sınırları (çeviri 1,5 sn, takip 4 sn, niyet 1,5 sn, durma 10 sn, LibreOffice 180 sn, `top_k` 8) kodda sabit; ölçümle değişecek olanlar `Settings`'e taşınabilir.
 - Ekranda OCR işareti yok: ses OCR'dan gelen cümlede "kaynağı ekrandan kontrol edin" diyor, ama ekranda hangi cümlenin taramadan okunduğu görünmüyor. Akış ve sonuç `from_ocr` alanını taşıyor; cümlenin yanında bir işaret gösterilebilir.
 - Kozmetik: birimden sonraki ek okunuşun ünlüsüne uyuyor ("TL'dir" → "Türk lirasıdır"; -ki ve -ken uyuma girmez), ama iyelikli okunuşta ("Türk lirası") ek doğru kurulmuyor: "TL'de" → "lirasıda", "TL'ye" → "lirasıya", "TL'yi" → "lirasıyı" (kaynaştırma "n" yok), "TL'lik" → "lirasılık" ("liralık" olmalı). Sayı ve kod dalında ek yazıldığı gibi kalır ("E050'de" → "… sıfırde"). Seyrek; dokunulmadı.
+- `/speak` seslendirme dilini cevap metninden yeniden tespit ediyor (kararlar "Soru dili", 2026-11-26): güçlü İngilizce sözcük taşımayan çok kısa İngilizce cevap ("It is 32 cm.") Türkçe sesle okunur. Kalıcı çözüm: cevabın dili (sorudan zaten biliniyor) `SpeakBody` ile gelsin; API değişikliği.
 
 ## Windows'a veri gönderme
 

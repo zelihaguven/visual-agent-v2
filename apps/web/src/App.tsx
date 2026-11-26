@@ -336,7 +336,9 @@ export function App() {
                 }
                 isBusy={isAsking}
                 speechStatus={speech?.turnId === turn.id ? speech.status : "idle"}
-                onSpeak={(items) => void speakAnswer(turn.id, items, turn.question)}
+                onSpeak={(items) =>
+                  void speakAnswer(turn.id, items, turn.resolvedQuestion ?? turn.question)
+                }
               />
             ))}
           </div>

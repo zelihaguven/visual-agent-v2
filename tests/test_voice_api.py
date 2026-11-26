@@ -231,6 +231,17 @@ def test_partial_notice_follows_the_question_language(
     assert voice.spoken == [expected]
 
 
+def test_follow_up_is_read_in_the_completed_question_language(tmp_path: Path) -> None:
+    """Takip sorusu ("ve L?") Türkçe sayılır; cevap tamamlanmış İngilizce sorunun dilindedir."""
+    voice = FakeVoice()
+    resolved: dict[str, object] = {"type": "resolved", "question": "What is the L waist?"}
+    events = [resolved, verified(0, "It is 32 cm.")]
+
+    ask_events(make_client(tmp_path, voice, events, ANSWERED))
+
+    assert voice.spoken == ["It is 32 cm."]
+
+
 def test_speech_failure_keeps_the_text_answer(tmp_path: Path) -> None:
     voice = FakeVoice(fail_on="Birinci.")
     events = [verified(0, "Birinci."), verified(1, "İkinci.")]
