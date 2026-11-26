@@ -81,12 +81,40 @@ _APOSTROPHE_SUFFIX_RE = re.compile(r"['’]\w+")
 _TURKISH_QUESTION_RE = re.compile(r"m[iu](?:y[iu]m|s[iu]n|y[iu]z|s[iu]n[iu]z|d[iu]r|yd[iu])?")
 """Soru eki ailesi ("mi", "miyiz", "musunuz", "midir"); Türkçe harfsiz yazılışlarıyla."""
 _MIN_ENGLISH_HINTS = 2
-"""Tek bir İngilizce ipucu dili değiştirmez: Türkçe soruda "on", "in", "do" kendiliğinden geçer."""
+"""Zayıf ipuçları tek başına dili değiştirmez: Türkçe soruda "on", "in", "is", "can" geçer."""
+_STRONG_ENGLISH = frozenset(
+    {
+        "which",
+        "what",
+        "where",
+        "when",
+        "why",
+        "who",
+        "how",
+        "does",
+        "did",
+        "the",
+        "should",
+        "would",
+        "could",
+        "there",
+        "this",
+        "these",
+        "those",
+        "your",
+        "please",
+    }
+)
+"""Yalnız soru dili için: Türkçe soruda Türkçe harfsiz yazılsa da geçmeyen İngilizce sözcükler.
+Biri yeter, Türkçe ipucu yoksa soru İngilizcedir ("Which table stores order items?"). Tamamı
+büyük harfle yazılmışsa sayılmaz: Türkçe sorudaki SQL anahtar sözcüğü ("WHERE", "WHEN")."""
+_CASED_WORD_RE = re.compile(r"[A-Za-z]+")
 
 
 def detect_language(text: str) -> str:
     """Yalnız Türkçe ve İngilizce ayırır; emin olunamazsa Türkçe döner. Soru Türkçe harfsiz
-    yazılmış olabilir (tablet klavyesi), bu yüzden İngilizce için en az iki ipucu gerekir."""
+    yazılmış olabilir (tablet klavyesi): "en" için ya bir güçlü İngilizce sözcük ve hiç Türkçe
+    ipucu olmaması ya da en az iki İngilizce ipucu gerekir."""
     if _TURKISH_LETTERS_RE.search(text):
         return "tr"
     words = _WORD_RE.findall(_APOSTROPHE_SUFFIX_RE.sub("", text.lower()))
@@ -94,4 +122,10 @@ def detect_language(text: str) -> str:
     turkish = sum(
         word in _TURKISH_HINTS or bool(_TURKISH_QUESTION_RE.fullmatch(word)) for word in words
     )
-    return "en" if english >= _MIN_ENGLISH_HINTS and english > turkish else "tr"
+    strong = any(
+        word.lower() in _STRONG_ENGLISH and not word.isupper()
+        for word in _CASED_WORD_RE.findall(_APOSTROPHE_SUFFIX_RE.sub("", text))
+    )
+    if (strong and turkish == 0) or (english >= _MIN_ENGLISH_HINTS and english > turkish):
+        return "en"
+    return "tr"

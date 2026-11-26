@@ -190,8 +190,15 @@ def test_english_question_requests_english_answer() -> None:
         "Train Midlayer'in numune bedeni hangisi",
         "FastReact'ta raporu Excel'e aktarabilir miyim",
         "Sipariş",
-        # Tek İngilizce ipucu ("which") dili değiştirmez; belirsiz soru Türkçe sayılır.
-        "Which table stores order items?",
+        # Türkçe harfsiz yazımla karışan zayıf İngilizce ipuçları ("is" = iş, "can") Türkçe ipucu
+        # olmasa da dili değiştirmez.
+        "6026417 is emri durumu",
+        "Can kulagi dikisi tolerans",
+        # Güçlü İngilizce sözcük var ama Türkçe ipucu da var.
+        "the north face ceket icin beden ne",
+        # Büyük harfli SQL anahtar sözcüğü güçlü sayılmaz.
+        "siparis tablosunda WHERE kosulu calismiyor",
+        "CASE WHEN kullanimi",
     ],
 )
 def test_turkish_or_unclear_question_is_answered_in_turkish(question: str) -> None:
@@ -206,6 +213,10 @@ def test_turkish_or_unclear_question_is_answered_in_turkish(question: str) -> No
         "What's the max length of MUSTERI_KODU?",
         "Why doesn't the planning board refresh?",
         "I can't log in",
+        "How do I close the report?",
+        # Tek güçlü İngilizce sözcük, Türkçe ipucu yok: İngilizce.
+        "Which table stores order items?",
+        "Where's the CPU temp?",
         "Is there a SQL command to rename a column?",
     ],
 )

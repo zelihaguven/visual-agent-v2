@@ -498,15 +498,29 @@ geçersiz olur.
   İngilizce ipucu, "miyiz" Türkçe ipucu değil. Tablette Türkçe harfsiz yazmak yaygın.
 - **Kural (`language.py`):** kesmeyle bağlanan ek sözcük sayılmaz ("6029278'in", "FastReact'ı";
   İngilizce kısaltmanın kuyruğu zaten ipucu değil); soru eki ailesi ("mi", "miyiz", "musunuz",
-  "midir") Türkçe harfsiz yazılışıyla da Türkçe ipucudur; "en" için en az iki İngilizce ipucu
-  gerekir. Türkçe harf yine kesin "tr". Belgenin dili (`document_language`) değişmedi.
+  "midir") Türkçe harfsiz yazılışıyla da Türkçe ipucudur. "en" için iki yoldan biri gerekir:
+  Türkçe soruda Türkçe harfsiz yazılsa da geçmeyen güçlü bir İngilizce sözcük (which, what,
+  where, when, why, who, how, does, did, the, should, would, could, there, this, these, those,
+  your, please) ve hiç Türkçe ipucu olmaması; ya da en az iki İngilizce ipucu ve İngilizce
+  ipucunun Türkçeden fazla olması. "is", "can", "in", "on" gibi Türkçe harfsiz yazımla
+  karışanlar güçlü kümede değil. Tamamı büyük harfle yazılmış sözcük güçlü sayılmaz (Türkçe
+  sorudaki SQL anahtar sözcüğü: "WHERE", "WHEN"). İkisi de yoksa "tr". Türkçe harf yine kesin "tr". Güçlü küme
+  yalnız soru dili içindir; belgenin dili (`document_language`) değişmedi.
+  Ürün sahibi kararı: İngilizce sorulan soru İngilizce cevaplanır ("Which table stores order
+  items?", "Where's the CPU temp?" İngilizce); ilk sürümdeki "tek ipucu yetmez" bedeli kabul
+  edilmedi.
 - **Etki:** soru günlüğünde (2.189 kayıt) ve bütün ölçüm setlerinde (kabul, yüklü sınır,
   FastReact, taban 7 ve 11, sentetik sınır) kararı değişen tek soru S4 (iki yazılış, günlükte
-  6 kayıt; en → tr). Setlerde İngilizce soru yok. Dili değişen soruda çeviri devreye girer;
+  6 kayıt; en → tr). Güçlü küme ve büyük harf kuralıyla yeniden karşılaştırıldı; değişen yine
+  yalnız S4. Setlerde İngilizce soru yok. Dili değişen soruda çeviri devreye girer;
   doğru parça (#78) iki yazılışta da ilk 8'de 1. sırada kaldı.
-- **Bedel:** tek İngilizce ipuçlu kısa soru ("Which table stores order items?") Türkçe
-  cevaplanır. `/speak` ucu seslendirme dilini cevap metninden tespit ettiği için tek ipuçlu
-  kısa İngilizce cevap Türkçe sesle okunabilir.
+- **Bedel:** `/speak` ucu seslendirme dilini cevap metninden tespit ediyor; güçlü sözcük
+  taşımayan çok kısa İngilizce cevap ("It is 32 cm.") Türkçe sesle okunabilir (açık notlar).
+  Hiç güçlü sözcük ve iki ipucu taşımayan İngilizce soru ("Can I export?") Türkçe sayılır.
+  Türkçe ipucu taşımayan Türkçe harfsiz bir soruda marka ya da özellik adı ("The North Face
+  ceket beden tablosu", "What If analizi") ya da yapıştırılmış İngilizce metin ("Please wait
+  hatasi aliyorum") soruyu İngilizce yapar; Türkçe ipucu listesi kısa olduğu için (16 sözcük)
+  bu olası. Günlükte (2.189 kayıt) böyle bir soru yok.
 
 ## Doğrulama
 
