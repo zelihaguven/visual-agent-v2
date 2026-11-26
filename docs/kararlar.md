@@ -136,6 +136,35 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
     yeniden ayarlamak için çağrı süresi gerekirse ayrıca kaydedilmelidir.
   - **Ölçülmedi:** aynı sağlayıcıya eşzamanlı iki çağrının yük altında çeviri düşme payına
     etkisi (bu ölçümde 15 soruda 0 düştü; öncesinde 1).
+- **Terim seçimi denemesi (2026-11-26, ürün sahibinin istediği deneme; kod birleştirilmedi,
+  dal `ceviri-terim-secimi` (`0ada298`) referans olarak `origin`'de).** Sorun: çeviri Türkçe terimi belgedekinden farklı İngilizce adla
+  veriyordu ("ön ağ" → "front crotch", belgede "Front Rise"; 6026417'de doğru satır 6. sıraya
+  düşüyordu). Çeviri zaten sıcaklık 0; aynı soruda terim koşudan koşuya nadiren değişiyor.
+  Ölçüm yalnız arama düzeyinde: kabul seti (16), yüklü sınır seti (32), FastReact (18) ve
+  ipucu çıkarılmış Y03/Y06/Y11; 69 soru, 52'si çeviriye gider, her biri bir kez çevrildi,
+  ilk 8 çevrimdışı kuruldu. Taban setleri ölçülmedi (belgeler Türkçe, çeviri çalışmaz).
+  - **(c) İstem cümlesi** ("teknik terimin hedef dilde birden çok yaygın adı varsa onları da
+    yaz"): 52 çevirinin 25'i değişti; 10'unda model Türkçe terimi parantezde ekledi, yalnız
+    2'sinde İngilizce alternatif ekledi. Cümle amaçlandığı gibi uygulanmadı. Belge düzeyinde
+    65 soruda 1 iyileşen (Y03 ipuçsuz: doğru parça 6. → 1.; çeviri "front rise (ön ağ)",
+    "front crotch" yanında yok, yani alternatif değil başka terim seçimi), 0 kötüleşen.
+    Tek koşu olduğu için bu iyileşme çeviri değişkenliğinden ayrılamaz (eski istem de canlıda
+    3 koşunun birinde "front rise" verdi). Süre p50 0,59 → 0,67 sn, düşen çeviri 0.
+  - **(d) Daha güçlü çeviri modeli** (yalnız ZDR: Amazon Bedrock, Google Vertex). Sonnet 5.5
+    düşünme kapatılarak çağrılamıyor (400); en düşük düşünmeyle ölçüldü. Haiku 5.5 düşünmesiz
+    çalışıyor. İkisi de "ön ağ" için "front rise" verdi (Y03 ipuçsuz 6. → 1.; C7 2. → 1.),
+    ama FastReact'ta daha serbest çevirip belgenin sözcüklerinden uzaklaştı ("close" →
+    "shut down"): Haiku 3 soruda kötüleşti (FR6 ilk 8'den çıktı), Sonnet 4 soruda.
+    Sonnet soru başına 0,00055 $ (Gemma'nın ≈ 25 katı), p95 1,30 sn.
+  - **Sonuç:** hiçbir yol terim sorununu güvenilir biçimde çözmedi; (d) BM25'te kötüleştirdi.
+    İstem ölçümden sonra yeniden değiştirilip ölçülmedi.
+  - **Karar (ürün sahibi, 2026-11-26): çeviri Gemma 4 26B ile ve bugünkü istemle kalır.**
+    Neden: daha güçlü model (Haiku ya da Sonnet 5.5) terimi doğru seçse de belgenin kendi
+    sözcüklerinden uzaklaştığı için BM25'te 3–4 soruyu kötüleştirdi, iyileştirdiği soru 2;
+    Sonnet ayrıca soru başına ≈ 25 kat pahalı ve düşünme kapatılamadığı için yardımcı model
+    istemcisine ek ayar ister. İstem cümlesi (c) amaçlandığı gibi uygulanmadı. Terim sorunu
+    açık kalır; yeniden ele alınırsa çeviri değil, terimin belgedeki adını bulan başka bir yol
+    gerekir.
 
 ### Modele 8 kaynak gider (5'ten artırıldı)
 - **Ne zaman:** Eski pilot, Adım 2 (2026-11-06). Bu repoda `DEFAULT_TOP_K = 8` (0001).
