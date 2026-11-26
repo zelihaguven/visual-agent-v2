@@ -576,6 +576,55 @@ geçersiz olur.
   - Eski pilot LLM hakemini ve ajanlı RAG'ı öngörülemez buldu. Küçük modeller tek bir
     talimatı bile tutarlı izlemedi.
   - Ölçümde de cevaplar LLM ile puanlanmaz.
+- **Yeniden değerlendirildi (2026-11-26, `llm-hakem-karari`, ürün sahibi kararı): karar sürüyor.**
+  - **Ölçüm:** yardımcı model (Gemma, Parasail, ZDR) sıcaklık 0'da hakem olarak denendi. Soru:
+    cümle, alıntılanan satırın söylediğini mi söylüyor? Hakeme soru, cümle, alıntılanan satır ve
+    aynı belgeden kardeş satırlar verildi. Set 40 etiketli çift (15 yanlış, 25 doğru), her çift
+    5 kez soruldu: 200 çağrı, 0 hata, 0,0141 $. İstem, set ve betik `evals/hakem_seti.py` içinde.
+    Set geçici; gerçek belgelerle büyütülecek.
+  - **Kategoriler:**
+    - T1: Kural D adayı, tek varyantlı satır.
+    - T2: Kural E adayı, önekli etiket.
+    - T3: Türkçe cümle, İngilizce ölçü satırı ("Description:" hücreli satır).
+  - **Tetik sayımı (çevrimdışı):** günlükte ham çıktılı 168 cevaptaki 188 cümle.
+    - T1: 4 cümle, hepsi zaten gizli.
+    - T2: 9 cümle (6 gösterilen, 3 gizlenen).
+    - T3: 11 cümle (2 gösterilen).
+    - Taban 7 ve 11'de üçü de 0. FastReact'ta T3 5 cümle; bunlar alan tabloları, tanım fazla geniş.
+    - Hakem cevapların %5'inde çağrılırdı (T1 ve T2), T3 eklenirse %11'inde.
+  - **Sonuç:** yakalama = yanlış çiftte çoğunluk "uyumsuz"; kurtarma riski = en az bir "uyumlu"
+    alan yanlış çift; yanlış veto = doğru çiftte çoğunluk "uyumsuz". p95, çağrı başına
+    (`percentile`).
+
+    | Kategori | Yakalama | Kurtarma riski | Yanlış veto | Tutarsız çift | p95 |
+    |---|---|---|---|---|---|
+    | T1 | 3/3 | 0 | 0/5 | 0 | 1,24 sn |
+    | T2 | 0/6 | 6 | 0/8 | 0 | 1,11 sn |
+    | T3 | 6/6 | 0 | 0/12 | 0 | 1,65 sn |
+    | Toplam | 9/15 | 6 | 0/25 | 0 | 1,43 sn (p50 0,85) |
+
+    - Ölçütler ölçümden önce yazıldı:
+      - Veto: yakalama ≥ %80, yanlış veto ≤ %5, p95 ≤ 1 sn.
+      - Kurtarma: yanlış çiftte hiç "uyumlu" yok, ayrıca veto ölçütleri.
+    - Hiçbir kategoride tutmadı. T1 kurtarması yalnız p95'te kaldı (1,24 sn); öteki maddeler
+      tuttu. Gelecekteki kurtarma ölçütünde p95 yok: süre dolarsa cümle gizli kalır (karar 2,
+      ürün sahibi kararı, ölçümden sonra).
+    - T2'de hakem "Chart Size Range" ile "Size Range"i ayırmadı: altı yanlış çiftin hepsine
+      5/5 "uyumlu" dedi.
+  - **Kararlar:**
+    1. Veto yok. T2'de yakalama %0 (Kural E kalır). T1 cümleleri zaten Kural D ile gizli. T3'te
+       gösterilen cümle nadir ve gecikme bedeli yüksek.
+    2. Kurtarma şimdilik yok. T1'de umut verici: 3 yanlış çiftte 0 yanlış "uyumlu", #60 (yaka
+       ribanası) doğru ayrıldı. Ama örneklem küçük ve Kural D tetiği bugünkü föy biçimine
+       bağlı. Kurtarmada süre dolarsa cümle gizli kalır; bu yüzden gecikme ölçütü veto kadar
+       bağlayıcı değil.
+    3. T3 kapsama alınmaz. İleride ölçülecekse tanım, FastReact alan tablolarını dışarıda
+       bırakacak biçimde daraltılır.
+    4. Set geçici onaylı. T1 ve T3 gerçek hatalardan çiftlerle büyütülecek.
+  - **Yeniden açılma koşulu:** gerçek belgelerde varyant tabloları görülünce T1 kurtarması,
+    büyütülmüş setle yeniden ölçülür (açık notlar, "Gerçek belgeden sonra").
+    - S2 (niteleyici hücresi) güvenli bilinen sınır olarak kalır.
+    - #2375 (Kural E, sınır a) da güvenli bilinen sınır olarak kalır.
 - **Yeniden düşünülür:** Anlam düzeyindeki boşluklar (olumsuzlama, yanlış sütun) biçim
   kuralıyla kapanmıyor (açık notlar). Ayrı tasarım gerekir.
 
@@ -1800,7 +1849,7 @@ Tarih: 2026-11-20. Ürün sahibi kararı. Dal: `niteleyici-denetimi`. Kod: `src/
 
 **Kural E: önekli etiket (2026-11-26, `kural-e-onekli-etiket`, ürün sahibi kararı).** 0019'daki "yeni kural yok" kararının istisnası: canlıda gösterilmiş yanlış değer. #2389 (bugünkü `main`, arayüz): "6013448 modelinin beden aralığı XS-5XL'dir." cümlesi "Chart Size Range | Apparel (XS-5XL)" (ölçü şablonunun aralığı, s.24) alıntısıyla "Kısmen doğrulandı" gösterildi; ürünün beden aralığı "Size Range | XS-4XL, SMT-4XLT" (s.1). Aynı hata ölçümde #2279, #2311, #2375'te ve S1 denemesinde (#104 "Chart Size Range | XXS-4XL") görüldü. Kural: aynı belgenin kaynaklarında hem "L" hem "P L" etiketli tablo hücresi varsa ve değerleri farklıysa, cümle "P L" hücresinin değerini söylüyorsa (değerin tamamı, içindeki bir kod ya da bütün sayıları) cümlede ya da kullanıcının bu turdaki sorusunda P ya da tam etiket geçmeli; yoksa cümle gizlenir ("önekli etiketin değeri öneksiz etiket diye sunulmuş"). Etiket: "Etiket: değer" hücresi ya da form satırında yan yana iki hücrenin ilki (hiza varsayılmaz; "Etiket: değer" hücresi form etiketi sayılmaz); rakamsız, en çok 6 sözcük. Alıntı etiket hücresini ya da yalnız değer hücresini taşıyabilir. Muafiyet için önek tek başına yetmez: önek ve etiketin ilk sözcüğü birlikte ("chart size") ya da tam etiket geçmeli ("Measurement Chart" hücresindeki "chart" muafiyet sağlamaz; inceleme turu). **Kapsam yalnız hücre etiketi (döküm):** uygulama indeksinde "L" / "P L" çifti 7 (hepsi föylerde: Size Range / Chart Size Range, Actual Sizes / Style Actual Sizes, Description / Material Description, Reference / Fit Reference, Chart / Measurement Chart 15'er belge; Black / PAIHO Black ve Images / Labeled Images birer belge); taban 7, 11 ve FastReact parçalarında 0. POM "Description" değerlerinde çift yalnız FastReact'ın iki uzun açıklama cümlesi; ölçü adı çifti ("Chest Width" / "Upper Chest Width" gibi) yok, bu yüzden Description değerleri kapsam dışı. **Ölçüm (çevrimdışı, 0 $):** günlükteki ham çıktılı 168 kayıtta `main`'in gösterdiği 170 cümleden 3'ü gizleniyor (#2279, #2311, #2389), üçü de yanlış; doğru cümle gizlenmiyor. Taban 7 ve 11 (25'er gösterilen cümle) ve FastReact (31) değişmedi. **Bilinen sınırlar:** (a) önekli etiketi adıyla anan ama öneksiz etiket diye sunan cümle geçer (#2375: "Beden aralığı (Chart Size Range) XS-5XL'dir."); (b) öneksiz etiket modele giden kaynaklarda yoksa kural uygulanmaz; (c) Style Actual Sizes / Material Description gibi çiftlerde doğru cümle de, öneki anmazsa gizlenir (gizleme yönünde; ölçümde vaka yok); (d) etiketi aynı ama başka sözcükle ayrışan niteleyiciler (önek değil, son ek ya da ara sözcük) kapsam dışı. (e) Aynı belge farklı başlıkla gelirse karşılaştırılmaz; aynı başlıklı farklı belgeler tek belge sayılır (gizleme yönünde). (f) Yalnız sayıdan oluşan önekli değer, aynı sayıyı taşıyan cümleyi de yakalayabilir (gizleme yönünde; ölçümde vaka yok). (g) Boşluksuz "Etiket:değer" yazımı etiket sayılmaz. İnceleme turunda bir ara sürüm form satırındaki "Beden: M" hücresini etiket sayıp doğru "GML-6473 M beden etiket kodu ETK-3392" cümlelerini gizledi (günlükte 5, taban setlerinde 4'er); "Etiket: değer" hücreleri form etiketinden çıkarılarak düzeltildi, son sürümle yeniden ölçüldü (günlükte gizlenen 3 cümle, üçü de yanlış; setler değişmedi).
 
-**S2: istem denemesi ve bilinen sınır (2026-11-26, `s2-niteleyici-alinti`, ürün sahibi kararı).** Karar kuralı ölçümden önce yazıldı: S2'de 5 koşunun en az 3'ünde doğrulanmış KNT-226131 ve setlerde doğrulanmış yanlış 0, kötüleşen soru 0 ise cümle kalır; tutmazsa iki cümle de çıkar. Etkisiz "uzak parçalar ayrı alıntılanır" cümlesinin yerine genel bir ifade denendi: "Cümlede bir niteleyici (renk, beden, varyant) iddia ediyorsan, onu gösteren hücreyi de aynı kaynaktan alıntıla." Gemma, sabit bağlam (#2195) ile 5 koşu: 3 "bulunamadı", 2 cevap; iki cevap da yine satırı 150'de kesip yalnız kumaş hücresini alıntıladı ve Kural D ile gizlendi. Doğrulanmış KNT-226131 0/5; kural tutmadı, setler bu cümleyle ölçülmedi (karar S2 ile belliydi). İki cümle de çıkarıldı; istem 26 Kasım öncesi hâliyle birebir aynı. Geri alınmış istemle setler önbellekten ölçüldü (0 $): taban 7 ve 11'de 38'er soru (iki takip turu, `sql-sohbet-1-t2` ve `-t3`, bu istemle önbellekte olmadığı için sayılmadı), 37/38, kalan tek soru yine `dikim-sohbet-1-t4`, doğrulanmış yanlış 0; FastReact 18/18 soruda sonuç eski doğrulayıcıyla yapılan tekrarla birebir aynı (doğrulanmış 31 cümle, gizlenen 4; "Ürün kodunda boşluk…" bu istemin önbellekteki cevabıyla doğrulanmış). Maliyet 0,0014 $. **Bilinen sınır:** Gemma niteleyici hücresini (renk) alıntılamıyor; Kural D bu cümleyi gizliyor, yanlış değer gösterilmiyor. S2 sorusuna doğrulanmış cevap çıkmıyor. **Renk adı muafiyeti değerlendirildi, reddedildi (2026-11-26, ürün sahibi kararı):** Kural D'nin muafiyetini temel renk adlarının Türkçe-İngilizce karşılıklarıyla ("beyaz" → satırın birincil varyant adı "White") genişletmek S2'de 2/5 doğrulanmış cevap getirirdi. Ama muafiyet yalnız rengi denetler, cümlenin öteki iddiasını denetlemez: aynı renk yolundaki yaka ribanası satırı (#60, "Usage: COLLARBAND", "100: White // Racer Red") ile "beyaz gövde kumaşı KNT-226133" cümlesi doğrulanmış görünebilirdi. Doğrulanamayan bir iddiayı doğrulanmış göstermek kural 1'e aykırı; kazanç tek soru tipinde 2/5. **İkinci niteleyiciler denetlenmiyor:** Usage (gövde, yaka) gibi bir niteleyiciyi cümlenin doğru satıra bağlayıp bağlamadığını doğrulayıcı bugün de denetlemiyor; model renk hücresini de alıntılarsa #60'tan "beyaz gövde kumaşı KNT-226133" geçer. Sınır setinin niteleyici kategorisinde gerçek belgelerle ölçülecek. **Kalıcı çözüm:** ya anlam denetimi ("Doğrulama yalnız kodla yapılır; LLM hakem yok" kararının yeniden açılması) ya da belgelerin yapısı (ör. kullanım yerini ayrı ve adlandırılmış bir sütunda taşıyan tablolar); LLM hakem kararının yeniden değerlendirilmesi ürün sahibiyle ayrı oturumda verilecek (acik-notlar: Karar bekliyor).
+**S2: istem denemesi ve bilinen sınır (2026-11-26, `s2-niteleyici-alinti`, ürün sahibi kararı).** Karar kuralı ölçümden önce yazıldı: S2'de 5 koşunun en az 3'ünde doğrulanmış KNT-226131 ve setlerde doğrulanmış yanlış 0, kötüleşen soru 0 ise cümle kalır; tutmazsa iki cümle de çıkar. Etkisiz "uzak parçalar ayrı alıntılanır" cümlesinin yerine genel bir ifade denendi: "Cümlede bir niteleyici (renk, beden, varyant) iddia ediyorsan, onu gösteren hücreyi de aynı kaynaktan alıntıla." Gemma, sabit bağlam (#2195) ile 5 koşu: 3 "bulunamadı", 2 cevap; iki cevap da yine satırı 150'de kesip yalnız kumaş hücresini alıntıladı ve Kural D ile gizlendi. Doğrulanmış KNT-226131 0/5; kural tutmadı, setler bu cümleyle ölçülmedi (karar S2 ile belliydi). İki cümle de çıkarıldı; istem 26 Kasım öncesi hâliyle birebir aynı. Geri alınmış istemle setler önbellekten ölçüldü (0 $): taban 7 ve 11'de 38'er soru (iki takip turu, `sql-sohbet-1-t2` ve `-t3`, bu istemle önbellekte olmadığı için sayılmadı), 37/38, kalan tek soru yine `dikim-sohbet-1-t4`, doğrulanmış yanlış 0; FastReact 18/18 soruda sonuç eski doğrulayıcıyla yapılan tekrarla birebir aynı (doğrulanmış 31 cümle, gizlenen 4; "Ürün kodunda boşluk…" bu istemin önbellekteki cevabıyla doğrulanmış). Maliyet 0,0014 $. **Bilinen sınır:** Gemma niteleyici hücresini (renk) alıntılamıyor; Kural D bu cümleyi gizliyor, yanlış değer gösterilmiyor. S2 sorusuna doğrulanmış cevap çıkmıyor. **Renk adı muafiyeti değerlendirildi, reddedildi (2026-11-26, ürün sahibi kararı):** Kural D'nin muafiyetini temel renk adlarının Türkçe-İngilizce karşılıklarıyla ("beyaz" → satırın birincil varyant adı "White") genişletmek S2'de 2/5 doğrulanmış cevap getirirdi. Ama muafiyet yalnız rengi denetler, cümlenin öteki iddiasını denetlemez: aynı renk yolundaki yaka ribanası satırı (#60, "Usage: COLLARBAND", "100: White // Racer Red") ile "beyaz gövde kumaşı KNT-226133" cümlesi doğrulanmış görünebilirdi. Doğrulanamayan bir iddiayı doğrulanmış göstermek kural 1'e aykırı; kazanç tek soru tipinde 2/5. **İkinci niteleyiciler denetlenmiyor:** Usage (gövde, yaka) gibi bir niteleyiciyi cümlenin doğru satıra bağlayıp bağlamadığını doğrulayıcı bugün de denetlemiyor; model renk hücresini de alıntılarsa #60'tan "beyaz gövde kumaşı KNT-226133" geçer. Sınır setinin niteleyici kategorisinde gerçek belgelerle ölçülecek. **Kalıcı çözüm:** ya anlam denetimi ("Doğrulama yalnız kodla yapılır; LLM hakem yok" kararının yeniden açılması) ya da belgelerin yapısı (ör. kullanım yerini ayrı ve adlandırılmış bir sütunda taşıyan tablolar); LLM hakem kararı 2026-11-26'da yeniden değerlendirildi, karar sürüyor ("Doğrulama yalnız kodla yapılır; LLM hakem yok").
 
 **Cevap modeli karşılaştırması (2026-11-26, ürün sahibi kararı: model değişmez).** Sabit bağlamlar: S2 #2195, S3 #2187 (doğru satır #99 6. sırada) ve #2188 (1. sırada); istem ve şema uygulamanınki, her model her bağlamda 5 kez, yalnız ZDR sağlayıcıları (`/endpoints/zdr`, güvenlik saklaması yok: Gemma `makora`, `deepinfra`; Claude Haiku 5.5 ve Sonnet 5.5 yalnız `amazon-bedrock`, `google-vertex`; Claude'da `reasoning effort low`, Sonnet düşünmesiz çağrıyı reddediyor). Toplam 0,310 $.
 
@@ -1836,7 +1885,7 @@ Tarih: 2026-11-20 (karar), 2026-11-21 (deneme ve geri çekme). Ürün sahibi kar
 
 **Karar.** A yolu geri çekildi; `varyant-listeleme` birleştirilmedi. Düğme etiketli netleştirme de reddedilmişti (2026-11-20: kaynaktan türetilen etiketler kullanıcıya bir şey söylemiyordu, plan büyüktü, her tıklama ikinci bir model çağrısı istiyordu). Netleştirme bugünkü hâliyle kalır: iki ve daha çok belgede düğmeli, tek belgede seçeneksiz soru. `#a2eaf46` ve `#2ad898d`'nin kuralları geçerli.
 
-**Dalda kalan, ileride işe yarayabilecekler.** Aynı adlı belgeleri modele ayrı gösteren `format_sources` değişikliği ("Ad (2)"; açık notlar, Karar bekliyor); puanlayıcıdaki `listed_variants`; istem metni.
+**Dalda kalan, ileride işe yarayabilecekler.** Aynı adlı belgeleri modele ayrı gösteren `format_sources` değişikliği ("Ad (2)"; `ayni-adli-belgeler` dalında yapıldı); puanlayıcıdaki `listed_variants`; istem metni.
 
 ### 0021: Belirsiz komşu hücreyi yok sayma (t2) denendi, geri çekildi; A5 yerinde kalır
 Tarih: 2026-11-21. Ürün sahibi kararı. Dal: `ocr-belirsiz-komsu-hucre` (`7b9b115`; birleştirilmedi, referans olarak `origin`'de duruyor).
