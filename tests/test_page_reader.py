@@ -100,6 +100,8 @@ def test_copied_counting_gives_the_same_marks_as_the_measured_code(result: Path)
         ("$ 23\\frac{1}{2} $", "23 1/2"),  # tek parantez eskisi gibi
         ("$ -^{1}/_{4} $", "-^{1}/_{4}"),  # kesir olmayan parantez dokunulmaz
         ("{x} ve {1}", "{x} ve {1}"),
+        ("1\\frac{1}{8}}2", "1 1/8}2"),  # kesre ait olmayan parantez yutulmaz ("1/82" olmaz)
+        ("1\\frac{{1}}{8}", "1 1/8"),  # argümanlar ayrı ayrı dengeli
     ],
 )
 def test_latex_fractions_with_double_or_group_braces_become_fractions(

@@ -368,6 +368,13 @@ def test_latex_fraction_rule_outdates_every_page_the_reader_reads(
     assert is_outdated(report, "belge.pdf") is outdated
 
 
+def test_latex_fraction_rule_outdates_image_files() -> None:
+    """Görsel 16→17: görsel dosyası bütünüyle okuyucudan geçer."""
+    report = {"input_format": "image", "rules_version": 16, "page_kinds": {"none": 1}}
+
+    assert is_outdated(report, "foto.jpg") is True
+
+
 def _workbook(path: Path, rows: list[list[str]]) -> Path:
     workbook = openpyxl.Workbook()
     sheet = workbook.active
