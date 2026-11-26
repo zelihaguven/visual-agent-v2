@@ -1,6 +1,6 @@
 # Açık notlar
 
-Sonraya bırakılan konular; en üstte "Nerede kaldık" (son durum), en sonda veri gönderme yordamı. Biten madde ve durum kaydı silinir ("Nerede kaldık" dışında); denenip geri çekilen fikirler ve kapanan kararlar [kararlar.md](kararlar.md)'de (yeniden önermek için yeni kanıt gerekir). Kabul seti kaldırıldı (kararlar, "Kabul seti kaldırıldı"); kapanış testi elle sorularla yapılır. Kod gerçek belgeler gelene kadar dondurulacak; dondurma "Dondurmadan önce"deki üç hata kapanınca başlar (2026-11-26, ürün sahibi).
+Sonraya bırakılan konular; en üstte "Nerede kaldık" (son durum), en sonda veri gönderme yordamı. Biten madde ve durum kaydı silinir ("Nerede kaldık" dışında); denenip geri çekilen fikirler ve kapanan kararlar [kararlar.md](kararlar.md)'de (yeniden önermek için yeni kanıt gerekir). Kabul seti kaldırıldı (kararlar, "Kabul seti kaldırıldı"); kapanış testi elle sorularla yapılır. Kod gerçek belgeler gelene kadar dondurulacak; "Dondurmadan önce"deki üç hata (S1, S2, S3) bu turda kapatılamadı, güvenli bilinen sınır olarak kaldı (yanlış değer gösterilmiyor). Dondurmaya bu hâliyle geçilip geçilmeyeceği ürün sahibinin kararı (2026-11-26).
 
 - **Karar bekliyor:** ürün sahibinin ya da ekibin seçimi gerekiyor; veriyi beklemiyor.
 - **Gerçek belgeden sonra:** üretilmiş belgelerde görüldü ya da ölçülemedi; gerçek belge ve gerçek kullanımla bakılacak.
@@ -12,7 +12,7 @@ Sonraya bırakılan konular; en üstte "Nerede kaldık" (son durum), en sonda ve
 
 - Tek OCR yapısı `main`'de (#145, #151; karar 0028). Fark tablosu notu sorgu anında okunuyor (0029). Okuyucunun LaTeX kesri düzeltildi (#175, karar 0030): "1\\frac{{1}}{{8}}" ve "-{1\\frac{1}{4}}" artık kesir. İkinci okumada kesir düzeyi karşılaştırma set A'da yanlış gösterileni 87 → 91 artırdı, reddedildi (0030).
 - **Kural sürümü PDF ve Office 26, görsel 17.** Mac'te 28 belge yeniden işlendi (42 dk, MLX okuyucu, bulut 0): 394 belge, 6.295 parça, "Eski kural" 0, "işlenemedi" 0. Yeniden okuma hiçbir değeri değiştirmedi; 18 belirsiz işaret kalktı (rastgele 10'u sayfa görüntüsüyle birebir), 820 yeni belirsiz işaret (gizleme yönünde; kesik LaTeX parçalarının yerine artık tam kesirler sayılıyor). Yedek: `../data-yedek-20261126` (repo dışı).
-- Windows veri paketi: `~/va-veri-20261126.zip` (Mac'te, repo dışı); henüz Windows'a kurulmadı. Windows'taki veri `va-veri-20261123.zip` (kural sürümü 25).
+- Windows veri paketi: `~/va-veri-20261126.zip` (Mac'te, repo dışı); henüz Windows'a kurulmadı. Windows'taki veri `va-veri-20261123.zip` (kural sürümü 25). Windows'taki `evals/output` klasörleri eski (20 Kasım); orada ölçüm yapılacaksa önce setler yeniden üretilir.
 - Birleşmemiş dallar yalnız kayıt için `origin`'de: `varyant-listeleme` (0020), `ocr-belirsiz-komsu-hucre` (0021), `ceviri-terim-secimi` (kararlar, "Sorgu çevirisi"), `istem-turu` (#171; kararlar, "Bu repodaki istem değişiklikleri").
 
 ### Dondurma hazırlığı
@@ -23,19 +23,19 @@ Sonraya bırakılan konular; en üstte "Nerede kaldık" (son durum), en sonda ve
 
 ### Elle kapanış testi
 
-Ürün sahibi arayüzde sorar; her cevapta kaynak sayfası ve rozet kontrol edilir. "Bugün" sütunu bu turun bilinen davranışıdır; yanlış değer hiçbirinde gösterilmemeli.
+Ürün sahibi arayüzde sorar; her cevapta kaynak sayfası ve rozet kontrol edilir. Test 1, 6 ve 7'deki değerler uygulamanın parçalarından alındı (okuyucu çıktısı), sayfa görüntüsüyle karşılaştırılmadı; testte görüntüye bakılmalı. "Bugün" sütunu bu turun bilinen davranışıdır; yanlış değer hiçbirinde gösterilmemeli.
 
 | # | Soru | Beklenen cevap ve kaynak | Bugün |
 |---|---|---|---|
 | 1 | S1: "Challenger Train Pant hangi bedenlerde üretiliyor?" | Netleştirme (6026400 / 6026412); 6026412 seçilince "XS-XXL(4)", s.1 | Netleştirme; 6026412'de "bulunamadı" (bilinen sınır). "Chart Size Range XXS-4XL" (s.13) gösterilmemeli |
 | 2 | S2: "6029278 tişörtün beyaz renginde gövde kumaşı hangisi?" | KNT-226131, s.9 | Cümle gizli ya da kaynak satırıyla (Kural D, bilinen sınır); başka kumaş kodu gösterilmemeli |
 | 3 | S3: "6026417 şortta MD bedende ön ağ kaç?" | 12 1/4, s.11 (RS005) | "Bulunamadı" ya da gizli (bilinen sınır); fark tablosundaki -3 3/8 (s.13) gösterilmemeli |
-| 4 | D6 / Kural E: "6013448'in beden aralığı nedir?" | "XS-4XL, SMT-4XLT", s.1, "Taramadan okundu" | "XS-5XL" (Chart Size Range, s.24) öneksiz gösterilmemeli |
+| 4 | D6 / Kural E: "6013448'in beden aralığı nedir?" | "XS-4XL, SMT-4XLT", s.1, "Taramadan okundu" | Seçeneksiz netleştirme de olabilir (17 Kasım'da 5/5); "XS-5XL" (Chart Size Range, s.24) öneksiz gösterilmemeli |
 | 5 | C1: "6013448 modelinin numune durumu nedir?" | "Fit Approved, Hold Sampling", s.1, "Taramadan okundu" | Değer Türkçeye çevrilebilir (bilinen); anlam aynı olmalı |
 | 6 | Fark tablosu: "6026418 modelinde AB025 Across Shoulder MD bedende kaç?" | 14 3/4, s.11 | Değer iki okumada uyuşmuyor, gizli olabilir; s.13'ün fark değeri (1/2) gösterilmemeli |
 | 7 | Fark tablosu, notu okunmayan sayfa: "6026411 modelinde SL100 Forearm MD bedende kaç?" | 4 3/4, s.15 | Gizli olabilir; s.16'nın fark değeri (1/4) gösterilmemeli (bugün belirsiz işaretli) |
 | 8 | Gömülü görsel: "SIPARIS_KALEM tablosunda MUSTERI_KODU kolonunun uzunluğu kaç?" | 19, `sql-ekran` s.1, "Taramadan okundu" | Doğru |
-| 9 | İngilizce: "What is the size range of 6013448?" | "XS-4XL, SMT-4XLT", s.1, cevap İngilizce | Soru dili kuralı (#157) |
+| 9 | İngilizce: "What is the size range of 6013448?" | "XS-4XL, SMT-4XLT", s.1, cevap İngilizce | Cevap İngilizce gelmeli (#157); netleştirme de olabilir (test 4 gibi) |
 | 10 | FastReact: "Tarihlerin yanında hafta numarası göstermek istiyorum, nereden açarım?" | "Add week number to date" seçeneği; 08_Setup_Configure_General (part 3 Reporting options, part 1 Week numbers) | Menü yolu cümlesi gizlenebilir (bilinen) |
 | 11 | "Bu belge zaten var": Belgeler panelinden `ornek-belgeler/gomlek-beden-tablosu.xlsx` yeniden yüklenir | Yüklemeden önce aynı adlı dosya sorulur (#169); "Vazgeç" ile belge sayısı 394 kalır | Doğru |
 
@@ -94,6 +94,7 @@ Sonraya bırakılan konular; en üstte "Nerede kaldık" (son durum), en sonda ve
 
 ### Cevap ve doğrulama
 
+- **Konum etkisi (model, #2187):** Gemma doğru satır kaynaklarda 1. sıradayken 5/5 doğru, 6. sıradayken 5/5 "bulunamadı" dedi (S3, 2026-11-26, sabit bağlam). Değeri gizlenmeyen başka sorularda da geride kalan doğru satır kaçabilir; düzeltme (kaynak sayısı ya da ilk 8 içi sıralama) yazılmadı, S3'te neden konum değildi (kararlar 0030).
 - **T1 kurtarma ölçümü (LLM hakem, 2026-11-26 kararı):** gerçek belgelerde varyant tabloları görülünce, Kural D'nin gizlediği tek varyantlı satır cümlelerini hakemin "uyumlu" deyip geri açması yeniden ölçülür (`evals/hakem_seti.py`). Önce set gerçek hatalardan T1 ve T3 çiftleriyle büyütülür (bugün T1'de 3 yanlış çift: ikisi Kural D kaydındaki vakalar, biri satır değiştirme; T3'te 6: biri gerçek Haiku eşleşmesi, beşi satır değiştirme) ve parça numaraları yeni indekse göre denetlenir. Kurtarma ölçütü: hiçbir yanlış çiftte "uyumlu" yok, yakalama ≥ %80, yanlış veto ≤ %5; süre dolarsa cümle gizli kalır. Kural D tetiği bugünkü föy biçimine ("NNN: ad" hücresi) bağlı; gerçek belgelerin varyant biçimi de birlikte bakılır. T3 ölçülecekse tanımı FastReact alan tablolarını dışarıda bırakacak biçimde daraltılır. T2'de hakem önekli etiketi ayırmadı; Kural E ve #2375 sınırı kalır (kararlar, "Kural E").
 - B8 birimi ("TL") düşürüyor, açık (2026-11-18, `birim-istemi-2`): uydurma örnekli istemle beş koşunun ikisinde cevap "1200 TL" yerine yalnız "1200". Değer doğru, birim eksik; yanlış değer yok. Kendi sütun başlığındaki birimin yazılması istemdeki örneğe duyarlı; istem bu iş için daha fazla değiştirilmeyecek. İstemden bağımsız bir çözüm (ör. birim değerin kendi sütun başlığındaysa gösterirken eklemek) ayrı iş ve onay ister. İstem turu (2026-11-26, `istem-turu`) B8'i 5/5 düzeltti, ama tur ölçütü tutmadı ve birleştirilmedi (kararlar).
 - C1'de model durum değerini Türkçeye çeviriyor (2026-11-17, 24 soru × 5 koşu): belgede "Fit Approved, Hold Sampling" yazarken cevap "Kalıp onaylandı, numune bekletiliyor" diyor; bazı koşularda belgedeki özgün ifade cevapta hiç gösterilmiyor. Çeviri doğru, ama kullanıcı föydeki sözü göremiyor ve doğrulayıcı çevirinin anlamını denetlemiyor (sayı ve kod yok). Düzeltmesi cevap isteminde ("durum, ad ve etiket değerlerini belgedeki yazımıyla ver"); istem değişikliği onay ister. İstem turu C1'i 5/5 düzeltti (özgün ifade); tur birleştirilmedi (kararlar).
@@ -177,7 +178,7 @@ sqlite3 data/visual_agent.db "pragma wal_checkpoint(TRUNCATE);" >/dev/null && { 
 **Windows'ta** (uygulama kapalı, repo kökünde, tek PowerShell komutu). `$z` paketin indirildiği yer. Komut ilk hatada durur (`data/` taşınamazsa paket açılmaz). Mevcut `data/` `data-yedek-<tarih>` adıyla saklanır, paket repo köküne açılır. `PAKET.txt`'deki kural sürümleri koddakilerle aynıysa veri geçerlidir; değilse uyarı çıkar ve kod ya da paket güncellenir. Commit farklıysa yalnız uyarı yazar.
 
 ```powershell
-$ErrorActionPreference = 'Stop'; $z = "$HOME\Downloads\va-veri-20261123.zip"; if (Test-Path data) { Rename-Item data ("data-yedek-" + (Get-Date -Format yyyyMMdd-HHmm)) }; Expand-Archive -Path $z -DestinationPath .; $paket = Get-Content data\PAKET.txt -Encoding UTF8; $ps = ($paket | Where-Object { $_ -like 'kural*' } | Select-Object -Last 1) -replace '^[^:]+: ', ''; $ks = uv run --no-sync python -c "from visual_agent.ingest.formats import RULES_VERSIONS as r; print(', '.join(f'{k.value} {v}' for k, v in r.items()))" | Select-Object -Last 1; if ($ps -eq $ks) { "Veri geçerli; kural sürümleri aynı: $ks" } else { Write-Warning "Veri geçersiz; kural sürümleri farklı. Paket: $ps / Kod: $ks" }; $pc = ($paket | Where-Object { $_ -like 'commit*' }) -replace '^[^:]+: ', ''; $g = git log -1 --format=%H; if ($pc -ne $g) { Write-Warning "Commit farklı (yalnız bilgi): paket $pc, depo $g" }
+$ErrorActionPreference = 'Stop'; $z = "$HOME\Downloads\va-veri-20261126.zip"; if (Test-Path data) { Rename-Item data ("data-yedek-" + (Get-Date -Format yyyyMMdd-HHmm)) }; Expand-Archive -Path $z -DestinationPath .; $paket = Get-Content data\PAKET.txt -Encoding UTF8; $ps = ($paket | Where-Object { $_ -like 'kural*' } | Select-Object -Last 1) -replace '^[^:]+: ', ''; $ks = uv run --no-sync python -c "from visual_agent.ingest.formats import RULES_VERSIONS as r; print(', '.join(f'{k.value} {v}' for k, v in r.items()))" | Select-Object -Last 1; if ($ps -eq $ks) { "Veri geçerli; kural sürümleri aynı: $ks" } else { Write-Warning "Veri geçersiz; kural sürümleri farklı. Paket: $ps / Kod: $ks" }; $pc = ($paket | Where-Object { $_ -like 'commit*' }) -replace '^[^:]+: ', ''; $g = git log -1 --format=%H; if ($pc -ne $g) { Write-Warning "Commit farklı (yalnız bilgi): paket $pc, depo $g" }
 ```
 
 Sonra uygulama açılır; belge ve parça sayısının `PAKET.txt` ile aynı olduğu, "Eski kural" belge olmadığı ve birkaç sorunun kaynağıyla döndüğü denetlenir. `data/models` ilk açılışta yeniden oluşur. Hedefin soru günlüğü kaynağınkiyle değişir. PowerShell komutu Windows'ta henüz denenmedi (Mac'te `pwsh` yok); ilk kullanımda çıktısı kontrol edilmeli.
