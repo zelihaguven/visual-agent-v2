@@ -75,11 +75,57 @@ def document_language(chunks: Sequence[Chunk], fallback: str = _DEFAULT_LANGUAGE
     return "en" if english > turkish else "tr"
 
 
+_APOSTROPHE_SUFFIX_RE = re.compile(r"['’]\w+")
+"""Kesmeyle bağlanan ek sözcük değildir: Türkçede sayıya ya da ada gelen ek ("6029278'in",
+"FastReact'ı"), İngilizcede kısaltmanın kuyruğu ("isn't", "what's"; kuyruk zaten ipucu değil)."""
+_TURKISH_QUESTION_RE = re.compile(r"m[iu](?:y[iu]m|s[iu]n|y[iu]z|s[iu]n[iu]z|d[iu]r|yd[iu])?")
+"""Soru eki ailesi ("mi", "miyiz", "musunuz", "midir"); Türkçe harfsiz yazılışlarıyla."""
+_MIN_ENGLISH_HINTS = 2
+"""Zayıf ipuçları tek başına dili değiştirmez: Türkçe soruda "on", "in", "is", "can" geçer."""
+_STRONG_ENGLISH = frozenset(
+    {
+        "which",
+        "what",
+        "where",
+        "when",
+        "why",
+        "who",
+        "how",
+        "does",
+        "did",
+        "the",
+        "should",
+        "would",
+        "could",
+        "there",
+        "this",
+        "these",
+        "those",
+        "your",
+        "please",
+    }
+)
+"""Yalnız soru dili için: Türkçe soruda Türkçe harfsiz yazılsa da geçmeyen İngilizce sözcükler.
+Biri yeter, Türkçe ipucu yoksa soru İngilizcedir ("Which table stores order items?"). Tamamı
+büyük harfle yazılmışsa sayılmaz: Türkçe sorudaki SQL anahtar sözcüğü ("WHERE", "WHEN")."""
+_CASED_WORD_RE = re.compile(r"[A-Za-z]+")
+
+
 def detect_language(text: str) -> str:
-    """Yalnız Türkçe ve İngilizce ayırır; emin olunamazsa Türkçe döner."""
+    """Yalnız Türkçe ve İngilizce ayırır; emin olunamazsa Türkçe döner. Soru Türkçe harfsiz
+    yazılmış olabilir (tablet klavyesi): "en" için ya bir güçlü İngilizce sözcük ve hiç Türkçe
+    ipucu olmaması ya da en az iki İngilizce ipucu gerekir."""
     if _TURKISH_LETTERS_RE.search(text):
         return "tr"
-    words = _WORD_RE.findall(text.lower())
+    words = _WORD_RE.findall(_APOSTROPHE_SUFFIX_RE.sub("", text.lower()))
     english = sum(word in _ENGLISH_HINTS for word in words)
-    turkish = sum(word in _TURKISH_HINTS for word in words)
-    return "en" if english > turkish else "tr"
+    turkish = sum(
+        word in _TURKISH_HINTS or bool(_TURKISH_QUESTION_RE.fullmatch(word)) for word in words
+    )
+    strong = any(
+        word.lower() in _STRONG_ENGLISH and not word.isupper()
+        for word in _CASED_WORD_RE.findall(_APOSTROPHE_SUFFIX_RE.sub("", text))
+    )
+    if (strong and turkish == 0) or (english >= _MIN_ENGLISH_HINTS and english > turkish):
+        return "en"
+    return "tr"
