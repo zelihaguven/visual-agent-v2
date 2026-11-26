@@ -172,7 +172,7 @@ _INVARIANT_TAIL_RE = re.compile(r"(?P<head>.*?)(?P<tail>(?:ki|ken)\w*)?")
 
 def _harmonized(suffix: str, word: str) -> str:
     """Ek, yazılan kısaltmaya göre yazılmıştır ("TL'dir"); okunan sözcüğün son ünlüsüne uyar
-    ("Türk lirasıdır"). İki yönlü (e/a) ve dört yönlü (ı/i/u/ü) ünlüler sırayla uyum sağlar."""
+    ("liradır"). İki yönlü (e/a) ve dört yönlü (ı/i/u/ü) ünlüler sırayla uyum sağlar."""
     parts = _INVARIANT_TAIL_RE.fullmatch(suffix)
     head, tail = (parts["head"], parts["tail"] or "") if parts else (suffix, "")
     previous = next((char for char in reversed(turkish_lower(word)) if char in _VOWELS), None)

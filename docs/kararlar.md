@@ -1198,6 +1198,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   bulundu.
 - **Not:** Ses saklanmaz. Ses yalnız sabit cümlelerden ve doğrulanmış cümlelerden
   üretilir.
+- **TL "lira" okunur (2026-11-26, `ses-lira-ekleri`):** önceki okunuş "Türk lirası"
+  iyelikli olduğu için eki doğru almıyordu ("TL'de" → "lirasıda", "TL'lik" → "lirasılık").
+  "lira" ile ek ünlü uyumuna girer: "lirada", "liraya", "lirayı", "liralık", "liradır".
 
 ### Bitişik sayı seste okunmaz; değer ekranda kalır
 - **Ne zaman:** 2026-11-20, `ses-bitisik-sayi` dalı; ürün sahibi kararı (gevşek a).
