@@ -76,7 +76,15 @@ _VULGAR = {
 _SUPER = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
 _SUB = str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")
 _SCRIPT_FRACTION_RE = re.compile(r"(\d?)([⁰¹²³⁴⁵⁶⁷⁸⁹]+)[⁄/∕]([₀₁₂₃₄₅₆₇₈₉0-9]+)")
-_LATEX_FRACTION_RE = re.compile(r"(\d?)\s*\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}")
+_LATEX_FRACTION_RE = re.compile(
+    r"(\d?)\s*\\[dt]?frac\{(\{)?([^{}]*)\}(?(2)\})\{(\{)?([^{}]*)\}(?(4)\})"
+)
+"""Okuyucu kesrin argümanlarını tek ya da çift süslü parantezle yazabilir ("1\\frac{{1}}{{8}}");
+kapanış açılışla aynı sayıda parantezdir: kesre ait olmayan parantez yutulmaz."""
+_LATEX_GROUP_RE = re.compile(
+    r"\{(\s*-?\d*\s*\\[dt]?frac\{(\{)?[^{}]*\}(?(2)\})\{(\{)?[^{}]*\}(?(3)\})\s*)\}"
+)
+"""Kesri saran LaTeX grup parantezi biçimdir: "-{1\\frac{1}{4}}" "-1 1/4" okunur."""
 _MINUS_RE = re.compile(r"[−–‑]")
 _SIGN_SPACE_RE = re.compile(r"(?<![\w)])- +(?=\d)")
 _SLASH_SPACE_RE = re.compile(r"(?<=\d) */ *(?=\d)")
@@ -90,9 +98,12 @@ def _script_fraction(match: re.Match[str]) -> str:
 
 
 def canonical(text: str) -> str:
-    """Değerin karşılaştırılan yazımı: kesir, eksi, boşluk ve tırnak yazımları tekleşir."""
+    """Değerin karşılaştırılan yazımı: kesir, eksi, boşluk ve tırnak yazımları tekleşir.
+    Kesir yazımları ölçülmüş kopyadan (evals/ocr_truth.py) geniştir: çift parantezli argüman ve
+    kesri saran grup parantezi (2026-11-26); set A okumalarında ikisi de geçmez."""
+    text = _LATEX_GROUP_RE.sub(r"\1", text)
     text = _LATEX_FRACTION_RE.sub(
-        lambda m: f"{m.group(1)} {m.group(2)}/{m.group(3)}".lstrip(), text
+        lambda m: f"{m.group(1)} {m.group(3)}/{m.group(5)}".lstrip(), text
     )
     for glyph, plain in _VULGAR.items():
         text = re.sub(rf"(\d?){glyph}", rf"\1 {plain}", text)

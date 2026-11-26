@@ -1,7 +1,7 @@
 # Karar kaydı
 
 Bugüne kadar alınmış önemli kararlar: ne, ne zaman, neden, hangi durumda yeniden düşünülür.
-Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0028) tam metni en
+Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0030) tam metni en
 sonda: [Karar belgeleri](#karar-belgeleri).
 
 **Kural:** Burada "çıkarıldı", "eklenmedi" ya da "reddedildi" yazan bir şeyi yeniden önermek
@@ -2136,3 +2136,27 @@ Tarih: 2026-11-26. Ürün sahibi onayı. Dal: `fark-tablosu-notu` (#153); ek: `s
 **Kaldırma.** Sonraki planlı yeniden işlemede not okuyucuya taşınacak (satırların `table_note`'u dolacak); o zaman sorgu anı kodu (`_table_note`'un komşu arama kısmı ve `IdentifierIndex.chunk`) kaldırılacak.
 
 **Teşhis alanlarıyla üç koşu (Windows, 2026-11-26, 0,00120 $; `gunluk-teshis-alanlari`).** Modele giden soru üçünde de Türkçe özgün metin; çeviri yalnız BM25'e gidiyor. Koşu 1 ve 3: BM25 "front crotch length", doğru satır 6. sırada, model ham çıktısı `{"tur": "bulunamadi"}`. Koşu 2: BM25 "front rise", satır 1. sırada, model "MD bedende ön ağ 12 1/4." yazdı ve doğru alıntıyı verdi; cevap "OCR değeri belirsiz" diye gizlendi, çünkü bu satırda 12 ve 1/4 dahil değerlerin çoğu iki okumada uyuşmamış (`ocr_uncertain`). Sonuç: model "ön ağ"ı "Front Rise" ile eşleştirebiliyor (koşu 2), ama satır geride ve "Back Rise" kaynaklarda yokken eşleştirmedi (koşu 1 ve 3); tutarlı bir model hatası değil, çeviriye bağlı sıralama ile birlikte çalışan bir zayıflık. Doğru cevap çıksa bile bu satırın değeri okuma katmanında belirsiz olduğu için gizlenir (kural 1 gereği). Düzeltme yapılmadı.
+
+**Okuyucu notu teşhisi (Mac, 2026-11-26).** Dört sayfa (6026412 s.15, 6026422 s.13, 6026411 s.16, 6026400 s.16) sayfa okuyucusuyla yeniden okundu (6–17 sn/sayfa, uygulama verisine yazılmadı). Sayfa görüntüsünde dördünde de not tablonun alt satırında, sağda ("Grade Rule Display: Increment"). Okuyucu çıktısında not hiçbirinde tam yok: 6026411'de alt satır hiç okunmadı; 6026412'de yalnız "Displaying 1 - 18 of 21 results" dipnotu; 6026400'de alt satırın yalnız ilk hücresi; 6026422'de satır "Grade Rule" sözcüğünde kesiliyor, "Increment" yok. Okuyucu notu vermediği için okuma anında `table_note`'a yazılamaz; sorgu anı kodu kalır, bu dört tablo bilinen sınır olarak kalır.
+
+<a id="karar-0030"></a>
+
+### 0030: Okuyucunun LaTeX kesri düzeltildi; ikinci okumada kesir düzeyi karşılaştırma reddedildi (ölçüm)
+Tarih: 2026-11-26. Ürün sahibi onayı (LaTeX dönüştürücü; kesir düzeyi karşılaştırma ölçüt tutarsa). Dal: `okuyucu-dondurma`.
+
+**LaTeX kesri.** Okuyucu bazı kesirleri çift parantezli argümanla ("1\frac{{1}}{{8}}", 6026417 s.13) ya da kesri saran grup parantezle ("$ -{1\frac{1}{4}} $", 6026411 s.16; parçalarda "-{3 1/8}", "-{1 1/4}" diye kalıyordu) yazıyordu; dönüştürücü bunları kesre çevirmiyordu. Kural (`page_reader.canonical`): `\frac` argümanları tek ya da çift parantezli olabilir; yalnız bir kesri saran grup parantezi atılır. Kesir olmayan parantezli yazım (set A'daki `-^{1}/_{4}` gibi) değişmez. Uygulama kopyası ölçülmüş kopyadan (`evals/ocr_truth.py`) bu iki yazımda geniştir; set A okumalarında ikisi de geçmez (çift parantez 0 blok), eşdeğerlik testi değişmedi. Değer gösterilmek için iki okumanın uyuşması şartı değişmedi. Kural sürümü PDF ve Office 26, görsel 17 (okuyucudan geçen bütün sayfa türleri).
+
+**Kesir düzeyi karşılaştırma: teşhis.** 6026417 s.11'in tablosu okuyucuyla ve Tesseract'la yeniden okundu. Tesseract üst üste yazılmış kesirleri okuyamıyor: "12 1/4" yerine "12%", "1/4" yerine "Va", "Ta", "Vy"; kodda 0'ı O okuyor ("RSOO5"). Karşılaştırma blok düzeyinde ve sayarak olduğu için tablonun tamamında 276 parçanın 34 türü (RS005, 11, 12, 13, 14 ve bütün kesirler dahil) belirsiz; RS005 satırı bunun bir örneği.
+
+**Tasarım (tek genel değişiklik).** Karışık sayının ("12 1/4") tam kısmı ikinci okumada da aynı sayıda geçiyorsa (yanına bozuk kesir yapışmış olsa da: "12%") tam kısım onaylanır, kesir okuyucudan alınır; tek başına kesir ve öteki parçalar eskisi gibi.
+
+**Ölçüm (çevrimdışı, set A; okuyucu çalıştırılmadı).** Saklı okuyucu çıktısı (`evals/results/2026-11-16-set-a-benzetim/paddle`) ile benzetim aynı tohumla (20261116) yeniden üretildi, Tesseract yeniden çalıştırıldı (57 sn). Dondurulmuş kuralın işaretleri 42 sayfanın 42'sinde saklı kayıtla aynı; sayılar 0010 ile aynı. Ölçüt ölçümden önce yazıldı: yanlış gösterilen bir tane bile artmaz ve doğru olup gizlenen azalır.
+
+| | Doğru gösterilen | Yanlış gösterilen | Gizli (doğruydu) | Gizli (yanlıştı) |
+|---|---|---|---|---|
+| Önce (dondurulmuş kural) | 1.325 | 87 | 1.335 | 325 |
+| Kesir düzeyi | 1.361 | 91 | 1.299 | 321 |
+
+**Sonuç: reddedildi.** Doğru olup gizlenen 36 azaldı, ama yanlış gösterilen 4 arttı. Dördü de yorum satırında, okuyucunun kesrini yanlış okuduğu ve tam kısmı onaylanan değer ("23½", "18½", "16½", "10¼"; syn1 s.3, syn4 s.2). Kesir okuyucudan alınınca okuyucunun kesir hatası ikinci okumadan kaçar. Değişiklik dala konmadı. S3'teki RS005 satırı bu yüzden gizli kalır (kural 1).
+
+**Yeniden düşünülür.** Kesirleri okuyabilen ikinci bir okuma (ör. hücre düzeyinde ayrı okuma) ya da görüntüde kesrin yerini doğrulayan bir denetim gelirse; ölçüm yine set A ya da gerçek taramalarla.
