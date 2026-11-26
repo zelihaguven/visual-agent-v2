@@ -18,6 +18,8 @@ from visual_agent.voice.reading import CODE_ON_SCREEN, VALUE_ON_SCREEN, spoken_t
         ("Fiyat 5 TL'ye çıktı.", "Fiyat beş liraya çıktı."),
         ("Tutar 5 TL'yi aşmaz.", "Tutar beş lirayı aşmaz."),
         ("Bir 5 TL'lik parça.", "Bir beş liralık parça."),
+        ("Fark 5 TL'den az.", "Fark beş liradan az."),
+        ("Tutar 5 TL'deki gibi.", "Tutar beş liradaki gibi."),
         ("Ağırlık 2 kg'dir.", "Ağırlık iki kilogramdır."),
         ("Ölçü 5 mm'dir.", "Ölçü beş milimetredir."),
         ("Fark 2 kg'den az.", "Fark iki kilogramdan az."),
