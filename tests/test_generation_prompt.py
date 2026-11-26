@@ -63,6 +63,27 @@ def test_prompt_allows_a_unit_only_when_the_source_states_it() -> None:
     assert 'soru L bedeni soruyorsa cevap "61,3"' in prompt
 
 
+def test_prompt_keeps_a_unit_written_in_the_value_s_own_header() -> None:
+    """B8: birim değerin kendi sütun başlığındaysa düşürülmez; örnek değer uydurma."""
+    assert 'Kaynak "Ücret (EUR): 37,25" ise cevap "37,25 EUR"' in load_answer_prompt()
+
+
+def test_prompt_keeps_status_name_and_label_values_as_written() -> None:
+    """C1: durum değeri çevrilmez, açıklama yanına eklenebilir; örnek değer uydurma."""
+    prompt = load_answer_prompt()
+
+    assert "belgedeki yazımıyla ver, çevirme" in prompt
+    assert '"Durum: Awaiting Sign-off"' in prompt
+    assert "durum, ad ve etiket değerleri hariç" in prompt
+
+
+def test_prompt_defines_figure_sources() -> None:
+    prompt = load_answer_prompt()
+
+    assert 'parça="şekil"' in prompt
+    assert "şeklin neyi gösterdiğini yorumlama" in prompt
+
+
 def test_prompt_tells_the_model_not_to_repeat_a_wrong_user_value() -> None:
     assert "kullanıcının değerini tekrar etme" in load_answer_prompt()
 
