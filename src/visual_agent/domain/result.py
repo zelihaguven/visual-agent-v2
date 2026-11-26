@@ -101,3 +101,8 @@ class AskOutcome(FrozenModel):
     translation_failed: bool = False
     helper_providers: tuple[str, ...] = ()
     """Sorgu çevirisi gerekti ama süresinde gelmedi; arama özgün soruyla yapıldı."""
+    # Teşhis alanları (soru kaydı): cevap dili, BM25 sorgusu, modele giden soru, ham çıktı.
+    answer_language: str = ""
+    bm25_query: str | None = None
+    model_question: str | None = None
+    raw_output: str | None = None

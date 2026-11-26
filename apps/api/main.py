@@ -222,6 +222,8 @@ def _record_question(
         clock.elapsed(),
         clock.first_verified,
         follow_up=request.context is not None,
+        doc_ids=request.doc_ids,
+        all_documents=request.all_documents,
     )
     task = asyncio.create_task(services.question_log.record(record))
     _PENDING_RECORDS.add(task)

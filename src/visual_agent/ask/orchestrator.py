@@ -83,4 +83,8 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
         scope_narrowed=final.scope_narrowed,
         translation_failed=final.translation_failed,
         helper_providers=tuple(helper_providers),
+        answer_language=final.language,
+        bm25_query=final.bm25_query,
+        model_question=final.model_question,
+        raw_output=final.raw_output,
     )

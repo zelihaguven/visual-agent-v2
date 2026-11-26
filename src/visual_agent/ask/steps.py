@@ -81,6 +81,12 @@ class AskState:
     translate_seconds: float | None = None
     """Aramanın çeviriyi beklediği süre (çeviri erken başladıysa çağrının tamamı değil)."""
     translation_failed: bool = False
+    bm25_query: str | None = None
+    """BM25'e giden sorgu (çeviri yapıldıysa çevrilmiş hali); teşhis için kayda girer."""
+    model_question: str | None = None
+    """Cevap modeline giden soru metni (çeviri değil, özgün ya da tamamlanmış soru)."""
+    raw_output: str | None = None
+    """Cevap modelinin ham çıktısı, alıntılar dahil; teşhis için kayda girer."""
     provider_attempts: int = 0
     provider_seconds: float = 0.0
     provider_errors: tuple[tuple[str, str], ...] = ()
@@ -336,7 +342,9 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     started = time.perf_counter()
     bm25_query, tried, failed = await (state.translation or _bm25_query(state, deps))
     waited = time.perf_counter() - started if tried else None
-    state = replace(state, translate_seconds=waited, translation_failed=failed)
+    state = replace(
+        state, translate_seconds=waited, translation_failed=failed, bm25_query=bm25_query
+    )
     candidates = max(deps.top_k, _FILTER_CANDIDATES)
     found = await deps.retriever.search(state.question, bm25_query, domain, candidates)
     hits = _without_relative_tables(
@@ -390,6 +398,7 @@ def _with_attempts(state: AskState, attempts: Sequence[AttemptRecord]) -> AskSta
 
 
 async def generate(state: AskState, deps: AskDeps) -> AskState:
+    state = replace(state, model_question=state.question)
     citations = tuple(_citation(hit) for hit in state.hits)
     messages = [
         {"role": "system", "content": deps.system_prompt},
@@ -413,6 +422,7 @@ async def generate(state: AskState, deps: AskDeps) -> AskState:
         cost_usd=stream.cost_usd,
         provider=stream.provider,
         first_verified_seconds=assembler.first_verified_seconds if assembler else None,
+        raw_output=stream.content,
     )
     if stream.incomplete and assembler is not None:
         assembler.interrupted()
