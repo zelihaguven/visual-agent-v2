@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { DocumentInfo } from "../api";
 import { MAX_UPLOAD_BYTES } from "../limits";
+import { CONFIRM_EXIT_MS } from "./ConfirmDialog";
 import { DocumentsPanel } from "./DocumentsPanel";
 import { Drawer } from "./Drawer";
 
@@ -117,7 +118,7 @@ describe("DocumentsPanel duplicate name", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: /Vazgeç/ }));
 
-    await act(async () => new Promise((resolve) => setTimeout(resolve, 250)));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, CONFIRM_EXIT_MS + 50)));
     expect(screen.queryByText(/Bu adla bir belge zaten var/)).not.toBeInTheDocument();
     expect(posts()).toHaveLength(0);
   });
@@ -128,8 +129,17 @@ describe("DocumentsPanel duplicate name", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: /Yine de Ekle/ }));
 
-    await act(async () => new Promise((resolve) => setTimeout(resolve, 250)));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, CONFIRM_EXIT_MS + 50)));
     expect(posts()).toHaveLength(1);
+  });
+
+  it("treats upper and lower case the same in both Turkish and general rules", async () => {
+    const { posts } = setup();
+
+    await choose("OLCU FOYU.PDF");
+
+    expect(await screen.findByText(/Bu adla bir belge zaten var/)).toBeInTheDocument();
+    expect(posts()).toHaveLength(0);
   });
 
   it("uploads a file with a different name without asking", async () => {

@@ -28,9 +28,16 @@ const STATUS_LABELS: Record<DocumentInfo["status"], string | null> = {
 // Bu kadar ya da daha az belgeli grup açık başlar; kalabalık grup başlığıyla gelir.
 const OPEN_GROUP_LIMIT = 10;
 
-/** Dosya adları büyük-küçük harf ve baştaki/sondaki boşluk farkı olmadan karşılaştırılır. */
+/** Dosya adları büyük-küçük harf, baştaki/sondaki boşluk ve Unicode biçimi (NFC/NFD) farkı
+ * olmadan karşılaştırılır. Türkçe ve genel küçük harf kuralının ikisi de denenir: "INVOICE" ile
+ * "invoice" de, "IŞIK" ile "ışık" da aynı addır. */
 function sameFileName(a: string, b: string): boolean {
-  return a.trim().toLocaleLowerCase("tr") === b.trim().toLocaleLowerCase("tr");
+  const forms = (name: string) => {
+    const base = name.trim().normalize("NFC");
+    return [base.toLowerCase(), base.toLocaleLowerCase("tr")];
+  };
+  const [left, right] = [forms(a), forms(b)];
+  return left.some((form, index) => form === right[index]);
 }
 
 function isPending(document: DocumentInfo): boolean {
@@ -235,7 +242,8 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
           type="file"
           accept={ACCEPTED_TYPES}
           aria-label="Belge Yükle"
-          disabled={isUploading}
+          // Liste gelmeden seçilen dosya aynı ad denetiminden geçemezdi.
+          disabled={isUploading || (!hasLoaded && listError === null)}
           onChange={(event) => void handleFile(event)}
         />
       </label>
