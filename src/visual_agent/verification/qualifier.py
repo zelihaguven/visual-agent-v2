@@ -24,6 +24,12 @@ Racer Red: White 100") satır o varyanta özgüdür. Cümle bu satıra dayanıyo
 alıntılanmalı; satırın KENDİ varyant adı ("White // Racer Red") cümlede ya da kullanıcının
 sorusunda geçiyorsa gerekmez. Birden çok varyant hücreli satır bu kuralın dışında.
 
+Kural E (önekli etiket): aynı belgenin kaynaklarında hem "L" hem "P L" etiketli hücre varsa
+("Size Range" ve "Chart Size Range") ve değerleri farklıysa, cümle "P L" hücresinin değerini
+söylüyorsa cümlede ya da kullanıcının bu turdaki sorusunda P ("Chart") ya da tam etiket geçmeli;
+yoksa önekli etiketin değeri öneksiz etiket diye sunulmuştur ve cümle gizlenir. Yalnız tablo
+hücresi etiketleri ("Etiket: değer" ya da form satırında etiket | değer); hücre değeri sayılmaz.
+
 Kurallar cümleyi yeniden yazmaz: geçemeyen cümle gizlenir.
 """
 
@@ -36,6 +42,7 @@ from visual_agent.domain.answer import ModelItem, PromptSource
 from visual_agent.verification.quote import labeled_cells, quote_pieces
 from visual_agent.verification.text import (
     canonical_number,
+    identifiers_in,
     normalize,
     numbers_in,
     turkish_lower,
@@ -345,6 +352,79 @@ def _unquoted_variants(
     return missing
 
 
+_MAX_LABEL_WORDS = 6
+
+
+def _label_pairs(line: str) -> list[tuple[str, str]]:
+    """Tablo satırının (etiket, değer) çiftleri: "Etiket: değer" hücreleri ve form satırında
+    ("Sub Category | Sportstyle | Size Range | XS-4XL") yan yana her iki hücre. Hiza varsayılmaz:
+    tek sayıda başlık hücresi çiftleri kaydırmasın. Fazladan çıkan çift yalnız gizleme yönünde
+    etkiler. Etiket rakamsız ve kısadır."""
+    cells = [cell.strip() for cell in line.split(_CELL_SEPARATOR)]
+    # "Etiket: değer" hücresi form satırında etiket sayılmaz; kendi çifti labeled_cells'ten gelir.
+    adjacent = [
+        (left, right) for left, right in zip(cells, cells[1:], strict=False) if ":" not in left
+    ]
+    pairs = labeled_cells(line) + adjacent
+    return [
+        (_norm(label), value)
+        for label, value in pairs
+        if _has_letter(label)
+        and not _has_digit(label)
+        and len(label.split()) <= _MAX_LABEL_WORDS
+        and value.strip()
+    ]
+
+
+def _value_said(value: str, sentence: str) -> bool:
+    """Cümle hücrenin değerini söylüyor: değerin tamamı, içindeki bir kod ("XS-5XL") ya da
+    bütün sayıları."""
+    numbers = numbers_in(value)
+    return (
+        _mentions(sentence, _norm(value))
+        or any(_mentions(sentence, _norm(code)) for code in identifiers_in(value))
+        or (bool(numbers) and numbers <= numbers_in(sentence))
+    )
+
+
+def _prefixed_label_values(
+    item: ModelItem, sources: Mapping[int, PromptSource], qualifiers: Qualifiers
+) -> list[str]:
+    """Kural E: cümlenin söylediği değer önekli bir etiketin ("Chart Size Range") hücresinden
+    geliyor, aynı belgede öneksiz etiket ("Size Range") başka değerle duruyor ve cümle de soru
+    da öneki anmıyor."""
+    sentence, asked = _norm(item.text), qualifiers.asked
+    found: list[str] = []
+    for quote in item.quotes:
+        source = sources.get(quote.source_no)
+        if source is None or not source.is_table_row:
+            continue
+        same_document = [s for s in sources.values() if s.title == source.title and s.is_table_row]
+        plain: dict[str, set[str]] = {}
+        for other in same_document:
+            for line in other.text.splitlines():
+                for label, value in _label_pairs(line):
+                    plain.setdefault(label, set()).add(_norm(value))
+        quoted = _norm(quote.text)
+        for line in source.text.splitlines():
+            for label, value in _label_pairs(line):
+                words = label.split()
+                shorter = [" ".join(words[k:]) for k in range(1, len(words))]
+                own = _norm(value)
+                base = next((s for s in shorter if own not in plain.get(s, {own})), None)
+                # Alıntı etiket hücresini ya da yalnız değer hücresini taşıyabilir.
+                in_quote = label in quoted or own in quoted
+                if base is None or not in_quote or not _value_said(value, sentence):
+                    continue
+                # Önek tek başına yetmez ("Measurement Chart" hücresindeki "chart"): önek ve
+                # etiketin ilk sözcüğü birlikte ("chart size") ya da tam etiket geçmeli.
+                prefix = " ".join(words[: len(words) - len(base.split())])
+                names = (f"{prefix} {base.split()[0]}", label)
+                if not any(_mentions(text, name) for text in (sentence, asked) for name in names):
+                    found.append(label)
+    return sorted(set(found))
+
+
 def qualifier_problems(
     item: ModelItem, sources: Mapping[int, PromptSource], qualifiers: Qualifiers
 ) -> list[str]:
@@ -368,4 +448,7 @@ def qualifier_problems(
     unquoted = _unquoted_variants(item, sources, qualifiers)
     if unquoted:
         problems.append(f"satır tek bir varyanta ait, varyant hücresi alıntıda değil: {unquoted}")
+    prefixed = _prefixed_label_values(item, sources, qualifiers)
+    if prefixed:
+        problems.append(f"önekli etiketin değeri öneksiz etiket diye sunulmuş: {prefixed}")
     return problems
