@@ -104,5 +104,7 @@ class AskOutcome(FrozenModel):
     # Teşhis alanları (soru kaydı): cevap dili, BM25 sorgusu, modele giden soru, ham çıktı.
     answer_language: str = ""
     bm25_query: str | None = None
+    ranking_query: tuple[str, str] | None = None
+    """Belge düğmesinde öbekleri çıkarılmış sıralama sorguları (yoğun, BM25)."""
     model_question: str | None = None
     raw_output: str | None = None

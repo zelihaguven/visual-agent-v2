@@ -1454,3 +1454,89 @@ def test_phrase_on_few_pages_is_kept() -> None:
     ask(deps, "Global Football Size Range nedir?", doc_ids=("t",))
 
     assert retriever.calls[0]["query"] == "Global Football Size Range nedir?"
+
+
+def _paged_index(*pages: str, doc_id: str = "d") -> object:
+    return build_identifier_index(
+        Chunk(
+            chunk_id=f"{doc_id}:{n}",
+            doc_id=doc_id,
+            kind=ChunkKind.TABLE_ROW,
+            text=text,
+            title="Belge",
+            location=SourceLocation(page=n),
+        )
+        for n, text in enumerate(pages, start=1)
+    )
+
+
+@pytest.mark.parametrize(
+    ("pages", "query", "expected"),
+    [
+        (["KIRMIZI IŞIK PANELİ | Sayfa"] * 3, "Kırmızı ışık paneli nedir?", "nedir?"),
+        (["6026412 | UA W Challenger Train Pant // Images"] * 3, "Train Pant bel kaç?", "bel kaç?"),
+        (
+            ["Challenger Train Pant"] * 3,
+            "Challenger Train Pant ve Challenger Train Pant farkı",
+            "ve farkı",
+        ),
+        (["Team Pro Short | Team Pro"] * 3, "Team Pro Short bedeni", "bedeni"),
+        (["Challenger Train Pant"], "Challenger Train Pant bedeni", "Challenger Train Pant bedeni"),
+    ],
+    ids=["turkce-buyuk-harf", "ayiricilar", "iki-kez", "ic-ice", "tek-sayfa"],
+)
+def test_repeated_phrase_edge_cases(pages: list[str], query: str, expected: str) -> None:
+    index = _paged_index(*pages)
+
+    assert index.without_repeated_phrases(query, "d") == expected  # type: ignore[attr-defined]
+
+
+def test_document_without_pages_keeps_the_query() -> None:
+    pageless = build_identifier_index(
+        [
+            Chunk(
+                chunk_id="x:1",
+                doc_id="x",
+                kind=ChunkKind.TEXT,
+                text="Challenger Train Pant",
+                title="Belge",
+                location=SourceLocation(sheet="S", row=1),
+            )
+        ]
+    )
+
+    assert (
+        pageless.without_repeated_phrases("Challenger Train Pant bedeni", "x")
+        == "Challenger Train Pant bedeni"
+    )
+
+
+def test_long_question_stays_fast() -> None:
+    index = _paged_index(*(" ".join(f"sözcük{i}" for i in range(500)) for _ in range(100)))
+    question = " ".join(f"sözcük{i}" for i in range(300))
+
+    started = time.perf_counter()
+    index.without_repeated_phrases(question, "d")  # type: ignore[attr-defined]
+
+    assert time.perf_counter() - started < 2.0
+
+
+def test_button_strips_both_queries_but_not_the_model_question_or_the_log() -> None:
+    async def translator(question: str, source: str, targets: object) -> str:
+        return "In which sizes is the Challenger Train Pant produced?"
+
+    deps, retriever = _button_deps()
+    deps = replace(deps, translator=translator)
+    deps.catalog.add(DocumentMeta(doc_id="t", title="6026412-SS28 föy", language="en"))
+    question = "Challenger Train Pant hangi bedenlerde üretiliyor?"
+
+    outcome = ask(deps, question, doc_ids=("t",))
+
+    assert retriever.calls[0]["query"] == "hangi bedenlerde üretiliyor?"
+    assert retriever.calls[0]["bm25"] == "In which sizes is the produced?"
+    assert outcome.model_question == question
+    assert outcome.bm25_query == "In which sizes is the Challenger Train Pant produced?"
+    assert outcome.ranking_query == (
+        "hangi bedenlerde üretiliyor?",
+        "In which sizes is the produced?",
+    )

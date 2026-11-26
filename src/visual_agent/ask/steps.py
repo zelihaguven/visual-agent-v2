@@ -83,6 +83,8 @@ class AskState:
     translation_failed: bool = False
     bm25_query: str | None = None
     """BM25'e giden sorgu (çeviri yapıldıysa çevrilmiş hali); teşhis için kayda girer."""
+    ranking_query: tuple[str, str] | None = None
+    """Belge düğmesinde öbekleri çıkarılmış sıralama sorguları (yoğun, BM25); teşhis için."""
     model_question: str | None = None
     """Cevap modeline giden soru metni (çeviri değil, özgün ya da tamamlanmış soru)."""
     raw_output: str | None = None
@@ -345,14 +347,15 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     state = replace(
         state, translate_seconds=waited, translation_failed=failed, bm25_query=bm25_query
     )
-    query = state.question
+    query, ranked_bm25 = state.question, bm25_query
     if state.request.doc_ids and len(domain) == 1:
         # Belge düğmeyle seçildi: ürün adı ve sayfa üst bilgisi belge içinde ayırt edici değil.
         query = deps.identifiers.without_repeated_phrases(query, domain[0])
-        bm25_query = deps.identifiers.without_repeated_phrases(bm25_query, domain[0])
-        state = replace(state, bm25_query=bm25_query)
+        ranked_bm25 = deps.identifiers.without_repeated_phrases(bm25_query, domain[0])
+        if (query, ranked_bm25) != (state.question, bm25_query):
+            state = replace(state, ranking_query=(query, ranked_bm25))
     candidates = max(deps.top_k, _FILTER_CANDIDATES)
-    found = await deps.retriever.search(query, bm25_query, domain, candidates)
+    found = await deps.retriever.search(query, ranked_bm25, domain, candidates)
     hits = _without_relative_tables(
         state.question, _with_exact_chunks(state, found, candidates), deps.identifiers.chunk
     )[: deps.top_k]

@@ -85,6 +85,7 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
         helper_providers=tuple(helper_providers),
         answer_language=final.language,
         bm25_query=final.bm25_query,
+        ranking_query=final.ranking_query,
         model_question=final.model_question,
         raw_output=final.raw_output,
     )

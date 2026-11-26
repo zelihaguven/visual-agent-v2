@@ -12,12 +12,27 @@ _SPOKEN_CODE_RE = re.compile(r"(?<!\w)[^\W\d_]{1,6}[-_\s]?\d+(?!\w)")
 _SUFFIX_RE = re.compile(r"['’]\w+")
 _WORD_RE = re.compile(r"[^\W_]+")
 _MIN_PHRASE_WORDS = 2
+_MAX_PHRASE_WORDS = 8
 _MIN_PAGES = 2
 
 
 def _words(text: str) -> list[str]:
-    """Küçük harfli sözcükler; kesmeyle bağlanan ek ayrılır ("Pant'ın" -> "pant")."""
-    return _WORD_RE.findall(_SUFFIX_RE.sub("", text.replace("İ", "i").lower()))
+    """Küçük harfli sözcükler; kesmeyle bağlanan ek ayrılır ("Pant'ın" -> "pant"). Türkçe I/ı
+    i'ye katlanır: büyük harfli başlık ("KIRMIZI") ile soru ("kırmızı") aynı yazılır."""
+    lowered = _SUFFIX_RE.sub("", text.replace("İ", "i").lower())
+    return _WORD_RE.findall(lowered.replace("ı", "i"))
+
+
+def _on_most_pages(phrase: str, pages: Sequence[str]) -> bool:
+    """Sayfaların yarısından fazlasında geçiyor; sonuç belli olunca sayım durur."""
+    needed, found = len(pages) // 2 + 1, 0
+    for index, page in enumerate(pages):
+        found += f" {phrase} " in page
+        if found >= needed:
+            return True
+        if found + len(pages) - index - 1 < needed:
+            return False
+    return False
 
 
 def _phrase_re(phrase: str) -> re.Pattern[str]:
@@ -78,21 +93,35 @@ class IdentifierIndex:
         """Belgenin sayfalarının yarısından fazlasında aynen geçen, en az iki sözcüklü öbekler
         (sayfa üst bilgisi, ürün adı: "Challenger Train Pant") metinden çıkar; en uzun öbek
         önce. Belge içinde ayırt edici değillerdir, koleksiyon IDF'i yüzünden aramayı her
-        sayfanın başlık satırına çekerler. Metin boş kalırsa olduğu gibi döner."""
+        sayfanın başlık satırına çekerler. Öbek metinde her geçtiği yerden çıkar. Metin boş
+        kalırsa olduğu gibi döner.
+
+        Öbek en çok 8 sözcük; bir öbek ancak iki alt öbeği de sıksa denenir (sık olmayan öbeğin
+        uzantısı da sık olamaz). Uzun soruda bile sayfa araması sözcük sayısıyla doğrusal kalır."""
         pages = self._pages.get(doc_id, ())
         if len(pages) < _MIN_PAGES:
             return text
         words = _words(text)
+        frequent: dict[int, set[int]] = {1: set(range(len(words)))}
+        for size in range(_MIN_PHRASE_WORDS, min(len(words), _MAX_PHRASE_WORDS) + 1):
+            shorter = frequent[size - 1]
+            frequent[size] = {
+                start
+                for start in range(len(words) - size + 1)
+                if start in shorter
+                and start + 1 in shorter
+                and _on_most_pages(" ".join(words[start : start + size]), pages)
+            }
+            if not frequent[size]:
+                break
         used = [False] * len(words)
         stripped = text
-        for size in range(len(words), _MIN_PHRASE_WORDS - 1, -1):
-            for start in range(len(words) - size + 1):
+        for size in sorted((s for s in frequent if s >= _MIN_PHRASE_WORDS), reverse=True):
+            for start in sorted(frequent[size]):
                 if any(used[start : start + size]):
                     continue
-                phrase = " ".join(words[start : start + size])
-                if 2 * sum(f" {phrase} " in page for page in pages) > len(pages):
-                    used[start : start + size] = [True] * size
-                    stripped = _phrase_re(phrase).sub(" ", stripped)
+                used[start : start + size] = [True] * size
+                stripped = _phrase_re(" ".join(words[start : start + size])).sub(" ", stripped)
         stripped = " ".join(stripped.split())
         return stripped if _WORD_RE.search(stripped) else text
 
