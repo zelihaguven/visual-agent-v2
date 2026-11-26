@@ -72,6 +72,77 @@ describe("DocumentsPanel", () => {
   });
 });
 
+describe("DocumentsPanel duplicate name", () => {
+  const existing: DocumentInfo = {
+    doc_id: "a",
+    title: "Föy",
+    filename: "Olcu Foyu.pdf",
+    status: "ready",
+    error: null,
+    report: null,
+  };
+
+  function setup() {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === "POST"
+        ? new Response(JSON.stringify(existing), { status: 201 })
+        : new Response(JSON.stringify([existing])),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    render(<DocumentsPanel onClose={() => undefined} />);
+    const posts = () =>
+      fetchMock.mock.calls.filter((call: unknown[]) => (call[1] as RequestInit)?.method === "POST");
+    return { posts };
+  }
+
+  async function choose(name: string) {
+    await screen.findByText("Föy");
+    const file = new File(["x"], name, { type: "application/pdf" });
+    fireEvent.change(screen.getByLabelText("Belge Yükle"), { target: { files: [file] } });
+  }
+
+  it("asks before uploading a file whose name is already loaded", async () => {
+    const { posts } = setup();
+
+    await choose("  olcu foyu.PDF ");
+
+    const question = "Bu adla bir belge zaten var. Yine de eklensin mi?";
+    expect(await screen.findByText(question)).toBeInTheDocument();
+    expect(posts()).toHaveLength(0);
+  });
+
+  it("does not upload when the question is cancelled", async () => {
+    const { posts } = setup();
+    await choose("Olcu Foyu.pdf");
+
+    fireEvent.click(await screen.findByRole("button", { name: /Vazgeç/ }));
+
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 250)));
+    expect(screen.queryByText(/Bu adla bir belge zaten var/)).not.toBeInTheDocument();
+    expect(posts()).toHaveLength(0);
+  });
+
+  it("uploads when the question is confirmed", async () => {
+    const { posts } = setup();
+    await choose("Olcu Foyu.pdf");
+
+    fireEvent.click(await screen.findByRole("button", { name: /Yine de Ekle/ }));
+
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 250)));
+    expect(posts()).toHaveLength(1);
+  });
+
+  it("uploads a file with a different name without asking", async () => {
+    const { posts } = setup();
+
+    await choose("baska.pdf");
+
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+    expect(screen.queryByText(/Bu adla bir belge zaten var/)).not.toBeInTheDocument();
+    expect(posts()).toHaveLength(1);
+  });
+});
+
 describe("documents drawer", () => {
   const ready: DocumentInfo = {
     doc_id: "a",

@@ -28,6 +28,11 @@ const STATUS_LABELS: Record<DocumentInfo["status"], string | null> = {
 // Bu kadar ya da daha az belgeli grup açık başlar; kalabalık grup başlığıyla gelir.
 const OPEN_GROUP_LIMIT = 10;
 
+/** Dosya adları büyük-küçük harf ve baştaki/sondaki boşluk farkı olmadan karşılaştırılır. */
+function sameFileName(a: string, b: string): boolean {
+  return a.trim().toLocaleLowerCase("tr") === b.trim().toLocaleLowerCase("tr");
+}
+
 function isPending(document: DocumentInfo): boolean {
   return document.status === "queued" || document.status === "processing";
 }
@@ -103,6 +108,8 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
   const [toggled, setToggled] = useState<Record<string, boolean>>({});
   const [hasLoaded, setHasLoaded] = useState(false);
   const [pending, setPending] = useState<PendingAction | null>(null);
+  // Yüklü bir belgeyle aynı adı taşıyan dosya: yüklemeden önce sorulur.
+  const [duplicate, setDuplicate] = useState<File | null>(null);
 
   useEffect(() => {
     // Liste gelmeden sayı gösterilmez: "0 belge" yanlış izlenim verir.
@@ -158,6 +165,14 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
       setError(uploadLimitMessage());
       return;
     }
+    if (documents.some((document) => sameFileName(document.filename, file.name))) {
+      setDuplicate(file);
+      return;
+    }
+    await upload(file);
+  }
+
+  async function upload(file: File) {
     setError(null);
     setIsUploading(true);
     try {
@@ -187,6 +202,13 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
     if (pending !== null) {
       setPending(null);
       void runAction(pending.document, CONFIRMATIONS[pending.kind].action);
+    }
+  }
+
+  function confirmDuplicate() {
+    if (duplicate !== null) {
+      setDuplicate(null);
+      void upload(duplicate);
     }
   }
 
@@ -267,6 +289,16 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
           isDanger={pending.kind === "delete"}
           onConfirm={confirmPending}
           onCancel={() => setPending(null)}
+        />
+      )}
+      {duplicate !== null && (
+        <ConfirmDialog
+          title="Bu adla bir belge zaten var. Yine de eklensin mi?"
+          body={`"${duplicate.name}" ayrı bir belge olarak eklenir; mevcut belge değişmez.`}
+          confirmLabel="Yine de Ekle"
+          confirmIcon="plus"
+          onConfirm={confirmDuplicate}
+          onCancel={() => setDuplicate(null)}
         />
       )}
     </div>
