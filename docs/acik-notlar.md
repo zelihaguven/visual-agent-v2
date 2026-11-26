@@ -1,6 +1,6 @@
 # Açık notlar
 
-Sonraya bırakılan konular; en üstte "Nerede kaldık" (son durum), en sonda veri gönderme yordamı. Biten madde ve durum kaydı silinir ("Nerede kaldık" dışında); denenip geri çekilen fikirler ve kapanan kararlar [kararlar.md](kararlar.md)'de (yeniden önermek için yeni kanıt gerekir). Kabul seti kaldırıldı (kararlar, "Kabul seti kaldırıldı"); kapanış testi elle sorularla yapılır. Kod gerçek belgeler gelene kadar dondurulacak; "Dondurmadan önce"deki üç hata (S1, S2, S3) bu turda kapatılamadı, güvenli bilinen sınır olarak kaldı (yanlış değer gösterilmiyor). Dondurmaya bu hâliyle geçilip geçilmeyeceği ürün sahibinin kararı (2026-11-26).
+Sonraya bırakılan konular; en üstte "Nerede kaldık" (son durum), en sonda veri gönderme yordamı. Biten madde ve durum kaydı silinir ("Nerede kaldık" dışında); denenip geri çekilen fikirler ve kapanan kararlar [kararlar.md](kararlar.md)'de (yeniden önermek için yeni kanıt gerekir). Kabul seti kaldırıldı (kararlar, "Kabul seti kaldırıldı"); kapanış testi elle sorularla yapılır. Kod 2026-11-26'da `8b75044`'te donduruldu (kararlar, [0031](kararlar.md#karar-0031)); gerçek belgeler gelene kadar `src/`, `apps/`, `tests/` ve `evals/` değişmez. S1, S2 ve S3 güvenli bilinen sınır (yanlış değer gösterilmiyor).
 
 - **Karar bekliyor:** ürün sahibinin ya da ekibin seçimi gerekiyor; veriyi beklemiyor.
 - **Gerçek belgeden sonra:** üretilmiş belgelerde görüldü ya da ölçülemedi; gerçek belge ve gerçek kullanımla bakılacak.
@@ -8,44 +8,53 @@ Sonraya bırakılan konular; en üstte "Nerede kaldık" (son durum), en sonda ve
 - **Yapılmayacaklar:** iç düzenleme ya da yeniden indeksleme isteyen, kullanıcıya etkisi olmayan işler; dondurma süresince yapılmaz.
 - **Windows'a veri gönderme:** işlenmiş verinin Mac'ten Windows'a taşınma yordamı.
 
-## Nerede kaldık (2026-11-26, gece; Mac)
+## Nerede kaldık (2026-11-26, dondurma; Mac)
 
-- Tek OCR yapısı `main`'de (#145, #151; karar 0028). Fark tablosu notu sorgu anında okunuyor (0029). Okuyucunun LaTeX kesri düzeltildi (#175, karar 0030): "1\\frac{{1}}{{8}}" ve "-{1\\frac{1}{4}}" artık kesir. İkinci okumada kesir düzeyi karşılaştırma set A'da yanlış gösterileni 87 → 91 artırdı, reddedildi (0030).
-- **Kural sürümü PDF ve Office 26, görsel 17.** Mac'te 28 belge yeniden işlendi (42 dk, MLX okuyucu, bulut 0): 394 belge, 6.295 parça, "Eski kural" 0, "işlenemedi" 0. Yeniden okuma hiçbir değeri değiştirmedi; 18 belirsiz işaret kalktı (rastgele 10'u sayfa görüntüsüyle birebir), 820 yeni belirsiz işaret (gizleme yönünde; kesik LaTeX parçalarının yerine artık tam kesirler sayılıyor). Yedek: `../data-yedek-20261126` (repo dışı).
-- Windows veri paketi: `~/va-veri-20261126.zip` (Mac'te, repo dışı); henüz Windows'a kurulmadı. Windows'taki veri `va-veri-20261123.zip` (kural sürümü 25). Windows'taki `evals/output` klasörleri eski (20 Kasım); orada ölçüm yapılacaksa önce setler yeniden üretilir.
-- Birleşmemiş dallar yalnız kayıt için `origin`'de: `varyant-listeleme` (0020), `ocr-belirsiz-komsu-hucre` (0021), `ceviri-terim-secimi` (kararlar, "Sorgu çevirisi"), `istem-turu` (#171; kararlar, "Bu repodaki istem değişiklikleri").
+- **Kod donduruldu** (`main` `8b75044`, kararlar [0031](kararlar.md#karar-0031)). Sıradaki iş gerçek belgeler: geldiklerinde aşağıdaki izleme maddeleri ve "Gerçek belgeden sonra". Dondurma süresince hata bulunursa düzeltilmez; kanıtıyla buraya yazılır.
+- **Kural sürümü PDF ve Office 26, görsel 17.** Mac'te 394 belge, 6.295 parça, "Eski kural" 0, "işlenemedi" 0 (yeniden işleme: kararlar 0030). Yedek: `../data-yedek-20261126` (repo dışı).
+- **Windows veri paketi** `~/va-veri-20261126.zip` (Mac'te, repo dışı; sha256 aşağıda, "Windows'a veri gönderme"). Windows'taki veri hâlâ `va-veri-20261123.zip` (kural sürümü 25); Windows'taki `evals/output` klasörleri eski (20 Kasım).
+- Birleşmemiş dallar yalnız kayıt için `origin`'de: `varyant-listeleme` (0020), `ocr-belirsiz-komsu-hucre` (0021), `ceviri-terim-secimi` (kararlar, "Sorgu çevirisi"), `istem-turu` (#171 kapatıldı; kararlar, "Bu repodaki istem değişiklikleri").
 
-### Dondurma hazırlığı
+### Windows'ta (2026-11-27)
 
-- **Bu turda yapılanlar (2026-11-26, Mac):** fark tablosu notu teşhisi (okuyucu çıktısında not yok; 0029), LaTeX kesri (#175, 0030), kesir düzeyi karşılaştırma ölçümü (reddedildi, 0030), tek yeniden işleme (kural sürümü 26), S3'ün 5 canlı koşusu, taban 7, 11 ve FastReact (değişen 0), Windows veri paketi.
-- **Durum:** S1 arama tarafında çözüldü (#165), cevap "bulunamadı" (bilinen sınır; kapanmış sayılıp sayılmayacağı ürün sahibinin kararı). S2 güvenli bilinen sınır. S3 bilinen sınır: aşağıda.
-- **Kalanlar, sırayla:** elle kapanış testi (aşağıda) → Windows'a paket kurulumu (`va-veri-20261126.zip`, "Windows'a veri gönderme") → dondurma kaydı.
+Sırayla; her adımın çıktısı kontrol edilir.
+
+1. Uygulama kapalı, repo kökünde `git pull` (`main` en az bu kaydın commit'i).
+2. sha256: paket kurulmadan önce `(Get-FileHash "$HOME\Downloads\va-veri-20261126.zip" -Algorithm SHA256).Hash -eq 'F6C22837F74F1E5F240ABDFBD3F6E3BFB2F6E0E19F540B8B8F0294AADBE8E466'` `True` vermeli; `False` ise paket kurulmaz, yeniden taşınır.
+3. Paket kurulumu: `uv sync`, sonra aşağıdaki "Windows'ta" komutu (`va-veri-20261126.zip`).
+4. Uygulama açılır: 394 belge, 6.295 parça, "Eski kural" 0 (Belgeler paneli ya da `PAKET.txt` ile karşılaştırma).
+5. Elle kapanış testi 11. soru (aşağıda); ardından 1–10 Windows'ta da sorulabilir.
+
+### Gerçek belgelerde izlenecekler
+
+- **Çeviri düşmesi:** soru günlüğünde `translation_failed` sayısı (`select sum(translation_failed), count(*) from question_log where created_at >= '<başlangıç>'`). S3'te 5 koşunun 4'ünde düştü (1,5 sn süre sınırı, "Canlıya alırken").
+- **Gizlenen ölçü oranı:** cevaplanan sorularda "OCR değeri belirsiz" ile gizlenen cümle oranı (`problems like '%OCR değeri belirsiz%'`). Kesirler ikinci okumada onaylanmadığı için föy ölçü tablolarında yüksek (0030); gerçek taramalarda ölçülecek.
+
+### Dondurma hazırlığı (kapandı)
+
+2026-11-26'da kapandı: fark tablosu notu (0029), LaTeX kesri (#175, 0030), tek yeniden işleme, veri paketi, #171'in kapatılması ve elle kapanış testinin Mac ön koşusu (aşağıda). Kayıt: kararlar [0031](kararlar.md#karar-0031).
 
 ### Elle kapanış testi
 
-Ürün sahibi arayüzde sorar; her cevapta kaynak sayfası ve rozet kontrol edilir. Test 1, 6 ve 7'deki değerler uygulamanın parçalarından alındı (okuyucu çıktısı), sayfa görüntüsüyle karşılaştırılmadı; testte görüntüye bakılmalı. "Bugün" sütunu bu turun bilinen davranışıdır; yanlış değer hiçbirinde gösterilmemeli.
+Ürün sahibi arayüzde sorar; her cevapta kaynak sayfası ve rozet kontrol edilir. Test 1, 6 ve 7'deki beklenen değerler sayfa görüntüsüyle karşılaştırıldı (2026-11-26, Mac), üçü de aynı. "Bugün" sütunu Mac ön koşusunun sonucudur (2026-11-26, canlı, arayüz yolu, her soru bir kez, 0,0036 $; günlük numarası parantezde): doğrulanmış yanlış değer 0, sorgu çevirisi düşmedi. Ayrıntı: kararlar [0031](kararlar.md#karar-0031).
 
 | # | Soru | Beklenen cevap ve kaynak | Bugün |
 |---|---|---|---|
-| 1 | S1: "Challenger Train Pant hangi bedenlerde üretiliyor?" | Netleştirme (6026400 / 6026412); 6026412 seçilince "XS-XXL(4)", s.1 | Netleştirme; 6026412'de "bulunamadı" (bilinen sınır). "Chart Size Range XXS-4XL" (s.13) gösterilmemeli |
-| 2 | S2: "6029278 tişörtün beyaz renginde gövde kumaşı hangisi?" | KNT-226131, s.9 | Cümle gizli ya da kaynak satırıyla (Kural D, bilinen sınır); başka kumaş kodu gösterilmemeli |
-| 3 | S3: "6026417 şortta MD bedende ön ağ kaç?" | 12 1/4, s.11 (RS005) | "Bulunamadı" ya da gizli (bilinen sınır); fark tablosundaki -3 3/8 (s.13) gösterilmemeli |
-| 4 | D6 / Kural E: "6013448'in beden aralığı nedir?" | "XS-4XL, SMT-4XLT", s.1, "Taramadan okundu" | Seçeneksiz netleştirme de olabilir (17 Kasım'da 5/5); "XS-5XL" (Chart Size Range, s.24) öneksiz gösterilmemeli |
-| 5 | C1: "6013448 modelinin numune durumu nedir?" | "Fit Approved, Hold Sampling", s.1, "Taramadan okundu" | Değer Türkçeye çevrilebilir (bilinen); anlam aynı olmalı |
-| 6 | Fark tablosu: "6026418 modelinde AB025 Across Shoulder MD bedende kaç?" | 14 3/4, s.11 | Değer iki okumada uyuşmuyor, gizli olabilir; s.13'ün fark değeri (1/2) gösterilmemeli |
-| 7 | Fark tablosu, notu okunmayan sayfa: "6026411 modelinde SL100 Forearm MD bedende kaç?" | 4 3/4, s.15 | Gizli olabilir; s.16'nın fark değeri (1/4) gösterilmemeli (bugün belirsiz işaretli) |
-| 8 | Gömülü görsel: "SIPARIS_KALEM tablosunda MUSTERI_KODU kolonunun uzunluğu kaç?" | 19, `sql-ekran` s.1, "Taramadan okundu" | Doğru |
-| 9 | İngilizce: "What is the size range of 6013448?" | "XS-4XL, SMT-4XLT", s.1, cevap İngilizce | Cevap İngilizce gelmeli (#157); netleştirme de olabilir (test 4 gibi) |
-| 10 | FastReact: "Tarihlerin yanında hafta numarası göstermek istiyorum, nereden açarım?" | "Add week number to date" seçeneği; 08_Setup_Configure_General (part 3 Reporting options, part 1 Week numbers) | Menü yolu cümlesi gizlenebilir (bilinen) |
-| 11 | "Bu belge zaten var": Belgeler panelinden `ornek-belgeler/gomlek-beden-tablosu.xlsx` yeniden yüklenir | Yüklemeden önce aynı adlı dosya sorulur (#169); "Vazgeç" ile belge sayısı 394 kalır | Doğru |
+| 1 | S1: "Challenger Train Pant hangi bedenlerde üretiliyor?" | Netleştirme (6026400 / 6026412); 6026412 seçilince "XS-XXL(4)", s.1 | Netleştirme (6026400 / 6026412 / 6028355); 6026412 seçilince "bulunamadı" (bilinen sınır). Şablon aralığı gösterilmedi (#2177, #2178) |
+| 2 | S2: "6029278 tişörtün beyaz renginde gövde kumaşı hangisi?" | KNT-226131, s.9 | Cümle gizli (Kural D); modelin değeri KNT-226131, gösterilmedi (#2179) |
+| 3 | S3: "6026417 şortta MD bedende ön ağ kaç?" | 12 1/4, s.11 (RS005) | Cümle gizli (OCR belirsiz); modelin değeri 12 1/4, gösterilmedi (#2180) |
+| 4 | D6 / Kural E: "6013448'in beden aralığı nedir?" | "XS-4XL, SMT-4XLT", s.1, "Taramadan okundu" | Cümle gizli (Kural E); model "XS-5XL" (s.24) dedi, gösterilmedi (#2181) |
+| 5 | C1: "6013448 modelinin numune durumu nedir?" | "Fit Approved, Hold Sampling", s.1, "Taramadan okundu" | "Numune durumu Fit Approved, Hold Sampling şeklindedir.", s.1, "Taramadan okundu"; beklendiği gibi (#2182) |
+| 6 | Fark tablosu: "6026418 modelinde AB025 Across Shoulder MD bedende kaç?" | 14 3/4, s.11 | Cümle gizli (OCR belirsiz); modelin değeri 14 3/4, fark değeri gösterilmedi (#2183) |
+| 7 | Fark tablosu, notu okunmayan sayfa: "6026411 modelinde SL100 Forearm MD bedende kaç?" | 4 3/4, s.15 | İki cümle gizli (OCR belirsiz): 4 3/4 (s.15) ve fark değeri 1/4 (s.16) (#2184) |
+| 8 | Gömülü görsel: "SIPARIS_KALEM tablosunda MUSTERI_KODU kolonunun uzunluğu kaç?" | 19, `sql-ekran` s.1, "Taramadan okundu" | "19", s.1, "Taramadan okundu"; beklendiği gibi (#2185) |
+| 9 | İngilizce: "What is the size range of 6013448?" | "XS-4XL, SMT-4XLT", s.1, cevap İngilizce | Cümle gizli (Kural E); modelin ham cevabı İngilizce "XS-5XL", gösterilmedi. Beklenenden farklı ama güvenli (#2186) |
+| 10 | FastReact: "Tarihlerin yanında hafta numarası göstermek istiyorum, nereden açarım?" | "Add week number to date" seçeneği; 08_Setup_Configure_General (part 3 Reporting options, part 1 Week numbers) | "Add week number to date" cümlesi doğrulanmış (part 3, Reporting options); menü yolu cümleleri gizli (#2187) |
+| 11 | "Bu belge zaten var": Belgeler panelinden `ornek-belgeler/gomlek-beden-tablosu.xlsx` yeniden yüklenir | Yüklemeden önce aynı adlı dosya sorulur (#169); "Vazgeç" ile belge sayısı 394 kalır | Windows'ta denenecek |
 
-## Dondurmadan önce (2026-11-26, ürün sahibi kararı)
+## Dondurmadan önce (kapandı, 2026-11-26)
 
-Üç hata (S2, S1, S3) kapatılmaya çalışıldı; üçü de güvenli bilinen sınır olarak kaldı. Yanlış değer gösterilmiyor.
-
-- **S1:** arama tarafında çözüldü (#165); cevap "bulunamadı" (kararlar, "Belge düğmesiyle seçilen belgede…"). Kapanmış sayılıp sayılmayacağı ürün sahibinin kararı.
-- **S2:** Gemma renk hücresini alıntılamıyor, Kural D gizliyor (kararlar, "Ayrık alıntı", "Kural D", "S2: istem denemesi"); LLM hakem kurtarması şimdilik yok.
-- **S3 (2026-11-26, Mac, yeniden işlenmiş veriyle 5 canlı koşu, 0,0015 $):** 0/5 doğru, doğrulanmış yanlış 0. Dört koşuda sorgu çevirisi yardımcı modelin süre sınırına takıldı, BM25 Türkçe sorguyla RS005 satırı ilk 8'e girmedi ("bulunamadı"); bir koşuda çeviri "front rise" oldu, satır 1. sırada, model "12 1/4"ü doğru alıntıyla verdi, cümle "OCR değeri belirsiz" diye gizlendi. Neden ilk 8 içi konum değil: satır ya hiç gelmiyor (çeviri düşmesi, "Canlıya alırken > sorgu çevirisi") ya da gelince değerleri iki okumada uyuşmuyor (Tesseract üst üste yazılmış kesri okuyamıyor; kesir düzeyi karşılaştırma reddedildi, 0030). Konum düzeltmesi yazılmadı.
+S1, S2 ve S3 kapatılamadı; üçü güvenli bilinen sınır olarak donduruldu (yanlış değer gösterilmiyor). Her birinin tek cümlelik özeti ve kaynakları kararlar [0031](kararlar.md#karar-0031)'de; S3'ün ayrıntısı 0029 ve 0030'da.
 
 ## Karar bekliyor
 
@@ -180,5 +189,7 @@ sqlite3 data/visual_agent.db "pragma wal_checkpoint(TRUNCATE);" >/dev/null && { 
 ```powershell
 $ErrorActionPreference = 'Stop'; $z = "$HOME\Downloads\va-veri-20261126.zip"; if (Test-Path data) { Rename-Item data ("data-yedek-" + (Get-Date -Format yyyyMMdd-HHmm)) }; Expand-Archive -Path $z -DestinationPath .; $paket = Get-Content data\PAKET.txt -Encoding UTF8; $ps = ($paket | Where-Object { $_ -like 'kural*' } | Select-Object -Last 1) -replace '^[^:]+: ', ''; $ks = uv run --no-sync python -c "from visual_agent.ingest.formats import RULES_VERSIONS as r; print(', '.join(f'{k.value} {v}' for k, v in r.items()))" | Select-Object -Last 1; if ($ps -eq $ks) { "Veri geçerli; kural sürümleri aynı: $ks" } else { Write-Warning "Veri geçersiz; kural sürümleri farklı. Paket: $ps / Kod: $ks" }; $pc = ($paket | Where-Object { $_ -like 'commit*' }) -replace '^[^:]+: ', ''; $g = git log -1 --format=%H; if ($pc -ne $g) { Write-Warning "Commit farklı (yalnız bilgi): paket $pc, depo $g" }
 ```
+
+**sha256 (`va-veri-20261126.zip`, 205.099.042 bayt):** `f6c22837f74f1e5f240abdfbd3f6e3bfb2f6e0e19f540b8b8f0294aadbe8e466`. Mac'te `shasum -a 256 ~/va-veri-20261126.zip`; Windows'ta komuttan önce `(Get-FileHash "$HOME\Downloads\va-veri-20261126.zip" -Algorithm SHA256).Hash -eq 'F6C22837F74F1E5F240ABDFBD3F6E3BFB2F6E0E19F540B8B8F0294AADBE8E466'` (`-eq` büyük-küçük harf duyarsız). Paket `8b75044` ile üretildi; sonrasında yalnız belge değişti, paket geçerli. Arşiv denetimi (`unzip -tq`) hatasız; dosya adlarında ters bölü ya da ASCII dışı karakter yok; veritabanında mutlak ya da ters bölülü yol 0.
 
 Sonra uygulama açılır; belge ve parça sayısının `PAKET.txt` ile aynı olduğu, "Eski kural" belge olmadığı ve birkaç sorunun kaynağıyla döndüğü denetlenir. `data/models` ilk açılışta yeniden oluşur. Hedefin soru günlüğü kaynağınkiyle değişir. PowerShell komutu Windows'ta henüz denenmedi (Mac'te `pwsh` yok); ilk kullanımda çıktısı kontrol edilmeli.

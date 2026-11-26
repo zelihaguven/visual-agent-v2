@@ -1,7 +1,7 @@
 # Karar kaydı
 
 Bugüne kadar alınmış önemli kararlar: ne, ne zaman, neden, hangi durumda yeniden düşünülür.
-Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0030) tam metni en
+Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0031) tam metni en
 sonda: [Karar belgeleri](#karar-belgeleri).
 
 **Kural:** Burada "çıkarıldı", "eklenmedi" ya da "reddedildi" yazan bir şeyi yeniden önermek
@@ -520,7 +520,7 @@ okuması); taranmış sayfalar 0011'den beri sayfa okuyucusundan geçiyor.
 | `#87860fa` (`sadakat-turu-2`) | Kural 3: "Birimi yalnız kaynakta yazılıysa yaz; kaynakta birim yoksa sayıyı kaynaktaki gibi ver." | Aşağıda, "Birim kuralı" |
 | `#30f7268` (`s2-ayrik-alinti`) | Kural 2: uzak parçalar kısaltılıp birleştirilmez, aynı kaynak numarasıyla ayrı alıntı verilir | Etkisiz (S2 3 koşuda 0); `s2-niteleyici-alinti` ile geri alındı |
 | `s2-niteleyici-alinti` (deneme cümlesi commit'lenmedi) | Önceki cümle yerine: "Cümlede bir niteleyici (renk, beden, varyant) iddia ediyorsan, onu gösteren hücreyi de aynı kaynaktan alıntıla." | Karar kuralını tutmadı (S2 5 koşuda doğrulanmış KNT-226131 0/5); iki cümle de çıkarıldı, istem 26 Kasım öncesi hâlinde (`a7d057b`) |
-| `istem-turu` (birleştirilmedi) | Üç değişiklik: durum, ad ve etiket değerleri belgedeki yazımıyla (C1); birim değerin kendi sütun başlığındaysa yazılır (B8, örnek "Ücret (EUR): 37,25"); `parça="şekil"` tanımlandı. Ölçütler ölçümden önce sabit: C1 5/5 özgün ifade, B8 5/5 "TL", taban setlerinde kötüleşen yok, doğrulanmış yanlış 0 | Windows, 2026-11-26, canlı, ≈0,053 $: C1 5/5 ve B8 5/5 tuttu; taban 7 38/40 (20 Kasım 39/40; `dikim-revizyon-netlestir` netleştirmeyi atladı, iki revizyonu listeledi), taban 11 39/40 (aynı); yüklü sınır seti 5 koşuda D6 iki kez şablon aralığını ("Apparel (XS-5XL)") doğrulanmış gösterdi, D1 bir kez sürümsüz değer. Ölçüt tutmadı; istem yeniden denenmedi, birleştirilmedi. D6'nın yeni istemden mi kaynaklandığı ayrılmadı (eski istemle aynı sette karşılaştırma koşusu yapılmadı); taban karşılaştırması 20 Kasım Windows çıktısıyla, aynı gün eski istemle koşu yok |
+| `istem-turu` (birleştirilmedi) | Üç değişiklik: durum, ad ve etiket değerleri belgedeki yazımıyla (C1); birim değerin kendi sütun başlığındaysa yazılır (B8, örnek "Ücret (EUR): 37,25"); `parça="şekil"` tanımlandı. Ölçütler ölçümden önce sabit: C1 5/5 özgün ifade, B8 5/5 "TL", taban setlerinde kötüleşen yok, doğrulanmış yanlış 0 | Windows, 2026-11-26, canlı, ≈0,053 $: C1 5/5 ve B8 5/5 tuttu; taban 7 38/40 (20 Kasım 39/40; `dikim-revizyon-netlestir` netleştirmeyi atladı, iki revizyonu listeledi), taban 11 39/40 (aynı); yüklü sınır seti 5 koşuda D6 iki kez şablon aralığını ("Apparel (XS-5XL)") doğrulanmış gösterdi, D1 bir kez sürümsüz değer. Ölçüt tutmadı; istem yeniden denenmedi, birleştirilmedi. D6'nın yeni istemden mi kaynaklandığı ayrılmadı (eski istemle aynı sette karşılaştırma koşusu yapılmadı); taban karşılaştırması 20 Kasım Windows çıktısıyla, aynı gün eski istemle koşu yok. **S4 (#171):** birleştirilmeden kapatıldı; S4 ölçütü tutmadı (taban 7'de `dikim-revizyon-netlestir`, D6). D6 artık Kural E ile korunuyor (#172). İstem değişmeden dondurma (ürün sahibi kararı, 2026-11-26; [0031](#karar-0031)) |
 
 - **Bedene özgü kural silindi (ekip kararı):** `#2ad898d`'nin gürültülü etiket kuralı
   ("Etiketin son harfi sorudaki bedenle aynıysa o sütun aranan sütundur") bedene özgüydü ve
@@ -2166,3 +2166,37 @@ Tarih: 2026-11-26. Ürün sahibi onayı (LaTeX dönüştürücü; kesir düzeyi 
 **S3 (aynı veriyle 5 canlı koşu, 0,0015 $).** 0/5 doğru, doğrulanmış yanlış 0. Dört koşuda sorgu çevirisi düştü (yardımcı model süre sınırı), RS005 ilk 8'de yok, "bulunamadı"; bir koşuda RS005 1. sırada, model "12 1/4"ü doğru alıntıyla verdi, cümle "OCR değeri belirsiz" diye gizlendi. Neden konum değil; konum düzeltmesi yazılmadı.
 
 **Taban setleri (çevrimdışı, 0 $).** Taban 7 ve 11'in okuyucudan geçen belgeleri yeni kodla yeniden işlendi: metin ve belirsiz işaretler aynı (yalnız kutu koordinatlarında yuvarlama). Taban 7 ve 11'de 40 sorunun 0'ı, FastReact'ta 18 sorunun 0'ı değişti (`evals/output/dondurma-2026-11-26`).
+
+<a id="karar-0031"></a>
+
+### 0031: Dondurma (2026-11-26)
+Tarih: 2026-11-26. Ürün sahibi kararı. Dal: `dondurma-kaydi` (yalnız belge).
+
+**Ne donduruldu.** Kod `main` `8b75044` (`8b750449e5ba920e6ce16a2a25aec3fc22be8275`). Bu kayıttan sonra gerçek belgeler gelene kadar `src/`, `apps/`, `tests/` ve `evals/` değişmez; hata bulunursa düzeltilmez, kanıtıyla `acik-notlar.md`'ye yazılır. Kural sürümleri (`PAKET.txt`): pdf 26, office 26, image 17, spreadsheet 6, legacy_spreadsheet 6, sql 3, text 2, markdown 3. Uygulama verisi: 394 belge, 6.295 parça, "Eski kural" 0, "işlenemedi" 0. Veri paketi `va-veri-20261126.zip` (Mac'te, repo dışı), sha256 `acik-notlar.md`'de ("Windows'a veri gönderme").
+
+**Güvenli bilinen sınırlar (yanlış değer gösterilmiyor).**
+- **S1:** belge düğmesiyle seçilen 6026412'de beden aralığı "bulunamadı" dönüyor; şablon aralığı gösterilmiyor ("Belge düğmesiyle seçilen belgede her sayfada geçen öbek sıralama sorgusundan çıkar").
+- **S2:** model renk hücresini alıntılamadığı için kumaş cümlesi Kural D ile gizleniyor (0019, "Kural D" ve "S2: istem denemesi").
+- **S3:** "ön ağ" satırı ya kaynaklara girmiyor (sorgu çevirisi süre sınırı) ya da değeri iki okumada uyuşmadığı için gizleniyor ([0029](#karar-0029), [0030](#karar-0030)).
+
+**İstem turu.** #171 (`istem-turu`) birleştirilmeden kapatıldı: S4 ölçütü tutmadı; istem değişmeden donduruldu ("Bu repodaki istem değişiklikleri").
+
+**Elle kapanış testi ön koşusu (Mac, 2026-11-26, canlı, arayüz yolu `/api/ask`, 0,0036 $).** `VA_PAGE_READER` `.env`'den okundu, uygulama 8080'de. Her soru bir kez. 1, 6 ve 7'de beklenen değer sayfa görüntüsüyle karşılaştırıldı, üçü de aynı (6026412 s.1 "XS-XXL(4)"; 6026418 s.11 MD 14 3/4, s.13 fark 1/2; 6026411 s.15 MD 4 3/4, s.16 fark 1/4). Doğrulanmış yanlış değer 0. Sorgu çevirisi bu koşularda düşmedi.
+
+| # | Beklenen | Bugün (bu koşu) | Sonuç | Günlük |
+|---|---|---|---|---|
+| 1 | Netleştirme; 6026412'de "XS-XXL(4)", s.1 | Netleştirme (6026400 / 6026412 / 6028355); 6026412 seçilince "bulunamadı" | Bilinen sınır gibi; seçeneklerde 6028355 de var | #2177, #2178 |
+| 2 | KNT-226131, s.9 | Cümle gizli (Kural D); modelin değeri KNT-226131 | Bilinen sınır gibi | #2179 |
+| 3 | 12 1/4, s.11 | Cümle gizli (OCR belirsiz); modelin değeri 12 1/4 | Bilinen sınır gibi | #2180 |
+| 4 | "XS-4XL, SMT-4XLT", s.1 | Cümle gizli (Kural E); model "XS-5XL" (s.24) dedi, gösterilmedi | Bilinen sınır gibi | #2181 |
+| 5 | "Fit Approved, Hold Sampling", s.1 | "Numune durumu Fit Approved, Hold Sampling şeklindedir.", "Taramadan okundu" | Beklendiği gibi | #2182 |
+| 6 | 14 3/4, s.11 | Cümle gizli (OCR belirsiz); modelin değeri 14 3/4 | Bilinen sınır gibi | #2183 |
+| 7 | 4 3/4, s.15 | İki cümle gizli (OCR belirsiz, alıntı hücre başında değil): 4 3/4 (s.15) ve fark değeri 1/4 (s.16) | Bilinen sınır gibi; fark değeri gösterilmedi | #2184 |
+| 8 | 19, `sql-ekran` s.1 | "19", "Taramadan okundu" | Beklendiği gibi | #2185 |
+| 9 | "XS-4XL, SMT-4XLT", İngilizce | Cümle gizli (Kural E); modelin ham cevabı İngilizce "XS-5XL" | Farklı (güvenli): gizli, dil yalnız ham çıktıda görülüyor | #2186 |
+| 10 | "Add week number to date"; General part 3 ve part 1 | Seçenek cümlesi doğrulanmış (part 3, Reporting options); menü yolu cümleleri gizli (alıntı kaynakta birebir değil) | Bilinen sınır gibi | #2187 |
+| 11 | "Bu belge zaten var" sorusu | Koşulmadı | Windows'ta denenecek | — |
+
+**Açık riskler.** Sorgu çevirisinin 1,5 sn süre sınırı (S3'te 5 koşunun 4'ünde düştü); ikinci okumanın kesirleri onaylamayıp gizlemesi (0030); okuyucunun notunu okumadığı 4 fark tablosu (0029; 53 satırda fark değeri ölçü diye gösterilebilir); sentetik sette yanlış gösterilen oranı (set B %2,9; [0026](#karar-0026), [0027](#karar-0027)).
+
+**Yeniden düşünülür.** Gerçek belgeler geldiğinde; dondurma ürün sahibinin kararıyla kalkar.
