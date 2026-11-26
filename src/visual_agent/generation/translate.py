@@ -16,7 +16,9 @@ _LANGUAGE_NAMES = {
 _PROMPT = (
     "You translate search queries for a document search engine. Translate the user's question "
     "from {source} into: {targets}. Keep product codes, model numbers, error codes, table and "
-    "column names, numbers and units exactly as written. Reply with a JSON object whose keys are "
+    "column names, numbers and units exactly as written. When a technical term has more than one "
+    "common name in the target language, include those names too, side by side in the same "
+    "translation. Reply with a JSON object whose keys are "
     "the language codes ({codes}) and whose values are the translations; nothing else."
 )
 _MAX_TOKENS = 300
