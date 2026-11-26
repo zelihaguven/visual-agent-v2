@@ -91,6 +91,24 @@ def test_copied_counting_gives_the_same_marks_as_the_measured_code(result: Path)
 
 
 @pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("1\\frac{{1}}{{8}}", "1 1/8"),  # çift parantezli argüman (6026417 s.13)
+        ("$ 12\\frac{{5}}{{8}} $", "12 5/8"),
+        ("$ -{1\\frac{1}{4}} $", "-1 1/4"),  # kesri saran grup parantezi (6026411 s.16)
+        ("-{3\\frac{1}{8}}", "-3 1/8"),
+        ("$ 23\\frac{1}{2} $", "23 1/2"),  # tek parantez eskisi gibi
+        ("$ -^{1}/_{4} $", "-^{1}/_{4}"),  # kesir olmayan parantez dokunulmaz
+        ("{x} ve {1}", "{x} ve {1}"),
+    ],
+)
+def test_latex_fractions_with_double_or_group_braces_become_fractions(
+    text: str, expected: str
+) -> None:
+    assert page_reader.canonical(text) == expected
+
+
+@pytest.mark.parametrize(
     ("primary", "second", "expected"),
     [
         ("İç paça 77.0", "İç paça 77,0", ["77.0"]),  # virgül ve nokta farklı okumadır (0008)

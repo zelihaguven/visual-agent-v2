@@ -346,10 +346,24 @@ def test_legacy_ocr_rules_outdate_only_documents_the_old_path_could_read(
     [({"text": 2}, True), ({"scanned": 1}, True), ({"weak": 1}, True), ({"none": 29}, False)],
 )
 def test_removing_the_legacy_ocr_path_does_not_outdate_scanned_sheets(
-    kinds: dict[str, int], outdated: bool
+    kinds: dict[str, int], outdated: bool, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """23→24 (karar 0028): tamamı okuyucudan geçen taranmış föyler yeniden okunmaz."""
+    monkeypatch.setitem(RULES_VERSIONS, InputFormat.PDF, 24)
     report = {"input_format": "pdf", "rules_version": 23, "page_kinds": kinds}
+
+    assert is_outdated(report, "belge.pdf") is outdated
+
+
+@pytest.mark.parametrize(
+    ("kinds", "outdated"),
+    [({"none": 29}, True), ({"text": 2}, True), ({"scanned": 1}, True), ({}, False)],
+)
+def test_latex_fraction_rule_outdates_every_page_the_reader_reads(
+    kinds: dict[str, int], outdated: bool
+) -> None:
+    """25→26: okuyucudan geçen her sayfa (taranmış, metinli sayfadaki görsel) yeniden okunur."""
+    report = {"input_format": "pdf", "rules_version": 25, "page_kinds": kinds}
 
     assert is_outdated(report, "belge.pdf") is outdated
 
