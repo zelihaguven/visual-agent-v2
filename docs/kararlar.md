@@ -1286,7 +1286,9 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 - **Ne:** `evals/kabul_seti.json` silindi.
 - **Neden:** setin üç sorusu düzeltmelerde kullanıldı: Y03 (S3, 6026417 ön ağ), Y09 (S2, beyaz gövde kumaşı), Y10 (S1, Challenger Train Pant). Set artık pilot öncesi taban olarak bağımsız değil (kendi kuralı: "ona bakarak düzeltme yapılırsa yeni kabul seti gerekir"). Kapanış testi elle sorularla yapılacak.
 - **Görülen kusurlar:** açık notlarda, set adını anmadan "Gerçek belgeden sonra > Cevap ve doğrulama"da.
-- **Brif:** 12 Kasım PM brifinin yerini bu dosya ve `docs/acik-notlar.md` alır; ikisi çelişirse repodaki kayıtlar geçerli.
+
+### 12 Kasım PM brifi yerine repodaki kayıtlar (2026-11-26, ürün sahibi kararı)
+- 12 Kasım PM brifinin yerini bu dosya ve `docs/acik-notlar.md` alır; ikisi çelişirse repodaki kayıtlar geçerli.
 
 ### Atlanan netleştirme, doğrulanmış yanlıştan ayrı sayılır
 - **Ne zaman:** `#95e1870`.
