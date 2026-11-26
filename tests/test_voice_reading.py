@@ -12,8 +12,14 @@ from visual_agent.voice.reading import CODE_ON_SCREEN, VALUE_ON_SCREEN, spoken_t
         ("Dış paça 103,0'dır.", "Dış paça yüz üç virgül sıfırdır."),
         ("Ölçü 42,5 cm'dir.", "Ölçü kırk iki virgül beş santimetredir."),
         ("Tolerans 0,05 mm.", "Tolerans sıfır virgül sıfır beş milimetre."),
-        ("Fiyat 1200 TL.", "Fiyat bin iki yüz Türk lirası."),
-        ("Fiyat 1500 TL'dir.", "Fiyat bin beş yüz Türk lirasıdır."),  # ek okunuşa uyar
+        ("Fiyat 1200 TL.", "Fiyat bin iki yüz lira."),
+        ("Fiyat 1500 TL'dir.", "Fiyat bin beş yüz liradır."),  # ek okunuşa uyar
+        ("Fark 5 TL'de kalır.", "Fark beş lirada kalır."),
+        ("Fiyat 5 TL'ye çıktı.", "Fiyat beş liraya çıktı."),
+        ("Tutar 5 TL'yi aşmaz.", "Tutar beş lirayı aşmaz."),
+        ("Bir 5 TL'lik parça.", "Bir beş liralık parça."),
+        ("Fark 5 TL'den az.", "Fark beş liradan az."),
+        ("Tutar 5 TL'deki gibi.", "Tutar beş liradaki gibi."),
         ("Ağırlık 2 kg'dir.", "Ağırlık iki kilogramdır."),
         ("Ölçü 5 mm'dir.", "Ölçü beş milimetredir."),
         ("Fark 2 kg'den az.", "Fark iki kilogramdan az."),
@@ -85,7 +91,7 @@ def test_plain_sentence_about_a_command_is_read_then_points_to_the_screen() -> N
         ("Parti 1.500 adet.", "Parti bir nokta beş sıfır sıfır adet."),
         ("Parti 1,500 adet.", "Parti bir virgül beş sıfır sıfır adet."),
         # Türkçe biçim (binlik nokta, ondalık virgül) belirsiz değil.
-        ("Fiyat 1.234,50 TL.", "Fiyat bin iki yüz otuz dört virgül beş sıfır Türk lirası."),
+        ("Fiyat 1.234,50 TL.", "Fiyat bin iki yüz otuz dört virgül beş sıfır lira."),
         ("Toplam 1.234.567 adet.", "Toplam bir iki üç dört beş altı yedi adet."),
         # Tek ayraçlı nokta saat ya da tarih olabilir; yorumlanmaz.
         ("Saat 14.30.", "Saat on dört nokta üç sıfır."),
@@ -117,8 +123,8 @@ def test_grouped_numbers_never_change_value(text: str, expected: str) -> None:
         # "g" ivme de olabilir ("50 g"): yazıldığı gibi kalır.
         ("Titreşim 50 g.", "Titreşim elli g."),
         ("Hacim 2 lt.", "Hacim iki litre."),
-        ("Fiyat 5 tl.", "Fiyat beş Türk lirası."),
-        ("Fiyat 5 Tl.", "Fiyat beş Türk lirası."),
+        ("Fiyat 5 tl.", "Fiyat beş lira."),
+        ("Fiyat 5 Tl.", "Fiyat beş lira."),
         # Tek harfli birim büyük harfle yazılırsa beden olabilir; birim sayılmaz.
         ("Beden 38 M.", "Beden otuz sekiz me."),
         ("Beden 42 L.", "Beden kırk iki le."),

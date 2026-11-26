@@ -89,7 +89,8 @@ UNITS: dict[str, tuple[str, str]] = {
     "lt": ("l", "litre"),
     "ml": ("ml", "mililitre"),
     "cc": ("cc", ""),
-    "tl": ("tl", "Türk lirası"),
+    # "lira": iyelikli "Türk lirası"na ek doğru bağlanmıyordu ("TL'de" → "lirasıda").
+    "tl": ("tl", "lira"),
 }
 UNIT_PATTERN = "|".join(sorted((re.escape(unit) for unit in UNITS), key=len, reverse=True))
 _MEASURE_RE = re.compile(rf"(?<![\w.,])({NUMBER})\s?({UNIT_PATTERN})(?!\w)", re.IGNORECASE)
