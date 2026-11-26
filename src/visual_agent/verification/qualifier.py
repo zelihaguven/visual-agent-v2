@@ -19,6 +19,11 @@ adını anıp kendi değerini söylemeden başka hücrenin değerini söylüyors
 ("38: 72,0 | 40: 74,0" alıntısıyla "40 beden 72,0"). Varyant ya da öznitelik ayrımı yapılmaz;
 adı anılmayan cümleyi bu kural etkilemez. Rakamsız değer ("Ebat: İç paça", "Beden: S") addır.
 
+Kural D (tek varyantlı satır): tablo satırında tam bir rakamlı adlı hücre varsa ("100: White //
+Racer Red: White 100") satır o varyanta özgüdür. Cümle bu satıra dayanıyorsa varyant hücresi de
+alıntılanmalı; satırın KENDİ varyant adı ("White // Racer Red") cümlede ya da kullanıcının
+sorusunda geçiyorsa gerekmez. Birden çok varyant hücreli satır bu kuralın dışında.
+
 Kurallar cümleyi yeniden yazmaz: geçemeyen cümle gizlenir.
 """
 
@@ -28,7 +33,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 from visual_agent.domain.answer import ModelItem, PromptSource
-from visual_agent.verification.quote import labeled_cells
+from visual_agent.verification.quote import labeled_cells, quote_pieces
 from visual_agent.verification.text import (
     canonical_number,
     normalize,
@@ -287,6 +292,59 @@ def _misplaced_values(sentence: str, quotes: Sequence[str]) -> list[str]:
     return sorted(set(misplaced))
 
 
+_VARIANT_LABEL_RE = re.compile(r"\d+\s*:\s*(?P<name>.*[^\W\d_].*)")
+
+
+def _single_variant(source: PromptSource) -> str | None:
+    """Kural D: tablo satırındaki tek rakamlı adlı hücrenin etiketi ("100: White // Racer Red")."""
+    if not source.is_table_row:
+        return None
+    labels = [
+        label
+        for label, _ in labeled_cells(source.text, last=True)
+        if _VARIANT_LABEL_RE.fullmatch(label)
+    ]
+    return labels[0] if len(labels) == 1 else None
+
+
+def _names_own(text: str, name: str, qualifiers: Qualifiers) -> bool:
+    """Ad metinde kendi başına geçiyor: onu içeren daha uzun bir kaynak adının ("Off White")
+    parçası olarak geçmesi sayılmaz."""
+    for longer, pattern in qualifiers.names:
+        if len(longer) > len(name) and _mentions(longer, name):
+            text = pattern.sub(lambda m: " " * len(m.group(0)), text)
+    return _mentions(text, name)
+
+
+def _unquoted_variants(
+    item: ModelItem, sources: Mapping[int, PromptSource], qualifiers: Qualifiers
+) -> list[str]:
+    """Muafiyet yalnız bu cümle ve bu turun sorusuyla: önceki turun adı ("White") bu turda başka
+    varyant sorulunca ("peki City Khaki?") geçersiz olurdu; önceki tur hiç sayılmaz."""
+    sentence, asked = _norm(item.text), qualifiers.asked
+    missing = []
+    for number in dict.fromkeys(q.source_no for q in item.quotes):
+        label = _single_variant(sources[number]) if number in sources else None
+        match = _VARIANT_LABEL_RE.fullmatch(label) if label else None
+        if label is None or match is None:
+            continue
+        quoted = " ".join(
+            _norm(piece)
+            for q in item.quotes
+            if q.source_no == number
+            for piece in quote_pieces(q.text)
+        )
+        name = _norm(match["name"])
+        if (
+            _norm(label) in quoted
+            or _names_own(sentence, name, qualifiers)
+            or _names_own(asked, name, qualifiers)
+        ):
+            continue
+        missing.append(label)
+    return missing
+
+
 def qualifier_problems(
     item: ModelItem, sources: Mapping[int, PromptSource], qualifiers: Qualifiers
 ) -> list[str]:
@@ -297,11 +355,17 @@ def qualifier_problems(
     foreign = _foreign_names(sentence, own, qualifiers)
     if foreign:
         problems.append(f"cümlede alıntısının kaynağında olmayan ad: {foreign}")
-    quotes = [_norm(quote.text) for quote in item.quotes]
+    # Ayrık alıntı ("…") parçalarına açılır: Kural B parçaları satırda arar, Kural C hücreleri
+    # parçalardan yeniden kurar (parçalar tablo satırında hücre başından başlar).
+    pieces = [quote_pieces(quote.text) or [quote.text] for quote in item.quotes]
+    quotes = [_norm(piece) for parts in pieces for piece in parts]
     missing = _missing_variants(sentence, quotes, cited, qualifiers)
     if missing:
         problems.append(f"cümlede değerin varyantı yok: {missing}")
-    misplaced = _misplaced_values(sentence, [quote.text for quote in item.quotes])
+    misplaced = _misplaced_values(sentence, [" | ".join(parts) for parts in pieces])
     if misplaced:
         problems.append(f"cümlede adı geçen hücrenin değeri değil: {misplaced}")
+    unquoted = _unquoted_variants(item, sources, qualifiers)
+    if unquoted:
+        problems.append(f"satır tek bir varyanta ait, varyant hücresi alıntıda değil: {unquoted}")
     return problems

@@ -14,7 +14,14 @@ from visual_agent.domain.answer import (
     VerificationStatus,
 )
 from visual_agent.verification.qualifier import Qualifiers, build_qualifiers, qualifier_problems
-from visual_agent.verification.quote import contains_whole, labeled_cells, quote_matches
+from visual_agent.verification.quote import (
+    contains_whole,
+    labeled_cells,
+    pieces_match,
+    quote_matches,
+    quote_pieces,
+    starts_cell,
+)
 from visual_agent.verification.text import (
     FOREIGN_SCRIPT_RE,
     TOLERANCE_RE,
@@ -64,11 +71,28 @@ _ARTICLE_NUMBERS = {"1"}
 
 
 def _quote_problems(item: ModelItem, sources: Sources) -> list[str]:
-    problems = []
+    """Alıntı bütün hâliyle birebir eşleşir. Eşleşmezse "…" ile ayrılan parçaları (sondaki "…"
+    kesik işaretidir) sırayla ve ayrı ayrı birebir eşleşebilir. Cümle birden çok parçaya
+    dayanıyorsa (iki alıntı ya da "…") parçaların hepsi aynı kaynaktan olmalı ve kaynak tablo
+    satırıysa her biri bir hücrenin başından başlamalı: başka satırdan ya da etiketinden
+    koparılmış değerle cümle kurulamaz (kararlar, "Ayrık alıntı")."""
+    problems: list[str] = []
+    parts: list[tuple[PromptSource, str]] = []
     for quote in item.quotes:
         source = sources.get(quote.source_no)
-        if source is None or not quote_matches(quote.text, source.text, source.language):
+        if source is not None and quote_matches(quote.text, source.text, source.language):
+            parts.append((source, quote.text))
+            continue
+        pieces = quote_pieces(quote.text)
+        if source is None or not pieces_match(pieces, source.text, source.language):
             problems.append(f"alıntı [{quote.source_no}] kaynakta birebir değil")
+            continue
+        parts += [(source, piece) for piece in pieces]
+    if len(parts) > 1:
+        if len({source.number for source, _ in parts}) > 1:
+            problems.append("alıntılar farklı kaynaklardan birleştirilmiş")
+        elif any(s.is_table_row and not starts_cell(piece, s.text) for s, piece in parts):
+            problems.append(f"alıntı [{parts[0][0].number}] parçası hücre başında değil")
     return problems
 
 
