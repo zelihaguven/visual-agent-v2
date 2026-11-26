@@ -257,6 +257,11 @@ Increment"). Bu satırların sayısı ölçü değil, bedenler arası farktır. 
 "Incremental Updates" gibi bir başlığın altındaki metin fark değildir."""
 
 
+_FILTER_CANDIDATES = 20
+"""Fark filtresi kaynaklar 8'e kesilmeden önce bu kadar adaya uygulanır: ayıklanan satırın
+yerine sıradaki parça girer (karar 0029). Hibrit aramanın birleştirdiği parça sayısıyla aynı
+(`hybrid._FUSED_K`); filtre bir şey ayıklamazsa ilk 8 eskisiyle birebir aynıdır."""
+
 ChunkOf = Callable[[str], Chunk | None]
 
 
@@ -332,10 +337,11 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     bm25_query, tried, failed = await (state.translation or _bm25_query(state, deps))
     waited = time.perf_counter() - started if tried else None
     state = replace(state, translate_seconds=waited, translation_failed=failed)
-    found = await deps.retriever.search(state.question, bm25_query, domain, deps.top_k)
+    candidates = max(deps.top_k, _FILTER_CANDIDATES)
+    found = await deps.retriever.search(state.question, bm25_query, domain, candidates)
     hits = _without_relative_tables(
-        state.question, _with_exact_chunks(state, found, deps.top_k), deps.identifiers.chunk
-    )
+        state.question, _with_exact_chunks(state, found, candidates), deps.identifiers.chunk
+    )[: deps.top_k]
     if not hits:
         return replace(state, result=NotFound())
     if state.request.on_event is not None:
