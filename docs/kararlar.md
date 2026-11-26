@@ -543,9 +543,11 @@ geçersiz olur.
   6 kayıt; en → tr). Güçlü küme ve büyük harf kuralıyla yeniden karşılaştırıldı; değişen yine
   yalnız S4. Setlerde İngilizce soru yok. Dili değişen soruda çeviri devreye girer;
   doğru parça (#78) iki yazılışta da ilk 8'de 1. sırada kaldı.
-- **Bedel:** `/speak` ucu seslendirme dilini cevap metninden tespit ediyor; güçlü sözcük
-  taşımayan çok kısa İngilizce cevap ("It is 32 cm.") Türkçe sesle okunabilir (açık notlar).
-  Hiç güçlü sözcük ve iki ipucu taşımayan İngilizce soru ("Can I export?") Türkçe sayılır.
+- **Seslendirme:** `/speak` ucu dili cevabın sorusundan tespit eder (arayüz soruyu gönderir;
+  2026-11-26, `speak-soru-dili`). Önceden cevap metninden tespit ediyordu; güçlü sözcük taşımayan
+  kısa İngilizce cevap ("It is 32 cm.") Türkçe kurallarla okunuyordu ("It is otuz iki
+  santimetre"). Soru gönderilmezse eski davranış.
+- **Bedel:** Hiç güçlü sözcük ve iki ipucu taşımayan İngilizce soru ("Can I export?") Türkçe sayılır.
   Türkçe ipucu taşımayan Türkçe harfsiz bir soruda marka ya da özellik adı ("The North Face
   ceket beden tablosu", "What If analizi") ya da yapıştırılmış İngilizce metin ("Please wait
   hatasi aliyorum") soruyu İngilizce yapar; Türkçe ipucu listesi kısa olduğu için (16 sözcük)

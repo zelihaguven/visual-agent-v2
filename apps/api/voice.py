@@ -99,6 +99,9 @@ class SpeakItem(BaseModel):
 
 class SpeakBody(BaseModel):
     items: list[SpeakItem] = Field(min_length=1, max_length=_MAX_SPOKEN_ITEMS)
+    question: str | None = Field(default=None, max_length=_MAX_SPOKEN_CHARS)
+    """Cevabın sorusu: cevap sorunun dilinde verilir, ses de o dilde okunur. Kısa İngilizce
+    cevaptan ("It is 32 cm.") dil çıkmaz. Yoksa dil cevap metninden tespit edilir."""
 
 
 class SpeakResponse(BaseModel):
@@ -280,7 +283,7 @@ def voice_router(dependency: Callable[[], Voice | None]) -> APIRouter:
         body: SpeakBody, voice: Annotated[Voice | None, Depends(dependency)]
     ) -> SpeakResponse:
         service = _available(voice)
-        language = detect_language(" ".join(item.text for item in body.items))
+        language = detect_language(body.question or " ".join(item.text for item in body.items))
         try:
             speeches = await asyncio.gather(
                 *(

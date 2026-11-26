@@ -314,6 +314,29 @@ def test_speak_reads_each_answer_item_in_order(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
+    ("question", "expected"),
+    [
+        ("What is the waist?", "It is 32 cm."),
+        ("Bel kaç?", "It is otuz iki santimetre."),
+        (None, "It is otuz iki santimetre."),
+    ],
+    ids=["ingilizce-soru", "turkce-soru", "sorusuz"],
+)
+def test_speak_reads_in_the_question_language(
+    tmp_path: Path, question: str | None, expected: str
+) -> None:
+    """Kısa İngilizce cevaptan dil çıkmaz; sorusu verilince ses sorunun dilindedir."""
+    voice = FakeVoice()
+    client = make_client(tmp_path, voice, [], ANSWERED)
+    body: dict[str, object] = {"items": [{"text": "It is 32 cm."}]}
+    if question is not None:
+        body["question"] = question
+
+    assert client.post("/api/speak", json=body).status_code == 200
+    assert voice.spoken == [expected]
+
+
+@pytest.mark.parametrize(
     "items",
     [[], [{"text": ""}], [{"text": "x" * 2001}], [{"text": "a"}] * 21],
     ids=["bos", "bos-metin", "uzun-metin", "cok-oge"],

@@ -633,6 +633,7 @@ describe("App", () => {
     const body = fetchMock.mock.calls.find(([url]) => String(url) === "/api/speak")?.[1]?.body;
     expect(JSON.parse(String(body))).toEqual({
       items: [{ text: "Kaynaktaki satır ekranda gösteriliyor.", has_code: false }],
+      question: "soru",
     });
   });
 
@@ -1192,6 +1193,7 @@ describe("App", () => {
     const body = fetchMock.mock.calls.find(([url]) => String(url) === "/api/speak")?.[1]?.body;
     expect(JSON.parse(String(body))).toEqual({
       items: [{ text: "İç paça 76,5 cm.", has_code: false }],
+      question: "soru",
     });
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
 
