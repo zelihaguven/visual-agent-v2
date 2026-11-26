@@ -345,8 +345,14 @@ async def retrieve(state: AskState, deps: AskDeps) -> AskState:
     state = replace(
         state, translate_seconds=waited, translation_failed=failed, bm25_query=bm25_query
     )
+    query = state.question
+    if state.request.doc_ids and len(domain) == 1:
+        # Belge düğmeyle seçildi: ürün adı ve sayfa üst bilgisi belge içinde ayırt edici değil.
+        query = deps.identifiers.without_repeated_phrases(query, domain[0])
+        bm25_query = deps.identifiers.without_repeated_phrases(bm25_query, domain[0])
+        state = replace(state, bm25_query=bm25_query)
     candidates = max(deps.top_k, _FILTER_CANDIDATES)
-    found = await deps.retriever.search(state.question, bm25_query, domain, candidates)
+    found = await deps.retriever.search(query, bm25_query, domain, candidates)
     hits = _without_relative_tables(
         state.question, _with_exact_chunks(state, found, candidates), deps.identifiers.chunk
     )[: deps.top_k]

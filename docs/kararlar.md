@@ -174,6 +174,13 @@ için yeni bir kanıt gerekir: yeni ölçüm, yeni belge türü ya da değişen 
 - **Yeniden düşünülür:** Yalnız yeni ölçümle. Kaynak sayısını düşürmek bilinen bir
   doğrulanmış yanlışı geri getirmişti.
 
+### Belge düğmesiyle seçilen belgede her sayfada geçen öbek sıralama sorgusundan çıkar (2026-11-26, `s1-dugme-obek`, ürün sahibi kararı)
+- **Sorun (S1):** "Challenger Train Pant hangi bedenlerde üretiliyor" netleştirmede 6026412 düğmesiyle seçilince ilk 8'in 7'si sayfa başlığı satırıydı ("6026412 | UA W Challenger Train Pant | Images"), beden parçaları füzyonda 34–38. sıradaydı, cevap "bulunamadı". Ürün adı belgenin her sayfasında geçtiği için belge içinde ayırt edici değil; BM25'in IDF'i koleksiyon geneli olduğu için ağır basıyor.
+- **Kural:** istek belge düğmesinden geldiyse (`doc_ids`, tek belge), sorgudaki en az iki sözcüklü bir öbek o belgenin sayfalarının yarısından fazlasında aynen geçiyorsa hem yoğun sorgudan hem BM25 sorgusundan çıkar (en uzun öbek önce; kesmeyle bağlı ek ayrılır, "Pant'ın"). Sorgu boş kalırsa özgün sorgu kullanılır. Modele giden soru değişmez. Sorudaki koddan ya da önceki turdan gelen kapsamda uygulanmaz. Sayfa metinleri snapshot kurulurken bir kez çıkarılır (`IdentifierIndex`, 6.295 parçada ≈20 ms); yeniden indeksleme yok.
+- **Neden öbek, sözcük değil:** tek sözcük kuralı ("a*", sayfaların yarısından fazlasında geçen her sözcük) beden harflerini ("m", "s", "l", dikim föylerinde), sayıları ve "sample"ı da siliyordu. Öbek listesinde içerik öbeği yok ("size range", "material details", "measurement chart" hiçbir belgede sık değil); en sık 40 öbeğin 34'ü sayfa üst ya da alt bilgisi, kalanı ürün adı. "ölçü föyü" dikim föylerinde sık (belgenin kendi adı, "PNT-1162 ölçü föyü"): ürün adıyla aynı türden sayıldı, kabul edildi. Önceki "a*" denemesi kod kapsamlı 3 soruyu kötüleştirmişti (Y09, C1, dikim etiketi); kural artık yalnız düğmeyle gelen kapsamda çalışıyor.
+- **Ölçüm (Windows, çevrimdışı; uygulama indeksi 23 Kasım paketi, taban kopyaları 20 Kasım):** belge düğmesi seti (`evals/belge_dugmesi_seti.json`, 12 soru, ürün sahibi onayı; yalnız arama ölçümü) beklenen parça ilk 8'de 1/12 → 12/12 (S1 6. sırada). Kabul, yüklü sınır ve FastReact (66 soru), taban 7 ve 11 (33'er soru): ilk 8'i değişen 0.
+- **Bilinen sınırlar:** tek sözcüklü ürün adında kural uygulanmaz. Kumaş sorularında terim farkı sürüyor: kumaş satırı "Material Details: KNT-…" "fabric" sözcüğünü taşımıyor; sette M7 ve M10 öbek kuralıyla 3. ve 5. sıraya girdi, ama başka sorularda geride kalabilir (açık notlar).
+
 ### İçindekiler parçaları aramadan elenir
 - **Ne zaman:** Eski pilot `5f35276`. Bu repoda `#a32170c` (`is_table_of_contents`).
 - **Neden:** Eski pilotta hit@5 0,86'dan 0,89'a çıktı, hit@1 0,75'ten 0,72'ye indi. Bu
