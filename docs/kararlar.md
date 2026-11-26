@@ -492,6 +492,22 @@ okuması); taranmış sayfalar 0011'den beri sayfa okuyucusundan geçiyor.
 Bundan sonra istem değişikliği ekip onayı ister (CLAUDE.md). İstem değişince cevap önbelleği
 geçersiz olur.
 
+### Soru dili: belirsizse Türkçe (2026-11-26, `dil-tespiti`)
+- **Sorun:** "6029278'in ana asma etiketiyle insert kullanabilir miyiz" İngilizce sayıldı ve
+  cevap İngilizce geldi (26 Kasım teşhisi, S4): Türkçe harf yok, "6029278'in" içindeki "in"
+  İngilizce ipucu, "miyiz" Türkçe ipucu değil. Tablette Türkçe harfsiz yazmak yaygın.
+- **Kural (`language.py`):** kesmeyle bağlanan ek sözcük sayılmaz ("6029278'in", "FastReact'ı";
+  İngilizce kısaltmanın kuyruğu zaten ipucu değil); soru eki ailesi ("mi", "miyiz", "musunuz",
+  "midir") Türkçe harfsiz yazılışıyla da Türkçe ipucudur; "en" için en az iki İngilizce ipucu
+  gerekir. Türkçe harf yine kesin "tr". Belgenin dili (`document_language`) değişmedi.
+- **Etki:** soru günlüğünde (2.189 kayıt) ve bütün ölçüm setlerinde (kabul, yüklü sınır,
+  FastReact, taban 7 ve 11, sentetik sınır) kararı değişen tek soru S4 (iki yazılış, günlükte
+  6 kayıt; en → tr). Setlerde İngilizce soru yok. Dili değişen soruda çeviri devreye girer;
+  doğru parça (#78) iki yazılışta da ilk 8'de 1. sırada kaldı.
+- **Bedel:** tek İngilizce ipuçlu kısa soru ("Which table stores order items?") Türkçe
+  cevaplanır. `/speak` ucu seslendirme dilini cevap metninden tespit ettiği için tek ipuçlu
+  kısa İngilizce cevap Türkçe sesle okunabilir.
+
 ## Doğrulama
 
 ### Doğrulama yalnız kodla yapılır; LLM hakem yok

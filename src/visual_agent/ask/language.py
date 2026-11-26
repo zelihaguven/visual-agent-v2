@@ -75,11 +75,23 @@ def document_language(chunks: Sequence[Chunk], fallback: str = _DEFAULT_LANGUAGE
     return "en" if english > turkish else "tr"
 
 
+_APOSTROPHE_SUFFIX_RE = re.compile(r"['’]\w+")
+"""Kesmeyle bağlanan ek sözcük değildir: Türkçede sayıya ya da ada gelen ek ("6029278'in",
+"FastReact'ı"), İngilizcede kısaltmanın kuyruğu ("isn't", "what's"; kuyruk zaten ipucu değil)."""
+_TURKISH_QUESTION_RE = re.compile(r"m[iu](?:y[iu]m|s[iu]n|y[iu]z|s[iu]n[iu]z|d[iu]r|yd[iu])?")
+"""Soru eki ailesi ("mi", "miyiz", "musunuz", "midir"); Türkçe harfsiz yazılışlarıyla."""
+_MIN_ENGLISH_HINTS = 2
+"""Tek bir İngilizce ipucu dili değiştirmez: Türkçe soruda "on", "in", "do" kendiliğinden geçer."""
+
+
 def detect_language(text: str) -> str:
-    """Yalnız Türkçe ve İngilizce ayırır; emin olunamazsa Türkçe döner."""
+    """Yalnız Türkçe ve İngilizce ayırır; emin olunamazsa Türkçe döner. Soru Türkçe harfsiz
+    yazılmış olabilir (tablet klavyesi), bu yüzden İngilizce için en az iki ipucu gerekir."""
     if _TURKISH_LETTERS_RE.search(text):
         return "tr"
-    words = _WORD_RE.findall(text.lower())
+    words = _WORD_RE.findall(_APOSTROPHE_SUFFIX_RE.sub("", text.lower()))
     english = sum(word in _ENGLISH_HINTS for word in words)
-    turkish = sum(word in _TURKISH_HINTS for word in words)
-    return "en" if english > turkish else "tr"
+    turkish = sum(
+        word in _TURKISH_HINTS or bool(_TURKISH_QUESTION_RE.fullmatch(word)) for word in words
+    )
+    return "en" if english >= _MIN_ENGLISH_HINTS and english > turkish else "tr"

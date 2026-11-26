@@ -6,6 +6,7 @@ from dataclasses import dataclass, field, replace
 
 import pytest
 
+from visual_agent.ask.language import detect_language
 from visual_agent.ask.orchestrator import AskDeps, AskRequest, answer_question
 from visual_agent.catalog.identifiers import build_identifier_index
 from visual_agent.catalog.memory import DocumentCatalog
@@ -175,6 +176,41 @@ def test_english_question_requests_english_answer() -> None:
     ask(make_deps(client), "What is the value for the machine?")
 
     assert "<cevap_dili>EN</cevap_dili>" in client.calls[0][1]["content"]
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        # S4 (26 Kasım): "6029278'in" içindeki "in" İngilizce sayılıyordu.
+        "6029278'in ana asma etiketiyle insert kullanabilir miyiz",
+        "6029278'in ana asma etiketiyle (hangtag) insert kullanabilir miyiz?",
+        # Tablet klavyesi: Türkçe harfsiz yazılmış Türkçe sorular.
+        "6026417 sortta MD bedende on ag kac",
+        "CKT-7308 S beden bel kac",
+        "Train Midlayer'in numune bedeni hangisi",
+        "FastReact'ta raporu Excel'e aktarabilir miyim",
+        "Sipariş",
+        # Tek İngilizce ipucu ("which") dili değiştirmez; belirsiz soru Türkçe sayılır.
+        "Which table stores order items?",
+    ],
+)
+def test_turkish_or_unclear_question_is_answered_in_turkish(question: str) -> None:
+    assert detect_language(question) == "tr"
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "What is the length of DEPO_KODU in SIPARIS_KALEM?",
+        "How do I export a report to Excel?",
+        "What's the max length of MUSTERI_KODU?",
+        "Why doesn't the planning board refresh?",
+        "I can't log in",
+        "Is there a SQL command to rename a column?",
+    ],
+)
+def test_english_question_is_answered_in_english(question: str) -> None:
+    assert detect_language(question) == "en"
 
 
 def test_source_text_cannot_close_its_tag() -> None:
