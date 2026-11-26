@@ -8,7 +8,8 @@
 """
 
 import html
-from collections.abc import Callable
+import re
+from collections.abc import Callable, Sequence
 
 from visual_agent.verification.text import (
     CUT_CITATION_RE,
@@ -26,6 +27,7 @@ _CUT_MAX_TAIL = 20
 _CELL_SEPARATOR = " | "
 _LABEL_SEPARATOR = ": "
 _MAX_LABEL_LENGTH = 80
+_ELLIPSIS_RE = re.compile(r"\s*(?:…|\.{3})\s*")
 
 Form = Callable[[str], str]
 _FORMS: tuple[Form, ...] = (quote_form, markdown_plain_form)
@@ -161,3 +163,39 @@ def quote_matches(quote: str, source: str, language: str) -> bool:
     """
     quotes = dict.fromkeys((quote, html.unescape(quote)))
     return any(_matches(text, source, form, language) for text in quotes for form in _FORMS)
+
+
+def quote_pieces(quote: str) -> list[str]:
+    """ "…" (ya da "...") ile birleştirilmiş alıntının parçaları. Sondaki "…" alıntının sınırda
+    kesildiğini gösterir: parça değildir, atılır. Yalnız alıntı bütün hâliyle eşleşmezse
+    kullanılır; kaynağın kendi "..." yazımı bütün hâlinde eşleşir."""
+    return [piece for piece in _ELLIPSIS_RE.split(quote.strip()) if piece.strip()]
+
+
+def pieces_match(pieces: Sequence[str], source: str, language: str) -> bool:
+    """Her parça kendi başına birebir eşleşir ve parçalar kaynakta yazıldıkları sırayla geçer."""
+    if not pieces or not all(quote_matches(piece, source, language) for piece in pieces):
+        return False
+    for form in _FORMS:
+        text, start = form(source), 0
+        for piece in pieces:
+            found = text.find(form(piece), start)
+            if found < 0:
+                break
+            start = found + len(form(piece))
+        else:
+            return True
+    return False
+
+
+def starts_cell(piece: str, source: str) -> bool:
+    """Parça bir tablo hücresinin başından başlar: değer etiketinden koparılmamıştır
+    ("Beden M: 74,0" olur, "74,0" ya da "M: 74,0"ın sonu olmaz)."""
+    for form in _FORMS:
+        text, wanted = form(source), form(piece)
+        found = text.find(wanted) if wanted else -1
+        while found >= 0:
+            if found == 0 or text[:found].rstrip().endswith("|"):
+                return True
+            found = text.find(wanted, found + 1)
+    return False

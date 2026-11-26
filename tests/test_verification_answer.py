@@ -6,6 +6,7 @@ from visual_agent.domain.answer import (
     AnswerKind,
     ClarifyOption,
     ClarifyRequest,
+    ItemCheck,
     ModelAnswer,
     ModelItem,
     PromptSource,
@@ -13,6 +14,7 @@ from visual_agent.domain.answer import (
     VerificationStatus,
 )
 from visual_agent.verification.answer import ABSENCE_CLAIM, verify_answer, verify_item
+from visual_agent.verification.qualifier import build_qualifiers
 
 ROW = "İç paça | M: 76,5 | Tolerans: 0,5"
 SOURCES = {
@@ -848,3 +850,118 @@ def test_cell_label_exemption_does_not_apply_to_prose() -> None:
     )
 
     assert result.status is VerificationStatus.FAILED
+
+
+# Ayrık alıntı ve tek varyantlı satır (S2, kararlar "Ayrık alıntı" ve "Kural D")
+_TITLE = "6029278-SS27-6029278-US-T...RDEN LIMITED – 603186 – JADE TEXTILE CAIRO – Egypt"
+_WHITE_ROW = (
+    "Material Details: KNT-226131/LIVe Jersey -60/40 -140 gms - Single Dye Cotton - Medium "
+    "Heather - Egypt version - VIRGIN POLY/YESIM - EG/N54340/Development Complete/145.0g/60% "
+    'Cotton, 40% Polyester/57.1" | Location: A | Qty: 0.0000 | Usage: ALL UNLESS NOTED | '
+    "100: White // Racer Red: White 100"
+)
+_KHAKI_ROW = (
+    "Material Details: KNT-226129/LIVe Jersey -60/40 -140 gms - Union Dyed Solid - Resource in "
+    "Yesim Egypt - GB pilling can pass grade 3 at parameter E - VIRGIN POLY/YESIM - "
+    'EG/N40005/E/Development Complete/145.0g/60% Cotton, 40% Polyester/57.1" | Location: A | '
+    "Qty: 0.0000 | Usage: ALL UNLESS NOTED | 299: City Khaki // Castlerock: City Khaki 299"
+)
+_BOM_QUESTION = "6029278 tişörtün beyaz renginde gövde kumaşı hangisi"
+
+
+def _row(number: int, text: str) -> PromptSource:
+    return PromptSource(number=number, text=text, is_table_row=True, language="en", title=_TITLE)
+
+
+_BOM = {1: _row(1, _WHITE_ROW), 2: _row(2, _KHAKI_ROW), 3: _row(3, "Beden S: 72,0 | Beden M: 74,0")}
+
+
+def _check(text: str, *quotes: tuple[int, str]) -> ItemCheck:
+    model_item = ModelItem(text=text, quotes=tuple(Quote(source_no=n, text=q) for n, q in quotes))
+    return verify_item(model_item, _BOM, "tr", build_qualifiers(_BOM, asked=_BOM_QUESTION))
+
+
+def test_two_quotes_from_the_same_row_back_the_white_body_fabric() -> None:
+    check = _check(
+        "Beyaz renkte gövde kumaşı KNT-226131.",
+        (1, "Material Details: KNT-226131/LIVe Jersey -60/40 -140 gms"),
+        (1, "100: White // Racer Red: White 100"),
+    )
+
+    assert check.ok, check.problems
+
+
+def test_quote_joined_with_an_ellipsis_is_matched_piece_by_piece() -> None:
+    joined = "Material Details: KNT-226131/LIVe Jersey -60/40 -140 gms … 100: White // Racer Red"
+
+    assert _check("Beyaz renkte gövde kumaşı KNT-226131.", (1, joined)).ok
+
+
+def test_trailing_ellipsis_marks_a_cut_quote() -> None:
+    cut = (1, "Material Details: KNT-226131/LIVe Jersey -60/40 -140 gms - Single Dye Cotton...")
+    colour = (1, "100: White // Racer Red: White 100")
+
+    assert _check("Beyaz renkte gövde kumaşı KNT-226131.", cut, colour).ok
+
+
+def test_quotes_from_different_rows_are_not_joined() -> None:
+    check = _check(
+        "Beyaz renkte gövde kumaşı KNT-226129.",
+        (2, "Material Details: KNT-226129/LIVe Jersey -60/40 -140 gms"),
+        (1, "100: White // Racer Red: White 100"),
+    )
+
+    assert not check.ok
+    assert "alıntılar farklı kaynaklardan birleştirilmiş" in check.problems
+
+
+@pytest.mark.parametrize(
+    "joined",
+    ["Beden S: … 74,0", "S: 72,0 | Beden M … 74,0"],
+    ids=["etiketten-kopuk-deger", "hucre-ortasindan"],
+)
+def test_value_cut_off_from_its_label_is_rejected(joined: str) -> None:
+    assert not _check("S beden 74,0.", (3, joined)).ok
+
+
+def test_pieces_must_keep_the_source_order() -> None:
+    reversed_pieces = "100: White // Racer Red … Material Details: KNT-226131/LIVe Jersey"
+
+    assert not _check("Beyaz renkte gövde kumaşı KNT-226131.", (1, reversed_pieces)).ok
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "6029278 tişörtün beyaz renginde gövde kumaşı KNT-226129.",
+        "Beyaz renkte gövde kumaşı KNT-226129.",
+        "White // Racer Red renginde gövde kumaşı KNT-226129.",
+    ],
+    ids=["model-numarasiyla", "kisa", "baska-satirin-varyant-adi"],
+)
+def test_single_variant_row_needs_its_own_variant(text: str) -> None:
+    """Kural 1: City Khaki satırının kumaşı "beyaz" diye doğrulanmaz (Kural D)."""
+    check = _check(text, (2, "Material Details: KNT-226129/LIVe Jersey -60/40 -140 gms"))
+
+    assert not check.ok
+    assert any("varyant hücresi alıntıda değil" in problem for problem in check.problems)
+
+
+def test_own_variant_name_in_the_sentence_is_enough() -> None:
+    check = _check(
+        "White // Racer Red renginde gövde kumaşı KNT-226131.",
+        (1, "Material Details: KNT-226131/LIVe Jersey -60/40 -140 gms"),
+    )
+
+    assert check.ok, check.problems
+
+
+def test_row_shared_by_several_variants_is_outside_rule_d() -> None:
+    shared = _row(
+        1,
+        "Material Details: TT-100157/ECO100 Thread | 100: White // Racer Red: White 100 | "
+        "299: City Khaki // Castlerock: City Khaki 299",
+    )
+    model_item = item("İplik TT-100157.", quote="Material Details: TT-100157/ECO100 Thread")
+
+    assert verify_item(model_item, {1: shared}, "tr").ok
