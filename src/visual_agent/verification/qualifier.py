@@ -356,14 +356,16 @@ _MAX_LABEL_WORDS = 6
 
 
 def _label_pairs(line: str) -> list[tuple[str, str]]:
-    """Tablo satırının (etiket, değer) çiftleri: "Etiket: değer" hücreleri, yoksa form satırı
-    ("Sub Category | Sportstyle | Size Range | XS-4XL"): sıradaki hücre etiket, ardından değer.
-    Etiket rakamsız ve kısadır."""
-    pairs = labeled_cells(line) or [
-        (cells[index], cells[index + 1])
-        for cells in [[cell.strip() for cell in line.split(_CELL_SEPARATOR)]]
-        for index in range(0, len(cells) - 1, 2)
+    """Tablo satırının (etiket, değer) çiftleri: "Etiket: değer" hücreleri ve form satırında
+    ("Sub Category | Sportstyle | Size Range | XS-4XL") yan yana her iki hücre. Hiza varsayılmaz:
+    tek sayıda başlık hücresi çiftleri kaydırmasın. Fazladan çıkan çift yalnız gizleme yönünde
+    etkiler. Etiket rakamsız ve kısadır."""
+    cells = [cell.strip() for cell in line.split(_CELL_SEPARATOR)]
+    # "Etiket: değer" hücresi form satırında etiket sayılmaz; kendi çifti labeled_cells'ten gelir.
+    adjacent = [
+        (left, right) for left, right in zip(cells, cells[1:], strict=False) if ":" not in left
     ]
+    pairs = labeled_cells(line) + adjacent
     return [
         (_norm(label), value)
         for label, value in pairs
@@ -398,24 +400,27 @@ def _prefixed_label_values(
         if source is None or not source.is_table_row:
             continue
         same_document = [s for s in sources.values() if s.title == source.title and s.is_table_row]
-        plain = {
-            label: _norm(value)
-            for other in same_document
-            for line in other.text.splitlines()
-            for label, value in _label_pairs(line)
-        }
+        plain: dict[str, set[str]] = {}
+        for other in same_document:
+            for line in other.text.splitlines():
+                for label, value in _label_pairs(line):
+                    plain.setdefault(label, set()).add(_norm(value))
         quoted = _norm(quote.text)
         for line in source.text.splitlines():
             for label, value in _label_pairs(line):
                 words = label.split()
                 shorter = [" ".join(words[k:]) for k in range(1, len(words))]
-                base = next((s for s in shorter if s in plain and plain[s] != _norm(value)), None)
-                if base is None or label not in quoted or not _value_said(value, sentence):
+                own = _norm(value)
+                base = next((s for s in shorter if own not in plain.get(s, {own})), None)
+                # Alıntı etiket hücresini ya da yalnız değer hücresini taşıyabilir.
+                in_quote = label in quoted or own in quoted
+                if base is None or not in_quote or not _value_said(value, sentence):
                     continue
+                # Önek tek başına yetmez ("Measurement Chart" hücresindeki "chart"): önek ve
+                # etiketin ilk sözcüğü birlikte ("chart size") ya da tam etiket geçmeli.
                 prefix = " ".join(words[: len(words) - len(base.split())])
-                if not any(
-                    _mentions(text, name) for text in (sentence, asked) for name in (prefix, label)
-                ):
+                names = (f"{prefix} {base.split()[0]}", label)
+                if not any(_mentions(text, name) for text in (sentence, asked) for name in names):
                     found.append(label)
     return sorted(set(found))
 

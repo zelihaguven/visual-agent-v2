@@ -1098,3 +1098,57 @@ def test_prefixed_label_without_its_plain_twin_is_not_checked() -> None:
     model_item = item("Beden aralığı XS-5XL.", quote="Chart Size Range | Apparel (XS-5XL)")
 
     assert verify_item(model_item, sources, "tr", build_qualifiers(sources, asked="")).ok
+
+
+@pytest.mark.parametrize(
+    "quote",
+    ["Apparel (XS-5XL)", "Apparel (XS-5XL) | Fit Type Regular"],
+    ids=["yalniz-deger", "deger-ve-komsu"],
+)
+def test_prefixed_value_quoted_without_its_label_is_hidden(quote: str) -> None:
+    """İnceleme bulgusu: etiket hücresi alıntılanmasa da değer önekli etiketin değeridir."""
+    assert not _prefixed("Beden aralığı XS-5XL'dir.", quote).ok
+
+
+def test_shifted_form_row_is_still_checked() -> None:
+    """Tek sayıda başlık hücresi çiftleri kaydırmaz (görülmemiş belge biçimi)."""
+    sources = _sized(
+        "6013448-FW27",
+        "Fit Type Regular | Chart Size Range | Apparel (XS-5XL)",
+        "Sportstyle | Size Range | XS-4XL, SMT-4XLT",
+    )
+    model_item = item("Beden aralığı XS-5XL'dir.", quote="Chart Size Range | Apparel (XS-5XL)")
+
+    assert not verify_item(model_item, sources, "tr", build_qualifiers(sources, asked="")).ok
+
+
+def test_labeled_cells_are_checked_too() -> None:
+    sources = _sized("Föy", "Chart Size Range: Apparel (XS-5XL)", "Size Range: XS-4XL")
+    model_item = item("Beden aralığı XS-5XL'dir.", quote="Chart Size Range: Apparel (XS-5XL)")
+
+    assert not verify_item(model_item, sources, "tr", build_qualifiers(sources, asked="")).ok
+
+
+@pytest.mark.parametrize(
+    ("asked", "ok"),
+    [
+        ("6013448 chart size range nedir", True),
+        ("Measurement Chart'ta beden aralığı ne", False),
+    ],
+    ids=["soru-tam-etiket", "baska-hucrenin-oneki-yetmez"],
+)
+def test_question_exempts_only_the_prefixed_label_itself(asked: str, ok: bool) -> None:
+    sources = _sized("6013448-FW27", _CHART_ROW, _SIZE_ROW)
+    model_item = item("Beden aralığı XS-5XL'dir.", quote=_CHART_QUOTE)
+
+    assert verify_item(model_item, sources, "tr", build_qualifiers(sources, asked=asked)).ok is ok
+
+
+def test_prefixed_label_in_another_document_is_not_compared() -> None:
+    sources = {
+        1: PromptSource(number=1, text=_CHART_ROW, is_table_row=True, language="en", title="A"),
+        2: PromptSource(number=2, text=_SIZE_ROW, is_table_row=True, language="en", title="B"),
+    }
+    model_item = item("Beden aralığı XS-5XL'dir.", quote=_CHART_QUOTE)
+
+    assert verify_item(model_item, sources, "tr", build_qualifiers(sources, asked="")).ok
