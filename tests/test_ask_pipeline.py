@@ -760,7 +760,9 @@ def test_question_with_a_code_translates_inside_the_search_as_before() -> None:
 
     outcome = ask(deps, "PNT-4417 iç paça nedir")
 
-    assert asked == [] and retriever.calls[0]["bm25"] == "PNT-4417 inseam"
+    assert asked == [] and outcome.bm25_query == "PNT-4417 inseam"
+    # Belge adı olan kod kapsamı belirler, sıralamaya girmez (D6).
+    assert retriever.calls[0]["bm25"] == "inseam"
     assert "translate" in outcome.timings
 
 
@@ -1372,6 +1374,57 @@ def test_search_is_limited_to_the_document_named_by_its_number() -> None:
     assert retriever.calls[0]["doc_ids"] == ("p1",)
 
 
+def _named_deps(*titles: str) -> tuple[AskDeps, FakeRetriever]:
+    hit = chunk("p1:1", "p1", "Size Range | XS-4XL", ChunkKind.TEXT, title=TECH_PACK)
+    retriever = FakeRetriever(hits=[hit])
+    client = FakeClient(answer_payload("Beden aralığı XS-4XL.", quote="Size Range | XS-4XL"))
+    catalog = _pack_catalog()
+    named = []
+    for number, title in enumerate(titles):
+        catalog.add(DocumentMeta(doc_id=f"n{number}", title=title))
+        named.append(chunk(f"n{number}:1", f"n{number}", "Bel | 38", ChunkKind.TEXT, title=title))
+    deps = replace(
+        make_deps(client, retriever),
+        catalog=catalog,
+        identifiers=build_identifier_index([hit, *named]),
+    )
+    return deps, retriever
+
+
+def test_number_that_named_the_document_leaves_the_ranking_queries() -> None:
+    """D6: kapsamı belirleyen model numarası belge içinde ayırt edici değil; numarayı metninde
+    taşıyan şablon satırını ("Measurement Chart | 6013448-FW27-MMC-US | Chart Size Range")
+    ürünün kendi satırının önüne geçiriyordu. Modele giden soru değişmez."""
+    deps, retriever = _named_deps()
+    question = "6013448'in beden aralığı nedir?"
+
+    outcome = ask(deps, question)
+
+    assert retriever.calls[0]["doc_ids"] == ("p1",)
+    assert retriever.calls[0]["query"] == "beden aralığı nedir?"
+    assert retriever.calls[0]["bm25"] == "beden aralığı nedir?"
+    assert outcome.model_question == question
+    assert outcome.ranking_query == ("beden aralığı nedir?", "beden aralığı nedir?")
+
+
+@pytest.mark.parametrize(
+    ("question", "expected"),
+    [
+        ("PNT-1162 S beden bel kaç?", "S beden bel kaç?"),
+        ("6013448", "6013448"),
+        ("6013448 ve 12345 beden aralığı?", "ve 12345 beden aralığı?"),
+        ("Beden aralığı nedir?", "Beden aralığı nedir?"),
+    ],
+    ids=["baslik-kodu", "bos-kalmaz", "adsiz-sayi-kalir", "ad-yoksa-degismez"],
+)
+def test_document_name_in_the_question_edge_cases(question: str, expected: str) -> None:
+    deps, retriever = _named_deps("PNT-1162 ölçü tablosu")
+
+    ask(deps, question)
+
+    assert retriever.calls[0]["query"] == expected
+
+
 def test_all_documents_choice_is_not_narrowed_by_the_code() -> None:
     texts = {"d1": "GML-6473 bel 38,0", "d2": "Kalibrasyon kılavuzu", "d3": "Genel bilgi"}
 
@@ -1439,13 +1492,13 @@ def test_button_scope_drops_phrase_repeated_on_most_pages(question: str, expecte
     assert retriever.calls[0]["bm25"] == expected
 
 
-def test_scope_not_from_the_button_keeps_the_query() -> None:
+def test_scope_not_from_the_button_keeps_the_phrase() -> None:
+    """Öbek yalnız düğmede çıkar; belgeyi adlandıran numara ise her durumda çıkar (D6)."""
     deps, retriever = _button_deps()
-    question = "6026412 Challenger Train Pant hangi bedenlerde?"
 
-    ask(deps, question)
+    ask(deps, "6026412 Challenger Train Pant hangi bedenlerde?")
 
-    assert retriever.calls[0]["query"] == question
+    assert retriever.calls[0]["query"] == "Challenger Train Pant hangi bedenlerde?"
 
 
 def test_phrase_on_few_pages_is_kept() -> None:

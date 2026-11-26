@@ -58,6 +58,19 @@ class DocumentCatalog:
             or numbers & model_numbers(self._documents[doc_id].title)
         )
 
+    def without_names(self, text: str, doc_ids: Iterable[str]) -> str:
+        """Belgelerin başlığındaki kodlar ve sayısal model numaraları metinden çıkar (kesmeli
+        ekiyle: "6013448'in"). Belgeyi seçmişlerdir; belge içinde ayırt edici değillerdir ve aramayı
+        onları metninde taşıyan satıra çekerler. Metin boş kalırsa olduğu gibi döner."""
+        titles = [self._documents[doc_id].title for doc_id in doc_ids]
+        names = {name for title in titles for name in identifiers_in(title) | model_numbers(title)}
+        stripped = text
+        for name in sorted(names, key=len, reverse=True):
+            pattern = rf"(?<![^\W_]){re.escape(name)}(?:['’]\w+)?(?![^\W_])"
+            stripped = re.sub(pattern, " ", stripped, flags=re.IGNORECASE)
+        stripped = " ".join(stripped.split())
+        return stripped if re.search(r"[^\W_]", stripped) else text
+
     def is_document_name(self, identifier: str, doc_ids: Iterable[str]) -> bool:
         """Kod, verilen belgelerden birinin başlığındaki kod mu."""
         return any(
