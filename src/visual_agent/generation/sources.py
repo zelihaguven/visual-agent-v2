@@ -35,15 +35,34 @@ def _attribute(value: str) -> str:
     return value.replace('"', "'")
 
 
+def _document_names(hits: Sequence[Hit]) -> dict[str, str]:
+    """Belgenin modele görünen adı. Aynı adla yüklenmiş farklı belgeler ayırt edilir ("Föy",
+    "Föy (2)"): model belge sayısına göre karar verir (istem, 7. kural) ve aynı adlı iki
+    belgeyi tek belge sanmamalı. Üretilen ad başka bir belgenin gerçek adıyla çakışmaz."""
+    titles = {hit.chunk.doc_id: hit.chunk.title for hit in reversed(hits)}
+    names: dict[str, str] = {}
+    used = set(titles.values())
+    seen: set[str] = set()
+    for doc_id in dict.fromkeys(hit.chunk.doc_id for hit in hits):
+        title, name, number = titles[doc_id], titles[doc_id], 1
+        while name in seen or (number > 1 and name in used):
+            number += 1
+            name = f"{title} ({number})"
+        seen.add(name)
+        names[doc_id] = name
+    return names
+
+
 def format_sources(hits: Sequence[Hit]) -> str:
     parts = []
+    names = _document_names(hits)
     for number, hit in enumerate(hits, start=1):
         chunk = hit.chunk
         label = _PART_LABELS.get(chunk.kind)
         part = f' parça="{label}"' if label else ""
         text = chunk.text.replace(_CLOSING_TAG, _NEUTRAL_CLOSING_TAG)
         parts.append(
-            f'<kaynak no="{number}" belge="{_attribute(chunk.title)}"{part} '
+            f'<kaynak no="{number}" belge="{_attribute(names[chunk.doc_id])}"{part} '
             f'bölüm="{_attribute(chunk.section)}">\n{text}\n</kaynak>'
         )
     return "<kaynaklar>\n" + "\n".join(parts) + "\n</kaynaklar>"
