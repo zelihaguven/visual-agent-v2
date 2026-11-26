@@ -1251,6 +1251,7 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   (`evals/output/` `.gitignore`'da).
 
 ### Kabul seti: yüklü belgelerden 16 soru; hiçbir düzeltmede kullanılmadı (2026-11-23)
+- **Kaldırıldı (2026-11-26):** bkz. [Kabul seti kaldırıldı](#kabul-seti-kaldirildi). Bu kayıt geçmiş olarak duruyor.
 - **Dosya:** `evals/kabul_seti.json`. 16 soru (birim, tablo/sütun, olumsuzlama, beden/niteleyici, netleştirme, bulunamadı, takip, güvenlik); 10'u taranmış föylerden, 5'i FastReact'tan, 1'i örnek belgeden. Her beklenen değer kaynakla birebir doğrulandı (taranmış föylerde sayfa görüntüsüyle); taslak 22 Kasım'da yazıldı, ürün sahibi 23 Kasım'da onayladı.
 - **Bu sorular hiçbir düzeltmede kullanılmadı.** Setin içeriği ürün sahibi onayı olmadan değişmez; sonuçlarına bakılarak kural ya da istem ayarlanmaz.
 - **Onaydaki düzeltmeler:** Y08 ("MDT bedende iç boy") kaynakta MDT'nin Tall/Long satırına karşılık geldiği yazmadığı için kaynağın ifadesiyle yeniden yazıldı ("uzun boy (Tall/Long) iç boy ölçüsü MD bedende"); Y15 ("en fazla kaç karakter") kaynakta "15 karakter" yazmadığı için alanın tipini soruyor ("OI.CUSTSTYLE alanının tipi" → T15, takip OI.CUSTREF → T50). Y16 ayrı güvenlik sorusu: gizli ya da 3/4 geçer; "3 3/4" doğrulanmış görünürse kural 1 ihlali.
@@ -1278,6 +1279,14 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
 
   Taranmış föy sorularının çoğu güvenli kaldı (gizleme ya da netleştirme); föy turlarında doğru 17/55, bunların yalnız 7'sinde değer gösterildi (kalanı doğru netleştirme ya da doğru "bulunamadı"). Sonuçlara bakılarak ayar yapılmadı.
 - **Pilot öncesi taban (2026-11-23, ürün sahibi kararı).** Bu ilk ölçüm: 5 koşu, doğrulanmış yanlış 0, doğru 47, güvenli 43. Dijital belge turlarında 35'te 30 doğru (Y04, Y05, Y07, Y12 ve Y15'in iki turu 5/5; Y02 0/5, gereksiz netleştirme, güvenli); taranmış föy turlarında 55'te 17 doğru (7'sinde değer gösterildi). Görülen kusurlar açık notlarda ("Kabul setinde görülenler"). **Bu set pilot öncesi tabandır; ona bakarak düzeltme yapılırsa yeni kabul seti gerekir.**
+
+<a id="kabul-seti-kaldirildi"></a>
+
+### Kabul seti kaldırıldı (2026-11-26, ürün sahibi kararı)
+- **Ne:** `evals/kabul_seti.json` silindi.
+- **Neden:** setin üç sorusu düzeltmelerde kullanıldı: Y03 (S3, 6026417 ön ağ), Y09 (S2, beyaz gövde kumaşı), Y10 (S1, Challenger Train Pant). Set artık pilot öncesi taban olarak bağımsız değil (kendi kuralı: "ona bakarak düzeltme yapılırsa yeni kabul seti gerekir"). Kapanış testi elle sorularla yapılacak.
+- **Görülen kusurlar:** açık notlarda, set adını anmadan "Gerçek belgeden sonra > Cevap ve doğrulama"da.
+- **Brif:** 12 Kasım PM brifinin yerini bu dosya ve `docs/acik-notlar.md` alır; ikisi çelişirse repodaki kayıtlar geçerli.
 
 ### Atlanan netleştirme, doğrulanmış yanlıştan ayrı sayılır
 - **Ne zaman:** `#95e1870`.
