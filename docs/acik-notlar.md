@@ -9,12 +9,23 @@ Sonraya bırakılan konular; en üstte "Nerede kaldık" (son durum), en sonda ve
 - **Yapılmayacaklar:** iç düzenleme ya da yeniden indeksleme isteyen, kullanıcıya etkisi olmayan işler; dondurma süresince yapılmaz.
 - **Windows'a veri gönderme:** işlenmiş verinin Mac'ten Windows'a taşınma yordamı.
 
-## Nerede kaldık (2026-11-26)
+## Nerede kaldık (2026-11-26, akşam)
 
-- Tek OCR yapısı `main`'de (#145, #151; karar 0028). Fark tablosu notu sorgu anında okunuyor (0029, #153, #154); soru kaydında teşhis alanları (#155); soru dili kuralı (#157).
-- Mac verisi kural sürümü 25'te (PDF ve Office): 394 belge, 6.295 parça; "Eski kural" 0. Aynı paket (`va-veri-20261123.zip`) 2026-11-26'da Windows'a kuruldu; Windows `main` `5205f84`'te. Windows'taki `evals/output` klasörleri eski (20 Kasım); orada ölçüm yapılacaksa önce setler yeniden üretilir.
-- Birleşmemiş dallar yalnız kayıt için `origin`'de: `varyant-listeleme` (0020), `ocr-belirsiz-komsu-hucre` (0021), `ceviri-terim-secimi` (kararlar, "Sorgu çevirisi").
-- Dondurma ertelendi: önce S2, S1, S3 kapatılır. Kapanış ölçümü ve dondurma kaydı sonra Mac'te, okuyucu yeniden işlemesinden sonra.
+- Tek OCR yapısı `main`'de (#145, #151; karar 0028). Fark tablosu notu sorgu anında okunuyor (0029, #153, #154); soru kaydında teşhis alanları (#155); soru dili kuralı (#157); belge düğmesinde öbek kuralı (#165).
+- Mac verisi kural sürümü 25'te (PDF ve Office): 394 belge, 6.295 parça; "Eski kural" 0. Aynı paket (`va-veri-20261123.zip`) 2026-11-26'da Windows'a kuruldu. Windows'taki `evals/output` klasörleri eski (20 Kasım).
+- Birleşmemiş dallar yalnız kayıt için `origin`'de: `varyant-listeleme` (0020), `ocr-belirsiz-komsu-hucre` (0021), `ceviri-terim-secimi` (kararlar, "Sorgu çevirisi"), `istem-turu` (kararlar, "Bu repodaki istem değişiklikleri").
+
+### Dondurma hazırlığı
+
+- **Bu turda yapılanlar (2026-11-26, Windows; PR'lar açılmadı, dallar gönderildi):**
+  - `kabul-seti-kaldir`: kabul seti kaldırıldı, açık notlar sınıflandırıldı (Karar bekliyor yalnız LLM hakem).
+  - `ayni-adli-belgeler`: aynı adla yüklenmiş farklı belgeler modele ayrı adla gidiyor ("Föy", "Föy (2)").
+  - `ayni-ad-uyarisi`: belgeler panelinde aynı adlı dosya yüklenmeden önce soruluyor.
+  - `istem-turu`: tek istem turu (C1, B8, `parça="şekil"`) ölçütü tutmadı, birleştirilmedi (kararlar).
+  - `dondurma-hazirligi`: bu not.
+  - Fark tablosu notu teşhisi (S5) yapılamadı: Windows'ta sayfa okuyucusu 15 dakikalık sınırda tek sayfayı bitiremedi (0015). Mac'te yapılacak.
+- **Durum:** S1 (belge düğmesinde ürün adına kayma) arama tarafında çözüldü (#165); model ürün adı kaynaklarda olmadığında "bulunamadı" diyor, ad eklenince şablon aralığını ürünün sanıyor (kural 1 riski, Cevap ve doğrulama). S2 güvenli bilinen sınır; LLM hakem oturumunda yeniden ele alınacak. S3 Mac'teki OCR kararını bekliyor.
+- **Kalanlar, sırayla:** S3 (Mac'te OCR kararı → konum etkisi düzeltmesi) → fark tablosu notu teşhisi (Mac, 4 sayfa) ve gerekiyorsa okuyucu düzeltmesi → tek Mac yeniden işleme (S3 ve gerekiyorsa fark tablosu notu, aynı kural sürümünde) → "Eski kural" 0 denetimi → 0029 sorgu anı kodunun silinmesi → elle kapanış testi → Windows veri paketi → dondurma kaydı.
 
 ## Dondurmadan önce (2026-11-26, ürün sahibi kararı)
 
@@ -25,11 +36,6 @@ Sabah teşhisindeki üç açık hata sırayla kapatılır: S2, S1, S3. Dondurma 
 - **S3, "6026417 şortta MD bedende ön ağ kaç?" (0029):** fark satırları artık kaynak olmuyor, ama cevap "bulunamadı" ya da gizli. Model "ön ağ"ı "Front Rise" ile ancak satır öndeyken eşleştiriyor (çeviri "front crotch" seçince geride kalıyor); eşleştirse de RS005 satırının değerleri iki okumada uyuşmadığı için gizleniyor (kesir düzeyi maddesiyle bağlantılı). Konum etkisi: S3 sabit bağlamda (#2187) #99 1. sırada 5/5 doğru, 6. sırada 5/5 bulunamadı (Gemma, 2026-11-26). OCR kesir kararından sonra ele alınacak; seçenekler: kaynak sayısı, ilk 8 içi sıralama. **Yol:** Mac'te OCR kararı (aşağıdaki iki kesir maddesi) → konum etkisi düzeltmesi → tek yeniden işleme.
   - **İkinci okuma: kesir düzeyi mi, blok düzeyi mi (2026-11-26):** ölçü satırlarında iki okumanın sayı parçası geçişleri tutmuyor, doğru okunmuş değer de belirsiz işaretlenip gizleniyor; nedeni muhtemelen Tesseract'ın üst üste yazılmış kesirleri okuyamaması (0005), bu satır için ayrıca doğrulanmadı (6026417 RS005 "MD 12 1/4", 0029'daki üç koşu). Bugün karşılaştırma blok düzeyinde ve her sayı parçası için. Kesirli değerleri ayrı karşılaştırmak (ör. tam kısım uyuşuyorsa kesri okuyucudan almak) gizlemeyi azaltır ama kural 1 riskini artırır; değişiklik yeniden işleme ister (Mac yeniden işleme).
   - Okuyucu bazı kesirleri LaTeX biçiminde yazıyor ("1\frac{{1}}{{8}}", 6026417 s.13); dönüştürücü çift süslü parantezli yazımı kesre çevirmiyor. Değerler ikinci okumayla uyuşmadığı için belirsiz işaretli (gizli); yanlış gösterilen yok, doğru değer de gizli kalıyor. Dönüştürücüyü düzeltmek kural sürümünü artırır: taranmış belgeler okuyucuyla yeniden işlenir (Mac'te ≈40 dk) ve bugün gizli değerler görünür olur; ekip onayı ister. Muhtemelen aynı aileden (incelenmedi): bir tolerans hücresi "-{3 1/8}" diye süslü parantezle okundu (tech pack, 2026-11-17 ölçümü).
-- **Bu oturumun işleri (2026-11-26):** aynı adlı belgelerin modele ayrı adla gitmesi (dal `ayni-adli-belgeler`) ve tek istem turu (dal `istem-turu`: B8 birimi, C1 durum değeri, `parça="şekil"`). Aşağıdaki maddeler bu iki işin sonucuna göre kapanır ya da kayda geçer; sonuçlar "Nerede kaldık"ta.
-  - B8 birimi ("TL") düşürüyor, açık (2026-11-18, `birim-istemi-2`): uydurma örnekli istemle beş koşunun ikisinde cevap "1200 TL" yerine yalnız "1200". Değer doğru, birim eksik; yanlış değer yok. Kendi sütun başlığındaki birimin yazılması istemdeki örneğe duyarlı; istem bu iş için daha fazla değiştirilmeyecek. İstemden bağımsız bir çözüm (ör. birim değerin kendi sütun başlığındaysa gösterirken eklemek) ayrı iş ve onay ister.
-  - C1'de model durum değerini Türkçeye çeviriyor (2026-11-17, 24 soru × 5 koşu): belgede "Fit Approved, Hold Sampling" yazarken cevap "Kalıp onaylandı, numune bekletiliyor" diyor; bazı koşularda belgedeki özgün ifade cevapta hiç gösterilmiyor. Çeviri doğru, ama kullanıcı föydeki sözü göremiyor ve doğrulayıcı çevirinin anlamını denetlemiyor (sayı ve kod yok). Düzeltmesi cevap isteminde ("durum, ad ve etiket değerlerini belgedeki yazımıyla ver"); istem değişikliği onay ister.
-  - Kaynaklarda `parça="şekil"` etiketi var, istemde açıklaması yok; kaldırmak ya da tanımlamak istem değişikliği, bekleyen istem değişiklikleriyle aynı turda ele alınacak.
-  - Aynı adla yüklenmiş farklı belgeler modele tek belge gibi görünüyor (düşük öncelik, 2026-11-21): kaynak etiketindeki `belge="..."` yalnız başlığı taşıyor. İki ayrı ürünün belgesi aynı adı taşırsa model değerleri tek belgenin içinden sanabilir; netleştirme düğmeleri de aynı adı gösterir. `varyant-listeleme` dalında `format_sources` için "(2)" eki çözümü ve testi var (üretilen ad başka belgenin gerçek adıyla çakışmıyor); `main`'e alınmadı.
 
 ## Karar bekliyor
 
@@ -37,7 +43,7 @@ Sabah teşhisindeki üç açık hata sırayla kapatılır: S2, S1, S3. Dondurma 
 
 ## Mac yeniden işleme
 
-- **Notu okunmayan 4 fark tablosu (0029, bilinen sınır):** 6026412 s.15, 6026422 s.13, 6026411 s.16, 6026400 s.16 (55 satır; 53'ü ölçü satırı ve aynı ölçü belgenin mutlak tablosunda da var). Okuyucu notu okumadığı için sorgu anı kodu da yakalayamıyor; bu satırlarda fark değeri ölçü diye gösterilebilir. Okuyucu düzeltmesiyle (not satırın `table_note`'una yazılır) birlikte kapanır; o zaman 0029'un sorgu anı kodu (`_table_note`'un komşu araması, `IdentifierIndex.chunk`) kaldırılır.
+- **Notu okunmayan 4 fark tablosu (0029, bilinen sınır):** 6026412 s.15, 6026422 s.13, 6026411 s.16, 6026400 s.16 (55 satır; 53'ü ölçü satırı ve aynı ölçü belgenin mutlak tablosunda da var). Teşhis (okuyucu notu bu sayfalarda yazıyor mu, nerede) Windows'ta yapılamadı (2026-11-26: sayfa okuyucusu 15 dakikada tek sayfayı bitiremedi); Mac'te 4 sayfa okutulacak. Okuyucu notu okumadığı için sorgu anı kodu da yakalayamıyor; bu satırlarda fark değeri ölçü diye gösterilebilir. Okuyucu düzeltmesiyle (not satırın `table_note`'una yazılır) birlikte kapanır; o zaman 0029'un sorgu anı kodu (`_table_note`'un komşu araması, `IdentifierIndex.chunk`) kaldırılır.
 - S3'ün OCR değişiklikleri (ikinci okuma kesir düzeyi, LaTeX kesir dönüştürücü; "Dondurmadan önce > S3") aynı yeniden işlemede yapılır. Taranmış tablolarda satır vurgusu "Gerçek belgeden sonra"da.
 
 ## Gerçek belgeden sonra
@@ -80,7 +86,11 @@ Sabah teşhisindeki üç açık hata sırayla kapatılır: S2, S1, S3. Dondurma 
 
 ### Cevap ve doğrulama
 
-- **Şablon satırı ürün değeri sanılabiliyor (kural 1 riski, 2026-11-26 S1 denemesi):** "Chart Size Range | XXS-4XL" (ölçü şablonunun aralığı) ile "Size Range | XS-XXL(4)" (ürünün aralığı) aynı belgede; ürün adı bağlamdayken model 5 koşunun 5'inde şablon aralığını ürünün beden aralığı diye verdi, birinde cümle ("Challenger Train Pant XXS-4XL beden aralığında üretilmektedir.") doğrulanmış gösterildi. Kural A yalnız tam ad ("UA W Challenger Train Pant") geçince yakalıyor. Ad öneki ya da eki taşıyan niteleyici satırları (Chart/Style/Actual Sizes) doğrulayıcıda ayırt edilmiyor; LLM hakem oturumunda ve sınır setinde ele alınacak.
+- B8 birimi ("TL") düşürüyor, açık (2026-11-18, `birim-istemi-2`): uydurma örnekli istemle beş koşunun ikisinde cevap "1200 TL" yerine yalnız "1200". Değer doğru, birim eksik; yanlış değer yok. Kendi sütun başlığındaki birimin yazılması istemdeki örneğe duyarlı; istem bu iş için daha fazla değiştirilmeyecek. İstemden bağımsız bir çözüm (ör. birim değerin kendi sütun başlığındaysa gösterirken eklemek) ayrı iş ve onay ister. İstem turu (2026-11-26, `istem-turu`) B8'i 5/5 düzeltti, ama tur ölçütü tutmadı ve birleştirilmedi (kararlar).
+- C1'de model durum değerini Türkçeye çeviriyor (2026-11-17, 24 soru × 5 koşu): belgede "Fit Approved, Hold Sampling" yazarken cevap "Kalıp onaylandı, numune bekletiliyor" diyor; bazı koşularda belgedeki özgün ifade cevapta hiç gösterilmiyor. Çeviri doğru, ama kullanıcı föydeki sözü göremiyor ve doğrulayıcı çevirinin anlamını denetlemiyor (sayı ve kod yok). Düzeltmesi cevap isteminde ("durum, ad ve etiket değerlerini belgedeki yazımıyla ver"); istem değişikliği onay ister. İstem turu C1'i 5/5 düzeltti (özgün ifade); tur birleştirilmedi (kararlar).
+- Kaynaklarda `parça="şekil"` etiketi var, istemde açıklaması yok; kaldırmak ya da tanımlamak istem değişikliği, bekleyen istem değişiklikleriyle aynı turda ele alınacak. İstem turunda tanımlandı; tur birleştirilmedi.
+- Aynı adla yüklenmiş farklı belgeler: modele giden ad ayrıldı (`ayni-adli-belgeler`: "Föy", "Föy (2)") ve panel aynı adlı yüklemeyi soruyor (`ayni-ad-uyarisi`). Açık kalan: netleştirme düğmeleri aynı adı gösterir (`steps.py`, katalog başlığı); farklı uzantılı aynı adlı dosyalar ("Föy.pdf", "Föy.docx") uyarı vermiyor ama aynı başlığı alıyor.
+- **Şablon satırı ürün değeri sanılabiliyor (kural 1 riski, 2026-11-26 S1 denemesi):** "Chart Size Range | XXS-4XL" (ölçü şablonunun aralığı) ile "Size Range | XS-XXL(4)" (ürünün aralığı) aynı belgede; ürün adı bağlamdayken model 5 koşunun 5'inde şablon aralığını ürünün beden aralığı diye verdi, birinde cümle ("Challenger Train Pant XXS-4XL beden aralığında üretilmektedir.") doğrulanmış gösterildi. Kural A yalnız tam ad ("UA W Challenger Train Pant") geçince yakalıyor. İstem turu ölçümünde (yüklü sınır seti, 5 koşu) D6 "6013448'in beden aralığı" iki koşuda şablon aralığını ("Apparel (XS-5XL)") doğrulanmış gösterdi. Ad öneki ya da eki taşıyan niteleyici satırları (Chart/Style/Actual Sizes) doğrulayıcıda ayırt edilmiyor; LLM hakem oturumunda ve sınır setinde ele alınacak.
 - Train Midlayer'ın numune (base) bedeni sorusu (2026-11-23, 5 koşu) her koşuda "bulunamadı" döndü; beklenen, iki model (6026399, 6026411) arasında netleştirmeydi, değerler iki belgenin s.14'ünde.
 - İki revizyonda (SRT-4294 Rev A, Rev B) dış paça toleransı aynıyken 5 koşuda da hangi revizyon olduğu soruldu (gereksiz netleştirme).
 - Soruda MD bedeni yazılı olduğu hâlde ölçü ya da satır soruldu (6028355 uzun boy iç boy, 6026417 paça ağzı: "Hangi Inseam … ölçüsü için?", "Hangi paça ağzı ölçüsü için?").
