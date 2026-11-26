@@ -965,3 +965,56 @@ def test_row_shared_by_several_variants_is_outside_rule_d() -> None:
     model_item = item("İplik TT-100157.", quote="Material Details: TT-100157/ECO100 Thread")
 
     assert verify_item(model_item, {1: shared}, "tr").ok
+
+
+@pytest.mark.parametrize(
+    ("row", "joined", "text"),
+    [
+        ("Beden S: 72,0 | Beden M: 74,0", "Beden S: … Beden M: 74,0", "S beden 74,0."),
+        ("Ölçü: Göğüs | 38: 72,0 | 40: 74,0", "38: 72,0 … 40: 74,0", "38 beden göğüs 74,0."),
+    ],
+    ids=["kural-b", "kural-c"],
+)
+def test_ellipsis_quote_does_not_bypass_rules_b_and_c(row: str, joined: str, text: str) -> None:
+    sources = {1: _row(1, row)}
+    check = verify_item(item(text, quote=joined), sources, "tr", build_qualifiers(sources, ""))
+
+    assert not check.ok
+
+
+def _variant_check(asked: str, previous: str = "", text: str = "Gövde kumaşı KNT-226131.") -> bool:
+    qualifiers = build_qualifiers(_BOM, asked=asked, previous=previous)
+    quote = "Material Details: KNT-226131/LIVe Jersey -60/40 -140 gms"
+    return verify_item(item(text, quote=quote), _BOM, "tr", qualifiers).ok
+
+
+def test_own_variant_name_in_this_question_is_enough() -> None:
+    assert _variant_check("White // Racer Red gövde kumaşı hangisi")
+
+
+def test_previous_turn_does_not_name_the_variant_of_this_answer() -> None:
+    assert not _variant_check("peki City Khaki?", previous="White // Racer Red gövde kumaşı")
+
+
+def test_variant_name_inside_a_longer_name_is_not_its_own() -> None:
+    off_white = _row(4, "Material Details: KNT-9 | 200: Off White // Navy: Off White 200")
+    sources = {**_BOM, 4: off_white}
+    qualifiers = build_qualifiers(sources, asked="Off White // Navy gövde kumaşı hangisi")
+    quote = "Material Details: KNT-226131/LIVe Jersey -60/40 -140 gms"
+    shared = _row(1, _WHITE_ROW.replace("100: White // Racer Red", "100: White // Navy"))
+    sources[1] = shared
+
+    assert not verify_item(
+        item("Gövde kumaşı KNT-226131.", quote=quote), sources, "tr", qualifiers
+    ).ok
+
+
+def test_source_that_itself_writes_dots_is_matched_whole() -> None:
+    sources = {1: PromptSource(number=1, text="Lütfen bekleyin... ve sonra OK'a basın.")}
+
+    assert verify_item(item("Bekleyin.", quote="Lütfen bekleyin... ve sonra"), sources, "tr").ok
+
+
+@pytest.mark.parametrize("quote", ["…", "", "..."])
+def test_empty_ellipsis_quote_is_rejected(quote: str) -> None:
+    assert not verify_item(item("İç paça 76,5.", quote=quote), SOURCES, "tr").ok
