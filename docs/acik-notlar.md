@@ -1,6 +1,6 @@
 # Açık notlar
 
-Sonraya bırakılan konular; en üstte "Nerede kaldık" (son durum), en sonda veri gönderme yordamı. Biten madde ve durum kaydı silinir ("Nerede kaldık" dışında); denenip geri çekilen fikirler ve kapanan kararlar [kararlar.md](kararlar.md)'de (yeniden önermek için yeni kanıt gerekir). Kabul seti kaldırıldı (kararlar, "Kabul seti kaldırıldı"); kapanış testi elle sorularla yapılır. Kod 2026-11-26'da `8b75044`'te donduruldu (kararlar, [0031](kararlar.md#karar-0031)); gerçek belgeler gelene kadar `src/`, `apps/`, `tests/` ve `evals/` değişmez. S1, S2 ve S3 güvenli bilinen sınır (yanlış değer gösterilmiyor).
+Sonraya bırakılan konular; en üstte "Nerede kaldık" (son durum), en sonda veri gönderme yordamı. Biten madde ve durum kaydı silinir ("Nerede kaldık" dışında); denenip geri çekilen fikirler ve kapanan kararlar [kararlar.md](kararlar.md)'de (yeniden önermek için yeni kanıt gerekir). Kabul seti kaldırıldı (kararlar, "Kabul seti kaldırıldı"); kapanış testi elle sorularla yapılır. Kod 2026-11-26'da `8b75044`'te donduruldu (kararlar, [0031](kararlar.md#karar-0031)); gerçek belgeler gelene kadar `docs/` dışında dosya değişmez. S1, S2 ve S3 güvenli bilinen sınır (yanlış değer gösterilmiyor).
 
 - **Karar bekliyor:** ürün sahibinin ya da ekibin seçimi gerekiyor; veriyi beklemiyor.
 - **Gerçek belgeden sonra:** üretilmiş belgelerde görüldü ya da ölçülemedi; gerçek belge ve gerçek kullanımla bakılacak.
@@ -21,7 +21,7 @@ Sırayla; her adımın çıktısı kontrol edilir.
 
 1. Uygulama kapalı, repo kökünde `git pull` (`main` en az bu kaydın commit'i).
 2. sha256: paket kurulmadan önce `(Get-FileHash "$HOME\Downloads\va-veri-20261126.zip" -Algorithm SHA256).Hash -eq 'F6C22837F74F1E5F240ABDFBD3F6E3BFB2F6E0E19F540B8B8F0294AADBE8E466'` `True` vermeli; `False` ise paket kurulmaz, yeniden taşınır.
-3. Paket kurulumu: `uv sync`, sonra aşağıdaki "Windows'ta" komutu (`va-veri-20261126.zip`).
+3. Paket kurulumu: `uv sync`, sonra aşağıdaki "Windows'ta" komutu (`va-veri-20261126.zip`). "Commit farklı (yalnız bilgi)" uyarısı beklenir (paket `8b75044`, depo bu kayıttan yeni). Eski `data-yedek-<tarih>` silinmez: kararlardaki Windows günlük numaraları (#2192–2197, #2279, #2311, #2375, #2389) yalnız orada; günlük numaraları bilgisayara özgüdür.
 4. Uygulama açılır: 394 belge, 6.295 parça, "Eski kural" 0 (Belgeler paneli ya da `PAKET.txt` ile karşılaştırma).
 5. Elle kapanış testi 11. soru (aşağıda); ardından 1–10 Windows'ta da sorulabilir.
 
@@ -36,7 +36,7 @@ Sırayla; her adımın çıktısı kontrol edilir.
 
 ### Elle kapanış testi
 
-Ürün sahibi arayüzde sorar; her cevapta kaynak sayfası ve rozet kontrol edilir. Test 1, 6 ve 7'deki beklenen değerler sayfa görüntüsüyle karşılaştırıldı (2026-11-26, Mac), üçü de aynı. "Bugün" sütunu Mac ön koşusunun sonucudur (2026-11-26, canlı, arayüz yolu, her soru bir kez, 0,0036 $; günlük numarası parantezde): doğrulanmış yanlış değer 0, sorgu çevirisi düşmedi. Ayrıntı: kararlar [0031](kararlar.md#karar-0031).
+Ürün sahibi arayüzde sorar; her cevapta kaynak sayfası ve rozet kontrol edilir. Test 1, 6 ve 7'deki beklenen değerler sayfa görüntüsüyle karşılaştırıldı (2026-11-26, Mac), üçü de aynı. "Bugün" sütunu Mac ön koşusunun sonucudur (2026-11-26, canlı, arayüz yolu, her soru bir kez, 0,0035 $; günlük numarası parantezde, Mac günlüğünün): doğrulanmış yanlış değer 0, sorgu çevirisi düşmedi. Ayrıntı: kararlar [0031](kararlar.md#karar-0031).
 
 | # | Soru | Beklenen cevap ve kaynak | Bugün |
 |---|---|---|---|
