@@ -1035,6 +1035,27 @@ def test_difference_rows_are_used_when_the_question_asks_for_the_difference() ->
     assert "MD: -3/8" in client.calls[0][1]["content"]
 
 
+def test_filtered_difference_rows_are_replaced_by_the_next_sources() -> None:
+    """Filtre 8'e kesmeden önce uygulanır: ayıklanan satırın yerine sıradaki parça girer."""
+    relative = [
+        _relative_row().model_copy(update={"chunk_id": f"a:{9 + index}"}) for index in range(2)
+    ]
+    plain = [
+        chunk(f"a:{20 + index}", "a", f"Ölçü {index}: {index},5", title="PNT-4417 ölçü föyü")
+        for index in range(10)
+    ]
+    client = FakeClient(answer_payload("0,5.", quote="Ölçü 0: 0,5"))
+    retriever = FakeRetriever(hits=[*relative, *plain])
+
+    ask(make_deps(client, retriever), "MD beden kol boyu kaç?")
+
+    prompt = client.calls[0][1]["content"]
+    assert retriever.calls[0]["top_k"] == 20
+    assert prompt.count("<kaynak no=") == 8
+    assert "MD: -3/8" not in prompt
+    assert "Ölçü 7: 7,5" in prompt
+
+
 _HEADER_BOX = (12.0, 25.0, 780.0, 70.0)
 _POM_BOX = (13.0, 105.0, 643.0, 570.0)
 _INCREMENT_ROW = "Dim: RS005 | Description: Front Rise | MD: -3 3/8"
