@@ -984,8 +984,25 @@ Her birinin bulgusu commit mesajında. Sınır durumlarını sınayan set: `#f60
   tutar: gizlenen cümlenin doğrulanamayan sayısı, adı, kodu ya da kaynak numarası.
 - **Neden:** 20 Kasım teşhisinde hangi sayının gizlemeye yol açtığı kayıttan okunamadı;
   cevap yeniden kurguyla bulundu.
-- **Sınır:** Cevap cümlesi yine yazılmaz (ayrı karar). İstemciye yalnız türler gider; kaydın
-  HTTP ucu yok. Saklama süresi açık notlarda ("Canlıya alırken").
+- **Sınır (2026-11-26'ya kadar):** Cevap cümlesi yazılmıyordu. İstemciye yalnız türler gider;
+  kaydın HTTP ucu yok. Saklama süresi açık notlarda ("Canlıya alırken").
+- **Değişti: teşhis alanı (2026-11-26, `gunluk-teshis-alanlari`, ürün sahibi kararı).** Her
+  kayda tek bir JSON sütunu (`diagnosis`) eklendi: BM25'e giden sorgu ve çevrilip
+  çevrilmediği, cevap dili, modele giden soru metni, ilk 8 parça (sıra, parça kimliği, belge,
+  sayfa), **modelin ham çıktısı (alıntılar dahil)**, `doc_ids`, sorunun nereden geldiği (yazılı,
+  takip, belge düğmesi, "Tüm belgelerde ara" düğmesi) ve netleştirme adayları. Önceki kayıtlarda
+  alan boş (`{}`); okuma bozulmaz.
+  - **Neden (yeni kanıt):** 26 Kasım teşhislerinde üç bulgu kayıttan okunamadığı için çıkarımda
+    kaldı: S2'de modelin alıntısı ("alıntı [1] kaynakta birebir değil" denen metin), S3'te
+    BM25'e giden çeviri, "MD ön ağ" sorusunda doğru satır 6. sıradayken modelin neden
+    "bulunamadı" dediği ve hangi çeviriyle arandığı. "Gerçek tanı günlükten okunmadan düzeltme
+    yapılmaz" ilkesi (0019 notu) ancak bu alanlarla uygulanabilir.
+  - **Bedel:** kayıt başına yaklaşık 1–2,5 KB (önce ≈ 0,5 KB). Ham çıktı belge alıntısı taşır;
+    saklama süresi "Canlıya alırken" kararına bağlıdır. Ses yine yazılmaz; ortak cevap
+    denemesinin (aynı cevap veren adaylar) ikinci model çağrısının çıktısı yazılmaz.
+  - **Okuma:** `python -m apps.api.question_log --last 5 --teshis`.
+  - **Gösterilmez:** teşhis alanı kullanıcıya gösterilmez (HTTP ucu yok). Ham çıktı doğrulamada
+    gizlenen, doğrulanmamış değerleri de taşır; ileride kayda okuma ucu açılırsa bu alan dışarıda kalmalı (kural 1).
 
 ## Arayüz
 
@@ -1960,3 +1977,5 @@ Tarih: 2026-11-26. Ürün sahibi onayı. Dal: `fark-tablosu-notu` (#153); ek: `s
 **Canlı ölçüm, filtre kesimden önce (Windows, 2026-11-26, bir kez, 0,00039 $).** Aynı soru → yine "bulunamadı". Bu kez modele 8 kaynak gitti, s.11'deki doğru satır (RS005 "Front Rise from Top Edge - Straight", MD 12 1/4) 6. sıradaydı, s.13 satırı yoktu. Bilgi kaynaktaydı; model "ön ağ"ı "Front Rise" ile eşleştirmedi ve "bulunamadı" dedi. Aynı soruda 26 Kasım'da (iki "Front Rise" satırı varken) model eşleştirip netleştirme sormuştu. Katman: model (Türkçe terim ile İngilizce ölçü adı); istem değiştirilmedi, yeniden sorulmadı.
 
 **Kaldırma.** Sonraki planlı yeniden işlemede not okuyucuya taşınacak (satırların `table_note`'u dolacak); o zaman sorgu anı kodu (`_table_note`'un komşu arama kısmı ve `IdentifierIndex.chunk`) kaldırılacak.
+
+**Teşhis alanlarıyla üç koşu (Windows, 2026-11-26, 0,00120 $; `gunluk-teshis-alanlari`).** Modele giden soru üçünde de Türkçe özgün metin; çeviri yalnız BM25'e gidiyor. Koşu 1 ve 3: BM25 "front crotch length", doğru satır 6. sırada, model ham çıktısı `{"tur": "bulunamadi"}`. Koşu 2: BM25 "front rise", satır 1. sırada, model "MD bedende ön ağ 12 1/4." yazdı ve doğru alıntıyı verdi; cevap "OCR değeri belirsiz" diye gizlendi, çünkü bu satırda 12 ve 1/4 dahil değerlerin çoğu iki okumada uyuşmamış (`ocr_uncertain`). Sonuç: model "ön ağ"ı "Front Rise" ile eşleştirebiliyor (koşu 2), ama satır geride ve "Back Rise" kaynaklarda yokken eşleştirmedi (koşu 1 ve 3); tutarlı bir model hatası değil, çeviriye bağlı sıralama ile birlikte çalışan bir zayıflık. Doğru cevap çıksa bile bu satırın değeri okuma katmanında belirsiz olduğu için gizlenir (kural 1 gereği). Düzeltme yapılmadı.

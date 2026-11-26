@@ -1,6 +1,7 @@
 import asyncio
 import json
 import sys
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -18,6 +19,14 @@ from apps.api.question_log import (
     summary_lines,
 )
 from tests.test_api_documents import FakeRepository, _events
+from tests.test_ask_pipeline import (
+    CHUNKS,
+    FakeClient,
+    FakeRetriever,
+    answer_payload,
+    ask,
+    make_deps,
+)
 from visual_agent.ask.deps import AskRequest
 from visual_agent.domain.answer import VerificationStatus
 from visual_agent.domain.document import SourceLocation
@@ -64,7 +73,9 @@ ANSWERED = AskOutcome(
 )
 
 
-def test_record_keeps_kind_verification_sources_and_steps_but_not_the_answer() -> None:
+def test_record_keeps_kind_verification_sources_and_steps_but_not_the_shown_answer() -> None:
+    """Gösterilen cevap cümleleri sütunlara kopyalanmaz; modelin cevabı yalnız teşhis alanının
+    ham çıktısında bulunur (ANSWERED'da ham çıktı yok)."""
     record = record_for("Peki bel?", "voice", "answered", ANSWERED, 2.5, 1.9)
 
     assert record.resolved_question == "PNT-1162 M beden bel kaç?"
@@ -79,6 +90,76 @@ def test_record_keeps_kind_verification_sources_and_steps_but_not_the_answer() -
     assert (record.total_seconds, record.first_verified_seconds) == (2.5, 1.9)
     assert record.timings["translate"] == 0.3
     assert ANSWER_TEXT not in record.model_dump_json()
+
+
+def test_question_asked_with_a_fake_model_writes_every_diagnosis_field() -> None:
+    async def translator(question: str, source: str, targets: Sequence[str]) -> str:
+        return "inseam value"
+
+    payload = answer_payload("İç paça 76,5.", quote="Beden M: 76,5")
+    english = {"a": "en", "b": "en", "c": "en"}
+    deps = make_deps(FakeClient(payload), FakeRetriever(), translator, english)
+    outcome = ask(deps, "iç paça nedir", ("a",))
+
+    record = record_for("iç paça nedir", "text", "answered", outcome, 1.0, 0.5, doc_ids=("a",))
+
+    assert record.diagnosis == {
+        "origin": "belge_dugmesi",
+        "doc_ids": ["a"],
+        "answer_language": "tr",
+        "bm25_query": "inseam value",
+        "translated": True,
+        "model_question": "iç paça nedir",
+        "sources": [
+            {"rank": 1, "chunk_id": "a:1", "doc_id": "a", "title": "PNT-4417 ölçü föyü", "page": 2}
+        ],
+        "raw_output": json.dumps(payload),
+    }
+
+    clarify = {
+        "tur": "netlestirme",
+        "netlestirme": {"soru": "Hangisi?", "secenekler": [{"kaynak_no": 1}, {"kaynak_no": 2}]},
+        "cevap": [],
+    }
+    deps = make_deps(FakeClient(clarify), FakeRetriever(hits=[CHUNKS[0], CHUNKS[1]]))
+    outcome = ask(deps, "soru nedir")
+
+    record = record_for("soru nedir", "text", "clarify", outcome, 1.0, None, follow_up=True)
+
+    assert record.diagnosis["origin"] == "takip"
+    assert record.diagnosis["clarify"] == {"question": "Hangisi?", "options": ["a", "b"]}
+    sources = record.diagnosis["sources"]
+    assert isinstance(sources, list)
+    assert [source["chunk_id"] for source in sources] == ["a:1", "b:1"]
+
+
+def test_diagnosis_is_stored_and_older_rows_read_back_empty(tmp_path: Path) -> None:
+    """Teşhis sütunu sonradan eklenir: eski satırlar bozulmaz, teşhisleri boş okunur."""
+    import sqlite3
+
+    database = tmp_path / "va.db"
+    old_schema = question_log._SCHEMA.replace(",\n    diagnosis TEXT NOT NULL DEFAULT '{}'", "")
+    with sqlite3.connect(database) as connection:
+        connection.executescript(old_schema)
+        connection.execute(
+            "INSERT INTO question_log (created_at, question, input_mode, result_kind, problems,"
+            " cited_doc_ids, cost_usd, total_seconds, timings)"
+            " VALUES ('2026-11-20', 'eski', 'text', 'answered', '[]', '[]', 0, 1, '{}')"
+        )
+    log = open_log(database)
+    new = _record(question="yeni", diagnosis={"bm25_query": "inseam", "doc_ids": []})
+
+    async def run() -> list[QuestionRecord]:
+        await log.migrate()
+        await log.add(new)
+        return await log.last(2)
+
+    records = asyncio.run(run())
+
+    assert [(r.question, r.diagnosis) for r in records] == [
+        ("yeni", {"bm25_query": "inseam", "doc_ids": []}),
+        ("eski", {}),
+    ]
 
 
 def test_question_that_needed_no_completion_has_no_resolved_question() -> None:
@@ -223,6 +304,24 @@ def test_each_question_is_recorded_with_its_input_mode() -> None:
     assert first.result_kind == "answered"
     assert first.first_verified_seconds is not None
     assert first.first_verified_seconds <= first.total_seconds
+
+
+def test_record_says_where_the_question_came_from() -> None:
+    recorder = Recorder()
+    context = {"question": "PNT-1162 bel kaç?", "doc_ids": ["a"], "titles": ["Föy"]}
+
+    with _client(recorder) as client:
+        client.post("/api/ask", json={"question": "soru", "doc_ids": ["a"]})
+        client.post("/api/ask", json={"question": "soru", "all_documents": True})
+        client.post("/api/ask", json={"question": "Peki kalça?", "context": context})
+        client.post("/api/ask", json={"question": "soru"})
+
+    assert [(r.diagnosis["origin"], r.diagnosis["doc_ids"]) for r in recorder.records] == [
+        ("belge_dugmesi", ["a"]),
+        ("tum_belgeler_dugmesi", []),
+        ("takip", []),
+        ("yazili", []),
+    ]
 
 
 def test_failed_question_is_recorded_and_still_answered_with_an_error() -> None:
