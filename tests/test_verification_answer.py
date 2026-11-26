@@ -1018,3 +1018,83 @@ def test_source_that_itself_writes_dots_is_matched_whole() -> None:
 @pytest.mark.parametrize("quote", ["…", "", "..."])
 def test_empty_ellipsis_quote_is_rejected(quote: str) -> None:
     assert not verify_item(item("İç paça 76,5.", quote=quote), SOURCES, "tr").ok
+
+
+# Kural E: önekli etiketin değeri öneksiz etiket diye sunulamaz (#2389, kural 1)
+_CHART_QUOTE = "Chart Size Range | Apparel (XS-5XL)"
+_CHART_ROW = (
+    "Measurement Chart | 6013448-FW27-MMC-US | Chart Size Range | Apparel (XS-5XL) | "
+    "Fit Type Regular"
+)
+_SIZE_ROW = "Sub Category | Sportstyle | Size Range | XS-4XL, SMT-4XLT"
+
+
+def _sized(title: str, *rows: str) -> dict[int, PromptSource]:
+    return {
+        n: PromptSource(number=n, text=row, is_table_row=True, language="en", title=title)
+        for n, row in enumerate(rows, start=1)
+    }
+
+
+def _prefixed(text: str, quote: str, source_no: int = 1) -> ItemCheck:
+    sources = _sized("6013448-FW27", _CHART_ROW, _SIZE_ROW)
+    qualifiers = build_qualifiers(sources, asked="6013448'in beden aralığı nedir")
+    return verify_item(item(text, quote=quote, source_no=source_no), sources, "tr", qualifiers)
+
+
+@pytest.mark.parametrize(
+    ("text", "quote"),
+    [
+        ("6013448 modelinin beden aralığı XS-5XL'dir.", _CHART_ROW),
+        (
+            "Apparel için beden aralığı XS-5XL olarak belirtilmiştir.",
+            "Chart Size Range | Apparel (XS-5XL)",
+        ),
+        (
+            "Beden aralığı Apparel (XS-5XL) olarak belirtilmiştir.",
+            "Chart Size Range | Apparel (XS-5XL)",
+        ),
+    ],
+    ids=["2389", "2279", "2311"],
+)
+def test_prefixed_label_value_shown_as_the_plain_label_is_hidden(text: str, quote: str) -> None:
+    check = _prefixed(text, quote)
+
+    assert not check.ok
+    assert any("önekli etiketin değeri" in problem for problem in check.problems)
+
+
+def test_prefixed_label_named_in_the_sentence_passes() -> None:
+    assert _prefixed(
+        "Apparel için Chart Size Range XS-5XL.", "Chart Size Range | Apparel (XS-5XL)"
+    ).ok
+
+
+def test_plain_label_value_passes() -> None:
+    check = _prefixed(
+        "6013448'in beden aralığı XS-4XL, SMT-4XLT.", "Size Range | XS-4XL, SMT-4XLT", 2
+    )
+
+    assert check.ok, check.problems
+
+
+def test_template_range_is_not_the_product_size_range() -> None:
+    """S1 (b) denemesi: #104 şablon aralığı ürünün beden aralığı diye doğrulanıyordu."""
+    sources = _sized(
+        "6026412-SS28",
+        "Template Name | (boş) | Chart Size Range | XXS-4XL | Fit Reference",
+        "Sub Category | Global Football | Size Range | XS-XXL(4)",
+    )
+    model_item = item(
+        "Challenger Train Pant XXS-4XL beden aralığında üretilmektedir.",
+        quote="Chart Size Range | XXS-4XL",
+    )
+
+    assert not verify_item(model_item, sources, "tr", build_qualifiers(sources, asked="")).ok
+
+
+def test_prefixed_label_without_its_plain_twin_is_not_checked() -> None:
+    sources = _sized("6013448-FW27", _CHART_ROW)
+    model_item = item("Beden aralığı XS-5XL.", quote="Chart Size Range | Apparel (XS-5XL)")
+
+    assert verify_item(model_item, sources, "tr", build_qualifiers(sources, asked="")).ok
