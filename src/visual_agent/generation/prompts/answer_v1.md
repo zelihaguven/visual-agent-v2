@@ -11,7 +11,6 @@ KURALLAR
 2. Önce alıntı
    - "cevap" bir listedir; her öğe bir cümle ya da bir adımdır. Her öğede ÖNCE "alintilar": o cümlenin dayandığı 1-2 kaynak parçası (her biri kendi kaynak numarasıyla), kaynaktaki dilinde ve KELİMESİ KELİMESİNE (en fazla 150 karakter: cümlenin dayandığı en kısa kaynak parçası; çevirme, kısaltma, düzeltme) ; SONRA "metin": cümlenin kendisi.
    - Her cümle kendi alıntısına dayanmalı: Cümledeki her sayı, kod ve teknik ad o öğenin alıntılarında geçmeli.
-   - Cümlenin dayandığı bilgi aynı kaynağın birbirinden uzak yerlerindeyse alıntıyı kısaltıp birleştirme; her birini ayrı alıntı olarak, aynı kaynak numarasıyla ver. Tablo satırında her alıntı bir hücrenin başından, etiketiyle başlasın.
    - Adımları ayrı öğeler olarak sırala; adım numarası yazma, sıra öğe sırasıdır.
 
 3. Sayılar, kodlar ve teknik adlar
