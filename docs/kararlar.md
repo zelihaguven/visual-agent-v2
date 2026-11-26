@@ -1584,6 +1584,8 @@ Tarih: 2026-11-17. Ürün sahibi onayı.
 
 **Kalan.** Fark filtresi (0006: "Grade Rule: Increment" tablolarının satırları, soru farkı sormuyorsa kaynak olmaz) kaldı: OCR hatasını değil modelin farkı ölçü diye vermesini engelliyor, yeni okuyucunun parçalarında da çalışıyor. Eğiklik ayarı 0007'de zaten kaldırılmıştı. Eski OCR yolu (ocrmypdf, rapidocr) görünür ama zayıf metin katmanlı sayfalar ve metinli sayfalardaki gömülü görseller için duruyor; bu yüzden hiçbir bağımlılık boşa çıkmadı.
 
+**Düzeltme (2026-11-26).** "Yeni okuyucunun parçalarında da çalışıyor" bugünkü indeks için doğru değildi: 3.093 tablo satırının hiçbirinde tablo notu dolu değildi, fark filtresi hiçbir satırı ayıklamıyordu. Not artık sorgu anında komşu parçadan okunuyor: [0029](#karar-0029).
+
 **Etki.** Kural sürümü 9. Yalnız eski OCR yolundan geçen (`weak`, `scanned`) sayfası olan belgeler eskir; yüklü belgelerde böyle sayfa yok. O sayfalardaki tablolar ileride gelirse hücre düzeyi doğrulama olmadan, sayfa düzeyi iki okumayla işlenir. Dondurulmuş `hat.py` bugünkü kodla içe aktarılamaz (hücre okuyucuyu çağırıyor); eski hattı ölçmek için `c79e4ce` kullanılır.
 
 ### 0014: Sınır seti turu kapandı; kilitli 8 soru artık görülmüş sayılır
@@ -1929,3 +1931,30 @@ Tarih: 2026-11-23. Ürün sahibi kararı. Dallar: `eski-ocr-yolu-kaldir` (#145),
 **Başka makinede.** Kural sürümü eskiyen belgede eski yolun parçaları (işareti okunmaz, 0022 kuralı yok) yeniden işlenene kadar aranır; `git pull` sonrası "Eski kural" görünen PDF ve Office belgeleri soru sorulmadan önce yeniden işlenmeli. Görselli belge okuyucu ister.
 
 **Yeniden düşünülür.** Gerçek belgelerde görsel sayısı okuma süresini pilot için kabul edilemez kılarsa (ör. her sayfada logo), ya da gerçek fotoğraflarda okuyucunun yanlış gösterdiği değer set B oranını (%2,9, 0026) belirgin aşarsa.
+
+<a id="karar-0029"></a>
+
+### 0029: Fark tablosunun notu sorgu anında komşu parçadan okunur (okuyucu düzeltilene kadar)
+Tarih: 2026-11-26. Ürün sahibi onayı. Dal: `fark-tablosu-notu`. Kod: `src/visual_agent/ask/steps.py` (`_table_note`).
+
+**Sorun.** 26 Kasım teşhisi: indeksteki 3.093 tablo satırının hiçbirinde `table_note` dolu değildi; fark filtresi (0006, 0013) hiçbir satırı ayıklamıyordu. Sayfa okuyucusu "Grade Rule Display: Increment" notunu tablonun içinde değil, tablodan sonra ayrı bir metin parçası (11 tablo) ya da tablonun son satırı (13 tablo) olarak veriyor; not ise yalnız tablonun içindeki kaplayan satırdan dolduruluyor (`pdf_tables.py`, `_with_table_context`). Örnek: 6026417 "MD ön ağ" sorusunda s.13'teki fark satırı (MD -3 3/8) s.11'deki ölçüyle (12 1/4) birlikte modele gidiyor, model aynı belgede iki değer görüp netleştirme soruyordu. Fark değeri ölçü diye verilebilirdi (kural 1).
+
+**Kural.** Satırın notu doluysa o kullanılır. Boşsa ve satır sayfada kutulu bir tablodaysa (aynı sayfa ve aynı ilk kutu aynı tablodur): tablonun son satırı fark ifadesi taşıyor ve bir önceki satırı taşımıyorsa not odur; taşımıyorsa tablodan hemen sonraki parça aynı sayfada bir metinse not odur. Önceki satır koşulu inceleme turunda eklendi: satır metni "Sütun: değer" biçiminde olduğu için "Fark" adlı bir sütun her satırda yazılıdır; bu koşul olmadan böyle bir ölçü tablosu bütünüyle gizlenirdi. Tek satırlı tabloda son satır not sayılmaz. Sayfası ya da kutusu olmayan parçalar (Excel, Markdown, düz metin) değişmez. Parça kimliği "belge:sıra" olduğu için komşu parça bellekteki dizinden (`IdentifierIndex.chunk`) okunur; ek sorgu yoktur.
+
+**Fark ifadeleri** (`_RELATIVE_RE`, büyük-küçük harf duyarsız, sözcük sınırıyla): increment, increments, incremental, delta, deltas, difference, differences, fark, farklar, farkı, farki, artış, artışlar, artışı. Türkçe "fark" listede. Eşleşmeyenler: "farkları", "farkın", "farkını", "artışları", "değişim", "sapma"; "farklı" (sözcük sınırı) da eşleşmez. Liste değişmedi; pilot Türkçe belgelerde nota başka bir ifade yazılıyorsa genişletilmesi ayrı karardır.
+
+**Neden sorgu anında.** Okuyucuda düzeltme PDF kural sürümünü artırır: bütün PDF ve Office belgeleri "Eski kural" olur, taranmış belgeler Mac'te ≈ 40 dk yeniden işlenir, sonra veri paketi Windows'a taşınır. Sorgu anı kodu yeniden işleme istemiyor. Ek süre 50 sorguda p50 0,09 ms, p95 0,28 ms.
+
+**İnceleme (yüklü 394 belge; karar kuralı: yanlış eşleşme 0 ve p95 ≤ 50 ms).** 591 tablo. Ardından aynı sayfada metin gelen 318 tablonun 11'inde not eşleşti, hepsi Increment; 14 "Absolute" notu ve FastReact'taki "incremental" metinleri hiçbir tabloya bağlanmadı. Notun tablodan önce geldiği vaka 0. Çok tablolu 11 sayfada not her seferinde hemen önündeki tabloya bağlandı (sayfa başlığı tablosuna değil). Son satır kuralı 13 tabloda, hepsi Increment; son olmayan satırında fark ifadesi geçen tek satır FastReact'taki `@DTVAR … Difference between 2 dates` (kurala girmiyor). Yanlış eşleşme 0.
+
+**Etki.** 14 belgede 297 satır (not satırları dahil) artık kaynak olmuyor: 6013448 44, 6026399 30, 6026400 18, 6026411 9, 6026412 4, 6026416 28, 6026417 20, 6026418 25, 6026419 14, 6026420 25, 6026421 15, 6026450 23, 6026451 16, 6028355 26. Taban parça depolarında 0 satır (Windows'taki 20–21 Kasım kopyaları; güncel Mac parçalarıyla doğrulanmadı).
+
+**Bilinen sınırlar.**
+- Okuyucunun notu hiç okumadığı 4 fark tablosu yakalanmaz: 6026412 s.15, 6026422 s.13, 6026411 s.16, 6026400 s.16 (55 satır; sayfa görüntüsünde dördü de fark tablosu, 6026411 s.16'da not sayfada yazılı ama parçalarda yok). 55 satırın 53'ü ölçü satırı (Description taşıyor) ve 53'ünün ölçüsü aynı belgenin önceki bir mutlak tablosunda da var; mutlak karşılığı olmayan 0. Bu 53 satırda bir fark değeri ölçü diye gösterilebilir. Düzeltme yapılmadı; okuyucu düzeltmesiyle birlikte ele alınır.
+- Görülmemiş bir belgede tablonun hemen ardından fark ifadesi taşıyan sıradan bir paragraf gelirse ya da yalnız tablonun son satırı böyle bir ifade taşırsa o tablonun satırları kaynak olmaz (gizleme yönünde; bugünkü indekste 0 vaka).
+- Sayfaya bölünen tabloda not yalnız kendi sayfasındaki parçaya bağlanır: not s.14'teyse s.13'teki satırlar notu görmez. Yüklü föylerde her sayfanın kendi notu var (biçim 1 ya da 2); notu olmayan sayfa yukarıdaki 4 tablodur.
+- Filtre ilk 8 kaynağın içinden siler, yerine parça getirmez (önceden de böyleydi): 6026417 "MD ön ağ" sorusunda modele 8 yerine 4 kaynak gider.
+
+**Canlı ölçüm (Windows, 2026-11-26, bir kez, 0,00030 $).** "6026417 şortta MD bedende ön ağ kaç?" → "bulunamadı". s.13'ün fark satırları ayıklandı, ama s.11'deki doğru satır (RS005, MD 12 1/4) da ilk 8'de değildi: modele 4 kaynak gitti (#106, #95, #94, #97). Çevrimdışı yeniden kurulum: yoğun kolda satır 12. sırada; BM25 sorgusu "front rise" içerirse füzyonda 2., "front crotch" içerirse 14. Kaynaklar "front crotch" çevirisiyle örtüşüyor (çeviri kaydedilmiyor). Filtre ilk 20'de uygulanıp sonra 8'e kesilseydi satır "crotch" çevirisinde de 7. sırayla kaynaklara girerdi. Bu değişiklik bu karara dahil değil; ayrı karar ister. Hedeflenen sonuç ("netleştirme sormadan 12 1/4, doğrulanmış") bu ölçümde alınmadı; kök neden arama (çeviri sözcüğü), filtre değil.
+
+**Kaldırma.** Sonraki planlı yeniden işlemede not okuyucuya taşınacak (satırların `table_note`'u dolacak); o zaman sorgu anı kodu (`_table_note`'un komşu arama kısmı ve `IdentifierIndex.chunk`) kaldırılacak.
