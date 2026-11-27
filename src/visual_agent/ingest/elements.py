@@ -109,6 +109,25 @@ class CloudOutage:
     """Okuması alınamadığı için atlanan şekil bloğu sayısı."""
     unchecked_figures: int = 0
     """Denetim okuması alınamadığı için değerleri gizlenen şekil bloğu sayısı."""
+    rejected_blocks: int = 0
+    """Bulutun bloğa özgü 4xx ile reddettiği blok sayısı (devreyi açmaz)."""
+    rejected_status: int | None = None
+    """İlk reddin HTTP kodu."""
+
+    def reject(self, status: int) -> None:
+        self.rejected_blocks += 1
+        if self.rejected_status is None:
+            self.rejected_status = status
+
+    def rejection_warning(self) -> str | None:
+        """Reddedilen blokların ayrı rapor satırı. `CLOUD_OUTAGE_MARK` içermez: yeniden işleme bu
+        blokları düzeltmez, devresi açılan belgelerin sorgusuna düşmemeli."""
+        if not self.rejected_blocks:
+            return None
+        return (
+            f"{self.rejected_blocks} blok bulutça reddedildi (HTTP {self.rejected_status});"
+            " Tesseract'la denetlendi ya da şekil bloğu okunmadı."
+        )
 
     def warning(self) -> str | None:
         """Belge raporunun tek satırı; kesinti olmadıysa None. Yalnız etkilenen blok türleri

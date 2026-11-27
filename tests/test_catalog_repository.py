@@ -166,6 +166,8 @@ def test_documents_whose_cloud_circuit_opened_are_found_by_a_query(tmp_path: Pat
             ("a", (str(qwen.warning()),)),
             ("b", ("Sayfa 2: görsel",)),
             ("c", (str(gemma.warning()),)),
+            # Reddedilen bloklar yeniden işlemeyle düzelmez: sorguya düşmez.
+            ("d", (str(CloudOutage(rejected_blocks=2, rejected_status=413).rejection_warning()),)),
         )
         for doc_id, warnings in documents:
             await repository.create_document(_document(doc_id))

@@ -388,6 +388,7 @@ def cloud_reader(
             except Exception as error:  # okuma durmaz; çağıran yedeğe geçer ya da değeri gizler
                 if _rejected_request(error):
                     logger.warning("Bulut bu bloğu reddetti; yalnız blok yedeğe düşer: %s", error)
+                    outage.reject(cast(httpx.HTTPStatusError, error).response.status_code)
                 else:
                     outage.reasons[model] = repr(error)[:200]
                     logger.warning(

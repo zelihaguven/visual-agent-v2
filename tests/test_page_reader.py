@@ -20,6 +20,7 @@ from visual_agent.domain.document import Box
 from visual_agent.ingest import page_reader
 from visual_agent.ingest.elements import (
     CLOUD_OUTAGE,
+    CLOUD_OUTAGE_MARK,
     INGEST_PROGRESS,
     CloudOutage,
     ElementKind,
@@ -1050,6 +1051,13 @@ def test_only_errors_beyond_the_block_open_the_circuit(
         CLOUD_OUTAGE.reset(token)
 
     assert (QWEN in outage.reasons) is opens
+    assert (outage.rejected_blocks, outage.rejected_status) == ((0, None) if opens else (1, status))
+    rejection = outage.rejection_warning()
+    if opens:
+        assert rejection is None
+    else:
+        assert rejection is not None and f"HTTP {status}" in rejection
+        assert CLOUD_OUTAGE_MARK not in rejection
     assert len(server.bodies) == (0 if opens else 1)  # ikinci blok buluta gitti mi
     assert elements[0].ocr_uncertain == ("185",)  # ilk blok Tesseract'la (boş okuma) denetlendi
     assert elements[1].ocr_uncertain == (("12",) if opens else ())
@@ -1344,3 +1352,14 @@ def test_retry_after_that_is_not_a_finite_number_is_ignored(
     _, waits, outage, text = _limited_read(tmp_path, monkeypatch, 1, header)
 
     assert (text, waits, outage.reasons) == ("Basınç 185 bar", [2.0], {})
+
+
+def test_rejection_warning_keeps_the_first_status() -> None:
+    outage = CloudOutage()
+    outage.reject(413)
+    outage.reject(400)
+
+    assert outage.rejection_warning() == (
+        "2 blok bulutça reddedildi (HTTP 413); Tesseract'la denetlendi ya da şekil bloğu okunmadı."
+    )
+    assert outage.warning() is None  # devre açılmadı

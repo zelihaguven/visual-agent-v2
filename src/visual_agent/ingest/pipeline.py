@@ -264,9 +264,11 @@ def ingest_document(path: Path, meta: DocumentMeta, tools: IngestTools, work: Pa
         parsed = _parse(path, input_format, tools, work)
     finally:
         CLOUD_OUTAGE.reset(token)
-    if (warning := outage.warning()) is not None:
+    cloud = [w for w in (outage.warning(), outage.rejection_warning()) if w is not None]
+    for warning in cloud:
         logger.warning("%s: %s", meta.doc_id, warning)
-        parsed = replace(parsed, warnings=(*parsed.warnings, warning))
+    if cloud:
+        parsed = replace(parsed, warnings=(*parsed.warnings, *cloud))
     report_progress("chunks")
     chunks = tuple(build_chunks(parsed.elements, meta))
     report = _build_report(meta, input_format, chunks, parsed)

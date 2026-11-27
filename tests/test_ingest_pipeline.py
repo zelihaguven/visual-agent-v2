@@ -388,6 +388,27 @@ def test_unavailable_reader_stops_the_document(
     assert not any(call.startswith("parse") for call in calls)
 
 
+def test_blocks_rejected_by_the_cloud_get_their_own_warning(tmp_path: Path) -> None:
+    """Bloğa özgü 4xx devreyi açmaz ama içerik kaybı sessiz kalmaz (kural 3)."""
+    path = tmp_path / "tarama.pdf"
+    path.write_bytes(b"%PDF-x")
+
+    def reject(path: Path, pages: list[int], work: Path, image: Path | None) -> list[Element]:
+        outage = CLOUD_OUTAGE.get()
+        assert outage is not None
+        outage.rejected_blocks, outage.rejected_status, outage.fallback_blocks = 2, 413, 1
+        return []
+
+    tools = replace(_fake_tools([], page_kind=PageKind.NONE), read_scanned_pages=reject)
+    warnings = ingest_document(path, META, tools, tmp_path).report.warnings
+
+    assert (
+        "2 blok bulutça reddedildi (HTTP 413); Tesseract'la denetlendi ya da şekil bloğu okunmadı."
+        in warnings
+    )
+    assert not any("bulut alınamadı" in warning for warning in warnings)
+
+
 def test_cloud_outage_is_one_warning_per_document(tmp_path: Path) -> None:
     """Devre kesicinin durumu belge başınadır: bir belgenin kesintisi sonrakine geçmez."""
     path = tmp_path / "tarama.pdf"
