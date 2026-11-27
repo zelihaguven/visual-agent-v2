@@ -21,6 +21,7 @@ import io
 import ipaddress
 import json
 import logging
+import math
 import re
 import tempfile
 from collections import Counter
@@ -277,7 +278,9 @@ def _rate_limit_wait(response: httpx.Response, attempt: int) -> float:
     wait: float = _RATE_LIMIT_FIRST_WAIT * 2**attempt
     if header:
         try:
-            wait = float(header)
+            seconds = float(header)
+            if math.isfinite(seconds):  # "nan" ve "inf" yok sayılır
+                wait = seconds
         except ValueError:
             try:
                 when = email.utils.parsedate_to_datetime(header)

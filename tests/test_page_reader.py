@@ -1335,3 +1335,12 @@ def test_outage_counts_skipped_and_unchecked_figure_blocks(tmp_path: Path) -> No
     assert (
         unchecked.warning() == "1 şekil bloğunun değerleri gizlendi; bulut alınamadı (model: hata)."
     )
+
+
+@pytest.mark.parametrize("header", ["nan", "inf", "-inf"])
+def test_retry_after_that_is_not_a_finite_number_is_ignored(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, header: str
+) -> None:
+    _, waits, outage, text = _limited_read(tmp_path, monkeypatch, 1, header)
+
+    assert (text, waits, outage.reasons) == ("Basınç 185 bar", [2.0], {})

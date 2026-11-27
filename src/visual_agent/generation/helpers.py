@@ -59,8 +59,8 @@ class JsonModel:
                 "temperature": 0,
                 "max_tokens": max_tokens,
                 "reasoning": {"enabled": False},
-                "provider": self._constraints(),
                 **extra,
+                "provider": self._constraints(),  # en sonda: ZDR kısıtı ezilemez
             },
         )
         response.raise_for_status()
