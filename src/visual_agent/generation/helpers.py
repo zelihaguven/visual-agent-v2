@@ -4,6 +4,7 @@ Sorgu çevirisi, takip sorusunu tamamlama, niyet sınıflandırma ve belge konu 
 buradan geçmez (`openrouter.py`).
 """
 
+import base64
 import json
 import re
 from collections.abc import Awaitable, Callable, Mapping, Sequence
@@ -48,22 +49,18 @@ class JsonModel:
             constraints["ignore"] = list(self.ignored_providers)
         return constraints
 
-    async def complete(self, system: str, user: str, max_tokens: int) -> dict[str, Any]:
-        """Modelin döndürdüğü JSON nesnesi; nesne yoksa boş sözlük."""
+    async def _content(self, messages: list[dict[str, Any]], max_tokens: int, **extra: Any) -> str:
         response = await self.http.post(
             f"{self.base_url}/chat/completions",
             headers={"Authorization": f"Bearer {self.api_key}"},
             json={
                 "model": self.model,
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                ],
+                "messages": messages,
                 "temperature": 0,
                 "max_tokens": max_tokens,
                 "reasoning": {"enabled": False},
-                "response_format": {"type": "json_object"},
                 "provider": self._constraints(),
+                **extra,
             },
         )
         response.raise_for_status()
@@ -71,10 +68,25 @@ class JsonModel:
         used = HELPER_PROVIDERS.get()
         if used is not None and body.get("provider"):
             used.append(str(body["provider"]))
-        content = body["choices"][0]["message"]["content"] or ""
+        return str(body["choices"][0]["message"]["content"] or "")
+
+    async def complete(self, system: str, user: str, max_tokens: int) -> dict[str, Any]:
+        """Modelin döndürdüğü JSON nesnesi; nesne yoksa boş sözlük."""
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+        content = await self._content(messages, max_tokens, response_format={"type": "json_object"})
         match = _OBJECT_RE.search(content)
         parsed: dict[str, Any] = json.loads(match.group(0)) if match else {}
         return parsed
+
+    async def read_image(self, prompt: str, png: bytes, max_tokens: int) -> str:
+        """Görüntü okuması (sayfa okuyucusunun ikinci okuması): modelin düz metni. Çıktı biçimi
+        istemdedir; ölçümdeki istek gibi yanıt biçimi kısıtı konmaz."""
+        image = "data:image/png;base64," + base64.b64encode(png).decode()
+        content = [
+            {"type": "text", "text": prompt},
+            {"type": "image_url", "image_url": {"url": image}},
+        ]
+        return await self._content([{"role": "user", "content": content}], max_tokens)
 
 
 # --- intent ------------------------------------------------------------------------------------

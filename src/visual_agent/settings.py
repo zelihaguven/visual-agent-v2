@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     # "<arka uç>@<adres>", ör. "mlx-vlm-server@http://localhost:8111/". Boşsa bu sayfaları
     # olan belgeler okuyucuyu bekler.
     page_reader: str | None = None
+    # Sayfa okuyucusunun ikinci okuması ve şekil blokları (karar 0035; OpenRouter, yalnız ZDR).
+    # Anahtar yoksa ikinci okuma Tesseract, şekil blokları okunmaz. Bulut cevapları önbellekte
+    # saklanır: aynı kırpıntı yeniden işlemede ikinci kez ödenmez.
+    reader_model: str = "qwen/qwen3-vl-30b-a3b-instruct"
+    reader_figure_check_model: str = "google/gemma-4-26b-a4b-it"
+    reader_cache_directory: str = "data/okuma-onbellegi"
     openrouter_api_key: SecretStr | None = None
     openrouter_url: AnyHttpUrl = AnyHttpUrl("https://openrouter.ai/api/v1")
     answer_model: str = "google/gemma-4-26b-a4b-it"

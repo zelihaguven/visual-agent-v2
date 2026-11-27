@@ -83,9 +83,12 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     # 25 (PDF, Office): metinli sayfadaki gömülü görseller sayfa okuyucusuyla okunur (0028).
     # 26 (PDF, Office; görsel 17): okuyucunun LaTeX kesri çift parantezli argümanla ve kesri
     #    saran grup parantezle de kesre çevrilir ("1\\frac{{1}}{{8}}", "-{1\\frac{1}{4}}").
-    InputFormat.PDF: 26,
-    InputFormat.OFFICE: 26,
-    InputFormat.IMAGE: 17,
+    # 27 (PDF, Office; görsel 18): okuyucu yolunun ikinci okuması Qwen3-VL (alınamazsa
+    #    Tesseract); okuyucunun boş bıraktığı şekil blokları Qwen3-VL ile okunur, Gemma denetler
+    #    (karar 0035). Bulut anahtarı yoksa okuma 26 ile aynıdır.
+    InputFormat.PDF: 27,
+    InputFormat.OFFICE: 27,
+    InputFormat.IMAGE: 18,
     # Excel 5: altında satır olmayan başlık satırı başlık sayılmaz; satırları etiketsiz yazılır.
     # Excel 6: tek sütunlu sayfa başlıksızdır; her hücre ayrı, etiketsiz satır (ürün sahibi kararı).
     InputFormat.SPREADSHEET: 6,
@@ -137,6 +140,7 @@ _CHANGED_PAGE_KINDS = {
     23: ("weak", "scanned", "text"),
     24: ("text",),
     25: ("none", "weak", "scanned", "text"),
+    26: ("none", "weak", "scanned", "text"),
 }
 """Bu sürümden bir sonrakine geçiş yalnız bu tür sayfası olan belgelerin çıktısını değiştirdi:
 7→8 taranmış sayfalar sayfa okuyucusuna gitti ("scanned": OCR katmanlı tarama öyle kaydedilmiş
@@ -148,7 +152,8 @@ metinli sayfadaki gömülü görsellerin belirsiz değerleri; 21→22 metinli sa
 22→23 bütün sayfa türleri (bölüm yolu ortak kodda); 23→24 zayıf ya da taranmış metin katmanlı
 sayfalar (okuyucuya) ve metinli sayfalar (gömülü görseller okunmaz); 24→25 metinli sayfalar
 (gömülü görseller okuyucuyla okunur); 25→26 okuyucudan geçen bütün sayfalar (taranmış sayfa ve
-metinli sayfadaki gömülü görsel; LaTeX kesri)."""
+metinli sayfadaki gömülü görsel; LaTeX kesri); 26→27 yine okuyucudan geçen bütün sayfalar
+(ikinci okuma ve şekil blokları, 0035)."""
 _PAGE_FORMATS = (InputFormat.PDF, InputFormat.OFFICE, InputFormat.IMAGE)
 
 

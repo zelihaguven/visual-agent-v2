@@ -1,11 +1,14 @@
 """Sayfa okuyucusu: ölçülmüş kodun kopyası set A kaydıyla aynı sonucu verir; okuyucu yoksa
 belge bekler."""
 
+import base64
+import io
 import json
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
+import httpx
 import pypdfium2
 import pytest
 from PIL import Image, ImageDraw
@@ -817,3 +820,149 @@ def test_reading_without_a_progress_sink_reads_the_same(tmp_path: Path) -> None:
     finally:
         INGEST_PROGRESS.reset(token)
     assert heard == quiet
+
+
+# --- Bulut okuması (karar 0035) ---
+
+QWEN = "qwen/qwen3-vl-30b-a3b-instruct"
+
+
+class _OpenRouter:
+    """Sahte OpenRouter: ZDR dizini ve sohbet tamamlama; istekleri sayar."""
+
+    def __init__(self, reply: str = "", fail: bool = False) -> None:
+        self.reply, self.fail = reply, fail
+        self.bodies: list[dict[str, Any]] = []
+
+    def handle(self, request: httpx.Request) -> httpx.Response:
+        if self.fail:
+            raise httpx.ConnectError("ulaşılamadı", request=request)
+        if request.url.path.endswith("/endpoints/zdr"):
+            entry = {"model_id": QWEN, "tag": "zdr-saglayici", "safety_retention": False}
+            return httpx.Response(200, json={"data": [entry]})
+        self.bodies.append(json.loads(request.content))
+        return httpx.Response(200, json={"choices": [{"message": {"content": self.reply}}]})
+
+    def config(self, cache: Path) -> page_reader.CloudConfig:
+        return page_reader.CloudConfig(
+            base_url="https://openrouter.test/api/v1",
+            api_key="test",
+            cache=cache,
+            reader_model=QWEN,
+            figure_check_model="google/gemma-4-26b-a4b-it",
+            transport=httpx.MockTransport(self.handle),
+        )
+
+
+def _qwen_check(server: _OpenRouter, cache: Path) -> page_reader.SecondReader:
+    config = server.config(cache)
+    return page_reader.cloud_reader(
+        config, config.reader_model, page_reader.CHECK_PROMPT, page_reader.CHECK_MAX_TOKENS
+    )
+
+
+def _paddle(content: str, label: str = "text") -> Any:
+    def read_page(image: Path) -> dict[str, Any]:
+        width, height = Image.open(image).size
+        block = {**_block(0, label, content), "block_bbox": [100, 100, 300, 160]}
+        return {"width": width, "height": height, "parsing_res_list": [block]}
+
+    return read_page
+
+
+def test_qwen_check_hides_a_value_paddle_read_differently(tmp_path: Path) -> None:
+    """İkinci okuma Qwen3-VL: buluta yalnız bloğun kırpıntısı gider, yalnız ZDR sağlayıcıyla."""
+    server = _OpenRouter(reply="Basınç 135 bar, kod ZP-4471")
+    tesseract_calls: list[Image.Image] = []
+
+    def tesseract(image: Image.Image) -> str:
+        tesseract_calls.append(image)
+        return "Basınç 185 bar, kod ZP-4471"
+
+    second = page_reader.with_fallback(_qwen_check(server, tmp_path / "onbellek"), tesseract)
+    [element] = read_scanned_pages(
+        _scan(tmp_path / "t.pdf"), [1], tmp_path, _paddle("Basınç 185 bar, kod ZP-4471"), second
+    )
+
+    assert element.ocr_uncertain == ("185",)
+    assert tesseract_calls == []
+    [body] = server.bodies
+    assert body["model"] == QWEN
+    assert body["provider"]["zdr"] is True
+    assert body["provider"]["only"] == ["zdr-saglayici"]
+    image_part = body["messages"][0]["content"][1]["image_url"]["url"]
+    sent = Image.open(io.BytesIO(base64.b64decode(image_part.split(",", 1)[1])))
+    assert sent.size == (208, 68)  # blok + 4 piksel kenar, bütün sayfa (600x800) değil
+
+
+def test_unreachable_qwen_falls_back_to_tesseract_and_reading_completes(tmp_path: Path) -> None:
+    server = _OpenRouter(fail=True)
+    second = page_reader.with_fallback(
+        _qwen_check(server, tmp_path / "onbellek"), lambda _: "Basınç 135 bar"
+    )
+
+    [element] = read_scanned_pages(
+        _scan(tmp_path / "t.pdf"), [1], tmp_path, _paddle("Basınç 185 bar"), second
+    )
+
+    assert element.text == "Basınç 185 bar"
+    assert element.ocr_uncertain == ("185",)  # Tesseract'ın okumasıyla denetlendi
+
+
+def test_same_crop_is_paid_once_even_by_a_new_reader(tmp_path: Path) -> None:
+    server = _OpenRouter(reply="Basınç 185 bar")
+    crop = Image.new("RGB", (40, 20), "white")
+    ImageDraw.Draw(crop).rectangle((5, 5, 30, 15), fill="black")
+
+    first = _qwen_check(server, tmp_path)(crop)
+    again = _qwen_check(server, tmp_path)(crop.copy())  # yeniden işleme: yeni okuyucu
+
+    assert first == again == "Basınç 185 bar"
+    assert len(server.bodies) == 1
+
+
+def _json(*lines: str) -> str:
+    return json.dumps({"lines": list(lines), "tables": []})
+
+
+def _read_figure(
+    tmp_path: Path, qwen: page_reader.SecondReader, gemma: page_reader.SecondReader
+) -> list[Any]:
+    figures = page_reader.FigureReaders(read=qwen, check=gemma)
+    return read_scanned_pages(
+        _scan(tmp_path / "t.pdf"), [1], tmp_path, _paddle("", label="image"), str, figures=figures
+    )
+
+
+def _unavailable(_: Image.Image) -> str:
+    raise page_reader.CloudUnavailable("ulaşılamadı")
+
+
+def test_figure_block_values_are_shown_only_when_qwen_and_gemma_agree(tmp_path: Path) -> None:
+    agree = _read_figure(tmp_path, lambda _: _json("Tork 12 Nm"), lambda _: _json("Tork 12 Nm"))
+    differ = _read_figure(tmp_path, lambda _: _json("Tork 12 Nm"), lambda _: _json("Tork 13 Nm"))
+    unchecked = _read_figure(tmp_path, lambda _: _json("Tork 12 Nm"), _unavailable)
+
+    assert [(e.text, e.ocr_uncertain, e.from_ocr) for e in agree] == [("Tork 12 Nm", (), True)]
+    assert [e.ocr_uncertain for e in differ] == [("12",)]
+    assert [e.ocr_uncertain for e in unchecked] == [("12",)]
+    box = agree[0].location.boxes[0]
+    assert (box.left, box.top, box.right, box.bottom) == (100, 100, 300, 160)
+
+
+def test_figure_block_is_skipped_when_qwen_fails_or_no_cloud(tmp_path: Path) -> None:
+    assert _read_figure(tmp_path, _unavailable, lambda _: _json("Tork 12 Nm")) == []
+    no_cloud = read_scanned_pages(
+        _scan(tmp_path / "t.pdf"), [1], tmp_path, _paddle("", label="image"), str
+    )
+    assert no_cloud == []
+
+
+def test_figure_table_is_read_as_a_table() -> None:
+    content = json.dumps({"lines": ["Ölçü"], "tables": [{"rows": [["A", "B"], ["1 <2", ""]]}]})
+
+    assert page_reader.figure_parts(content) == [
+        ("text", "Ölçü"),
+        ("table", "<table><tr><td>A</td><td>B</td></tr><tr><td>1 &lt;2</td><td></td></tr></table>"),
+    ]
+    assert page_reader.figure_parts("okunamadı") is None
