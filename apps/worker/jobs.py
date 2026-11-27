@@ -14,7 +14,7 @@ from visual_agent.catalog.repository import StoredDocument
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk, DocumentMeta
 from visual_agent.ingest.external import ConversionFailed, MissingTool, ReaderUnavailable
 from visual_agent.ingest.formats import UnsupportedFormat
-from visual_agent.ingest.page_reader import READ_PROGRESS, ReadProgress
+from visual_agent.ingest.page_reader import READ_PROGRESS, ReadKind, ReadProgress, ReadState
 from visual_agent.ingest.pipeline import IngestReport, IngestResult
 
 logger = logging.getLogger(__name__)
@@ -23,8 +23,6 @@ _GENERIC_FAILURE = "Belge işlenemedi. Dosyanın bozuk olmadığını kontrol ed
 _DISPLAY_NAME = "display.pdf"
 
 Ingest = Callable[[Path, DocumentMeta, Path], IngestResult]
-ReadingProgress = tuple[str, int, int]
-"""İşlenen belgenin okuyucu adımı: ("page" ya da "image", okunan, toplam)."""
 
 
 class JobRepository(Protocol):
@@ -59,7 +57,7 @@ class DocumentProcessor:
         indexer: Indexer,
         ingest: Ingest,
         topics: TopicAssigner | None = None,
-        progress: MutableMapping[str, ReadingProgress] | None = None,
+        progress: MutableMapping[str, ReadState] | None = None,
     ) -> None:
         """progress: işlenen belgenin okuma ilerlemesi buraya yazılır (API okur); iş bitince
         silinir. Bellektedir: uygulama yeniden başlarsa iş de baştan başlar."""
@@ -105,7 +103,7 @@ class DocumentProcessor:
         if board is None:
             return None
 
-        def record(kind: str, done: int, total: int) -> None:
+        def record(kind: ReadKind, done: int, total: int) -> None:
             board[doc_id] = (kind, done, total)
 
         return record
@@ -130,6 +128,9 @@ class DocumentProcessor:
                 result = await asyncio.to_thread(self._ingest, source, meta, Path(work))
             finally:
                 READ_PROGRESS.reset(token)
+                # Okuma bitti: indeksleme sırasında dolu çubuk takılmış gibi görünmesin.
+                if self._progress is not None:
+                    self._progress.pop(document.doc_id, None)
             display = self._keep_display_pdf(result.display_pdf, source)
         await self._indexer.index(document.doc_id, result.chunks)
         try:

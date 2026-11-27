@@ -15,7 +15,7 @@ from visual_agent.ingest.external import (
     MissingTool,
     ReaderUnavailable,
 )
-from visual_agent.ingest.page_reader import READ_PROGRESS
+from visual_agent.ingest.page_reader import READ_PROGRESS, ReadState
 from visual_agent.ingest.pipeline import IngestReport, IngestResult
 
 
@@ -347,8 +347,8 @@ def test_document_waits_when_the_page_reader_is_unavailable(tmp_path: Path) -> N
 
 
 def _reading_ingest(
-    seen: list[dict[str, tuple[str, int, int]]],
-    board: dict[str, tuple[str, int, int]],
+    seen: list[dict[str, ReadState]],
+    board: dict[str, ReadState],
     error: bool = False,
 ) -> Callable[[Path, DocumentMeta, Path], IngestResult]:
     """Okuyucunun yaptığı gibi ilerleme bildirir ve o anki kaydı not eder."""
@@ -370,15 +370,23 @@ def _reading_ingest(
 def test_reading_progress_is_shown_while_reading_and_cleared_afterwards(
     tmp_path: Path, error: bool
 ) -> None:
-    board: dict[str, tuple[str, int, int]] = {}
-    seen: list[dict[str, tuple[str, int, int]]] = []
+    board: dict[str, ReadState] = {}
+    seen: list[dict[str, ReadState]] = []
     repository = FakeRepository(queued=[document(tmp_path)])
+    at_indexing: list[dict[str, ReadState]] = []
+
+    class WatchingIndexer(FakeIndexer):
+        async def index(self, doc_id: str, chunks: Sequence[Chunk]) -> None:
+            at_indexing.append(dict(board))
+            await super().index(doc_id, chunks)
+
     processor = DocumentProcessor(
-        repository, FakeIndexer(), _reading_ingest(seen, board, error), progress=board
+        repository, WatchingIndexer(), _reading_ingest(seen, board, error), progress=board
     )
 
     asyncio.run(processor.process_next())
 
     assert seen == [{"d": ("image", 2, 2)}]
+    assert at_indexing == ([] if error else [{}])  # okuma bitince çubuk kalkar
     assert board == {}
     assert READ_PROGRESS.get() is None

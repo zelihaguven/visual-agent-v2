@@ -21,7 +21,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass, replace
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Literal, cast
 from urllib.parse import urlsplit
 
 import httpx
@@ -504,14 +504,16 @@ def is_ocr_layer(page: Any, page_area: float) -> bool:
 
 
 ReadPage = Callable[[Path], dict[str, Any]]
-ReadProgress = Callable[[str, int, int], None]
-"""(ne okunuyor: "page" ya da "image", okunan, toplam); arayüzdeki ilerleme çubuğu için."""
+ReadKind = Literal["page", "image"]
+ReadState = tuple[ReadKind, int, int]
+"""Okuyucu adımının durumu: (ne okunuyor, okunan, toplam); arayüzdeki ilerleme çubuğu için."""
+ReadProgress = Callable[[ReadKind, int, int], None]
 READ_PROGRESS: ContextVar[ReadProgress | None] = ContextVar("read_progress", default=None)
 """Okumayı başlatan kurar (işçi); kurulmadıysa ilerleme bildirilmez. Okumanın kendisini
 etkilemez."""
 
 
-def _report_progress(kind: str, done: int, total: int) -> None:
+def _report_progress(kind: ReadKind, done: int, total: int) -> None:
     sink = READ_PROGRESS.get()
     if sink is not None:
         sink(kind, done, total)

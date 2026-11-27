@@ -21,6 +21,7 @@ from visual_agent.catalog.identifiers import SnapshotProvider, build_identifier_
 from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.catalog.repository import DocumentRepository, open_repository
 from visual_agent.domain.result import AskOutcome, Failed
+from visual_agent.ingest.page_reader import ReadState
 from visual_agent.retrieval.hybrid import HybridRetriever
 from visual_agent.retrieval.qdrant_store import COLLECTION, QdrantChunkStore, open_client
 from visual_agent.settings import Settings
@@ -113,7 +114,7 @@ async def _process_documents(
     encoders: SharedEncoders,
     stop: asyncio.Event,
     settings: Settings,
-    progress: MutableMapping[str, tuple[str, int, int]],
+    progress: MutableMapping[str, ReadState],
 ) -> None:
     """İşçi API sürecinde: gömülü Qdrant klasörü ve embedding modeli paylaşılır; okuma
     ilerlemesi `progress` sözlüğüyle API'ye geçer.
@@ -172,7 +173,7 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
     storage = Path(settings.storage_directory)
     storage.mkdir(parents=True, exist_ok=True)
     stop = asyncio.Event()
-    progress: dict[str, tuple[str, int, int]] = {}
+    progress: dict[str, ReadState] = {}
     async with httpx.AsyncClient() as http:
         runtime = AskRuntime(settings, http, store, SnapshotProvider(repository), encoders)
         background = [

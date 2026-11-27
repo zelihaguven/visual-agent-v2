@@ -41,6 +41,7 @@ from visual_agent.domain.result import (
     SmallTalk,
 )
 from visual_agent.ingest.formats import UnsupportedFormat, detect_format, is_outdated
+from visual_agent.ingest.page_reader import ReadKind, ReadState
 from visual_agent.settings import Settings
 from visual_agent.voice.client import Voice
 
@@ -95,7 +96,7 @@ class ApiServices:
     remove_vectors: RemoveVectors = _no_vectors
     question_log: QuestionRecorder | None = None
     document_names: DocumentNames = field(default_factory=DocumentNames)
-    reading_progress: Mapping[str, tuple[str, int, int]] = field(default_factory=dict)
+    reading_progress: Mapping[str, ReadState] = field(default_factory=dict)
     """İşçinin yazdığı okuma ilerlemesi: belge → ("page" ya da "image", okunan, toplam)."""
 
 
@@ -123,7 +124,7 @@ class AskBody(BaseModel):
 
 
 class ReadingProgress(BaseModel):
-    kind: Literal["page", "image"]
+    kind: ReadKind
     done: int
     total: int
 
@@ -146,7 +147,7 @@ class DocumentResponse(BaseModel):
 async def _document_response(
     document: StoredDocument,
     names: DocumentNames,
-    progress: Mapping[str, tuple[str, int, int]] | None = None,
+    progress: Mapping[str, ReadState] | None = None,
 ) -> DocumentResponse:
     async def itself(_: str) -> StoredDocument:
         return document
@@ -165,13 +166,13 @@ async def _document_response(
 
 
 def _reading_progress(
-    document: StoredDocument, progress: Mapping[str, tuple[str, int, int]]
+    document: StoredDocument, progress: Mapping[str, ReadState]
 ) -> ReadingProgress | None:
     found = progress.get(document.doc_id)
     if found is None or document.status != DocumentStatus.PROCESSING:
         return None
     kind, done, total = found
-    return ReadingProgress.model_validate({"kind": kind, "done": done, "total": total})
+    return ReadingProgress(kind=kind, done=done, total=total)
 
 
 def _result_payload(result: AskResult) -> dict[str, object]:

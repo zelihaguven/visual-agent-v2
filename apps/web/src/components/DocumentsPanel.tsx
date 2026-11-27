@@ -324,7 +324,7 @@ function ReadingBar({ progress }: { progress: ReadingProgress }) {
   return (
     <div className="document-progress">
       <progress max={progress.total} value={progress.done} aria-label={`Okunuyor: ${label}`} />
-      <span>{label}</span>
+      <span aria-hidden="true">{label}</span>
     </div>
   );
 }
