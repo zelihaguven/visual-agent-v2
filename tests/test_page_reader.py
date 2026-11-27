@@ -1193,3 +1193,50 @@ def test_figure_table_is_read_as_a_table() -> None:
         ("table", "<table><tr><td>A</td><td>B</td></tr><tr><td>1 &lt;2</td><td></td></tr></table>"),
     ]
     assert page_reader.figure_parts("okunamadı") is None
+
+
+def _no_blocks(image: Path) -> dict[str, Any]:
+    width, height = Image.open(image).size
+    return {"width": width, "height": height, "parsing_res_list": []}
+
+
+def _counting_cloud(calls: list[str]) -> page_reader.CloudReaders:
+    def figure(crop: Image.Image) -> str:
+        calls.append(f"{crop.width}x{crop.height}")
+        return _json("Tork 12 Nm")
+
+    return _cloud(lambda _: "", figure_read=figure, figure_check=lambda _: _json("Tork 12 Nm"))
+
+
+def test_page_without_layout_blocks_is_read_as_one_figure(tmp_path: Path) -> None:
+    """Metin katmanı olmayan sayfada düzen modeli blok bulamazsa sayfa tek şekil bloğudur."""
+    calls: list[str] = []
+
+    [element] = _read(tmp_path, _no_blocks, str, _counting_cloud(calls))
+
+    assert calls == ["600x800"]
+    assert (element.text, element.ocr_uncertain, element.from_ocr) == ("Tork 12 Nm", (), True)
+    box = element.location.boxes[0]
+    assert (box.left, box.top, box.right, box.bottom) == (0, 0, 600, 800)
+
+
+def test_whole_page_figure_only_when_the_layout_found_nothing(tmp_path: Path) -> None:
+    calls: list[str] = []
+
+    elements = _read(tmp_path, _paddle("Basınç 185 bar"), str, _counting_cloud(calls))
+    no_cloud = _read(tmp_path, _no_blocks, str, None)
+
+    assert [e.text for e in elements] == ["Basınç 185 bar"]
+    assert calls == []
+    assert no_cloud == []
+
+
+def test_embedded_image_on_a_text_page_is_not_read_as_a_whole_page(tmp_path: Path) -> None:
+    calls: list[str] = []
+    scan = _scan(tmp_path / "t.pdf")
+
+    elements = read_embedded_images(
+        scan, [_region(50, 80, 350, 180)], tmp_path, _no_blocks, str, _counting_cloud(calls)
+    )
+
+    assert (elements, calls) == ([], [])

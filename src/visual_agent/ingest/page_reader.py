@@ -823,9 +823,12 @@ def _read_image(
     read_page: ReadPage | None,
     second: SecondReader,
     cloud: CloudReaders | None,
+    whole_page: bool = False,
 ) -> _Reading | None:
     """Okuyucu sonucu, ikinci okumanın işaretleri ve şekil blokları; görüntü boşsa None (okuyucu
-    gerekmez). Bulut yoksa ikinci okuma `second`, şekil blokları bugünkü gibi atlanır."""
+    gerekmez). Bulut yoksa ikinci okuma `second`, şekil blokları bugünkü gibi atlanır.
+    whole_page: görüntü metin katmanı olmayan bir sayfanın tamamı; düzen modeli üzerinde hiç
+    blok bulamazsa (Bold s.14) sayfa tek şekil bloğu sayılır ve şekil gibi okunur."""
     if _is_blank(image):
         return None
     if read_page is None:
@@ -835,6 +838,10 @@ def _read_image(
     marks = second_reading_marks(data, image, _checker(second, cloud))
     if cloud is None:
         return data, marks, {}
+    if whole_page and not data["parsing_res_list"]:
+        width, height = data.get("width") or image.width, data.get("height") or image.height
+        page_block = {"block_id": 0, "block_label": "image", "block_content": ""}
+        data = {**data, "parsing_res_list": [{**page_block, "block_bbox": [0, 0, width, height]}]}
     read, figure_marks = read_figures(data, image, cloud)
     return data, {**marks, **figure_marks}, read
 
@@ -921,7 +928,7 @@ def read_scanned_pages(
             else:
                 image = page.render(scale=_native_scale(page)).to_pil().convert("RGB")
             source = work / f"okuyucu-s{number}.png"
-            read = _read_image(image, source, read_page, second, cloud)
+            read = _read_image(image, source, read_page, second, cloud, whole_page=True)
             if read is not None:  # boş sayfada okunacak bir şey yok, okuyucu da gerekmez
                 data, marks, shapes = read
                 learned: set[HeaderKey] = set()
