@@ -14,17 +14,16 @@ from tests.test_voice_api import make_client as voice_client
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.orchestrator import answer_question
 from visual_agent.catalog.identifiers import build_identifier_index
-from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.document import DocumentMeta
 from visual_agent.domain.result import (
     Answered,
+    ConversationContext,
     Inventory,
     InventoryDocument,
     NotFound,
     SmallTalk,
 )
-from visual_agent.generation.intent import Intent, make_intent_classifier
-from visual_agent.generation.json_model import JsonModel
+from visual_agent.generation.helpers import Intent, JsonModel, make_intent_classifier
 
 NOT_FOUND = {"tur": "bulunamadi", "cevap": [], "celiski_var": False}
 ANSWER = {

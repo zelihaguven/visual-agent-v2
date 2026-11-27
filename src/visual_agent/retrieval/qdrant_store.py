@@ -2,12 +2,12 @@
 
 import uuid
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
 from qdrant_client import AsyncQdrantClient, models
 
 from visual_agent.domain.document import Chunk
-from visual_agent.retrieval.fusion import ScoredChunk
 
 COLLECTION = "documents"
 """Uygulamanın parça koleksiyonu; uygulama, işçi ve belge klasörü ölçümü aynı adı kullanır."""
@@ -17,6 +17,12 @@ _POINT_NAMESPACE = uuid.UUID("7a1e9d10-3f5b-4a54-9c0e-0d3b2f6a8c11")
 _UPSERT_BATCH = 64
 
 SparseVector = Mapping[int, float]
+
+
+@dataclass(frozen=True)
+class ScoredChunk:
+    chunk: Chunk
+    score: float
 
 
 def open_client(url: str, path: str | None) -> AsyncQdrantClient:

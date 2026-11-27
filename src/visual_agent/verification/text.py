@@ -2,8 +2,11 @@
 
 import re
 import unicodedata
+from collections.abc import Iterable
 
 from markdown_it import MarkdownIt
+
+from visual_agent.domain.result import MAX_QUESTION_CHARS
 
 # Bir sayı bütün ayraçlarıyla tek değerdir: "1,234.50" ve "12.05.2024" bölünmez. Sahiplenici
 # (possessive) eşleşme geri çekilmez; sayının yalnız başı ayrı bir değer olarak yakalanamaz.
@@ -383,3 +386,31 @@ def identifiers_in(text: str) -> set[str]:
     quoted = {fold_identifier(match) for match in _BACKTICK_RE.findall(canon)}
     remainder = _BACKTICK_RE.sub(" ", canon)
     return quoted | {fold_identifier(m.group(0)) for m in _IDENTIFIER_RE.finditer(remainder)}
+
+
+# --- grounding -----------------------------------------------------------------------------------
+# Tamamlanan soruda kullanıcının söylemediği bir değer olmamasını denetler.
+
+_MARKED_TOKEN_RE = re.compile(r"(?<![\w-])[A-ZÇĞİÖŞÜ0-9][A-ZÇĞİÖŞÜ0-9_.,/-]*(?!\w)")
+_WORD_RE = re.compile(r"[\w.,/-]+")
+_TOKEN_EDGES = ".,/-"
+
+
+def _words(text: str) -> set[str]:
+    return {word.strip(_TOKEN_EDGES) for word in _WORD_RE.findall(normalize(text))}
+
+
+def marked_tokens(text: str) -> set[str]:
+    """Rakam içeren ya da tamamı büyük harf olan sözcükler: kod, sayı, beden."""
+    return {normalize(token).strip(_TOKEN_EDGES) for token in _MARKED_TOKEN_RE.findall(text)}
+
+
+def is_grounded(rewritten: str, inputs: Iterable[str]) -> bool:
+    if not rewritten.strip() or len(rewritten) > MAX_QUESTION_CHARS:
+        return False
+    sources = list(inputs)
+    known_words = set().union(*(_words(source) for source in sources))
+    known_identifiers = set().union(*(identifiers_in(source) for source in sources))
+    return (
+        identifiers_in(rewritten) <= known_identifiers and marked_tokens(rewritten) <= known_words
+    )

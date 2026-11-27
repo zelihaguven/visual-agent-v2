@@ -10,7 +10,7 @@ from visual_agent.ask.deps import AskDeps
 from visual_agent.ask.steps import AskState, start_translation
 from visual_agent.catalog.memory import DocumentCatalog, squash
 from visual_agent.domain.result import AskResult, Inventory, InventoryDocument, SmallTalk
-from visual_agent.generation.intent import Intent, IntentClassifier
+from visual_agent.generation.helpers import Intent, IntentClassifier
 from visual_agent.verification.text import identifiers_in, normalize
 
 logger = logging.getLogger(__name__)

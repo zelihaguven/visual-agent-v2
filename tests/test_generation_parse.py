@@ -3,7 +3,7 @@ import json
 import pytest
 
 from visual_agent.domain.answer import MIN_CLARIFY_OPTIONS, AnswerKind, ModelAnswer
-from visual_agent.generation.parse import ParseFailure, ParseFailureReason, parse_answer
+from visual_agent.generation.sources import ParseFailure, ParseFailureReason, parse_answer
 
 VALID = {
     "tur": "cevap",

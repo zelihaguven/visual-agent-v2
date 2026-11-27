@@ -11,7 +11,6 @@ from visual_agent.ask.agreement import agreed_answer, candidate_documents
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.language import detect_language
 from visual_agent.ask.streaming import INCOMPLETE_MESSAGE, StreamAssembler
-from visual_agent.conversation.grounding import marked_tokens
 from visual_agent.domain.answer import (
     AnswerKind,
     ItemCheck,
@@ -32,8 +31,12 @@ from visual_agent.domain.result import (
     NotFound,
 )
 from visual_agent.generation.openrouter import AttemptRecord, ServiceUnavailable, StreamCallbacks
-from visual_agent.generation.parse import ParseFailure, parse_answer
-from visual_agent.generation.sources import build_user_message, to_prompt_sources
+from visual_agent.generation.sources import (
+    ParseFailure,
+    build_user_message,
+    parse_answer,
+    to_prompt_sources,
+)
 from visual_agent.verification.answer import (
     ABSENCE_CLAIM,
     Sources,
@@ -41,7 +44,7 @@ from visual_agent.verification.answer import (
     safe_clarify_question,
     verify_answer,
 )
-from visual_agent.verification.text import identifiers_in, normalize
+from visual_agent.verification.text import identifiers_in, marked_tokens, normalize
 
 logger = logging.getLogger(__name__)
 

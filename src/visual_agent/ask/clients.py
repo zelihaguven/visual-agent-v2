@@ -1,14 +1,16 @@
 """Soru hattının model istemcileri ve bağımlılıkları; uygulama ve ölçüm aynı yerden kurar."""
 
-from dataclasses import dataclass
-
 import httpx
 
 from visual_agent.ask.deps import AskDeps, Retriever
 from visual_agent.catalog.identifiers import IdentifierIndex
 from visual_agent.catalog.memory import DocumentCatalog
-from visual_agent.generation.intent import IntentClassifier, make_intent_classifier
-from visual_agent.generation.json_model import JsonModel
+from visual_agent.generation.helpers import (
+    JsonModel,
+    make_intent_classifier,
+    make_rewriter,
+    make_translator,
+)
 from visual_agent.generation.openrouter import (
     AnswerClient,
     AnswerClientOptions,
@@ -17,18 +19,7 @@ from visual_agent.generation.openrouter import (
     select_providers,
 )
 from visual_agent.generation.prompts import load_answer_prompt, load_answer_schema
-from visual_agent.generation.rewrite import Rewriter, make_rewriter
-from visual_agent.generation.translate import Translator, make_translator
 from visual_agent.settings import Settings
-
-
-@dataclass(frozen=True)
-class ModelClients:
-    answer: AnswerClient
-    translator: Translator
-    rewriter: Rewriter
-    intent_classifier: IntentClassifier
-    system_prompt: str
 
 
 def helper_model(
@@ -40,10 +31,18 @@ def helper_model(
     return JsonModel(http, url, api_key, settings.helper_model, providers, ignored)
 
 
-async def build_model_clients(
-    http: httpx.AsyncClient, settings: Settings, api_key: str
-) -> ModelClients:
-    """Yalnız veri saklamayan (ZDR) sağlayıcılarla cevap ve yardımcı model istemcileri."""
+async def build_ask_deps(
+    http: httpx.AsyncClient,
+    settings: Settings,
+    api_key: str,
+    catalog: DocumentCatalog,
+    identifiers: IdentifierIndex,
+    retriever: Retriever,
+) -> AskDeps:
+    """Yalnız veri saklamayan (ZDR) sağlayıcılarla cevap ve yardımcı model istemcileri.
+
+    Model istemcileri bir kez kurulur; katalog değişince çağıran `dataclasses.replace` ile
+    yalnız `catalog` ve `identifiers` alanlarını yeniler."""
     url = str(settings.openrouter_url).rstrip("/")
     index = await fetch_zdr_index(http, url, api_key)
     providers, ignored = select_providers(settings.answer_model, settings.answer_providers, index)
@@ -63,28 +62,13 @@ async def build_model_clients(
     )
     # Tek yardımcı model üç işi yapar: BM25 çevirisi, takip sorusunu tamamlama, niyet.
     helper = helper_model(http, settings, api_key, index)
-    return ModelClients(
-        answer=answer,
-        translator=make_translator(helper),
-        rewriter=make_rewriter(helper),
-        intent_classifier=make_intent_classifier(helper),
-        system_prompt=load_answer_prompt(),
-    )
-
-
-def ask_deps(
-    catalog: DocumentCatalog,
-    identifiers: IdentifierIndex,
-    retriever: Retriever,
-    clients: ModelClients,
-) -> AskDeps:
     return AskDeps(
         catalog=catalog,
         identifiers=identifiers,
         retriever=retriever,
-        answer_client=clients.answer,
-        system_prompt=clients.system_prompt,
-        translator=clients.translator,
-        rewriter=clients.rewriter,
-        intent_classifier=clients.intent_classifier,
+        answer_client=answer,
+        system_prompt=load_answer_prompt(),
+        translator=make_translator(helper),
+        rewriter=make_rewriter(helper),
+        intent_classifier=make_intent_classifier(helper),
     )

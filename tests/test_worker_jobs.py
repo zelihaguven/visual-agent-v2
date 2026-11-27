@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 
 from apps.worker.jobs import DocumentProcessor
+from visual_agent.catalog.identifiers import SnapshotProvider
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
-from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.external import (
     SOFFICE_MISSING,

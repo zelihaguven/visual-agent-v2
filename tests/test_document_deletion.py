@@ -20,16 +20,15 @@ from apps.worker.jobs import DocumentProcessor
 from tests.test_ask_pipeline import FakeClient, FakeRetriever, answer_payload, make_deps
 from visual_agent.ask.deps import AskRequest
 from visual_agent.ask.orchestrator import answer_question
+from visual_agent.catalog.identifiers import SnapshotProvider
 from visual_agent.catalog.repository import (
     DocumentRepository,
     DocumentStatus,
     StoredDocument,
     open_repository,
 )
-from visual_agent.catalog.snapshot import SnapshotProvider
-from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
-from visual_agent.domain.result import AskOutcome, Failed, NotFound
+from visual_agent.domain.result import AskOutcome, ConversationContext, Failed, NotFound
 from visual_agent.ingest.pipeline import IngestReport, IngestResult
 from visual_agent.retrieval.qdrant_store import QdrantChunkStore
 from visual_agent.settings import Settings

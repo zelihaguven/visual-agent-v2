@@ -13,8 +13,8 @@ from visual_agent.ask.intent import SMALL_TALK_REPLIES
 from visual_agent.ask.language import detect_language
 from visual_agent.ask.streaming import INCOMPLETE_MESSAGE, Event
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.conversation import MAX_QUESTION_CHARS
 from visual_agent.domain.result import (
+    MAX_QUESTION_CHARS,
     Answered,
     AskResult,
     Clarify,

@@ -8,16 +8,15 @@ import pytest
 from qdrant_client import AsyncQdrantClient
 
 from visual_agent.domain.document import Chunk, ChunkKind, SourceLocation
-from visual_agent.generation.json_model import JsonModel
-from visual_agent.generation.translate import (
+from visual_agent.generation.helpers import (
+    JsonModel,
     bm25_text,
     make_translator,
 )
 from visual_agent.retrieval import qdrant_store
-from visual_agent.retrieval.fusion import ScoredChunk, is_table_of_contents, rrf_fuse
-from visual_agent.retrieval.hybrid import HybridRetriever
-from visual_agent.retrieval.normalization import normalize_for_bm25
-from visual_agent.retrieval.qdrant_store import QdrantChunkStore, open_client
+from visual_agent.retrieval.encoders import normalize_for_bm25
+from visual_agent.retrieval.hybrid import HybridRetriever, is_table_of_contents, rrf_fuse
+from visual_agent.retrieval.qdrant_store import QdrantChunkStore, ScoredChunk, open_client
 
 
 def _chunk(chunk_id: str, doc_id: str, text: str) -> Chunk:
@@ -176,7 +175,7 @@ def test_translator_does_not_ask_for_the_questions_own_language_and_records_the_
     kayda girmiyordu."""
     import json
 
-    from visual_agent.generation.json_model import HELPER_PROVIDERS
+    from visual_agent.generation.helpers import HELPER_PROVIDERS
 
     recorder = _Recorder()
 

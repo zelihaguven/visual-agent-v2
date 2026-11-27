@@ -8,7 +8,7 @@ from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceL
 from visual_agent.ingest.chunking import CHUNK_MAX_CHARS, build_chunks
 from visual_agent.ingest.elements import Element, ElementKind
 from visual_agent.ingest.formats import InputFormat, UnsupportedFormat, detect_format
-from visual_agent.ingest.plain_text import parse_plain_text
+from visual_agent.ingest.markdown import parse_plain_text
 from visual_agent.ingest.spreadsheet import parse_workbook
 
 META = DocumentMeta(doc_id="d1", title="Ölçü föyü")

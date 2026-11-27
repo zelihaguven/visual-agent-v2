@@ -8,11 +8,9 @@ from visual_agent.ask.deps import AskDeps
 from visual_agent.ask.intent import common_small_talk
 from visual_agent.ask.steps import AskState
 from visual_agent.catalog.memory import DocumentCatalog
-from visual_agent.conversation.grounding import is_grounded
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.conversation import ConversationContext
-from visual_agent.domain.result import Answered, Clarify
-from visual_agent.verification.text import compact_identifier, identifiers_in
+from visual_agent.domain.result import Answered, Clarify, ConversationContext
+from visual_agent.verification.text import compact_identifier, identifiers_in, is_grounded
 
 logger = logging.getLogger(__name__)
 

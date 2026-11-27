@@ -9,7 +9,7 @@ from visual_agent.ask.deps import AskRequest
 from visual_agent.ask.steps import AskState, user_text
 from visual_agent.ask.streaming import StreamAssembler
 from visual_agent.domain.answer import AnswerKind, ItemCheck, ModelAnswer, ModelItem, PromptSource
-from visual_agent.domain.conversation import ConversationContext
+from visual_agent.domain.result import ConversationContext
 from visual_agent.verification.answer import verify_answer, verify_item
 from visual_agent.verification.qualifier import Qualifiers, build_qualifiers
 
