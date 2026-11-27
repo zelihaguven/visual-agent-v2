@@ -15,6 +15,12 @@ gizlenen yanlış / okunamayan (çıktıda yok).
 Setin sayfaları: QM 8, 21, 22, 27, 28, 39, 41, 43; Bold 3 Stripes 4, 9, 11, 14, 17, 22, 23, 25; föy 6026412
 1, 5, 6, 7, 8, 10, 13, 15.
 
+Düzeltme notu (2026-11-27, commit a3f05a2): ölçüt 2'nin QM sayfa listesi birinci setten yanlışlıkla
+kopyalanmıştı (QM s.7, 16, 34, 38); bu setin metinli QM sayfalarıyla (8, 22, 28, 39, 41, 43) düzeltildi. Aynı
+commit'te bloğa yalnız bilgi olarak "Setin sayfaları" satırı eklendi. Değerlere dokunulmadı. Bold s.11 metinli (M)
+işaretliydi, ölçüt 2'ye yazılmadı; ölçüt sonuç görüldükten sonra değiştirilmez. Sonradan bakıldı: taban 0 doğru,
+A-q1 1 doğru, bozulan 0.
+
 Not (ikinci set): Ölçüt 2'nin bu setteki karşılığı metinli QM sayfaları 8, 22, 28, 39, 41, 43'tür.
 
 ## Quality Manual (4a484fff…)
