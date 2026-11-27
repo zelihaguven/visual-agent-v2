@@ -122,6 +122,33 @@ def test_uncertain_value_does_not_hide_a_longer_value_that_contains_it() -> None
     assert check.ok, check.problems
 
 
+SHIFTED_ROW = "Color Block | Over seam 3 stripes: adjust presser foot settings"
+SHIFTED_SOURCES = {
+    1: PromptSource(
+        number=1,
+        text=SHIFTED_ROW,
+        ocr_uncertain=("Block", "Color", "Over", "adjust", "foot", "presser", "seam", "settings"),
+        from_ocr=True,
+        is_table_row=True,
+    )
+}
+"""Eşi bulunamayan tablo satırı (page_reader.row_mismatches): bütün sözcükleri belirsiz."""
+
+
+def test_word_marks_of_a_row_without_a_match_hide_a_sentence_without_numbers() -> None:
+    """Belirsiz işaret sayı olmayan sözcükte de cümleyi gizler; çeviri cümlede de (alıntı)."""
+    check = verify_item(
+        item("Color Block riski baskı ayağı ayarıyla azaltılır.", quote="adjust presser foot"),
+        SHIFTED_SOURCES,
+        "tr",
+    )
+
+    assert not check.ok
+    assert check.problems == (
+        "OCR değeri belirsiz: ['Block', 'Color', 'adjust', 'foot', 'presser']",
+    )
+
+
 def test_uncertain_value_itself_is_still_hidden() -> None:
     check = verify_item(item("Tolerans 10 cm.", quote="Tolerans (cm): 10"), OCR_SOURCES, "tr")
 

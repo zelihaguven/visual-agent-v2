@@ -1428,7 +1428,7 @@ def test_a_row_missing_from_the_second_reading_is_hidden_alone(tmp_path: Path) -
     assert rows == {
         "POM: LG040 Waist": (),
         "POM: LG050 Hip": (),
-        "POM: LG060 Inseam": ("16", "17", "LG060"),
+        "POM: LG060 Inseam": ("16", "17", "LG060", "Inseam"),
     }
 
 
@@ -1481,7 +1481,7 @@ def test_a_row_whose_label_has_no_match_is_hidden_even_if_the_numbers_appear(
     other = "POM | S | M\nLG040 Waist | 12 | 13\nLG050 Hip | 14 | 15\nFront Rise | 16 | 17"
     elements = _read(tmp_path, _paddle_table(_TRUE_ROWS), str, _cloud(lambda _: other + " LG060"))
 
-    assert _uncertain_by_row(elements)["POM: LG060 Inseam"] == ("16", "17", "LG060")
+    assert _uncertain_by_row(elements)["POM: LG060 Inseam"] == ("16", "17", "Inseam", "LG060")
 
 
 def test_row_marks_stay_on_their_row_and_header_marks_cover_the_table(tmp_path: Path) -> None:
@@ -1535,4 +1535,51 @@ def test_label_and_value_written_in_one_cell_still_match(tmp_path: Path) -> None
 
     elements = _read(tmp_path, _paddle_table(form), str, _cloud(lambda _: other))
 
-    assert [tuple(e.ocr_uncertain) for e in elements] == [(), ("2",)]
+    assert [tuple(e.ocr_uncertain) for e in elements] == [(), ("2", "Fit", "Regular")]
+
+
+def test_every_word_of_a_row_without_a_match_is_uncertain(tmp_path: Path) -> None:
+    """Eşi bulunamayan satırın bütün hücreleri belirsizdir; sayı taşımayan satır da. Doğru
+    eşleşen satırlar ve sütun adlarının satırı etkilenmez."""
+    header = ["RISK", "MITIGATION"]
+    qwen = _figure_table(
+        header,
+        ["Color Block 3S", "Conduct proper testing"],
+        ["Insert Block Panel", "Choose the best fit width"],
+        ["Seam Types", "Ensure the selection of stitch types"],
+    )
+    gemma = _figure_table(
+        header,
+        ["Color Block 3S", "Conduct proper testing"],
+        ["Insert Block Panel", "Choose the best fit width"],
+    )
+
+    rows = _uncertain_by_row(_read_figure(tmp_path, lambda _: qwen, lambda _: gemma))
+
+    assert rows == {
+        "RISK": (),
+        "Color Block 3S": (),
+        "Insert Block Panel": (),
+        "Seam Types": ("Ensure", "Seam", "Types", "of", "selection", "stitch", "the", "types"),
+    }
+
+
+def test_rows_without_numbers_do_not_take_the_match_of_a_row_with_values() -> None:
+    """Sayısız satırlar eşlemeye sonra girer: aynı etiketli değer satırının eşini almaz."""
+    marks = page_reader.row_mismatches(
+        [["Note", "see chart"], ["Note", "12 cm"]], [["Note", "12 cm"]]
+    )
+
+    assert marks == {0: ["Note", "chart", "see"]}
+
+
+def test_a_shifted_text_column_under_a_matching_label_is_not_caught(tmp_path: Path) -> None:
+    """Bilinen sınır (Bold s.21): etiketi doğru, azaltma sütunu kaymış satır eşini bulur;
+    sayı taşımayan kaymış metin belirsiz sayılmaz, cevapta gösterilebilir."""
+    header = ["RISK", "MITIGATION"]
+    qwen = _figure_table(header, ["Color Block 3S", "Over seam: presser foot settings"])
+    gemma = _figure_table(header, ["Color Block 3S", "Conduct proper testing"])
+
+    rows = _uncertain_by_row(_read_figure(tmp_path, lambda _: qwen, lambda _: gemma))
+
+    assert rows == {"RISK: Color Block 3S": ()}

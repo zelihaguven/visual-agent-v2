@@ -172,15 +172,19 @@ _CODE_RE = re.compile(r"^[A-ZÇĞİÖŞÜ]{2,}(?:-[A-Z0-9ÇĞİÖŞÜ]+)*$")
 """Rakamsız kod: en az iki büyük harf, tireyle parçalar ("AXL", "XS-AXL")."""
 
 
+def _words(text: str) -> list[str]:
+    """Metnin sözcükleri, karşılaştırılan yazımla ve kenar noktalaması atılmış."""
+    return [token for raw in canonical(text).split() if (token := raw.strip(_TOKEN_EDGES))]
+
+
 def value_tokens(text: str) -> list[str]:
     """Karşılaştırılan sayı ve kod parçaları: rakam içeren her parça ve rakamsız kodlar.
     "27 1/2" iki parçadır: "27" ve "1/2"."""
-    tokens = []
-    for raw in canonical(text).split():
-        token = raw.strip(_TOKEN_EDGES)
-        if token and (any(ch.isdigit() for ch in token) or _CODE_RE.match(token)):
-            tokens.append(token)
-    return tokens
+    return [
+        token
+        for token in _words(text)
+        if any(ch.isdigit() for ch in token) or _CODE_RE.match(token)
+    ]
 
 
 def count_mismatches(primary: str, second: str) -> list[str]:
@@ -239,8 +243,13 @@ def row_mismatches(primary: Sequence[Sequence[str]], other: Sequence[Sequence[st
     """Birinci okumanın her satırı öbür okumada etiketi aynı olan satırlarla eşlenir (önce
     birebir, yoksa ön ek; aynı etiket birden çok geçerse sırayla; bir satır bir kez kullanılır);
     satırın sayı ve kodları yalnız eşlenen satırlarla sayılır. Eşi olmayan satırın bütün
-    değerleri belirsizdir. Satır sırası önemsizdir, bağı önemlidir: değer sütunu bir satır
-    kayarsa blokta sayılar tutar, satırda tutmaz."""
+    hücreleri (sayı içermeyen sözcükleri de) belirsizdir: satır indekste kalır, ondan alıntı
+    yapan cümle gizlenir. Satır sırası önemsizdir, bağı önemlidir: değer sütunu bir satır
+    kayarsa blokta sayılar tutar, satırda tutmaz. Değer taşıyan satırlar önce eşlenir: sayısız
+    satırların eşlemeye katılması onların eşini değiştirmez.
+
+    Sınır: eşleme yalnız etikete (ilk hücre) bakar; etiketi doğru ama başka sütunu kaymış satır
+    eşini bulur, sayı taşımayan kaymış metni gizlenmez (Bold s.21)."""
     keyed = [(_row_key(row), row) for row in other]
     used: set[int] = set()
 
@@ -253,13 +262,13 @@ def row_mismatches(primary: Sequence[Sequence[str]], other: Sequence[Sequence[st
         return None
 
     marks: RowMarks = {}
-    for index, row in enumerate(primary):
-        text = " ".join(row)
-        if not value_tokens(text):
-            continue
+    texts = [" ".join(row) for row in primary]
+    for index in sorted(range(len(primary)), key=lambda i: not value_tokens(texts[i])):
+        row, text = primary[index], texts[index]
         matched = [found for label in _row_labels(row) if (found := take(label)) is not None]
         if not matched:
-            marks[index] = sorted(set(value_tokens(text)))
+            if words := _words(text):
+                marks[index] = sorted(set(words))
             continue
         mismatched = count_mismatches(text, " ".join(" ".join(other_row) for other_row in matched))
         if mismatched:
@@ -648,7 +657,7 @@ def _figure_rows(
 
 
 def _uncertain(text: str, tokens: Sequence[str]) -> tuple[str, ...]:
-    present = set(value_tokens(text))
+    present = set(_words(text))
     return tuple(token for token in tokens if token in present)
 
 
@@ -692,8 +701,10 @@ def _table_elements(
     row_marks: Mapping[int, Sequence[str]] | None = None,
 ) -> list[Element]:
     """row_marks: satır düzeyindeki işaretler (kaynak satır no); satırın değerleri yalnız kendi
-    satırında belirsizdir. Satıra dönüşmeyen kaynak satırın (başlık, etiket, not) işaretleri
-    bütün tabloya uygulanır: o metin her satırın başlığında ya da bağlamında geçer.
+    satırında belirsizdir. Satıra dönüşmeyen kaynak satırın (başlık, etiket, not) sayı ve kod
+    işaretleri bütün tabloya uygulanır: o metin her satırın başlığında ya da bağlamında geçer.
+    Eşi olmayan böyle bir satırın sayısız sözcükleri tabloya yayılmaz: sütun adı her satırda
+    geçtiği için doğru eşleşen satırları da gizlerdi.
 
     Başlıklı tabloda satır "Başlık: değer" biçimindedir; başlıksız tabloda (form, tek satır)
     satır okunduğu gibi kalır: hücreler sırayla, ilk satır da bir satırdır, aradaki boş hücre
@@ -722,7 +733,8 @@ def _table_elements(
     grouped = group_table_rows(cells, infer_header=False)
     by_row = row_marks or {}
     covered = {source for row in grouped for source in row.sources}
-    shared = [*tokens, *(t for r, marks in by_row.items() if r not in covered for t in marks)]
+    header_marks = (t for r, marks in by_row.items() if r not in covered for t in marks)
+    shared = [*tokens, *(t for t in header_marks if value_tokens(t))]
     return [
         Element(
             ElementKind.TABLE_ROW,
