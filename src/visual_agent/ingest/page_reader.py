@@ -14,6 +14,7 @@ kaydı üzerinde sınar; biri değişirse test kırılır.
 """
 
 import asyncio
+import email.utils
 import hashlib
 import html
 import io
@@ -25,6 +26,7 @@ import tempfile
 from collections import Counter
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
+from datetime import UTC, datetime
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, cast
@@ -260,6 +262,42 @@ FIGURE_PROMPT = (
 CHECK_MAX_TOKENS = 4096
 FIGURE_MAX_TOKENS = 2048
 _CLOUD_SECONDS = 120.0
+_RATE_LIMIT_RETRIES = 3
+"""429 (istek sınırı) alınan çağrı en çok bu kadar kez beklenip yeniden denenir."""
+_RATE_LIMIT_FIRST_WAIT = 2.0
+_RATE_LIMIT_MAX_WAIT = 60.0
+_sleep = asyncio.sleep
+"""Testler sahte uykuyla değiştirir."""
+
+
+def _rate_limit_wait(response: httpx.Response, attempt: int) -> float:
+    """Retry-After (saniye ya da HTTP tarihi) varsa ona uyulur, yoksa 2, 4, 8 sn; üst sınır
+    60 sn."""
+    header = str(response.headers.get("retry-after", "")).strip()
+    wait: float = _RATE_LIMIT_FIRST_WAIT * 2**attempt
+    if header:
+        try:
+            wait = float(header)
+        except ValueError:
+            try:
+                when = email.utils.parsedate_to_datetime(header)
+                wait = (when - datetime.now(when.tzinfo or UTC)).total_seconds()
+            except (TypeError, ValueError):
+                pass
+    return min(max(wait, 0.0), _RATE_LIMIT_MAX_WAIT)
+
+
+async def _read_with_retries(client: JsonModel, prompt: str, png: bytes, max_tokens: int) -> str:
+    """429 alan çağrı beklenip yeniden denenir; denemeler tükenirse hata yükselir ve çağıran
+    belgenin devresini açar."""
+    for attempt in range(_RATE_LIMIT_RETRIES):
+        try:
+            return await client.read_image(prompt, png, max_tokens)
+        except httpx.HTTPStatusError as error:
+            if error.response.status_code != httpx.codes.TOO_MANY_REQUESTS:
+                raise
+            await _sleep(_rate_limit_wait(error.response, attempt))
+    return await client.read_image(prompt, png, max_tokens)
 
 
 class CloudUnavailable(RuntimeError):
@@ -314,7 +352,7 @@ def cloud_reader(
                 chosen.append(select_providers(model, (), index))
             providers, ignored = chosen[0]
             client = JsonModel(http, config.base_url, config.api_key, model, providers, ignored)
-            return await client.read_image(prompt, png, max_tokens)
+            return await _read_with_retries(client, prompt, png, max_tokens)
 
     def read(image: Image.Image) -> str:
         buffer = io.BytesIO()

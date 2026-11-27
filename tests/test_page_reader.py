@@ -1028,6 +1028,76 @@ def test_same_crop_is_paid_once_even_by_a_new_reader(tmp_path: Path) -> None:
     assert len(server.bodies) == 1
 
 
+class _Limited(_OpenRouter):
+    """İlk `limited` sohbet isteğine 429 döner (Retry-After başlığı isteğe bağlı)."""
+
+    def __init__(self, limited: int, retry_after: str | None) -> None:
+        super().__init__(reply="Basınç 185 bar")
+        self.limited, self.retry_after = limited, retry_after
+
+    def handle(self, request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/chat/completions") and self.limited:
+            self.limited -= 1
+            self.requests += 1
+            headers = {"Retry-After": self.retry_after} if self.retry_after else {}
+            return httpx.Response(429, headers=headers, json={"error": "rate limited"})
+        return super().handle(request)
+
+
+def _limited_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, limited: int, retry_after: str | None
+) -> tuple[_Limited, list[float], CloudOutage, str | None]:
+    waits: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr(page_reader, "_sleep", sleep)
+    server = _Limited(limited, retry_after)
+    crop = Image.new("RGB", (40, 20), "white")
+    outage = CloudOutage()
+    token = CLOUD_OUTAGE.set(outage)
+    try:
+        text: str | None = _qwen_check(server, tmp_path)(crop)
+    except page_reader.CloudUnavailable:
+        text = None
+    finally:
+        CLOUD_OUTAGE.reset(token)
+    return server, waits, outage, text
+
+
+def test_rate_limit_waits_as_told_and_does_not_open_the_circuit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    server, waits, outage, text = _limited_read(tmp_path, monkeypatch, 2, "7")
+
+    assert text == "Basınç 185 bar"
+    assert waits == [7.0, 7.0]
+    assert outage.reasons == {}
+    assert len(server.bodies) == 1
+
+
+def test_rate_limit_without_header_backs_off_within_a_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, waits, outage, text = _limited_read(tmp_path, monkeypatch, 3, None)
+    _, capped, _, _ = _limited_read(tmp_path / "b", monkeypatch, 1, "3600")
+
+    assert (text, waits, outage.reasons) == ("Basınç 185 bar", [2.0, 4.0, 8.0], {})
+    assert capped == [60.0]
+
+
+def test_rate_limit_opens_the_circuit_only_when_retries_run_out(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    server, waits, outage, text = _limited_read(tmp_path, monkeypatch, 10, "1")
+
+    assert text is None
+    assert waits == [1.0, 1.0, 1.0]
+    assert server.requests == 1 + 4  # ZDR dizini + dört okuma denemesi
+    assert QWEN in outage.reasons
+
+
 def test_cache_key_separates_models_and_prompts(tmp_path: Path) -> None:
     """Önbellek anahtarı model + istem + görüntü: aynı kırpıntıyı başka model ya da başka istem
     önbellekten okumaz."""
