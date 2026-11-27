@@ -85,7 +85,8 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     #    saran grup parantezle de kesre çevrilir ("1\\frac{{1}}{{8}}", "-{1\\frac{1}{4}}").
     # 27 (PDF, Office; görsel 18): okuyucu yolunun ikinci okuması Qwen3-VL (alınamazsa
     #    Tesseract); okuyucunun boş bıraktığı şekil blokları Qwen3-VL ile okunur, Gemma denetler
-    #    (karar 0035). Bulut anahtarı yoksa okuma 26 ile aynıdır.
+    #    (karar 0035). Aynı sürüm parçalamayı da kapsar (bulut anahtarı olmasa da): tablo satırının
+    #    bölümü üstündeki ve yatayda örtüşen başlıktan; düzeyi bilinmeyen başlıklar kardeştir.
     InputFormat.PDF: 27,
     InputFormat.OFFICE: 27,
     InputFormat.IMAGE: 18,
@@ -94,7 +95,9 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     InputFormat.SPREADSHEET: 6,
     InputFormat.LEGACY_SPREADSHEET: 6,
     # SQL 3: içerikten sonra gelen kodsuz ilk başlık kök değildir (bölüm yolu ortak kodda).
-    InputFormat.SQL: 3,
+    # SQL 4: yorum başlıkları düzeysizdir, kardeştir; kod taşımayan ilk başlık kök değildir
+    #    ("-- Rapor A" / "-- Rapor B": ikinci bölüm "Rapor B"; karar 0035).
+    InputFormat.SQL: 4,
     InputFormat.TEXT: 2,
     InputFormat.MARKDOWN: 3,
 }
