@@ -120,3 +120,37 @@ Sınırlar: (1) QM s.15 ve s.29'daki gömülü görsel tablolarını bu ölçüm
 "Tesseract tamamen çıkar" tam uygulanmadı). (2) Kontrol birimi bugünkü blok; föy tablosunda bütün tablo tek bölge.
 (3) İki VLM (Paddle ve Qwen) aynı hatayı yaparsa yakalanmaz; bu 150 değerde görülmedi, örneklem küçük. (4) Qwen yalnız
 tek ZDR sağlayıcıda (DeepInfra). (5) Puanlamanın bir kısmı elle.
+
+## İkinci set: A-q1 (Windows, 2026-11-27, bir koşu)
+Doğru cevaplar ve ölçüt: `evals/okuma_planlari_dogru_cevaplar_2.md` (ölçümden önce yazıldı; birinci setin sayfaları
+kullanılmadı). 163 değer: QM 8, 21, 22, 27, 28, 39, 41, 43; Bold 4, 9, 11, 14, 17, 22, 23, 25; föy 6026412 1, 5, 6,
+7, 8, 10, 13, 15. Aynı eşleştirme kuralları; elle karar 86 (`elle_set2.json`, ölçüm klasöründe; repoda değil).
+
+| | Taban | A-q1 |
+|---|---|---|
+| Doğru gösterilen | 95 | 119 |
+| Yanlış gösterilen | 0 | 0 |
+| Gizlenen doğru | 17 | 14 |
+| Gizlenen yanlış | 5 | 7 |
+| Okunamayan | 46 | 23 |
+| Metinli sayfada bozulan | – | 0 |
+| Şekil değerlerinde gösterilen (114) | %46 (52) | %66 (75) |
+| Föy kesirli değerler (23), doğru gösterilen | 2 | 11 |
+
+Belge bazında doğru gösterilen: QM 56 / 56, Bold 20 / 27, föy 19 / 36. Tabandan farklı 31 değer; biri kötüleşti:
+F2-1-4 doğru gösterilen → gizlenen doğru. F2-15-2 (−2) iki planda da gösterilmedi (gizli).
+Ölçüt 1 (yanlış gösterilen tabandan fazla değil): geçti (0 / 0). Ölçüt 2 (metinli QM sayfalarında bozulma yok): geçti.
+Okuyucu sayfalarında doğrulanan değer parçası: Tesseract %51 (655/1.295), Qwen %74 (962/1.295).
+
+Gözlenen sorunlar:
+- DeepInfra 429 (istek sınırı): Qwen bölge okumasında bekleyip yeniden denendi (15, 30, 60 sn); okuma tamamlandı.
+- Qwen Bold s.25'te bir şekil kırpıntısında döngüye girip token sınırına takıldı (`length`); değerleri gizli kaldı
+  (B2-25-2 "55mm" ve B2-25-3 gizlenen yanlış).
+- Bold s.14'te düzen modeli hiç blok bulamadı; sayfa okunmadı (sonra kural: blok yoksa sayfa tek şekil bloğu, 0035).
+- Paddle föy POM tablolarında kesirleri yanlış okudu ("-3/8" → "-3 3/8", "5/8" → "5 1/8"); hepsi gizli kaldı (taban
+  ve A-q1'de 5 gizlenen yanlış).
+- Puanlamada 86 elle karar.
+
+Maliyet: bu set 113 çağrı (Qwen 83 DeepInfra, Gemma 30 AkashML; ZDR), 0,0160 $. Bütün okuma ölçümleri: birinci set
+0,0476 $, A-q 0,0136 $, ikinci set 0,0160 $; toplam 0,0772 $. Sayfa başına ek süre 1–74 sn (föy tablo sayfaları
+30–52 sn, Bold s.25 74 sn).
