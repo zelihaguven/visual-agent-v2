@@ -105,16 +105,31 @@ class CloudOutage:
     """Model → ilk hatanın nedeni."""
     fallback_blocks: int = 0
     """Bulut yerine Tesseract'la denetlenen blok sayısı."""
+    skipped_figures: int = 0
+    """Okuması alınamadığı için atlanan şekil bloğu sayısı."""
+    unchecked_figures: int = 0
+    """Denetim okuması alınamadığı için değerleri gizlenen şekil bloğu sayısı."""
 
     def warning(self) -> str | None:
-        """Belge raporunun tek satırı; kesinti olmadıysa None."""
+        """Belge raporunun tek satırı; kesinti olmadıysa None. Yalnız etkilenen blok türleri
+        yazılır ("2 şekil bloğunun değerleri gizlendi; bulut alınamadı (…)")."""
         if not self.reasons:
             return None
+        effects = [
+            f"{count} {text}"
+            for count, text in (
+                (self.fallback_blocks, "blok Tesseract'la denetlendi"),
+                (self.skipped_figures, "şekil bloğu atlandı"),
+                (self.unchecked_figures, "şekil bloğunun değerleri gizlendi"),
+            )
+            if count
+        ]
         causes = "; ".join(f"{model}: {reason}" for model, reason in self.reasons.items())
-        return f"{self.fallback_blocks} {CLOUD_OUTAGE_MARK} ({causes})."
+        prefix = ", ".join(effects) + "; " if effects else ""
+        return f"{prefix}{CLOUD_OUTAGE_MARK} ({causes})."
 
 
-CLOUD_OUTAGE_MARK = "blok Tesseract'la denetlendi; bulut alınamadı"
+CLOUD_OUTAGE_MARK = "bulut alınamadı"
 """Devresi açılan belgenin rapor uyarısındaki sabit metin; belgeler bununla aranır:
 `SELECT d.doc_id, d.filename, w.value FROM documents d, json_each(d.report, '$.warnings') w
 WHERE w.value LIKE '%bulut alınamadı%'`."""

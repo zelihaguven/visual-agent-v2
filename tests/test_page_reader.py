@@ -1315,3 +1315,23 @@ def test_zdr_index_rate_limit_is_waited_out_like_a_reading(
 
     assert (text, waits, outage.reasons) == ("Basınç 185 bar", [5.0], {})
     assert server.requests == 3  # ZDR 429, ZDR, okuma
+
+
+def test_outage_counts_skipped_and_unchecked_figure_blocks(tmp_path: Path) -> None:
+    def count(qwen: page_reader.SecondReader, gemma: page_reader.SecondReader) -> CloudOutage:
+        outage = CloudOutage(reasons={"model": "hata"})
+        token = CLOUD_OUTAGE.set(outage)
+        try:
+            _read_figure(tmp_path, qwen, gemma)
+        finally:
+            CLOUD_OUTAGE.reset(token)
+        return outage
+
+    skipped = count(_unavailable, lambda _: _json("Tork 12 Nm"))
+    unchecked = count(lambda _: _json("Tork 12 Nm"), _unavailable)
+
+    assert (skipped.skipped_figures, skipped.unchecked_figures) == (1, 0)
+    assert (unchecked.skipped_figures, unchecked.unchecked_figures) == (0, 1)
+    assert (
+        unchecked.warning() == "1 şekil bloğunun değerleri gizlendi; bulut alınamadı (model: hata)."
+    )

@@ -404,6 +404,11 @@ def cloud_reader(
     return read
 
 
+def _outage() -> CloudOutage:
+    """Belgenin bulut durumu; belge dışında (doğrudan çağrı) sayım bir yere yazılmaz."""
+    return CLOUD_OUTAGE.get() or CloudOutage()
+
+
 @dataclass(frozen=True)
 class CloudReaders:
     """Bulut okuyucuları (karar 0035): `check` okuyucunun bloklarını ikinci kez okur; okuyucunun
@@ -425,9 +430,7 @@ def _checker(second: SecondReader, cloud: CloudReaders | None) -> SecondReader:
         try:
             return cloud.check(crop)
         except CloudUnavailable:
-            outage = CLOUD_OUTAGE.get()
-            if outage is not None:
-                outage.fallback_blocks += 1
+            _outage().fallback_blocks += 1
             return second(crop)
 
     return read
@@ -496,6 +499,7 @@ def read_figures(
             parts = figure_parts(readers.figure_read(crop))
         except CloudUnavailable as error:
             logger.warning("Şekil bloğu okunamadı; atlanır: %s", error)
+            _outage().skipped_figures += 1
             continue
         if not parts:
             continue
@@ -508,6 +512,7 @@ def read_figures(
             other = readers.figure_check(crop)
         except CloudUnavailable as error:
             logger.warning("Şekil bloğu denetlenemedi; değerleri gizlenir: %s", error)
+            _outage().unchecked_figures += 1
             marks[block_id] = sorted(set(value_tokens(primary)))
             continue
         checked = figure_parts(other)

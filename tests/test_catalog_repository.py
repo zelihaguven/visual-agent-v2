@@ -149,9 +149,12 @@ def test_interrupted_documents_return_to_the_queue_on_start(tmp_path: Path) -> N
 
 def test_documents_whose_cloud_circuit_opened_are_found_by_a_query(tmp_path: Path) -> None:
     """Devresi açılan belge rapor uyarısından bulunur (Mac'te tek sqlite3 komutu)."""
-    from visual_agent.ingest.elements import CLOUD_OUTAGE_MARK, CloudOutage
+    from visual_agent.ingest.elements import CloudOutage
 
-    outage = CloudOutage(reasons={"qwen/qwen3-vl": "ConnectError()"}, fallback_blocks=4)
+    qwen = CloudOutage(
+        reasons={"qwen/qwen3-vl": "ConnectError()"}, fallback_blocks=4, skipped_figures=1
+    )
+    gemma = CloudOutage(reasons={"google/gemma": "ReadTimeout()"}, unchecked_figures=2)
 
     class Warned(FrozenModel):
         warnings: tuple[str, ...]
@@ -159,7 +162,12 @@ def test_documents_whose_cloud_circuit_opened_are_found_by_a_query(tmp_path: Pat
     repository = _repository(tmp_path)
 
     async def run() -> None:
-        for doc_id, warnings in (("a", (str(outage.warning()),)), ("b", ("Sayfa 2: görsel",))):
+        documents = (
+            ("a", (str(qwen.warning()),)),
+            ("b", ("Sayfa 2: görsel",)),
+            ("c", (str(gemma.warning()),)),
+        )
+        for doc_id, warnings in documents:
             await repository.create_document(_document(doc_id))
             await repository.claim_next()
             await repository.mark_ready(doc_id, "tr", [], Warned(warnings=warnings), None)
@@ -177,7 +185,17 @@ def test_documents_whose_cloud_circuit_opened_are_found_by_a_query(tmp_path: Pat
     finally:
         connection.close()
 
-    assert found == [("a", f"4 {CLOUD_OUTAGE_MARK} (qwen/qwen3-vl: ConnectError()).")]
+    assert found == [
+        (
+            "a",
+            "4 blok Tesseract'la denetlendi, 1 şekil bloğu atlandı; bulut alınamadı"
+            " (qwen/qwen3-vl: ConnectError()).",
+        ),
+        (
+            "c",
+            "2 şekil bloğunun değerleri gizlendi; bulut alınamadı (google/gemma: ReadTimeout()).",
+        ),
+    ]
 
 
 def test_ready_document_keeps_chunks_report_and_language(tmp_path: Path) -> None:
