@@ -149,7 +149,10 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
     // Yükleme sürerken sayfa kapanırsa istek yarıda kalır ve belge eklenmez; işlemede uyarı yok,
     // çünkü işleme sunucuda sürer.
     if (!isUploading) return;
-    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = ""; // eski tarayıcılar uyarıyı yalnız bununla gösterir
+    };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [isUploading]);
@@ -339,13 +342,15 @@ const STEP_DETAIL: Partial<Record<ProcessingStep, string>> = {
   images: "Görsel",
 };
 
-/** İşlemenin dört bölümü: biten dolu, sürenin içindeki sayıyla dolar; sayısı bilinmeyen adımda
- * bölüm belirsiz görünür. Yüzde bölümlerden hesaplanır, süreyi değil adımı gösterir. */
+/** İşlemenin dört bölümü: biten dolu, süren bölüm sayısıyla dolar; sayısı bilinmeyen adımda
+ * bölüm belirsiz görünür. Süreyi değil adımı gösterir. */
 function ProcessingBar({ progress }: { progress: ProcessingProgress }) {
   const phase = STEP_PHASE[progress.step];
   const counted = progress.total > 0;
   const fraction = counted ? Math.min(progress.done / progress.total, 1) : 0;
-  const percent = Math.round(((phase + fraction) / PHASES.length) * 100);
+  // Yüzde yalnız bölümlerden: "Okunuyor"daki alt adımlar (sayfa, metin, görsel) arka arkaya
+  // geldiği için alt adım oranı katılırsa ekran okuyucuda geri gider. Sayı etikette kalır.
+  const percent = Math.round((phase / PHASES.length) * 100);
   const detail = STEP_DETAIL[progress.step];
   const count = counted ? ` ${progress.done} / ${progress.total}` : "";
   const label = detail ? `${PHASES[phase]} · ${detail}${count}` : PHASES[phase];

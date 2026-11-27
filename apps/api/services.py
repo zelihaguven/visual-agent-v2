@@ -116,7 +116,7 @@ async def _process_documents(
     settings: Settings,
     progress: MutableMapping[str, IngestState],
 ) -> None:
-    """İşçi API sürecinde: gömülü Qdrant klasörü ve embedding modeli paylaşılır; okuma
+    """İşçi API sürecinde: gömülü Qdrant klasörü ve embedding modeli paylaşılır; işleme
     ilerlemesi `progress` sözlüğüyle API'ye geçer.
 
     İşçi modülleri burada yüklenir: belge işleme paketleri (ingest eki) kurulu olmayabilir.

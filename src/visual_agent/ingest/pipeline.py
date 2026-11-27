@@ -226,14 +226,18 @@ def _pdf_source(path: Path, input_format: InputFormat, tools: IngestTools, work:
 
 
 def _parse(path: Path, input_format: InputFormat, tools: IngestTools, work: Path) -> _Parsed:
-    if input_format not in (InputFormat.PDF, InputFormat.OFFICE, InputFormat.IMAGE):
-        report_progress("text")
+    # PDF yolunda metin adımı okuyucunun sayfalarından sonra bildirilir (_elements_from_pdf);
+    # dönüştürme (Office, eski Excel) hazırlık adımında kalır.
     if input_format in (InputFormat.SQL, InputFormat.TEXT, InputFormat.MARKDOWN):
+        report_progress("text")
         return _Parsed(parse_plain_text(path, input_format))
     if input_format is InputFormat.SPREADSHEET:
+        report_progress("text")
         return _Parsed(*parse_workbook(path))
     if input_format is InputFormat.LEGACY_SPREADSHEET:
-        return _Parsed(*parse_workbook(tools.legacy_spreadsheet_to_xlsx(path, work)))
+        converted = tools.legacy_spreadsheet_to_xlsx(path, work)
+        report_progress("text")
+        return _Parsed(*parse_workbook(converted))
     pdf_path = _pdf_source(path, input_format, tools, work)
     image = path if input_format is InputFormat.IMAGE else None
     elements, pages, read_pages = _elements_from_pdf(pdf_path, tools, work, image)

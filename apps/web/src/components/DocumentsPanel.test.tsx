@@ -85,8 +85,8 @@ describe("DocumentsPanel", () => {
 
     const reading = (await screen.findByText("okunuyor")).closest("li") as HTMLElement;
     const bar = within(reading).getByRole("progressbar", { name: "İşleme ilerlemesi" });
-    // Okuma ikinci bölüm: (1 + 12/54) / 4.
-    expect(bar).toHaveAttribute("aria-valuenow", "31");
+    // Okuma ikinci bölüm: yüzde bölümlerden (1 / 4), sayı etikette.
+    expect(bar).toHaveAttribute("aria-valuenow", "25");
     expect(bar).toHaveAttribute("aria-valuetext", "Okunuyor · Görsel 12 / 54");
     expect(within(reading).getByText("Okunuyor · Görsel 12 / 54")).toBeInTheDocument();
     expect(bar.querySelectorAll(".progress-phase.is-done")).toHaveLength(1);

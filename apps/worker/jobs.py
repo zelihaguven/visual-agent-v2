@@ -15,10 +15,7 @@ from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk, DocumentMet
 from visual_agent.ingest.elements import INGEST_PROGRESS, IngestProgress, IngestState, IngestStep
 from visual_agent.ingest.external import ConversionFailed, MissingTool, ReaderUnavailable
 from visual_agent.ingest.formats import UnsupportedFormat
-from visual_agent.ingest.pipeline import (
-    IngestReport,
-    IngestResult,
-)
+from visual_agent.ingest.pipeline import IngestReport, IngestResult
 
 logger = logging.getLogger(__name__)
 

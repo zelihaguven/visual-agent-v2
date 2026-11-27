@@ -429,4 +429,8 @@
     animation: none;
     opacity: 0.5;
   }
+
+  .progress-fill {
+    transition: none;
+  }
 }
