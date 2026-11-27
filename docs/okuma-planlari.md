@@ -207,8 +207,9 @@ elle karar sayısı ayrı. **Bir tane bile yanlış değer gösterilirse dur, bi
 sonuç bölümlerinde (sınıflar, eşleştirme, ölçütler); prototip betikleri repoda değil, Mac oturumu yöntemi izleyerek
 yeniden kurar.
 
-**Bold beklentileri**: s.21'de B-21-3 gösterilmeli; B-21-1/2/4 gizli kalabilir. s.14: okunan ve gösterilen değerler
-raporlanır, beklenti yok.
+**Bold beklentileri**: s.21'de B-21-1/2/3/4 gizli kalabilir; B-21-3 için: gizli kalabilir; satır bağı yanlış olduğu için
+güvenli yön. Gösterilirse doğru satıra ("Color Block") bağlı olmalı. s.14: okunan ve gösterilen değerler raporlanır,
+beklenti yok.
 
 Windows duman testi (2026-11-27, dal kodu, yalnız Bold s.14 ve s.21 tek sayfalık PDF olarak, veritabanı ve indeks
 dışında; yerel PaddleOCR-VL; 7 bulut çağrısı, hepsi 200, uyarı yok, < 0,01 $; s.14 208 sn, s.21 121 sn):
@@ -235,7 +236,8 @@ tahmini, sonra koşu.
 - "OQL/SQL %90-94.99 puanı kaç?" (4 göstermemeli; o satır PTH tablosunun).
 - "Poly bag (BG-CV0007) rengi ne?"
 - "6013448 LG bel ölçüsü ne?"
-- B-21-3'ü soran bir soru (ör. "Bold 3 Stripes'ta color block riski nedir?" → color migration).
+- B-21-3'ü soran bir soru (ör. "Bold 3 Stripes'ta color block riski nedir?" → color migration; gizli kalabilir: satır bağı
+  yanlış olduğu için güvenli yön).
 
 **Bölüm yolu** değişen parçalardan üç örnek uygulamada kaynak olarak doğru görünmeli: 6013448 "POMs", QM s.16
 "4.3.2 QA Scorecard", `.sql` belgesinden bir bölüm.
