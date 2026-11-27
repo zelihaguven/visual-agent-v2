@@ -7,6 +7,7 @@ import {
   uploadDocument,
   type DocumentInfo,
   type DocumentReport,
+  type ReadingProgress,
 } from "../api";
 import { groupDocuments } from "../documentGroups";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -313,6 +314,21 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
   );
 }
 
+const READING_LABELS: Record<ReadingProgress["kind"], string> = {
+  page: "Sayfa",
+  image: "Görsel",
+};
+
+function ReadingBar({ progress }: { progress: ReadingProgress }) {
+  const label = `${READING_LABELS[progress.kind]} ${progress.done} / ${progress.total}`;
+  return (
+    <div className="document-progress">
+      <progress max={progress.total} value={progress.done} aria-label={`Okunuyor: ${label}`} />
+      <span aria-hidden="true">{label}</span>
+    </div>
+  );
+}
+
 function DocumentRow({
   document,
   isBusy,
@@ -364,6 +380,9 @@ function DocumentRow({
           </button>
         </div>
       </div>
+      {document.status === "processing" && document.progress && document.progress.total > 0 && (
+        <ReadingBar progress={document.progress} />
+      )}
       {document.error !== null && <span className="document-error">{document.error}</span>}
       {document.report !== null && (
         <DocumentNotes title={document.title} report={document.report} />

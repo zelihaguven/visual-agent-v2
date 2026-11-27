@@ -364,3 +364,37 @@
     transform: translateY(var(--space-3));
   }
 }
+
+/* Okuyucu adımının ilerlemesi: işlenen belgenin altında, satır boyunca. */
+.document-progress {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: var(--space-4);
+  align-items: center;
+  padding-bottom: var(--space-2);
+  color: var(--color-muted);
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.document-progress progress {
+  flex: 1;
+  height: 6px;
+  border: none;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--color-chip);
+  accent-color: var(--coral);
+}
+
+.document-progress progress::-webkit-progress-bar {
+  background: var(--color-chip);
+}
+
+.document-progress progress::-webkit-progress-value {
+  background: var(--coral);
+}
+
+.document-progress progress::-moz-progress-bar {
+  background: var(--coral);
+}

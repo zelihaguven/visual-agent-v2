@@ -4,7 +4,7 @@ import asyncio
 import logging
 import shutil
 import tempfile
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, MutableMapping, Sequence
 from pathlib import Path
 from typing import Protocol
 
@@ -14,6 +14,7 @@ from visual_agent.catalog.repository import StoredDocument
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk, DocumentMeta
 from visual_agent.ingest.external import ConversionFailed, MissingTool, ReaderUnavailable
 from visual_agent.ingest.formats import UnsupportedFormat
+from visual_agent.ingest.page_reader import READ_PROGRESS, ReadKind, ReadProgress, ReadState
 from visual_agent.ingest.pipeline import IngestReport, IngestResult
 
 logger = logging.getLogger(__name__)
@@ -56,11 +57,15 @@ class DocumentProcessor:
         indexer: Indexer,
         ingest: Ingest,
         topics: TopicAssigner | None = None,
+        progress: MutableMapping[str, ReadState] | None = None,
     ) -> None:
+        """progress: işlenen belgenin okuma ilerlemesi buraya yazılır (API okur); iş bitince
+        silinir. Bellektedir: uygulama yeniden başlarsa iş de baştan başlar."""
         self._repository = repository
         self._indexer = indexer
         self._ingest = ingest
         self._topics = topics
+        self._progress = progress
         self._interrupted: str | None = None
 
     async def process_next(self) -> bool:
@@ -89,6 +94,19 @@ class DocumentProcessor:
         except Exception:
             logger.exception("Belge işlenemedi: %s", document.doc_id)
             await self._fail(document, _GENERIC_FAILURE)
+        finally:
+            if self._progress is not None:
+                self._progress.pop(document.doc_id, None)
+
+    def _progress_sink(self, doc_id: str) -> ReadProgress | None:
+        board = self._progress
+        if board is None:
+            return None
+
+        def record(kind: ReadKind, done: int, total: int) -> None:
+            board[doc_id] = (kind, done, total)
+
+        return record
 
     async def _fail(self, document: StoredDocument, message: str, waiting: bool = False) -> None:
         """Belge işlenirken silindiyse hata yazılmaz; geride kalanları işçi temizler."""
@@ -104,7 +122,15 @@ class DocumentProcessor:
             language=UNDETECTED_LANGUAGE,
         )
         with tempfile.TemporaryDirectory() as work:
-            result = await asyncio.to_thread(self._ingest, source, meta, Path(work))
+            # to_thread bağlamı kopyalar: okuyucu ilerlemeyi bu belgenin kaydına yazar.
+            token = READ_PROGRESS.set(self._progress_sink(document.doc_id))
+            try:
+                result = await asyncio.to_thread(self._ingest, source, meta, Path(work))
+            finally:
+                READ_PROGRESS.reset(token)
+                # Okuma bitti: indeksleme sırasında dolu çubuk takılmış gibi görünmesin.
+                if self._progress is not None:
+                    self._progress.pop(document.doc_id, None)
             display = self._keep_display_pdf(result.display_pdf, source)
         await self._indexer.index(document.doc_id, result.chunks)
         try:

@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, MutableMapping
 from contextlib import asynccontextmanager
 from dataclasses import replace
 from pathlib import Path
@@ -21,6 +21,7 @@ from visual_agent.catalog.identifiers import SnapshotProvider, build_identifier_
 from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.catalog.repository import DocumentRepository, open_repository
 from visual_agent.domain.result import AskOutcome, Failed
+from visual_agent.ingest.page_reader import ReadState
 from visual_agent.retrieval.hybrid import HybridRetriever
 from visual_agent.retrieval.qdrant_store import COLLECTION, QdrantChunkStore, open_client
 from visual_agent.settings import Settings
@@ -113,8 +114,10 @@ async def _process_documents(
     encoders: SharedEncoders,
     stop: asyncio.Event,
     settings: Settings,
+    progress: MutableMapping[str, ReadState],
 ) -> None:
-    """İşçi API sürecinde: gömülü Qdrant klasörü ve embedding modeli paylaşılır.
+    """İşçi API sürecinde: gömülü Qdrant klasörü ve embedding modeli paylaşılır; okuma
+    ilerlemesi `progress` sözlüğüyle API'ye geçer.
 
     İşçi modülleri burada yüklenir: belge işleme paketleri (ingest eki) kurulu olmayabilir.
     """
@@ -132,7 +135,9 @@ async def _process_documents(
         )
         return
     topics = await open_topic_assigner(settings, repository)
-    processor = DocumentProcessor(repository, LazyIndexer(store, encoders), ingest, topics)
+    processor = DocumentProcessor(
+        repository, LazyIndexer(store, encoders), ingest, topics, progress
+    )
     logger.info("Belge işçisi API sürecinde başladı")
     # Konu verme belge işlemeyi beklemez: uzun bir taramayı işlerken eski belgeler adlandırılır.
     loops = [process_until_stopped(processor.process_next, stop, settings.worker_poll_seconds)]
@@ -168,12 +173,15 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
     storage = Path(settings.storage_directory)
     storage.mkdir(parents=True, exist_ok=True)
     stop = asyncio.Event()
+    progress: dict[str, ReadState] = {}
     async with httpx.AsyncClient() as http:
         runtime = AskRuntime(settings, http, store, SnapshotProvider(repository), encoders)
         background = [
             asyncio.create_task(runtime.warm_up()),
             asyncio.create_task(_retry_deletions(repository, store, storage)),
-            asyncio.create_task(_process_documents(repository, store, encoders, stop, settings)),
+            asyncio.create_task(
+                _process_documents(repository, store, encoders, stop, settings, progress)
+            ),
         ]
         try:
             yield ApiServices(
@@ -187,6 +195,7 @@ async def open_services(settings: Settings) -> AsyncIterator[ApiServices]:
                 },
                 remove_vectors=store.delete_document,
                 question_log=question_log,
+                reading_progress=progress,
             )
         finally:
             stop.set()

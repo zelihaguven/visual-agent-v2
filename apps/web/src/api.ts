@@ -102,7 +102,11 @@ export type DocumentInfo = {
   outdated?: boolean;
   /** Sunucunun verdiği konu adı; belgeler bu ada göre gruplanır. */
   topic?: string | null;
+  /** İşlenen belgenin okuyucu adımı: okunan ve toplam sayfa ya da görsel. */
+  progress?: ReadingProgress | null;
 };
+
+export type ReadingProgress = { kind: "page" | "image"; done: number; total: number };
 
 export type SourceView =
   | { kind: "page"; page: number; title: string; image_url: string }
