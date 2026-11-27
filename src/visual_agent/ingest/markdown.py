@@ -1,4 +1,6 @@
-"""Markdown: başlıklar düzeyleriyle bölüm olur, işaretler metinden çıkar, içerik kalır.
+"""Düz metin, markdown ve SQL dosyaları.
+
+Markdown: başlıklar düzeyleriyle bölüm olur, işaretler metinden çıkar, içerik kalır.
 
 Kurallar biçim düzeyindedir (CommonMark ve tablolar). Vurgu, satır içi kod işareti ve
 kaçış ters bölüsü metinden çıkar; bağlantının adresi metinde değilse parantez içinde
@@ -7,12 +9,14 @@ kalır, HTML olduğu gibi kalır (yalnız satır sonu etiketi satır sonu olur).
 
 import re
 from collections.abc import Sequence
+from pathlib import Path
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 
 from visual_agent.domain.document import SourceLocation
-from visual_agent.ingest.elements import Element, ElementKind, labeled_row
+from visual_agent.ingest.elements import SECTION_SEPARATOR, Element, ElementKind, labeled_row
+from visual_agent.ingest.formats import InputFormat
 
 _PARSER = MarkdownIt("commonmark", {"html": True}).enable("table")
 _LINE_BREAK_TAG_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
@@ -109,3 +113,62 @@ def parse_markdown(text: str) -> list[Element]:
             marker = ""
         index += 1
     return elements
+
+
+# --- plain_text ----------------------------------------------------------------------------------
+# Düz metin, markdown ve SQL dosyaları.
+
+_COMMENT_PREFIX = "--"
+_BLANK_LINES_RE = re.compile(r"\n\s*\n")
+
+
+def _read_text(path: Path) -> str:
+    raw = path.read_bytes()
+    try:
+        return raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return raw.decode("cp1254")
+
+
+def _heading(comments: list[str]) -> Element:
+    text = SECTION_SEPARATOR.join(dict.fromkeys(comments))
+    return Element(ElementKind.HEADING, text, SourceLocation())
+
+
+def _parse_sql(text: str) -> list[Element]:
+    elements: list[Element] = []
+    comments: list[str] = []
+    code: list[str] = []
+
+    def flush_code() -> None:
+        if code:
+            elements.append(Element(ElementKind.CODE, "\n".join(code), SourceLocation()))
+            code.clear()
+
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(_COMMENT_PREFIX):
+            flush_code()
+            comments.append(stripped.removeprefix(_COMMENT_PREFIX).strip())
+        elif not stripped:
+            flush_code()
+        else:
+            if comments:
+                elements.append(_heading(comments))
+                comments = []
+            code.append(line.rstrip())
+    flush_code()
+    return elements
+
+
+def parse_plain_text(path: Path, input_format: InputFormat) -> list[Element]:
+    text = _read_text(path)
+    if input_format is InputFormat.SQL:
+        return _parse_sql(text)
+    if input_format is InputFormat.MARKDOWN:
+        return parse_markdown(text)
+    return [
+        Element(ElementKind.TEXT, paragraph.strip(), SourceLocation())
+        for paragraph in _BLANK_LINES_RE.split(text)
+        if paragraph.strip()
+    ]

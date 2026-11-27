@@ -1,16 +1,15 @@
 """Soru hattı: sıralı adımlar. Bir adım sonuç üretirse hat orada durur."""
 
 import time
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, replace
 
 from visual_agent.ask.context import next_context, resolve_context
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.intent import resolve_intent
-from visual_agent.ask.related import with_related_headings
 from visual_agent.ask.steps import AskState, generate, resolve_scope, retrieve, verify
-from visual_agent.domain.result import AskOutcome, Failed
-from visual_agent.generation.json_model import HELPER_PROVIDERS
+from visual_agent.domain.result import AskOutcome, AskResult, Failed, Hit, NotFound
+from visual_agent.generation.helpers import HELPER_PROVIDERS
 
 __all__ = ["AskDeps", "AskRequest", "answer_question"]
 
@@ -89,3 +88,30 @@ async def answer_question(request: AskRequest, deps: AskDeps) -> AskOutcome:
         model_question=final.model_question,
         raw_output=final.raw_output,
     )
+
+
+# --- related -------------------------------------------------------------------------------------
+# Doğrudan cevap yoksa getirilen parçaların başlıkları gösterilir.
+#
+# Yalnız arama sırasındaki belge ve bölüm adları yazılır; parçaların içeriğinden hiçbir şey
+# cevap gibi aktarılmaz.
+
+MAX_RELATED = 4
+_LEADS = {
+    "tr": "Doğrudan cevap bulunamadı. Aramada en yakın çıkan başlıklar: ",
+    "en": "No direct answer was found. Closest headings in the search: ",
+}
+
+
+def _heading(hit: Hit) -> str:
+    chunk = hit.chunk
+    return chunk.section or chunk.title
+
+
+def with_related_headings(result: AskResult, hits: Sequence[Hit], language: str) -> AskResult:
+    """Gerekçesiz "bulunamadı" sonucuna en fazla dört başlık ve belgesi eklenir."""
+    if not isinstance(result, NotFound) or result.reason or not hits:
+        return result
+    headings = list(dict.fromkeys(_heading(hit) for hit in hits))[:MAX_RELATED]
+    lead = _LEADS.get(language, _LEADS["tr"])
+    return NotFound(reason=lead + "; ".join(headings) + ".", suggestions=result.suggestions)

@@ -7,12 +7,9 @@ from typing import Protocol
 from visual_agent.ask.streaming import EventSink
 from visual_agent.catalog.identifiers import IdentifierIndex
 from visual_agent.catalog.memory import DocumentCatalog
-from visual_agent.domain.conversation import ConversationContext
-from visual_agent.domain.result import Hit
-from visual_agent.generation.intent import IntentClassifier
+from visual_agent.domain.result import ConversationContext, Hit
+from visual_agent.generation.helpers import IntentClassifier, Rewriter, Translator
 from visual_agent.generation.openrouter import StreamCallbacks, StreamResult
-from visual_agent.generation.rewrite import Rewriter
-from visual_agent.generation.translate import Translator
 
 DEFAULT_TOP_K = 8
 DEFAULT_TRANSLATION_LIMIT_SECONDS = 1.5

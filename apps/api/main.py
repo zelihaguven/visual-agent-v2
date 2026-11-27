@@ -28,13 +28,14 @@ from visual_agent.ask.deps import AskRequest
 from visual_agent.ask.language import detect_language
 from visual_agent.ask.streaming import Event
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
-from visual_agent.domain.conversation import MAX_QUESTION_CHARS, ConversationContext
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk
 from visual_agent.domain.result import (
+    MAX_QUESTION_CHARS,
     Answered,
     AskOutcome,
     AskResult,
     Clarify,
+    ConversationContext,
     Inventory,
     NotFound,
     SmallTalk,

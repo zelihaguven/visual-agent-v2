@@ -4,7 +4,7 @@ import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import replace
 from pathlib import Path
 
 import httpx
@@ -14,11 +14,12 @@ from apps.api.main import ApiServices
 from apps.api.question_log import open_log
 from apps.api.voice import fixed_notice_texts, fixed_reply_texts
 from apps.worker.indexing import LazyIndexer, SharedEncoders
-from visual_agent.ask.clients import ModelClients, ask_deps, build_model_clients
-from visual_agent.ask.deps import AskRequest
+from visual_agent.ask.clients import build_ask_deps
+from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.orchestrator import answer_question
+from visual_agent.catalog.identifiers import SnapshotProvider, build_identifier_index
+from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.catalog.repository import DocumentRepository, open_repository
-from visual_agent.catalog.snapshot import SnapshotProvider
 from visual_agent.domain.result import AskOutcome, Failed
 from visual_agent.retrieval.hybrid import HybridRetriever
 from visual_agent.retrieval.qdrant_store import COLLECTION, QdrantChunkStore, open_client
@@ -28,12 +29,6 @@ from visual_agent.voice.client import CachingVoice, OpenRouterVoice, Voice
 logger = logging.getLogger(__name__)
 
 _MISSING_KEY = "Cevap servisi yapılandırılmamış. OpenRouter anahtarını ekleyin."
-
-
-@dataclass(frozen=True)
-class _ModelClients:
-    retriever: HybridRetriever
-    models: ModelClients
 
 
 class AskRuntime:
@@ -52,20 +47,28 @@ class AskRuntime:
         self._store = store
         self._encoders = encoders
         self._snapshots = snapshots
-        self._clients: _ModelClients | None = None
+        self._deps: AskDeps | None = None
         self._lock = asyncio.Lock()
 
-    async def _build_clients(self, api_key: str) -> _ModelClients:
+    async def _build_deps(self, api_key: str) -> AskDeps:
         dense, sparse = await self._encoders.get()
         await self._store.ensure_collection(dense.size)
-        models = await build_model_clients(self._http, self._settings, api_key)
-        return _ModelClients(retriever=HybridRetriever(dense, sparse, self._store), models=models)
+        retriever = HybridRetriever(dense, sparse, self._store)
+        # Katalog burada okunmaz: her soruda güncel görüntüyle değiştirilir (`ask`).
+        return await build_ask_deps(
+            self._http,
+            self._settings,
+            api_key,
+            DocumentCatalog(),
+            build_identifier_index(()),
+            retriever,
+        )
 
-    async def _ensure_clients(self, api_key: str) -> _ModelClients:
+    async def _ensure_deps(self, api_key: str) -> AskDeps:
         async with self._lock:
-            if self._clients is None:
-                self._clients = await self._build_clients(api_key)
-            return self._clients
+            if self._deps is None:
+                self._deps = await self._build_deps(api_key)
+            return self._deps
 
     async def warm_up(self) -> None:
         """Ağır modeller açılışta yüklenir; ilk soru, selam bile olsa, beklemez."""
@@ -73,7 +76,7 @@ class AskRuntime:
         if key is None or not key.get_secret_value():
             return
         try:
-            await self._ensure_clients(key.get_secret_value())
+            await self._ensure_deps(key.get_secret_value())
         except Exception:
             logger.warning("Modeller açılışta yüklenemedi; ilk soruda denenecek", exc_info=True)
 
@@ -81,9 +84,9 @@ class AskRuntime:
         key = self._settings.openrouter_api_key
         if key is None or not key.get_secret_value():
             return AskOutcome(result=Failed(reason=_MISSING_KEY), timings={})
-        clients = await self._ensure_clients(key.get_secret_value())
+        deps = await self._ensure_deps(key.get_secret_value())
         snapshot = await self._snapshots.current()
-        deps = ask_deps(snapshot.catalog, snapshot.identifiers, clients.retriever, clients.models)
+        deps = replace(deps, catalog=snapshot.catalog, identifiers=snapshot.identifiers)
         return await answer_question(request, deps)
 
 

@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 
 from visual_agent.domain.document import DocumentMeta
-from visual_agent.ingest import docling_parser
+from visual_agent.ingest import tools
 from visual_agent.ingest.chunking import build_chunks
 from visual_agent.ingest.elements import ElementKind
 
@@ -47,8 +47,8 @@ class _Document:
 def _parse(monkeypatch: pytest.MonkeyPatch, items: list[_Item]) -> list[Any]:
     document = _Document(items)
     converter = SimpleNamespace(convert=lambda path: SimpleNamespace(document=document))
-    monkeypatch.setattr(docling_parser, "_converter", lambda: converter)
-    return docling_parser.parse_with_docling(Path("belge.pdf"))
+    monkeypatch.setattr(tools, "_converter", lambda: converter)
+    return tools.parse_with_docling(Path("belge.pdf"))
 
 
 def test_model_code_in_the_page_header_names_the_section(monkeypatch: pytest.MonkeyPatch) -> None:

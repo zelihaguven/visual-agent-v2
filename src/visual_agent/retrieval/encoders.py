@@ -1,10 +1,9 @@
 """CPU'da çalışan yerel kodlayıcılar. Modeller ilk kullanımda yüklenir."""
 
 import os
+import re
 from collections.abc import Sequence
 from typing import Any
-
-from visual_agent.retrieval.normalization import normalize_for_bm25
 
 DENSE_MODEL = "BAAI/bge-m3"
 _DENSE_SIZE = 1024
@@ -16,11 +15,23 @@ BM25_MODEL = "Qdrant/bm25"
 BM25_CACHE_DIRECTORY = "data/models/fastembed"
 
 
+_TURKISH_FOLD = str.maketrans({"İ": "i", "ı": "i", "I": "i"})
+_HYPHENS = str.maketrans({"\u2010": "-", "\u2011": "-"})
+"""U+2010 ve U+2011 (Word'ün bölünmez tiresi) kısa tiredir; doğrulamadaki okumayla aynı."""
+_CODE_HYPHEN_RE = re.compile(r"\b([A-Za-z]{1,4})[-–](\d)")
+
+
+def normalize_for_bm25(text: str) -> str:
+    """BM25 için belge ve sorguya aynı uygulanan biçim: tireli kodları birleştirir ve Türkçe
+    I/İ harflerini sadeleştirir."""
+    return _CODE_HYPHEN_RE.sub(r"\1\2", text.translate(_HYPHENS)).translate(_TURKISH_FOLD)
+
+
 def bm25_cache_directory() -> str:
     return os.environ.get("FASTEMBED_CACHE_PATH") or BM25_CACHE_DIRECTORY
 
 
-class BgeM3Dense:
+class BgeM3Dense:  # pragma: no cover - modeli yükler; testlerde sahte kodlayıcı kullanılır
     size = _DENSE_SIZE
 
     def __init__(self) -> None:
@@ -42,14 +53,14 @@ class BgeM3Dense:
         return self._encode([text])[0]
 
 
-def _to_mapping(embedding: Any) -> dict[int, float]:
+def _to_mapping(embedding: Any) -> dict[int, float]:  # pragma: no cover
     return {
         int(index): float(value)
         for index, value in zip(embedding.indices, embedding.values, strict=True)
     }
 
 
-class Bm25Sparse:
+class Bm25Sparse:  # pragma: no cover - modeli yükler; testlerde sahte kodlayıcı kullanılır
     def __init__(self) -> None:
         from fastembed.sparse.bm25 import Bm25
 

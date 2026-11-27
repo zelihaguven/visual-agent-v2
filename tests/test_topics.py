@@ -10,7 +10,7 @@ from apps.worker.topics import TopicAssigner
 from tests.test_catalog_repository import Report, _chunk, _document, _repository
 from tests.test_worker_jobs import FakeIndexer, FakeRepository
 from visual_agent.catalog.repository import DocumentRepository, DocumentStatus, open_repository
-from visual_agent.generation.topic import clean_topic
+from visual_agent.generation.helpers import clean_topic
 
 
 class Namer:

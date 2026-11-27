@@ -15,8 +15,12 @@ from visual_agent.ask.deps import AskDeps
 from visual_agent.domain.answer import AnswerKind, ModelItem, VerificationStatus
 from visual_agent.domain.result import Answered, AnsweredItem, Citation, Hit
 from visual_agent.generation.openrouter import ServiceUnavailable
-from visual_agent.generation.parse import ParseFailure, parse_answer
-from visual_agent.generation.sources import build_user_message, to_prompt_sources
+from visual_agent.generation.sources import (
+    ParseFailure,
+    build_user_message,
+    parse_answer,
+    to_prompt_sources,
+)
 from visual_agent.verification.answer import verify_answer
 from visual_agent.verification.quote import quote_matches
 from visual_agent.verification.text import contains_token, normalize

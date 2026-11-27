@@ -6,7 +6,6 @@ import pytest
 from visual_agent.domain.answer import ModelItem, PromptSource, Quote
 from visual_agent.domain.document import Box, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.chunking import build_chunks
-from visual_agent.ingest.docling_parser import page_header_identifies
 from visual_agent.ingest.elements import Element, ElementKind, carries_value
 from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.pipeline import (
@@ -18,6 +17,7 @@ from visual_agent.ingest.pipeline import (
     with_images_in_place,
 )
 from visual_agent.ingest.text_layer import PageKind
+from visual_agent.ingest.tools import page_header_identifies
 from visual_agent.verification.answer import verify_item
 
 META = DocumentMeta(doc_id="d", title="Belge")

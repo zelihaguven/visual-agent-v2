@@ -1,7 +1,7 @@
 """Doğrudan cevap yoksa getirilen parçaların başlıkları gösterilir; içerik aktarılmaz."""
 
 from tests.test_ask_pipeline import FakeClient, FakeRetriever, ask, chunk, make_deps
-from visual_agent.ask.related import with_related_headings
+from visual_agent.ask.orchestrator import with_related_headings
 from visual_agent.domain.document import ChunkKind
 from visual_agent.domain.result import Answered, ClarifyChoice, Hit, NotFound
 

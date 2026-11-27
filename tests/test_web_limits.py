@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 from apps.api.main import MAX_UPLOAD_BYTES
-from visual_agent.domain.conversation import MAX_QUESTION_CHARS
+from visual_agent.domain.result import MAX_QUESTION_CHARS
 from visual_agent.ingest import formats
 
 LIMITS = (Path(__file__).parent.parent / "apps" / "web" / "src" / "limits.ts").read_text(

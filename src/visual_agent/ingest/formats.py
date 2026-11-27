@@ -74,7 +74,7 @@ RULES_VERSIONS: dict[InputFormat, int] = {
     # 21 (PDF, Office): gömülü görselin iki Tesseract kipi art arda eklenmez; her parça kiplerin
     #    en çok okuduğu sayıyla karşılaştırılır (iki kipin okuduğu değer çift sayılıyordu).
     # 22 (PDF, Office): U+2010/U+2011 tireli kod taşıyan sayfa üst bilgisi de bölüm olur
-    #    (karşılaştırma bu tireleri kısa tire okur; docling_parser.page_header_identifies).
+    #    (karşılaştırma bu tireleri kısa tire okur; tools.page_header_identifies).
     # 23 (PDF, Office; görsel 16): okuyucu yolunda önceki sayfada yapıdan kabul edilen başlık
     #    satırının aynısı başlıktır; içerikten sonra gelen kodsuz ilk başlık kök değildir,
     #    düzeyi bilinmeyen başlıklar kardeştir (bütün yollar; SQL 3, Markdown ve Excel düzeyli).

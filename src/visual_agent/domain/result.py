@@ -1,8 +1,21 @@
 """Bir sorunun olası sonuçları: her çıkış kendi tipindedir."""
 
+from pydantic import Field
+
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.document import Chunk, FrozenModel, SourceLocation
+
+# Sohbetin sonraki tura taşıdığı bağlam.
+MAX_QUESTION_CHARS = 2000
+_MAX_CONTEXT_DOCUMENTS = 20
+
+
+class ConversationContext(FrozenModel):
+    """Bağlam yalnız sorudur; önceki cevabın değerleri bilerek taşınmaz."""
+
+    question: str = Field(min_length=1, max_length=MAX_QUESTION_CHARS)
+    doc_ids: tuple[str, ...] = Field(default=(), max_length=_MAX_CONTEXT_DOCUMENTS)
+    titles: tuple[str, ...] = Field(default=(), max_length=_MAX_CONTEXT_DOCUMENTS)
 
 
 class Hit(FrozenModel):
@@ -99,8 +112,9 @@ class AskOutcome(FrozenModel):
     scope_narrowed: bool = False
     """Arama sorudaki kodun belgelerine daraltıldı; bulunamadıysa tüm belgelerde aranabilir."""
     translation_failed: bool = False
-    helper_providers: tuple[str, ...] = ()
     """Sorgu çevirisi gerekti ama süresinde gelmedi; arama özgün soruyla yapıldı."""
+    helper_providers: tuple[str, ...] = ()
+    """Yardımcı model çağrılarına cevap veren sağlayıcılar, çağrı sırasıyla."""
     # Teşhis alanları (soru kaydı): cevap dili, BM25 sorgusu, modele giden soru, ham çıktı.
     answer_language: str = ""
     bm25_query: str | None = None

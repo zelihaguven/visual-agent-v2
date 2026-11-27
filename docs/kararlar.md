@@ -1,7 +1,7 @@
 # Karar kaydı
 
 Bugüne kadar alınmış önemli kararlar: ne, ne zaman, neden, hangi durumda yeniden düşünülür.
-Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0032) tam metni en
+Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0033) tam metni en
 sonda: [Karar belgeleri](#karar-belgeleri).
 
 **Kural:** Burada "çıkarıldı", "eklenmedi" ya da "reddedildi" yazan bir şeyi yeniden önermek
@@ -2236,3 +2236,27 @@ Tarih: 2026-11-26. Ürün sahibi onayı (dondurmanın tek istisnası, tek deneme
 **Yan etki (dalda).** Başlığında kod ya da model numarası taşıyan belgeyi adıyla soran her soruda sıralama sorgusu değişir: yüklü 394 belgenin 17'si; taban setlerinde bütün `dikim-*` belgeleri (başlıkta ürün kodu). Ölçülen setlerde kötüleşen soru yok.
 
 **Yeniden düşünülür.** Sıralama değişikliği bir istem ya da kaynak biçimi değişikliğiyle birlikte yeniden ölçülürse (ekip kararı, açık notlar).
+
+<a id="karar-0033"></a>
+
+### 0033: Dondurma kalktı; kod sadeleştirmesi (dosya birleştirme, istemci katmanı)
+Tarih: 2026-11-27. Ürün sahibi kararı: dondurma (0031) "mevcut kod yapısını bozmayan" sadeleştirme için kalktı; yeniden indeksleme hariç. Dal: `sadelestirme`.
+
+**Neden.** Paylaşım paketi hazırlanırken `src/visual_agent` 65 dosya bulundu. Salt okunur inceleme (2026-11-27): ölü kod yok (her üst düzey ad üretim kodunda kullanılıyor); tek yerden kullanılan küçük modüller ve aynı alanları kopyalayan bir istemci katmanı var.
+
+**Ne değişti (davranış aynı; kural sürümü, istemler, parça ve indeks değişmedi).**
+- Tek kullanıcılı modüller kullanıcısına taşındı: `retrieval/normalization` → `encoders`, `fusion` → `hybrid` (`ScoredChunk` → `qdrant_store`); `generation/parse` → `sources`; `conversation/grounding` → `verification/text` (paket kalktı); `domain/conversation` → `domain/result`; `ask/related` → `orchestrator`; `catalog/snapshot` → `identifiers`; `ingest/plain_text` → `markdown`; `ingest/docling_parser` → `tools`.
+- Yardımcı model çağrıları tek dosyada: `generation/json_model`, `intent`, `translate`, `rewrite`, `topic` → `generation/helpers.py`. Aynı adlı sabitler önek aldı (`_PROMPT` → `_INTENT_PROMPT` vb.); istem metinleri ve sabitler eskileriyle birebir karşılaştırıldı, fark 0. `ask/intent.py` ile `generation/intent.py` ad karışıklığı kalktı.
+- İstemci katmanı: `ModelClients`, `ask_deps()` ve `apps/api/services._ModelClients` yerine tek `build_ask_deps()`. `AskRuntime` kurulmuş `AskDeps`'i tutar, her soruda yalnız `catalog` ve `identifiers` alanlarını `dataclasses.replace` ile yeniler (önce de her soruda katalog yeniden okunuyordu). Açılıştaki ısınma katalogu okumaz, boş yer tutucu verir: zamanlama öncekiyle aynı (inceleme bulgusu; ilk hâli katalogu ısınmada okuyordu).
+- Kapsam ölçümü: `encoders.py` dosya düzeyinde hariç tutulmaz; yalnız model yükleyen sınıflar (`# pragma: no cover`). İndeksi etkileyen `normalize_for_bm25` taşındığı yerde ölçümde kalır.
+- `AskOutcome`'da `translation_failed` açıklaması yanlış alanın (`helper_providers`) altındaydı; düzeltildi.
+
+**Sonuç.** `src/visual_agent` 65 → 51 dosya (15 silindi, 1 açıldı: `generation/helpers.py`). Satır (`809e3ce`'ye göre): `src` −35, `apps` +4, `evals` ve `pyproject.toml` +6, `tests` +33 (güçlendirilen bağlantı testi); toplam +8. Kazanç dosya sayısında ve kaldırılan iki türde (`ModelClients`, `_ModelClients`), satırda değil (taşıma). Test değişiklikleri import düzeltmesi; yalnız `test_ask_clients.py` yeni fonksiyona göre yeniden yazıldı. Bağlantı testi artık çeviri, takip tamamlama ve niyet çağrılarının yardımcı modele ve yardımcı sağlayıcısına gittiğini isteğin gövdesinden doğrular. Yardımcı model cevap modeline bağlanınca test kalıyor (bilerek bozularak denendi).
+
+**Bilinen kalan.** `apps/web/src/limits.ts` yorumu `MAX_QUESTION_CHARS` için hâlâ eski yolu (`domain/conversation.py`) gösteriyor; doğrusu `domain/result.py`. Bu işin kapsamında arayüz dosyasına dokunulmadı; davranışı etkilemez (`tests/test_web_limits.py` yalnız sayıyı karşılaştırır).
+
+**Yapılmayanlar.**
+- **`AskOutcome`'un `AskState`'ten alanları elle kopyalaması kaldı.** Kopya açık ve tip denetimli; yansıma ile kopyalamak tip güvenliğini düşürür, teşhis alanlarını alt modele taşımak `AskOutcome`'un 19 kurulduğu yeri ve soru günlüğünü değiştirir. Kazanç yok.
+- **BM25 metin biçimi (`normalize_for_bm25`) doğrulamadaki kurallarla (`canon_chars`, `turkish_lower`) ortaklaştırılmadı.** İki yerde aynı kurallar elle eşit tutuluyor; ortak yardımcı BM25 vektörlerini değiştirebileceği için yeniden indeksleme ister (ekip kararı). Değiştirilirse iki yer birlikte değişmeli.
+
+**Bu bilgisayarda test notu.** Windows kopyasında `core.autocrlf=true` olduğu için dondurulmuş dosyaların sha256 testleri (`test_committed_set_a_files_are_the_frozen_ones`, `test_scoring_is_frozen`, `test_measurement_scripts_are_frozen`) `main`'de de kalıyor (CRLF); bu işle ilgisi yok, CI (Linux) etkilenmez.

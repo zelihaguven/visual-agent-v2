@@ -14,13 +14,13 @@ import httpx
 
 from visual_agent.ask.clients import helper_model
 from visual_agent.catalog.repository import StoredDocument
-from visual_agent.generation.openrouter import fetch_zdr_index
-from visual_agent.generation.topic import (
+from visual_agent.generation.helpers import (
     TopicMerger,
     TopicNamer,
     make_topic_merger,
     make_topic_namer,
 )
+from visual_agent.generation.openrouter import fetch_zdr_index
 from visual_agent.settings import Settings
 
 logger = logging.getLogger(__name__)

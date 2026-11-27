@@ -27,7 +27,7 @@ import httpx
 from evals.answer_cache import CacheCounts, CachingTransport, Usage
 from evals.index_cache import Documents, ensure_index, load_or_ingest
 from evals.run_questions import cache_label
-from visual_agent.ask.clients import ask_deps, build_model_clients
+from visual_agent.ask.clients import build_ask_deps
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.language import document_language
 from visual_agent.ask.orchestrator import answer_question
@@ -195,12 +195,13 @@ async def run(arguments: argparse.Namespace) -> dict[str, Any]:
             httpx.AsyncHTTPTransport(), arguments.cache_dir, offline=arguments.offline
         )
         async with httpx.AsyncClient(transport=transport) as http:
-            clients = await build_model_clients(http, settings, key.get_secret_value())
-            deps = ask_deps(
+            deps = await build_ask_deps(
+                http,
+                settings,
+                key.get_secret_value(),
                 catalog_of(chunks),
                 build_identifier_index(flat),
                 HybridRetriever(dense, sparse, store),
-                clients,
             )
             rows = await ask_all(questions, deps, transport, arguments.output, arguments.offline)
     finally:

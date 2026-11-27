@@ -11,7 +11,6 @@ from tests.test_api_documents import FakeRepository
 from visual_agent.ask.deps import AskRequest
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.document import Chunk, ChunkKind, SourceLocation
 from visual_agent.domain.result import (
     Answered,
@@ -20,6 +19,7 @@ from visual_agent.domain.result import (
     Citation,
     Clarify,
     ClarifyChoice,
+    ConversationContext,
     Inventory,
     InventoryDocument,
     NotFound,

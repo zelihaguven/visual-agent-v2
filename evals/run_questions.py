@@ -14,7 +14,7 @@ from evals.answer_cache import CacheCounts, CachingTransport
 from evals.gold import Badge, GoldQuestion, GoldSet, GoldSource, Outcome
 from evals.index_cache import Documents, ensure_index, load_or_ingest
 from evals.scoring import AnswerItem, AnswerRecord, question_found, score_question, summarize
-from visual_agent.ask.clients import ask_deps, build_model_clients
+from visual_agent.ask.clients import build_ask_deps
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.language import document_language
 from visual_agent.ask.orchestrator import answer_question
@@ -22,9 +22,15 @@ from visual_agent.ask.steps import AskState, resolve_scope, retrieve
 from visual_agent.catalog.identifiers import build_identifier_index
 from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.domain.answer import VerificationStatus
-from visual_agent.domain.conversation import ConversationContext
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk, DocumentMeta
-from visual_agent.domain.result import Answered, AskResult, Citation, Clarify, NotFound
+from visual_agent.domain.result import (
+    Answered,
+    AskResult,
+    Citation,
+    Clarify,
+    ConversationContext,
+    NotFound,
+)
 from visual_agent.generation.openrouter import StreamCallbacks, StreamResult
 from visual_agent.retrieval.encoders import BgeM3Dense, Bm25Sparse
 from visual_agent.retrieval.hybrid import HybridRetriever
@@ -283,8 +289,7 @@ async def _measure(
         )
         counts = transport.counts
     async with httpx.AsyncClient(transport=transport) as http:
-        clients = await build_model_clients(http, settings, api_key)
-        deps = ask_deps(catalog, identifiers, retriever, clients)
+        deps = await build_ask_deps(http, settings, api_key, catalog, identifiers, retriever)
         questions = select_questions(gold, arguments.questions)
         if arguments.repeat == 1:
             output = arguments.work / "answers.json"
