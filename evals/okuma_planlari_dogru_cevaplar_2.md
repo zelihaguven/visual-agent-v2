@@ -7,11 +7,13 @@ parçalardan ya da metin katmanından değil. Birinci setin sayfaları kullanıl
 
 ## Ölçüt (ölçümden önce yazıldı, sonra değişmez)
 1. Her planda yanlış gösterilen değer sayısı tabandan fazla olamaz.
-2. Metinli sayfalarda (QM s.7, 16, 34, 38) tabanda doğru gösterilen tek bir değer bile bir planda bozulamaz
-   (yanlışa ya da gizliye dönemez).
+2. Metinli sayfalarda (QM s.8, 22, 28, 39, 41, 43) tabanda doğru gösterilen tek bir değer bile bir planda
+   bozulamaz (yanlışa ya da gizliye dönemez).
 3. Kural 1: değer, iki okuyucu uyuşmadıkça "gösterilen" sayılmaz.
 Sınıflar: doğru gösterilen / yanlış gösterilen (yanlış karakter ya da yanlış etikete bağlı) / gizlenen doğru /
 gizlenen yanlış / okunamayan (çıktıda yok).
+Setin sayfaları: QM 8, 21, 22, 27, 28, 39, 41, 43; Bold 3 Stripes 4, 9, 11, 14, 17, 22, 23, 25; föy 6026412
+1, 5, 6, 7, 8, 10, 13, 15.
 
 Not (ikinci set): Ölçüt 2'nin bu setteki karşılığı metinli QM sayfaları 8, 22, 28, 39, 41, 43'tür.
 
