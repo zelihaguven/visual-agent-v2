@@ -187,4 +187,4 @@ denetlenmişti). Bütün sayfalar taramadır (Y). Sayfalar: 1 kapak formu, 6 fot
 | F-28-6 | 28 | Y | PO270 LG / XXL | 9 / 1/2 |
 | F-28-7 | 28 | Y | tablo notu | Grade Rule Display: Increment (değerler fark, ölçü değil) |
 
-Toplam: QM 61, Bold 40, föy 52 değer.
+Toplam: QM 61, Bold 40, föy 49 değer (150). (Ölçümden sonra düzeltildi: önce "föy 52" yazıyordu, sayım hatası; değerler değişmedi.)
