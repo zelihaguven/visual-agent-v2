@@ -111,7 +111,13 @@ class CloudOutage:
         if not self.reasons:
             return None
         causes = "; ".join(f"{model}: {reason}" for model, reason in self.reasons.items())
-        return f"{self.fallback_blocks} blok Tesseract'la denetlendi; bulut alınamadı ({causes})."
+        return f"{self.fallback_blocks} {CLOUD_OUTAGE_MARK} ({causes})."
+
+
+CLOUD_OUTAGE_MARK = "blok Tesseract'la denetlendi; bulut alınamadı"
+"""Devresi açılan belgenin rapor uyarısındaki sabit metin; belgeler bununla aranır:
+`SELECT d.doc_id, d.filename, w.value FROM documents d, json_each(d.report, '$.warnings') w
+WHERE w.value LIKE '%bulut alınamadı%'`."""
 
 
 CLOUD_OUTAGE: ContextVar[CloudOutage | None] = ContextVar("cloud_outage", default=None)

@@ -147,6 +147,39 @@ def test_interrupted_documents_return_to_the_queue_on_start(tmp_path: Path) -> N
     assert asyncio.run(run()) == [DocumentStatus.FAILED, DocumentStatus.QUEUED]
 
 
+def test_documents_whose_cloud_circuit_opened_are_found_by_a_query(tmp_path: Path) -> None:
+    """Devresi açılan belge rapor uyarısından bulunur (Mac'te tek sqlite3 komutu)."""
+    from visual_agent.ingest.elements import CLOUD_OUTAGE_MARK, CloudOutage
+
+    outage = CloudOutage(reasons={"qwen/qwen3-vl": "ConnectError()"}, fallback_blocks=4)
+
+    class Warned(FrozenModel):
+        warnings: tuple[str, ...]
+
+    repository = _repository(tmp_path)
+
+    async def run() -> None:
+        for doc_id, warnings in (("a", (str(outage.warning()),)), ("b", ("Sayfa 2: görsel",))):
+            await repository.create_document(_document(doc_id))
+            await repository.claim_next()
+            await repository.mark_ready(doc_id, "tr", [], Warned(warnings=warnings), None)
+
+    asyncio.run(run())
+    connection = connect(tmp_path / "veri" / "katalog.db")
+    try:
+        found = [
+            tuple(row)
+            for row in connection.execute(
+                "SELECT d.doc_id, w.value FROM documents d, json_each(d.report, '$.warnings') w"
+                " WHERE w.value LIKE '%bulut alınamadı%'"
+            )
+        ]
+    finally:
+        connection.close()
+
+    assert found == [("a", f"4 {CLOUD_OUTAGE_MARK} (qwen/qwen3-vl: ConnectError()).")]
+
+
 def test_ready_document_keeps_chunks_report_and_language(tmp_path: Path) -> None:
     repository = _repository(tmp_path)
     chunks = [_chunk("a", 0), _chunk("a", 1, sheet="Ölçüler"), _chunk("a", 2, sheet="Ölçüler")]
