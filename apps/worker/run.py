@@ -72,5 +72,4 @@ def cloud_config(settings: Settings) -> "CloudConfig | None":
         cache=Path(settings.reader_cache_directory),
         reader_model=settings.reader_model,
         figure_check_model=settings.reader_figure_check_model,
-        max_page_share=settings.reader_cloud_max_page_share,
     )

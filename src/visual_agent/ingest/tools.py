@@ -151,7 +151,6 @@ def _cloud_readers(cloud: CloudConfig | None) -> CloudReaders | None:
         figure_check=cloud_reader(
             cloud, cloud.figure_check_model, FIGURE_PROMPT, FIGURE_MAX_TOKENS
         ),
-        max_page_share=cloud.max_page_share,
     )
 
 

@@ -39,9 +39,6 @@ class Settings(BaseSettings):
     reader_model: str = "qwen/qwen3-vl-30b-a3b-instruct"
     reader_figure_check_model: str = "google/gemma-4-26b-a4b-it"
     reader_cache_directory: str = "data/okuma-onbellegi"
-    # Alanı sayfanın (ya da görsel dosyanın) bu oranı ya da fazlası olan kırpıntı buluta gitmez:
-    # tam sayfa gitmez (kural 4). O blok Tesseract'la denetlenir, şekil bloğu okunmaz.
-    reader_cloud_max_page_share: float = Field(default=0.9, gt=0, le=1)
     openrouter_api_key: SecretStr | None = None
     openrouter_url: AnyHttpUrl = AnyHttpUrl("https://openrouter.ai/api/v1")
     answer_model: str = "google/gemma-4-26b-a4b-it"

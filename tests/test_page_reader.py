@@ -982,38 +982,26 @@ def _whole(content: str, label: str = "text") -> Any:
     return read_page
 
 
-def test_a_crop_covering_the_page_is_not_sent_to_the_cloud(tmp_path: Path) -> None:
-    """Tam sayfa buluta gitmez: blok Tesseract'la denetlenir, şekil bloğu okunmaz."""
-    server = _OpenRouter(reply=_json("Tork 12 Nm"))
-    check = _qwen_check(server, tmp_path / "onbellek")
-    cloud = _cloud(check, figure_read=check, figure_check=check)
+def test_a_block_covering_the_page_is_read_by_the_cloud_like_any_block(tmp_path: Path) -> None:
+    """Şirket onayı (2026-11-27): sayfayı kaplayan blok da buluta gider. Metin bloğunu Qwen
+    denetler (Tesseract değil); şekil bloğunu Qwen okur, Gemma denetler."""
+    sizes: list[tuple[int, int]] = []
 
-    [element] = _read(tmp_path, _whole("Basınç 185 bar"), lambda _: "Basınç 135 bar", cloud)
-    figure = _read(tmp_path, _whole("", label="image"), str, cloud)
+    def qwen(crop: Image.Image) -> str:
+        sizes.append(crop.size)
+        return "Basınç 185 bar"
 
-    assert element.ocr_uncertain == ("185",)
-    assert figure == []
-    assert server.requests == 0
+    cloud = _cloud(
+        qwen, figure_read=lambda _: _json("Tork 12 Nm"), figure_check=lambda _: _json("Tork 12 Nm")
+    )
+    tesseract = lambda _: "Basınç 135 bar"  # noqa: E731
 
+    [element] = _read(tmp_path, _whole("Basınç 185 bar"), tesseract, cloud)
+    [figure] = _read(tmp_path, _whole("", label="image"), tesseract, cloud)
 
-def test_page_share_of_an_embedded_image_is_measured_against_its_page(tmp_path: Path) -> None:
-    """Gömülü görselin tamamı tek blok olsa da sayfanın küçük bir kısmıysa buluta gider; sayfayı
-    kaplayan görsel gitmez."""
-    server = _OpenRouter(reply="Basınç 185 bar")
-    cloud = _cloud(_qwen_check(server, tmp_path / "onbellek"))
-    scan = _scan(tmp_path / "t.pdf")
-
-    def read(region: Box) -> list[Any]:
-        return read_embedded_images(
-            scan, [region], tmp_path, _whole("Basınç 185 bar"), lambda _: "", cloud
-        )
-
-    [small] = read(_region(50, 80, 350, 180))
-    [whole] = read(_region(0, 0, 600, 800))
-
-    assert small.ocr_uncertain == ()  # Qwen okudu, tuttu
-    assert whole.ocr_uncertain == ("185",)  # Tesseract (boş okuma) denetledi
-    assert len(server.bodies) == 1
+    assert element.ocr_uncertain == ()
+    assert sizes == [(600, 800)]
+    assert (figure.text, figure.ocr_uncertain) == ("Tork 12 Nm", ())
 
 
 def test_same_crop_is_paid_once_even_by_a_new_reader(tmp_path: Path) -> None:

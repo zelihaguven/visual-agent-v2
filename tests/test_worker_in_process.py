@@ -117,20 +117,19 @@ def test_in_process_worker_stops_without_waiting_the_full_interval() -> None:
     assert asyncio.run(run()) == 0
 
 
-def test_cloud_reading_uses_the_configured_models_and_page_share() -> None:
+def test_cloud_reading_uses_the_configured_models() -> None:
     from apps.worker.run import cloud_config
     from visual_agent.settings import Settings
 
     settings = Settings(
-        _env_file=None, openrouter_api_key="anahtar", reader_cloud_max_page_share=0.5
+        _env_file=None,
+        openrouter_api_key="anahtar",
+        reader_model="qwen/x",
+        reader_figure_check_model="google/y",
     )
     config = cloud_config(settings)
 
     assert config is not None
-    assert (config.reader_model, config.figure_check_model, config.max_page_share) == (
-        settings.reader_model,
-        settings.reader_figure_check_model,
-        0.5,
-    )
+    assert (config.reader_model, config.figure_check_model) == ("qwen/x", "google/y")
     assert cloud_config(Settings(_env_file=None, openrouter_api_key=None)) is None
     assert cloud_config(Settings(_env_file=None, openrouter_api_key="  ")) is None
