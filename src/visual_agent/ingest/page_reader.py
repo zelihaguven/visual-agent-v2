@@ -39,6 +39,8 @@ from visual_agent.domain.document import Box, SourceLocation
 from visual_agent.generation.helpers import JsonModel
 from visual_agent.generation.openrouter import fetch_zdr_index, select_providers
 from visual_agent.ingest.elements import (
+    CLOUD_OUTAGE,
+    CloudOutage,
     Element,
     ElementKind,
     carries_value,
@@ -278,8 +280,10 @@ class CloudConfig:
 def cloud_reader(config: CloudConfig, model: str, prompt: str, max_tokens: int) -> SecondReader:
     """Bloğun kırpıntısını bulut modeli okur: buluta bütün sayfa değil blok gider, yalnız ZDR
     sağlayıcılarla (kural 4). Cevap diskte sha256(model + istem + görüntü) adıyla saklanır:
-    aynı kırpıntı ikinci kez ödenmez. Okunamazsa `CloudUnavailable`."""
+    aynı kırpıntı ikinci kez ödenmez. Okunamazsa `CloudUnavailable`; o modelin ilk hatasından
+    sonra belgenin kalanında istek gitmez (`CLOUD_OUTAGE`, ZDR dizini de yeniden istenmez)."""
     chosen: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
+    own = CloudOutage()
 
     async def call(png: bytes) -> str:
         async with httpx.AsyncClient(transport=config.transport, timeout=_CLOUD_SECONDS) as http:
@@ -298,9 +302,14 @@ def cloud_reader(config: CloudConfig, model: str, prompt: str, max_tokens: int) 
         cached = config.cache / f"{key}.json"
         if cached.exists():
             return str(json.loads(cached.read_text(encoding="utf-8"))["content"])
+        outage = CLOUD_OUTAGE.get() or own
+        if model in outage.reasons:
+            raise CloudUnavailable(f"{model}: {outage.reasons[model]}")
         try:
             content = asyncio.run(call(png))
         except Exception as error:  # okuma durmaz; çağıran yedeğe geçer ya da değeri gizler
+            outage.reasons[model] = repr(error)[:200]
+            logger.warning("Bulut okuması alınamadı; belgenin kalanında istenmez: %s", error)
             raise CloudUnavailable(f"{model}: {error!r}"[:300]) from error
         config.cache.mkdir(parents=True, exist_ok=True)
         partial = cached.with_suffix(".tmp")
@@ -317,10 +326,10 @@ def with_fallback(cloud: SecondReader, fallback: SecondReader) -> SecondReader:
     def read(image: Image.Image) -> str:
         try:
             return cloud(image)
-        except CloudUnavailable as error:
-            logger.warning(
-                "İkinci okuma buluttan alınamadı; blok Tesseract'la denetlenir: %s", error
-            )
+        except CloudUnavailable:
+            outage = CLOUD_OUTAGE.get()
+            if outage is not None:
+                outage.fallback_blocks += 1
             return fallback(image)
 
     return read

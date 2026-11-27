@@ -6,7 +6,14 @@ import pytest
 from visual_agent.domain.answer import ModelItem, PromptSource, Quote
 from visual_agent.domain.document import Box, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.chunking import build_chunks
-from visual_agent.ingest.elements import INGEST_PROGRESS, Element, ElementKind, carries_value
+from visual_agent.ingest.elements import (
+    CLOUD_OUTAGE,
+    INGEST_PROGRESS,
+    CloudOutage,
+    Element,
+    ElementKind,
+    carries_value,
+)
 from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.pipeline import (
     IngestTools,
@@ -379,6 +386,32 @@ def test_unavailable_reader_stops_the_document(
         ingest_document(path, META, tools, tmp_path)
 
     assert not any(call.startswith("parse") for call in calls)
+
+
+def test_cloud_outage_is_one_warning_per_document(tmp_path: Path) -> None:
+    """Devre kesicinin durumu belge başınadır: bir belgenin kesintisi sonrakine geçmez."""
+    path = tmp_path / "tarama.pdf"
+    path.write_bytes(b"%PDF-x")
+    outages: list[CloudOutage | None] = []
+
+    def cut(path: Path, pages: list[int], work: Path, image: Path | None) -> list[Element]:
+        outage = CLOUD_OUTAGE.get()
+        outages.append(outage)
+        if outage is not None and len(outages) == 1:
+            outage.reasons["qwen"] = "ConnectError()"
+            outage.fallback_blocks = 3
+        return []
+
+    tools = replace(_fake_tools([], page_kind=PageKind.NONE), read_scanned_pages=cut)
+    first = ingest_document(path, META, tools, tmp_path)
+    second = ingest_document(path, META, tools, tmp_path)
+
+    assert (
+        "3 blok Tesseract'la denetlendi; bulut alınamadı (qwen: ConnectError())."
+        in first.report.warnings
+    )
+    assert not any("Tesseract" in warning for warning in second.report.warnings)
+    assert outages[0] is not outages[1]
 
 
 def test_image_file_itself_is_given_to_the_page_reader(tmp_path: Path) -> None:

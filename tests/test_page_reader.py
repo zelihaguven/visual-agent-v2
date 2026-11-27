@@ -18,7 +18,12 @@ from reportlab.pdfgen.canvas import Canvas
 from evals import ocr_score, ocr_truth
 from visual_agent.domain.document import Box
 from visual_agent.ingest import page_reader
-from visual_agent.ingest.elements import INGEST_PROGRESS, ElementKind
+from visual_agent.ingest.elements import (
+    CLOUD_OUTAGE,
+    INGEST_PROGRESS,
+    CloudOutage,
+    ElementKind,
+)
 from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.page_reader import (
     PaddleVlReader,
@@ -833,8 +838,10 @@ class _OpenRouter:
     def __init__(self, reply: str = "", fail: bool = False) -> None:
         self.reply, self.fail = reply, fail
         self.bodies: list[dict[str, Any]] = []
+        self.requests = 0
 
     def handle(self, request: httpx.Request) -> httpx.Response:
+        self.requests += 1
         if self.fail:
             raise httpx.ConnectError("ulaşılamadı", request=request)
         if request.url.path.endswith("/endpoints/zdr"):
@@ -907,6 +914,37 @@ def test_unreachable_qwen_falls_back_to_tesseract_and_reading_completes(tmp_path
 
     assert element.text == "Basınç 185 bar"
     assert element.ocr_uncertain == ("185",)  # Tesseract'ın okumasıyla denetlendi
+
+
+def _two_blocks(image: Path) -> dict[str, Any]:
+    width, height = Image.open(image).size
+    blocks = [
+        {**_block(0, "text", "Basınç 185 bar"), "block_bbox": [100, 100, 300, 130]},
+        {**_block(1, "text", "Tork 12 Nm"), "block_bbox": [100, 130, 300, 160]},
+    ]
+    return {"width": width, "height": height, "parsing_res_list": blocks}
+
+
+def test_after_the_first_cloud_failure_the_document_asks_the_cloud_no_more(
+    tmp_path: Path,
+) -> None:
+    """Devre kesici: ilk hatadan (ZDR dizini bile alınamadı) sonra ikinci blokta istek gitmez;
+    iki blok da Tesseract'la denetlenir, belge raporu için tek satır kalır."""
+    server = _OpenRouter(fail=True)
+    tesseract = lambda _: "Basınç 135 bar Tork 12 Nm"  # noqa: E731
+    second = page_reader.with_fallback(_qwen_check(server, tmp_path / "onbellek"), tesseract)
+    outage = CloudOutage()
+    token = CLOUD_OUTAGE.set(outage)
+    try:
+        elements = read_scanned_pages(_scan(tmp_path / "t.pdf"), [1], tmp_path, _two_blocks, second)
+    finally:
+        CLOUD_OUTAGE.reset(token)
+
+    assert server.requests == 1
+    assert [e.ocr_uncertain for e in elements] == [("185",), ()]
+    assert outage.fallback_blocks == 2
+    warning = outage.warning()
+    assert warning is not None and warning.startswith("2 blok Tesseract'la denetlendi; bulut")
 
 
 def test_same_crop_is_paid_once_even_by_a_new_reader(tmp_path: Path) -> None:

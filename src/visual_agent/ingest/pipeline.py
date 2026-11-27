@@ -1,5 +1,6 @@
 """Bir dosyayı arama parçalarına ve kapsam raporuna dönüştürür."""
 
+import logging
 import re
 from collections import Counter
 from collections.abc import Callable, Sequence
@@ -8,7 +9,13 @@ from pathlib import Path
 
 from visual_agent.domain.document import Box, Chunk, DocumentMeta, FrozenModel
 from visual_agent.ingest.chunking import build_chunks
-from visual_agent.ingest.elements import Element, ElementKind, report_progress
+from visual_agent.ingest.elements import (
+    CLOUD_OUTAGE,
+    CloudOutage,
+    Element,
+    ElementKind,
+    report_progress,
+)
 from visual_agent.ingest.formats import (
     RULES_VERSIONS,
     UNRECORDED_RULES,
@@ -18,6 +25,8 @@ from visual_agent.ingest.formats import (
 from visual_agent.ingest.markdown import parse_plain_text
 from visual_agent.ingest.spreadsheet import parse_workbook
 from visual_agent.ingest.text_layer import PageKind
+
+logger = logging.getLogger(__name__)
 
 _MIN_CAPTURED_TEXT_RATIO = 0.5
 _SQL_STATEMENT = (
@@ -246,9 +255,18 @@ def _parse(path: Path, input_format: InputFormat, tools: IngestTools, work: Path
 
 
 def ingest_document(path: Path, meta: DocumentMeta, tools: IngestTools, work: Path) -> IngestResult:
+    """Bulut okumasının devre kesicisi belge başınadır: kesinti raporda tek satır uyarıdır."""
     input_format = detect_format(path)
     report_progress("prepare")
-    parsed = _parse(path, input_format, tools, work)
+    outage = CloudOutage()
+    token = CLOUD_OUTAGE.set(outage)
+    try:
+        parsed = _parse(path, input_format, tools, work)
+    finally:
+        CLOUD_OUTAGE.reset(token)
+    if (warning := outage.warning()) is not None:
+        logger.warning("%s: %s", meta.doc_id, warning)
+        parsed = replace(parsed, warnings=(*parsed.warnings, warning))
     report_progress("chunks")
     chunks = tuple(build_chunks(parsed.elements, meta))
     report = _build_report(meta, input_format, chunks, parsed)

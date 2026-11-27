@@ -3,7 +3,7 @@
 import re
 from collections.abc import Callable, Sequence
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Literal
 
@@ -94,3 +94,26 @@ def report_progress(step: IngestStep, done: int = 0, total: int = 0) -> None:
     sink = INGEST_PROGRESS.get()
     if sink is not None:
         sink(step, done, total)
+
+
+@dataclass
+class CloudOutage:
+    """Bir belgenin işlenmesi boyunca bulut okumasının durumu (devre kesici, karar 0035): bir
+    modelin ilk hatasından sonra belgenin kalanında o modele istek gitmez."""
+
+    reasons: dict[str, str] = field(default_factory=dict)
+    """Model → ilk hatanın nedeni."""
+    fallback_blocks: int = 0
+    """Bulut yerine Tesseract'la denetlenen blok sayısı."""
+
+    def warning(self) -> str | None:
+        """Belge raporunun tek satırı; kesinti olmadıysa None."""
+        if not self.reasons:
+            return None
+        causes = "; ".join(f"{model}: {reason}" for model, reason in self.reasons.items())
+        return f"{self.fallback_blocks} blok Tesseract'la denetlendi; bulut alınamadı ({causes})."
+
+
+CLOUD_OUTAGE: ContextVar[CloudOutage | None] = ContextVar("cloud_outage", default=None)
+"""Belgeyi işleyen (`ingest_document`) her belge için yenisini kurar; kurulmadıysa her bulut
+okuyucusu kendi durumunu tutar."""
