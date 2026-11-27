@@ -173,6 +173,8 @@ Plan C yok (0034'te elendi). Komutlar repo kökünde; uygulama `http://127.0.0.1
    yazar; anahtar yoksa, ZDR sağlayıcısı yoksa ya da çağrı başarısızsa çıkış kodu 1. **Başarısızsa koşu başlamaz:**
    anahtarsız ya da bulutsuz işlenen belge sessizce 27 damgası alır (0035, bilinen sınırlar).
    `uv run --no-sync python -c "import dataclasses, sys, tempfile; from pathlib import Path; from PIL import Image, ImageDraw; from apps.worker.run import cloud_config; from visual_agent.ingest.page_reader import CHECK_MAX_TOKENS, CHECK_PROMPT, cloud_reader; from visual_agent.settings import Settings; c = cloud_config(Settings()); c is not None or sys.exit('anahtar yok'); c = dataclasses.replace(c, cache=Path(tempfile.mkdtemp())); im = Image.new('RGB', (160, 40), 'white'); ImageDraw.Draw(im).text((10, 12), 'TEST 42', fill='black'); t = cloud_reader(c, c.reader_model, CHECK_PROMPT, CHECK_MAX_TOKENS)(im); print('tamam:', t.strip()) if t.strip() else sys.exit('bos cevap')"`
+   Mac'te denendi (2026-11-27, `okuma-planlari`): 1 çağrı, "tamam: TEST 42", çıkış 0; geçersiz anahtarla (401) ve boş
+   anahtarla çıkış 1 (ücretsiz). Maliyet < 0,01 sent (tahmin; komut maliyet yazmaz). Değişiklik gerekmedi.
 
 **Kapsam** (Windows verisine göre; Mac'te yüklemeden sonra yeniden sayılır): 31 belge "Eski kural" olur: 25 PDF (337
 sayfa), 4 Office, 1 görsel, 1 `.sql` (SQL kural sürümü 4). Okuyucu 20 belgede 276 taranmış sayfa ve 45 gömülü görsel
