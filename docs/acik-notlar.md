@@ -131,6 +131,10 @@ S1, S2 ve S3 kapatılamadı; üçü güvenli bilinen sınır olarak donduruldu (
 
 ## Canlıya alırken
 
+- Okuma önbelleği (`data/okuma-onbellegi`, karar 0035) sınırsız büyüyor; belge silinince kırpıntı okumaları diskte kalıyor (dosya adı kırpıntının sha256'sı, belgeye bağlı değil). Departman yetkisi gelince önemli: silinen ya da yetkisi kalkan belgenin okumaları kalmamalı. Düzeltme yok.
+- Bulut okumasında her blokta yeni `asyncio.run` ve yeni `httpx.AsyncClient` açılıyor (bağlantı her blokta yeniden kuruluyor). Mac süre ölçümünden sonra okuyucu başına tek istemci düşünülebilir. Düzeltme yok.
+- Kural damgası bulut durumundan bağımsız: anahtarsız ya da devresi açıkken işlenen belge 27 damgası alır, bir daha "Eski kural" görünmez; bulutla okunması için elle yeniden işlenmeli (kararlar 0035, bilinen sınırlar). Devresi açılan belgeler rapor uyarısından listelenir (0035).
+
 - İngilizce soruda sistem metinleri Türkçe: "Cevap servisi şu an kullanılamıyor…", "Bu cümle kaynakla doğrulanamadığı için gösterilmiyor.", netleştirme ve "bulunamadı" gerekçeleri yalnız Türkçe; arayüzün kendisi de Türkçe. Yalnız sunucu metinlerini cevap diline çevirmek mi, arayüzü iki dilli yapmak mı, Türkçe bırakmak mı: ürün kararı.
 - **Pilot cihazı:** Windows mu, Mac mi, sunucu mu. Taranmış belgelerin okunması (0015, 0024), ses (tablet ve atölye) ve veri taşıma buna bağlı.
 - **Ağ ve HTTPS:** uygulama yalnız `127.0.0.1`'e açık; tabletler için giriş, HTTPS (tablette mikrofon için şart), güvenlik başlıkları ve hız sınırı gerekir (bu bölümde: giriş, güvenlik başlıkları, hız sınırı).
