@@ -131,6 +131,7 @@ S1, S2 ve S3 kapatılamadı; üçü güvenli bilinen sınır olarak donduruldu (
 
 ## Canlıya alırken
 
+- Satır sonu: Windows'ta core.autocrlf=true yüzünden 3 donmuş hash testi yerelde kırılıyor (depo LF); .gitattributes ile LF sabitleme ayrı iş.
 - Okuma önbelleği (`data/okuma-onbellegi`, karar 0035) sınırsız büyüyor; belge silinince kırpıntı okumaları diskte kalıyor (dosya adı kırpıntının sha256'sı, belgeye bağlı değil). Departman yetkisi gelince önemli: silinen ya da yetkisi kalkan belgenin okumaları kalmamalı. Düzeltme yok.
 - Bulut okumasında her blokta yeni `asyncio.run` ve yeni `httpx.AsyncClient` açılıyor (bağlantı her blokta yeniden kuruluyor). Mac süre ölçümünden sonra okuyucu başına tek istemci düşünülebilir. Düzeltme yok.
 - Kural damgası bulut durumundan bağımsız: anahtarsız ya da devresi açıkken işlenen belge 27 damgası alır, bir daha "Eski kural" görünmez; bulutla okunması için elle yeniden işlenmeli (kararlar 0035, bilinen sınırlar). Devresi açılan belgeler rapor uyarısından listelenir (0035).
