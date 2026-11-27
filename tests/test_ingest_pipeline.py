@@ -6,7 +6,7 @@ import pytest
 from visual_agent.domain.answer import ModelItem, PromptSource, Quote
 from visual_agent.domain.document import Box, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.chunking import build_chunks
-from visual_agent.ingest.elements import Element, ElementKind, carries_value
+from visual_agent.ingest.elements import INGEST_PROGRESS, Element, ElementKind, carries_value
 from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.pipeline import (
     IngestTools,
@@ -449,3 +449,28 @@ def test_sentence_with_the_uncertain_heading_code_is_hidden_but_the_value_is_sho
 
     assert not check("iGML-6473 M beden etiket kodu ETK-3392.")
     assert check("M beden etiket kodu ETK-3392.")
+
+
+def _steps_while_ingesting(path: Path, tools: IngestTools, work: Path) -> list[str]:
+    steps: list[str] = []
+    token = INGEST_PROGRESS.set(lambda step, done, total: steps.append(step))
+    try:
+        ingest_document(path, META, tools, work)
+    finally:
+        INGEST_PROGRESS.reset(token)
+    return steps
+
+
+def test_ingest_reports_its_steps_in_order(tmp_path: Path) -> None:
+    """Arayüzdeki genel çubuk için: hazırlık, metin, parçalama sırayla bildirilir."""
+    pdf = tmp_path / "belge.pdf"
+    pdf.write_bytes(b"%PDF-x")
+    text = tmp_path / "notlar.md"
+    text.write_text("# Başlık\n\nMetin.", encoding="utf-8")
+
+    assert _steps_while_ingesting(pdf, _fake_tools([]), tmp_path) == ["prepare", "text", "chunks"]
+    assert _steps_while_ingesting(text, _fake_tools([]), tmp_path) == [
+        "prepare",
+        "text",
+        "chunks",
+    ]

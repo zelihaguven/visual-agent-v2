@@ -14,8 +14,8 @@ from visual_agent.ask.deps import AskRequest
 from visual_agent.catalog.repository import DocumentStatus, StoredDocument
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, Box, Chunk, ChunkKind, SourceLocation
 from visual_agent.domain.result import AskOutcome, NotFound
+from visual_agent.ingest.elements import IngestState
 from visual_agent.ingest.formats import RULES_VERSIONS, InputFormat
-from visual_agent.ingest.page_reader import ReadState
 from visual_agent.settings import Settings
 
 
@@ -407,23 +407,23 @@ def test_closed_connection_stops_the_answer(tmp_path: Path) -> None:
     assert asyncio.run(scenario())
 
 
-def test_document_list_shows_reading_progress_only_for_the_processing_document(
+def test_document_list_shows_processing_progress_only_for_the_processing_document(
     tmp_path: Path,
 ) -> None:
     documents = [stored("d1", DocumentStatus.PROCESSING), stored("d2"), stored("d3")]
-    progress: dict[str, ReadState] = {"d1": ("image", 12, 54), "d2": ("page", 3, 3)}
+    progress: dict[str, IngestState] = {"d1": ("images", 12, 54), "d2": ("index", 0, 0)}
     services = ApiServices(
         repository=FakeRepository(documents=documents),
         ask=lambda _: None,  # type: ignore[arg-type,return-value]
         storage_directory=tmp_path,
-        reading_progress=progress,
+        processing_progress=progress,
     )
     client = TestClient(create_app(Settings(_env_file=None), services))
 
     body = client.get("/api/documents").json()
 
     assert [d["progress"] for d in body] == [
-        {"kind": "image", "done": 12, "total": 54},
+        {"step": "images", "done": 12, "total": 54},
         None,  # hazır belgede kalmış kayıt gösterilmez
         None,
     ]

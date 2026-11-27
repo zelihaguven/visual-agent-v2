@@ -17,11 +17,10 @@ import re
 import tempfile
 from collections import Counter
 from collections.abc import Callable, Mapping, Sequence
-from contextvars import ContextVar
 from dataclasses import dataclass, replace
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, cast
 from urllib.parse import urlsplit
 
 import httpx
@@ -35,6 +34,7 @@ from visual_agent.ingest.elements import (
     ElementKind,
     carries_value,
     header_fits,
+    report_progress,
     with_empty_cells_marked,
 )
 from visual_agent.ingest.external import ReaderUnavailable, tesseract_text
@@ -504,19 +504,6 @@ def is_ocr_layer(page: Any, page_area: float) -> bool:
 
 
 ReadPage = Callable[[Path], dict[str, Any]]
-ReadKind = Literal["page", "image"]
-ReadState = tuple[ReadKind, int, int]
-"""Okuyucu adımının durumu: (ne okunuyor, okunan, toplam); arayüzdeki ilerleme çubuğu için."""
-ReadProgress = Callable[[ReadKind, int, int], None]
-READ_PROGRESS: ContextVar[ReadProgress | None] = ContextVar("read_progress", default=None)
-"""Okumayı başlatan kurar (işçi); kurulmadıysa ilerleme bildirilmez. Okumanın kendisini
-etkilemez."""
-
-
-def _report_progress(kind: ReadKind, done: int, total: int) -> None:
-    sink = READ_PROGRESS.get()
-    if sink is not None:
-        sink(kind, done, total)
 
 
 def _native_scale(page: Any) -> float:
@@ -588,7 +575,7 @@ def read_embedded_images(
     document = pypdfium2.PdfDocument(path)
     try:
         elements: list[Element] = []
-        _report_progress("image", 0, len(images))
+        report_progress("images", 0, len(images))
         for index, box in enumerate(images):
             page = document[box.page - 1]
             width, height = page.get_size()
@@ -600,7 +587,7 @@ def read_embedded_images(
             if read is not None:
                 data, marks = read
                 elements += page_elements(data, box.page, page.get_size(), marks, region=box)
-            _report_progress("image", index + 1, len(images))
+            report_progress("images", index + 1, len(images))
         return elements
     finally:
         document.close()
@@ -624,7 +611,7 @@ def read_scanned_pages(
     try:
         elements: list[Element] = []
         known_headers: frozenset[HeaderKey] = frozenset()
-        _report_progress("page", 0, len(pages))
+        report_progress("pages", 0, len(pages))
         for done, number in enumerate(pages, start=1):
             page = document[number - 1]
             if source_image is not None:
@@ -640,7 +627,7 @@ def read_scanned_pages(
                     data, number, page.get_size(), marks, known_headers, learned
                 )
                 known_headers |= learned  # yalnız sonraki sayfalar için
-            _report_progress("page", done, len(pages))
+            report_progress("pages", done, len(pages))
         return elements
     finally:
         document.close()

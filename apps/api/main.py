@@ -40,8 +40,8 @@ from visual_agent.domain.result import (
     NotFound,
     SmallTalk,
 )
+from visual_agent.ingest.elements import IngestState, IngestStep
 from visual_agent.ingest.formats import UnsupportedFormat, detect_format, is_outdated
-from visual_agent.ingest.page_reader import ReadKind, ReadState
 from visual_agent.settings import Settings
 from visual_agent.voice.client import Voice
 
@@ -96,8 +96,8 @@ class ApiServices:
     remove_vectors: RemoveVectors = _no_vectors
     question_log: QuestionRecorder | None = None
     document_names: DocumentNames = field(default_factory=DocumentNames)
-    reading_progress: Mapping[str, ReadState] = field(default_factory=dict)
-    """İşçinin yazdığı okuma ilerlemesi: belge → ("page" ya da "image", okunan, toplam)."""
+    processing_progress: Mapping[str, IngestState] = field(default_factory=dict)
+    """İşçinin yazdığı işleme ilerlemesi: belge → (adım, işlenen, toplam)."""
 
 
 class HealthResponse(BaseModel):
@@ -123,9 +123,10 @@ class AskBody(BaseModel):
         return stripped
 
 
-class ReadingProgress(BaseModel):
-    kind: ReadKind
+class ProcessingProgress(BaseModel):
+    step: IngestStep
     done: int
+    """Adımda işlenen sayfa ya da görsel; toplamı bilinmeyen adımda 0."""
     total: int
 
 
@@ -140,14 +141,14 @@ class DocumentResponse(BaseModel):
     """Belge, biçiminin bugünkü parçalama kuralından eski bir kuralla işlendi."""
     topic: str | None = None
     """Arayüzün belgeyi gruplamak için kullandığı konu adı; henüz verilmediyse None."""
-    progress: ReadingProgress | None = None
-    """İşlenen belgenin okuyucu adımı (okunan / toplam sayfa ya da görsel); yoksa None."""
+    progress: ProcessingProgress | None = None
+    """İşlenen belgenin adımı ve ilerlemesi (ör. görsel 12 / 54); işlenmiyorsa None."""
 
 
 async def _document_response(
     document: StoredDocument,
     names: DocumentNames,
-    progress: Mapping[str, ReadState] | None = None,
+    progress: Mapping[str, IngestState] | None = None,
 ) -> DocumentResponse:
     async def itself(_: str) -> StoredDocument:
         return document
@@ -161,18 +162,18 @@ async def _document_response(
         report=document.report,
         outdated=document.report is not None and is_outdated(document.report, document.filename),
         topic=document.topic,
-        progress=_reading_progress(document, progress or {}),
+        progress=_processing_progress(document, progress or {}),
     )
 
 
-def _reading_progress(
-    document: StoredDocument, progress: Mapping[str, ReadState]
-) -> ReadingProgress | None:
+def _processing_progress(
+    document: StoredDocument, progress: Mapping[str, IngestState]
+) -> ProcessingProgress | None:
     found = progress.get(document.doc_id)
     if found is None or document.status != DocumentStatus.PROCESSING:
         return None
-    kind, done, total = found
-    return ReadingProgress(kind=kind, done=done, total=total)
+    step, done, total = found
+    return ProcessingProgress(step=step, done=done, total=total)
 
 
 def _result_payload(result: AskResult) -> dict[str, object]:
@@ -472,7 +473,7 @@ def _library_router(app: FastAPI) -> APIRouter:
     async def documents(services: ServicesDep) -> list[DocumentResponse]:
         names = services.document_names
         return [
-            await _document_response(d, names, services.reading_progress)
+            await _document_response(d, names, services.processing_progress)
             for d in await services.repository.list_documents()
         ]
 

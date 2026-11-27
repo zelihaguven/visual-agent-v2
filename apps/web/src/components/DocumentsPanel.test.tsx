@@ -54,7 +54,7 @@ describe("DocumentsPanel", () => {
     expect(within(pendingRow).getByRole("button", { name: /Yeniden İşle/ })).toBeDisabled();
     expect(within(pendingRow).getByRole("button", { name: /Sil/ })).toBeEnabled();
   });
-  it("shows reading progress only while the document is processed", async () => {
+  it("shows the processing steps only while the document is processed", async () => {
     const base = { filename: "x.pdf", error: null, report: null };
     const documents: DocumentInfo[] = [
       {
@@ -62,7 +62,14 @@ describe("DocumentsPanel", () => {
         doc_id: "p",
         title: "okunuyor",
         status: "processing",
-        progress: { kind: "image", done: 12, total: 54 },
+        progress: { step: "images", done: 12, total: 54 },
+      },
+      {
+        ...base,
+        doc_id: "i",
+        title: "indeksleniyor",
+        status: "processing",
+        progress: { step: "index", done: 0, total: 0 },
       },
       { ...base, doc_id: "s", title: "sirada", status: "queued", progress: null },
       {
@@ -70,21 +77,58 @@ describe("DocumentsPanel", () => {
         doc_id: "r",
         title: "hazir",
         status: "ready",
-        progress: { kind: "page", done: 3, total: 3 },
+        progress: { step: "pages", done: 3, total: 3 },
       },
     ];
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(documents))));
     render(<DocumentsPanel onClose={() => undefined} />);
 
     const reading = (await screen.findByText("okunuyor")).closest("li") as HTMLElement;
-    const bar = within(reading).getByRole("progressbar", { name: "Okunuyor: Görsel 12 / 54" });
-    expect(bar).toHaveAttribute("value", "12");
-    expect(bar).toHaveAttribute("max", "54");
-    expect(within(reading).getByText("Görsel 12 / 54")).toBeInTheDocument();
+    const bar = within(reading).getByRole("progressbar", { name: "İşleme ilerlemesi" });
+    // Okuma ikinci bölüm: yüzde bölümlerden (1 / 4), sayı etikette.
+    expect(bar).toHaveAttribute("aria-valuenow", "25");
+    expect(bar).toHaveAttribute("aria-valuetext", "Okunuyor · Görsel 12 / 54");
+    expect(within(reading).getByText("Okunuyor · Görsel 12 / 54")).toBeInTheDocument();
+    expect(bar.querySelectorAll(".progress-phase.is-done")).toHaveLength(1);
+
+    const indexing = screen.getByText("indeksleniyor").closest("li") as HTMLElement;
+    const last = within(indexing).getByRole("progressbar");
+    expect(last).toHaveAttribute("aria-valuetext", "İndeksleniyor");
+    expect(last).toHaveAttribute("aria-valuenow", "75");
+    expect(last.querySelectorAll(".progress-phase.is-waiting")).toHaveLength(1);
+
     for (const title of ["sirada", "hazir"]) {
       const row = screen.getByText(title).closest("li") as HTMLElement;
       expect(within(row).queryByRole("progressbar")).toBeNull();
     }
+  });
+  it("warns before leaving the page only while a file is uploading", async () => {
+    let finish: (response: Response) => void = () => undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_url: string, init?: RequestInit) =>
+        init?.method === "POST"
+          ? new Promise<Response>((resolve) => (finish = resolve))
+          : Promise.resolve(new Response("[]")),
+      ),
+    );
+    render(<DocumentsPanel onClose={() => undefined} />);
+    const leave = () => {
+      const event = new Event("beforeunload", { cancelable: true });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+    expect(leave()).toBe(false);
+
+    const file = new File(["x"], "yeni.pdf", { type: "application/pdf" });
+    fireEvent.change(screen.getByLabelText("Belge Yükle"), { target: { files: [file] } });
+    await screen.findByText(/Yükleniyor/);
+    expect(leave()).toBe(true);
+
+    const uploaded = { doc_id: "n", title: "yeni", filename: "yeni.pdf", status: "queued" };
+    await act(async () => finish(new Response(JSON.stringify(uploaded), { status: 201 })));
+    expect(leave()).toBe(false);
   });
   it("shows a document waiting for the page reader and lets it be reprocessed", async () => {
     const waiting: DocumentInfo = {

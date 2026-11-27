@@ -8,7 +8,7 @@ from pathlib import Path
 
 from visual_agent.domain.document import Box, Chunk, DocumentMeta, FrozenModel
 from visual_agent.ingest.chunking import build_chunks
-from visual_agent.ingest.elements import Element, ElementKind
+from visual_agent.ingest.elements import Element, ElementKind, report_progress
 from visual_agent.ingest.formats import (
     RULES_VERSIONS,
     UNRECORDED_RULES,
@@ -158,6 +158,7 @@ def _elements_from_pdf(
     # (ReaderUnavailable yükselir).
     scanned = [page.page for page in pages if page.kind is not PageKind.TEXT]
     read = tools.read_scanned_pages(pdf_path, scanned, work, image) if scanned else []
+    report_progress("text")
     parsed = [
         element
         for element in promote_code_elements(tools.parse_pdf(pdf_path))
@@ -225,12 +226,18 @@ def _pdf_source(path: Path, input_format: InputFormat, tools: IngestTools, work:
 
 
 def _parse(path: Path, input_format: InputFormat, tools: IngestTools, work: Path) -> _Parsed:
+    # PDF yolunda metin adımı okuyucunun sayfalarından sonra bildirilir (_elements_from_pdf);
+    # dönüştürme (Office, eski Excel) hazırlık adımında kalır.
     if input_format in (InputFormat.SQL, InputFormat.TEXT, InputFormat.MARKDOWN):
+        report_progress("text")
         return _Parsed(parse_plain_text(path, input_format))
     if input_format is InputFormat.SPREADSHEET:
+        report_progress("text")
         return _Parsed(*parse_workbook(path))
     if input_format is InputFormat.LEGACY_SPREADSHEET:
-        return _Parsed(*parse_workbook(tools.legacy_spreadsheet_to_xlsx(path, work)))
+        converted = tools.legacy_spreadsheet_to_xlsx(path, work)
+        report_progress("text")
+        return _Parsed(*parse_workbook(converted))
     pdf_path = _pdf_source(path, input_format, tools, work)
     image = path if input_format is InputFormat.IMAGE else None
     elements, pages, read_pages = _elements_from_pdf(pdf_path, tools, work, image)
@@ -240,7 +247,9 @@ def _parse(path: Path, input_format: InputFormat, tools: IngestTools, work: Path
 
 def ingest_document(path: Path, meta: DocumentMeta, tools: IngestTools, work: Path) -> IngestResult:
     input_format = detect_format(path)
+    report_progress("prepare")
     parsed = _parse(path, input_format, tools, work)
+    report_progress("chunks")
     chunks = tuple(build_chunks(parsed.elements, meta))
     report = _build_report(meta, input_format, chunks, parsed)
     return IngestResult(chunks, report, parsed.display_pdf)

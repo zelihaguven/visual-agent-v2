@@ -7,7 +7,8 @@ import {
   uploadDocument,
   type DocumentInfo,
   type DocumentReport,
-  type ReadingProgress,
+  type ProcessingProgress,
+  type ProcessingStep,
 } from "../api";
 import { groupDocuments } from "../documentGroups";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -143,6 +144,18 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
     void refresh(controller.signal);
     return () => controller.abort();
   }, [refresh]);
+
+  useEffect(() => {
+    // Yükleme sürerken sayfa kapanırsa istek yarıda kalır ve belge eklenmez; işlemede uyarı yok,
+    // çünkü işleme sunucuda sürer.
+    if (!isUploading) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = ""; // eski tarayıcılar uyarıyı yalnız bununla gösterir
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [isUploading]);
 
   const hasPending = documents.some(isPending);
   useEffect(() => {
@@ -314,16 +327,57 @@ export function DocumentsPanel({ onClose, onSummary, uploadInput }: Props) {
   );
 }
 
-const READING_LABELS: Record<ReadingProgress["kind"], string> = {
-  page: "Sayfa",
-  image: "Görsel",
+const PHASES = ["Hazırlanıyor", "Okunuyor", "Parçalanıyor", "İndeksleniyor"];
+const STEP_PHASE: Record<ProcessingStep, number> = {
+  prepare: 0,
+  pages: 1,
+  text: 1,
+  images: 1,
+  chunks: 2,
+  index: 3,
+};
+const STEP_DETAIL: Partial<Record<ProcessingStep, string>> = {
+  pages: "Sayfa",
+  text: "metin çıkarılıyor",
+  images: "Görsel",
 };
 
-function ReadingBar({ progress }: { progress: ReadingProgress }) {
-  const label = `${READING_LABELS[progress.kind]} ${progress.done} / ${progress.total}`;
+/** İşlemenin dört bölümü: biten dolu, süren bölüm sayısıyla dolar; sayısı bilinmeyen adımda
+ * bölüm belirsiz görünür. Süreyi değil adımı gösterir. */
+function ProcessingBar({ progress }: { progress: ProcessingProgress }) {
+  const phase = STEP_PHASE[progress.step];
+  const counted = progress.total > 0;
+  const fraction = counted ? Math.min(progress.done / progress.total, 1) : 0;
+  // Yüzde yalnız bölümlerden: "Okunuyor"daki alt adımlar (sayfa, metin, görsel) arka arkaya
+  // geldiği için alt adım oranı katılırsa ekran okuyucuda geri gider. Sayı etikette kalır.
+  const percent = Math.round((phase / PHASES.length) * 100);
+  const detail = STEP_DETAIL[progress.step];
+  const count = counted ? ` ${progress.done} / ${progress.total}` : "";
+  const label = detail ? `${PHASES[phase]} · ${detail}${count}` : PHASES[phase];
   return (
     <div className="document-progress">
-      <progress max={progress.total} value={progress.done} aria-label={`Okunuyor: ${label}`} />
+      <div
+        className="progress-track"
+        role="progressbar"
+        aria-label="İşleme ilerlemesi"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        aria-valuetext={label}
+      >
+        {PHASES.map((name, index) => {
+          const state =
+            index < phase ? "is-done" : index > phase ? "" : counted ? "is-current" : "is-waiting";
+          return (
+            <span key={name} className={`progress-phase ${state}`}>
+              <span
+                className="progress-fill"
+                style={state === "is-current" ? { width: `${fraction * 100}%` } : undefined}
+              />
+            </span>
+          );
+        })}
+      </div>
       <span aria-hidden="true">{label}</span>
     </div>
   );
@@ -380,8 +434,8 @@ function DocumentRow({
           </button>
         </div>
       </div>
-      {document.status === "processing" && document.progress && document.progress.total > 0 && (
-        <ReadingBar progress={document.progress} />
+      {document.status === "processing" && document.progress && (
+        <ProcessingBar progress={document.progress} />
       )}
       {document.error !== null && <span className="document-error">{document.error}</span>}
       {document.report !== null && (

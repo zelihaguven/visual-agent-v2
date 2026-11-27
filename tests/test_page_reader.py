@@ -15,10 +15,9 @@ from reportlab.pdfgen.canvas import Canvas
 from evals import ocr_score, ocr_truth
 from visual_agent.domain.document import Box
 from visual_agent.ingest import page_reader
-from visual_agent.ingest.elements import ElementKind
+from visual_agent.ingest.elements import INGEST_PROGRESS, ElementKind
 from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.page_reader import (
-    READ_PROGRESS,
     PaddleVlReader,
     ReaderConfig,
     is_ocr_layer,
@@ -781,21 +780,21 @@ def test_reading_reports_progress_after_every_image_and_page(tmp_path: Path) -> 
     from visual_agent.ingest.tools import inspect_pdf
 
     reported: list[tuple[str, int, int]] = []
-    token = READ_PROGRESS.set(lambda kind, done, total: reported.append((kind, done, total)))
+    token = INGEST_PROGRESS.set(lambda kind, done, total: reported.append((kind, done, total)))
     try:
         pdf = _two_images(tmp_path / "iki.pdf")
         [page] = inspect_pdf(pdf)
         read_embedded_images(pdf, list(page.image_boxes), tmp_path, _empty_read, str)
         read_scanned_pages(_scan(tmp_path / "t.pdf"), [1], tmp_path, _empty_read, str)
     finally:
-        READ_PROGRESS.reset(token)
+        INGEST_PROGRESS.reset(token)
 
     assert reported == [
-        ("image", 0, 2),
-        ("image", 1, 2),
-        ("image", 2, 2),
-        ("page", 0, 1),
-        ("page", 1, 1),
+        ("images", 0, 2),
+        ("images", 1, 2),
+        ("images", 2, 2),
+        ("pages", 0, 1),
+        ("pages", 1, 1),
     ]
 
 
@@ -812,9 +811,9 @@ def test_reading_without_a_progress_sink_reads_the_same(tmp_path: Path) -> None:
 
     scan = _scan(tmp_path / "t.pdf")
     quiet = read_scanned_pages(scan, [1], tmp_path, read_page, lambda _: "Kod ZP-4471")
-    token = READ_PROGRESS.set(lambda *_: None)
+    token = INGEST_PROGRESS.set(lambda *_: None)
     try:
         heard = read_scanned_pages(scan, [1], tmp_path, read_page, lambda _: "Kod ZP-4471")
     finally:
-        READ_PROGRESS.reset(token)
+        INGEST_PROGRESS.reset(token)
     assert heard == quiet

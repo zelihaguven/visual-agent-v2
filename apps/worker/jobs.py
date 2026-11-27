@@ -12,9 +12,9 @@ from apps.worker.topics import TopicAssigner
 from visual_agent.ask.language import document_language
 from visual_agent.catalog.repository import StoredDocument
 from visual_agent.domain.document import UNDETECTED_LANGUAGE, Chunk, DocumentMeta
+from visual_agent.ingest.elements import INGEST_PROGRESS, IngestProgress, IngestState, IngestStep
 from visual_agent.ingest.external import ConversionFailed, MissingTool, ReaderUnavailable
 from visual_agent.ingest.formats import UnsupportedFormat
-from visual_agent.ingest.page_reader import READ_PROGRESS, ReadKind, ReadProgress, ReadState
 from visual_agent.ingest.pipeline import IngestReport, IngestResult
 
 logger = logging.getLogger(__name__)
@@ -57,9 +57,9 @@ class DocumentProcessor:
         indexer: Indexer,
         ingest: Ingest,
         topics: TopicAssigner | None = None,
-        progress: MutableMapping[str, ReadState] | None = None,
+        progress: MutableMapping[str, IngestState] | None = None,
     ) -> None:
-        """progress: işlenen belgenin okuma ilerlemesi buraya yazılır (API okur); iş bitince
+        """progress: işlenen belgenin adımı ve ilerlemesi buraya yazılır (API okur); iş bitince
         silinir. Bellektedir: uygulama yeniden başlarsa iş de baştan başlar."""
         self._repository = repository
         self._indexer = indexer
@@ -98,13 +98,13 @@ class DocumentProcessor:
             if self._progress is not None:
                 self._progress.pop(document.doc_id, None)
 
-    def _progress_sink(self, doc_id: str) -> ReadProgress | None:
+    def _progress_sink(self, doc_id: str) -> IngestProgress | None:
         board = self._progress
         if board is None:
             return None
 
-        def record(kind: ReadKind, done: int, total: int) -> None:
-            board[doc_id] = (kind, done, total)
+        def record(step: IngestStep, done: int, total: int) -> None:
+            board[doc_id] = (step, done, total)
 
         return record
 
@@ -122,16 +122,16 @@ class DocumentProcessor:
             language=UNDETECTED_LANGUAGE,
         )
         with tempfile.TemporaryDirectory() as work:
-            # to_thread bağlamı kopyalar: okuyucu ilerlemeyi bu belgenin kaydına yazar.
-            token = READ_PROGRESS.set(self._progress_sink(document.doc_id))
+            # to_thread bağlamı kopyalar: işleme adımları bu belgenin kaydına yazılır.
+            sink = self._progress_sink(document.doc_id)
+            token = INGEST_PROGRESS.set(sink)
             try:
                 result = await asyncio.to_thread(self._ingest, source, meta, Path(work))
             finally:
-                READ_PROGRESS.reset(token)
-                # Okuma bitti: indeksleme sırasında dolu çubuk takılmış gibi görünmesin.
-                if self._progress is not None:
-                    self._progress.pop(document.doc_id, None)
+                INGEST_PROGRESS.reset(token)
             display = self._keep_display_pdf(result.display_pdf, source)
+        if sink is not None:
+            sink("index", 0, 0)
         await self._indexer.index(document.doc_id, result.chunks)
         try:
             ready = await self._repository.mark_ready(
