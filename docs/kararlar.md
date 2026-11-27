@@ -1,7 +1,7 @@
 # Karar kaydı
 
 Bugüne kadar alınmış önemli kararlar: ne, ne zaman, neden, hangi durumda yeniden düşünülür.
-Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0033) tam metni en
+Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0034) tam metni en
 sonda: [Karar belgeleri](#karar-belgeleri).
 
 **Kural:** Burada "çıkarıldı", "eklenmedi" ya da "reddedildi" yazan bir şeyi yeniden önermek
@@ -2260,3 +2260,34 @@ Tarih: 2026-11-27. Ürün sahibi kararı: dondurma (0031) "mevcut kod yapısın�
 - **BM25 metin biçimi (`normalize_for_bm25`) doğrulamadaki kurallarla (`canon_chars`, `turkish_lower`) ortaklaştırılmadı.** İki yerde aynı kurallar elle eşit tutuluyor; ortak yardımcı BM25 vektörlerini değiştirebileceği için yeniden indeksleme ister (ekip kararı). Değiştirilirse iki yer birlikte değişmeli.
 
 **Bu bilgisayarda test notu.** Windows kopyasında `core.autocrlf=true` olduğu için dondurulmuş dosyaların sha256 testleri (`test_committed_set_a_files_are_the_frozen_ones`, `test_scoring_is_frozen`, `test_measurement_scripts_are_frozen`) `main`'de de kalıyor (CRLF); bu işle ilgisi yok, CI (Linux) etkilenmez.
+
+<a id="karar-0034"></a>
+
+### 0034: Okuma planı A-q1 seçildi; B ve C elendi (ölçüm)
+Tarih: 2026-11-27. Ürün sahibi kararı. Ölçüm ve doğru cevaplar: `docs/okuma-planlari.md`, `evals/okuma_planlari_dogru_cevaplar.md` (ölçümden önce commit'lendi). Windows, bir koşu, 150 değer (Quality Manual 61, Bold 3 Stripes 40, föy 6013448 49; metinli, karışık ve metin katmanı olmayan sayfalar).
+
+**Sorun.** Gelecek belgelerin bir kısmında yazı ve ölçüler vektör çizim ya da görsel içinde (seçilemeyen metin, karışık sayfa). Bugün PaddleOCR-VL'nin "görsel/grafik" diye boş bıraktığı bloklar hiç okunmuyor (ör. 6013448 s.14 dikiş talimatları, Bold s.21 bütün sayfa), Tesseract kontrolü kesirleri ve süslü başlıkları okuyamadığı için doğru değerleri gizliyor.
+
+**Karar (A-q1).** PaddleOCR-VL ana okuyucu kalır. Paddle'ın okuduğu her yerin kontrolcüsü (gömülü görseller dahil) Qwen3-VL-30B olur (OpenRouter, ZDR, blok kırpıntısı). Paddle'ın boş bıraktığı görsel/grafik bloklarını Qwen okur, Gemma 4 26B kontrol eder; uyuşmayan değer gizlenir. Tesseract yalnız yedek: Qwen'e ulaşılamazsa kontrol bugünkü gibi Tesseract'la yapılır, okuma durmaz. Buluta yalnız kırpıntı gider, tam sayfa gitmez.
+
+**Ölçüm (ölçüt ölçümden önce: yanlış gösterilen tabandan fazla olamaz; metinli sayfada tabanda doğru değer bozulamaz).**
+
+| | Taban | A-b | B | A-q1 | A-q2 |
+|---|---|---|---|---|---|
+| Doğru gösterilen | 81 | 94 | 48 | 115 | 106 |
+| Yanlış gösterilen | 3 | 3 | 0 | 3 | 3 |
+| Gizlenen doğru | 27 | 38 | 79 | 17 | 26 |
+| Okunamayan | 31 | 7 | 23 | 7 | 7 |
+| Metinli sayfada bozulan | – | 0 | 24 | 0 | 0 |
+| Şekil değerlerinde gösterilen (114) | %46 | %58 | %39 | %76 | %68 |
+| Föy kesirleri (18), doğru gösterilen | 0 | 7 | – | 15 | 15 |
+
+A-b: şekil bloğu Qwen + Tesseract, Paddle kontrolü Tesseract. A-q2: A-q1 ile aynı, şekil kontrolü Tesseract. Yanlış gösterilen 3 değerin üçü de bilinen QM s.16 etiket hatası (metinli sayfa; hiçbir plan dokunmuyor). Okuyucu bölgelerinde doğrulanan değer parçası Tesseract ile %59, Qwen ile %87. Bulut: iki tur 143 çağrı, 0,0612 $; A-q1 föy tablo sayfası başına ek ~40 sn ve ~0,002 $.
+
+**Neden B elendi.** Her sayfayı VLM okuyunca metinli sayfalarda tabanda doğru 24 değer bozuldu (ölçüt 2 kaldı); 24 sayfanın 4'ünde çıktı döngüye girip token sınırına takıldı, 1'inde JSON bozuk; konum kutusu yok; tam sayfa buluta gidiyor.
+
+**Neden C elendi.** Metin katmanı olan sayfayı da okuyucudan geçirmek: Windows'ta QM s.7 (düz metin) iki denemede de 5 dakikayı aştı, ölçülemedi. Ayrıca metin katmanının birebir doğru olduğu sayfalara OCR hatası sokma riski taşıyor; karışık sayfalardaki kazancını A zaten şekil okumasıyla sağlıyor.
+
+**Bilinen sınırlar.** Paddle ve Qwen ikisi de görüntü-dil modeli: aynı hatayı birlikte yaparlarsa yakalanmaz (150 değerde görülmedi, örneklem küçük). Qwen şu an yalnız tek ZDR sağlayıcıda (DeepInfra). Puanlamanın ~60 değeri elle. Kontrol birimi bugünkü blok; föy tablosunda bütün tablo tek bölge.
+
+**Yeniden düşünülür.** İkinci ölçüm setinde (ilk turda kullanılmayan sayfalar) ölçüt tutmazsa; Qwen ZDR erişimi kalkarsa; iki VLM'in birlikte yanlış okuduğu değer görülürse.
