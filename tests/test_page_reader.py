@@ -830,12 +830,15 @@ def test_reading_without_a_progress_sink_reads_the_same(tmp_path: Path) -> None:
 # --- Bulut okuması (karar 0035) ---
 
 QWEN = "qwen/qwen3-vl-30b-a3b-instruct"
+GEMMA = "google/gemma-4-26b-a4b-it"
 
 
 class _OpenRouter:
     """Sahte OpenRouter: ZDR dizini ve sohbet tamamlama; istekleri sayar."""
 
-    def __init__(self, reply: str = "", fail: bool = False) -> None:
+    def __init__(self, reply: str | list[str] = "", fail: bool = False) -> None:
+        """reply: her isteğe aynı cevap ya da sırayla verilecek cevaplar."""
+        self.replies = reply if isinstance(reply, list) else None
         self.reply, self.fail = reply, fail
         self.bodies: list[dict[str, Any]] = []
         self.requests = 0
@@ -845,10 +848,14 @@ class _OpenRouter:
         if self.fail:
             raise httpx.ConnectError("ulaşılamadı", request=request)
         if request.url.path.endswith("/endpoints/zdr"):
-            entry = {"model_id": QWEN, "tag": "zdr-saglayici", "safety_retention": False}
-            return httpx.Response(200, json={"data": [entry]})
+            entries = [
+                {"model_id": model, "tag": "zdr-saglayici", "safety_retention": False}
+                for model in (QWEN, GEMMA)
+            ]
+            return httpx.Response(200, json={"data": entries})
         self.bodies.append(json.loads(request.content))
-        return httpx.Response(200, json={"choices": [{"message": {"content": self.reply}}]})
+        content = self.replies.pop(0) if self.replies is not None else self.reply
+        return httpx.Response(200, json={"choices": [{"message": {"content": content}}]})
 
     def config(self, cache: Path) -> page_reader.CloudConfig:
         return page_reader.CloudConfig(
@@ -856,7 +863,7 @@ class _OpenRouter:
             api_key="test",
             cache=cache,
             reader_model=QWEN,
-            figure_check_model="google/gemma-4-26b-a4b-it",
+            figure_check_model=GEMMA,
             transport=httpx.MockTransport(self.handle),
         )
 
@@ -994,6 +1001,35 @@ def test_figure_block_is_skipped_when_qwen_fails_or_no_cloud(tmp_path: Path) -> 
         _scan(tmp_path / "t.pdf"), [1], tmp_path, _paddle("", label="image"), str
     )
     assert no_cloud == []
+
+
+def _figure_with_tools(server: _OpenRouter, tmp_path: Path) -> list[Any]:
+    from visual_agent.ingest.tools import _figure_readers
+
+    figures = _figure_readers(server.config(tmp_path / "onbellek"))
+    return read_scanned_pages(
+        _scan(tmp_path / "t.pdf"), [1], tmp_path, _paddle("", label="image"), str, figures=figures
+    )
+
+
+def test_broken_figure_json_is_asked_once_more_and_not_cached(tmp_path: Path) -> None:
+    truncated = '{"lines": ["Tork 12 Nm", "Bas'
+    server = _OpenRouter(reply=[truncated, _json("Tork 12 Nm"), _json("Tork 12 Nm")])
+
+    elements = _figure_with_tools(server, tmp_path)
+
+    assert [(e.text, e.ocr_uncertain) for e in elements] == [("Tork 12 Nm", ())]
+    assert [body["model"] for body in server.bodies] == [QWEN, QWEN, GEMMA]
+    assert _figure_with_tools(server, tmp_path) == elements  # iyi cevaplar önbellekte
+    assert len(server.bodies) == 3
+
+
+def test_figure_is_skipped_when_both_readings_are_broken(tmp_path: Path) -> None:
+    server = _OpenRouter(reply=["okunamadı", '{"lines": ['])
+
+    assert _figure_with_tools(server, tmp_path) == []
+    assert [body["model"] for body in server.bodies] == [QWEN, QWEN]
+    assert not list((tmp_path / "onbellek").glob("*.json"))
 
 
 def test_figure_table_is_read_as_a_table() -> None:

@@ -277,11 +277,20 @@ class CloudConfig:
     """Yalnız testler verir."""
 
 
-def cloud_reader(config: CloudConfig, model: str, prompt: str, max_tokens: int) -> SecondReader:
+def cloud_reader(
+    config: CloudConfig,
+    model: str,
+    prompt: str,
+    max_tokens: int,
+    accept: Callable[[str], bool] | None = None,
+) -> SecondReader:
     """Bloğun kırpıntısını bulut modeli okur: buluta bütün sayfa değil blok gider, yalnız ZDR
     sağlayıcılarla (kural 4). Cevap diskte sha256(model + istem + görüntü) adıyla saklanır:
     aynı kırpıntı ikinci kez ödenmez. Okunamazsa `CloudUnavailable`; o modelin ilk hatasından
-    sonra belgenin kalanında istek gitmez (`CLOUD_OUTAGE`, ZDR dizini de yeniden istenmez)."""
+    sonra belgenin kalanında istek gitmez (`CLOUD_OUTAGE`, ZDR dizini de yeniden istenmez).
+
+    accept: cevabın kullanılabilir olduğu denetimi (ör. şekil okumasında JSON). Kullanılamayan
+    cevap önbelleğe yazılmaz ve bir kez yeniden istenir; yine kullanılamazsa olduğu gibi döner."""
     chosen: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
     own = CloudOutage()
 
@@ -305,16 +314,21 @@ def cloud_reader(config: CloudConfig, model: str, prompt: str, max_tokens: int) 
         outage = CLOUD_OUTAGE.get() or own
         if model in outage.reasons:
             raise CloudUnavailable(f"{model}: {outage.reasons[model]}")
-        try:
-            content = asyncio.run(call(png))
-        except Exception as error:  # okuma durmaz; çağıran yedeğe geçer ya da değeri gizler
-            outage.reasons[model] = repr(error)[:200]
-            logger.warning("Bulut okuması alınamadı; belgenin kalanında istenmez: %s", error)
-            raise CloudUnavailable(f"{model}: {error!r}"[:300]) from error
-        config.cache.mkdir(parents=True, exist_ok=True)
-        partial = cached.with_suffix(".tmp")
-        partial.write_text(json.dumps({"model": model, "content": content}), encoding="utf-8")
-        partial.replace(cached)
+        for _ in range(1 if accept is None else 2):
+            try:
+                content = asyncio.run(call(png))
+            except Exception as error:  # okuma durmaz; çağıran yedeğe geçer ya da değeri gizler
+                outage.reasons[model] = repr(error)[:200]
+                logger.warning("Bulut okuması alınamadı; belgenin kalanında istenmez: %s", error)
+                raise CloudUnavailable(f"{model}: {error!r}"[:300]) from error
+            if accept is None or accept(content):
+                config.cache.mkdir(parents=True, exist_ok=True)
+                partial = cached.with_suffix(".tmp")
+                partial.write_text(
+                    json.dumps({"model": model, "content": content}), encoding="utf-8"
+                )
+                partial.replace(cached)
+                break
         return content
 
     return read

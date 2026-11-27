@@ -21,6 +21,7 @@ from visual_agent.ingest.page_reader import (
     ReadPage,
     SecondReader,
     cloud_reader,
+    figure_parts,
     is_ocr_layer,
     read_embedded_images,
     read_scanned_pages,
@@ -140,11 +141,18 @@ def _second_reader(
 
 
 def _figure_readers(cloud: CloudConfig | None) -> FigureReaders | None:
-    """Anahtar yoksa şekil blokları bugünkü gibi atlanır."""
+    """Anahtar yoksa şekil blokları bugünkü gibi atlanır. Okumanın JSON'u bozuk ya da yarımsa
+    (token sınırı) bir kez yeniden istenir; yine bozuksa blok atlanır."""
     if cloud is None:
         return None
     return FigureReaders(
-        read=cloud_reader(cloud, cloud.reader_model, FIGURE_PROMPT, FIGURE_MAX_TOKENS),
+        read=cloud_reader(
+            cloud,
+            cloud.reader_model,
+            FIGURE_PROMPT,
+            FIGURE_MAX_TOKENS,
+            accept=lambda content: figure_parts(content) is not None,
+        ),
         check=cloud_reader(cloud, cloud.figure_check_model, FIGURE_PROMPT, FIGURE_MAX_TOKENS),
     )
 
