@@ -1509,3 +1509,30 @@ def test_row_marks_stay_on_their_row_and_header_marks_cover_the_table(tmp_path: 
         "POM: LG2 Hip": ("POM", "28", "30", "13"),
         "POM: LG3 Inseam": ("POM", "28", "30"),
     }
+
+
+def test_form_row_with_several_label_value_pairs_matches_split_rows(tmp_path: Path) -> None:
+    """Form satırı birkaç "etiket | değer" çifti taşır; öbür okuma çiftleri ayrı satıra yazar."""
+    form = [["Sample Status", "Fit Approved", "Main Material #", "KNT-222888"]]
+
+    def read(other: str) -> tuple[str, ...]:
+        [element] = _read(tmp_path, _paddle_table(form), str, _cloud(lambda _: other))
+        return tuple(element.ocr_uncertain)
+
+    split = "Sample Status | Fit Approved\nMain Material # | KNT-222888"
+    # Rakamlı hücre etiket sayılmaz: değerle başlayan başka satır kanıt olmaz.
+    wrong = "Sample Status | Fit Approved\nMain Material # | KNT-222889\nKNT-222888 | not"
+
+    assert read(split) == ()
+    assert read(wrong) == ("KNT-222888",)
+
+
+def test_label_and_value_written_in_one_cell_still_match(tmp_path: Path) -> None:
+    """Öbür okuma etiketle değeri aynı hücreye ya da ayraçsız satıra yazabilir: etiket ön ek
+    olarak eşleşir. Çok kısa etiket ön ek olarak eşleşmez."""
+    form = [["Size Range", "XS-4XL, SMT-4XLT"], ["Fit", "Regular 2"]]
+    other = "Size Range XS-4XL, SMT-4XLT\nFitness 2"
+
+    elements = _read(tmp_path, _paddle_table(form), str, _cloud(lambda _: other))
+
+    assert [tuple(e.ocr_uncertain) for e in elements] == [(), ("2",)]

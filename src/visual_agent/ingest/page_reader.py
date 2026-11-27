@@ -204,36 +204,64 @@ def _row_key(cells: Sequence[str]) -> str:
 
 
 def text_rows(text: str) -> list[list[str]]:
-    """Düz metin okumasındaki tablo satırları: hücreleri "|" ile ayrılmış satırlar (iki istem de
-    tabloyu böyle ister). Ayraç satırları ("---|---") atılır."""
+    """Düz metin okumasının satırları: her satır bir tablo satırıdır, hücreler "|" ile ayrılır
+    (iki istem de tabloyu böyle ister); ayraçsız satır tek hücredir (form satırını
+    "Size Range XS-4XL" diye yazabilir). Ayraç satırları ("---|---") atılır."""
     rows = []
     for line in text.splitlines():
-        if "|" not in line:
-            continue
         cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
         if any(ch.isalnum() for cell in cells for ch in cell):
             rows.append(cells)
     return rows
 
 
+def _row_labels(row: Sequence[str]) -> list[str]:
+    """Satırın etiketleri: ilk dolu hücre ve rakamsız öbür hücreler. Form tablosunda bir satır
+    birkaç "etiket | değer" çifti taşır ("Sample Status | … | Main Material # | KNT-222888");
+    öbür okuma her çifti ayrı satıra yazabilir."""
+    rest = [cell for cell in row[1:] if cell.strip() and not _DIGIT_RE.search(cell)]
+    keys = [_row_key(row), *(_row_key([cell]) for cell in rest)]
+    return list(dict.fromkeys(key for key in keys if key))
+
+
+_MIN_PREFIX_LABEL = 4
+"""Etiket ön ek olarak eşleşebilir ("styleactualsizes" ile "styleactualsizesxssm…": öbür okuma
+etiketle değeri aynı hücreye yazdı); çok kısa etiket ön ek olarak eşleşmez."""
+
+
+def _label_matches(label: str, key: str, exact: bool) -> bool:
+    if exact or min(len(label), len(key)) < _MIN_PREFIX_LABEL:
+        return label == key
+    return key.startswith(label) or label.startswith(key)
+
+
 def row_mismatches(primary: Sequence[Sequence[str]], other: Sequence[Sequence[str]]) -> RowMarks:
-    """Birinci okumanın her satırı öbür okumada aynı etiketli satırla eşlenir (aynı etiket
-    birden çok geçerse sırayla); satırın sayı ve kodları yalnız o satırla sayılır. Eşi
-    olmayan satırın bütün değerleri belirsizdir. Satır sırası önemsizdir, bağı önemlidir:
-    değer sütunu bir satır kayarsa blokta sayılar tutar, satırda tutmaz."""
-    pool: dict[str, list[Sequence[str]]] = {}
-    for row in other:
-        pool.setdefault(_row_key(row), []).append(row)
+    """Birinci okumanın her satırı öbür okumada etiketi aynı olan satırlarla eşlenir (önce
+    birebir, yoksa ön ek; aynı etiket birden çok geçerse sırayla; bir satır bir kez kullanılır);
+    satırın sayı ve kodları yalnız eşlenen satırlarla sayılır. Eşi olmayan satırın bütün
+    değerleri belirsizdir. Satır sırası önemsizdir, bağı önemlidir: değer sütunu bir satır
+    kayarsa blokta sayılar tutar, satırda tutmaz."""
+    keyed = [(_row_key(row), row) for row in other]
+    used: set[int] = set()
+
+    def take(label: str) -> Sequence[str] | None:
+        for exact in (True, False):
+            for index, (key, row) in enumerate(keyed):
+                if index not in used and _label_matches(label, key, exact):
+                    used.add(index)
+                    return row
+        return None
+
     marks: RowMarks = {}
     for index, row in enumerate(primary):
         text = " ".join(row)
         if not value_tokens(text):
             continue
-        matches = pool.get(_row_key(row))
-        if not matches:
+        matched = [found for label in _row_labels(row) if (found := take(label)) is not None]
+        if not matched:
             marks[index] = sorted(set(value_tokens(text)))
             continue
-        mismatched = count_mismatches(text, " ".join(matches.pop(0)))
+        mismatched = count_mismatches(text, " ".join(" ".join(other_row) for other_row in matched))
         if mismatched:
             marks[index] = mismatched
     return marks
