@@ -190,6 +190,55 @@ def count_mismatches(primary: str, second: str) -> list[str]:
     return sorted(token for token, count in first.items() if other[token] != count)
 
 
+# --- Satır düzeyinde uyuşma (karar 0035): tablo okumalarında sayım satır satır ---
+
+RowMarks = dict[int, list[str]]
+"""Tablonun satır numarasına göre uyuşmayan parçalar ({kaynak satır no: [parça]})."""
+
+
+def _row_key(cells: Sequence[str]) -> str:
+    """Satır etiketi: satırın ilk dolu hücresi, harf ve rakam dışı karakterler atılmış, küçük
+    harfle ("LG040 Waist:" ile "lg040 waist" aynı)."""
+    first = next((cell for cell in cells if cell.strip()), "")
+    return "".join(ch for ch in canonical(first).casefold() if ch.isalnum())
+
+
+def text_rows(text: str) -> list[list[str]]:
+    """Düz metin okumasındaki tablo satırları: hücreleri "|" ile ayrılmış satırlar (iki istem de
+    tabloyu böyle ister). Ayraç satırları ("---|---") atılır."""
+    rows = []
+    for line in text.splitlines():
+        if "|" not in line:
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if any(ch.isalnum() for cell in cells for ch in cell):
+            rows.append(cells)
+    return rows
+
+
+def row_mismatches(primary: Sequence[Sequence[str]], other: Sequence[Sequence[str]]) -> RowMarks:
+    """Birinci okumanın her satırı öbür okumada aynı etiketli satırla eşlenir (aynı etiket
+    birden çok geçerse sırayla); satırın sayı ve kodları yalnız o satırla sayılır. Eşi
+    olmayan satırın bütün değerleri belirsizdir. Satır sırası önemsizdir, bağı önemlidir:
+    değer sütunu bir satır kayarsa blokta sayılar tutar, satırda tutmaz."""
+    pool: dict[str, list[Sequence[str]]] = {}
+    for row in other:
+        pool.setdefault(_row_key(row), []).append(row)
+    marks: RowMarks = {}
+    for index, row in enumerate(primary):
+        text = " ".join(row)
+        if not value_tokens(text):
+            continue
+        matches = pool.get(_row_key(row))
+        if not matches:
+            marks[index] = sorted(set(value_tokens(text)))
+            continue
+        mismatched = count_mismatches(text, " ".join(matches.pop(0)))
+        if mismatched:
+            marks[index] = mismatched
+    return marks
+
+
 SecondReader = Callable[[Image.Image], str]
 _BLOCK_PAD = 4
 
@@ -424,20 +473,36 @@ class CloudReaders:
     figure_check: SecondReader
 
 
-def _checker(second: SecondReader, cloud: CloudReaders | None) -> SecondReader:
-    """İkinci okuma: bulut varsa bulut; bulut okuması alınamayan blok bugünkü gibi `second`
-    (Tesseract) ile denetlenir."""
-    if cloud is None:
-        return second
+TableMarks = dict[tuple[int, int], RowMarks]
+"""Tablo parçalarının satır düzeyindeki işaretleri ({(blok no, parça no): satır işaretleri});
+okuyucunun kendi tablosu bloğun 0. parçasıdır."""
 
-    def read(crop: Image.Image) -> str:
+
+def _cloud_marks(
+    data: Mapping[str, Any], image: Image.Image, second: SecondReader, cloud: CloudReaders
+) -> tuple[dict[int, list[str]], TableMarks]:
+    """İkinci okuma bulutta: her blok bugünkü gibi sayılır; tablo bloğu ayrıca satır satır
+    (`row_mismatches`). Bulut okuması alınamayan blok `second` (Tesseract) ile yalnız blok
+    düzeyinde sayılır: Tesseract'ın seyrek okuması satır vermez."""
+    marks: dict[int, list[str]] = {}
+    tables: TableMarks = {}
+    for block in data["parsing_res_list"]:
+        content = _block_text(block)
+        if not value_tokens(content):
+            continue
+        block_id, crop = int(block["block_id"]), _block_crop(data, image, block)
         try:
-            return cloud.check(crop)
+            text, rows = cloud.check(crop), True
         except CloudUnavailable:
             _outage().fallback_blocks += 1
-            return second(crop)
-
-    return read
+            text, rows = second(crop), False
+        if mismatched := count_mismatches(content, text):
+            marks[block_id] = mismatched
+        if rows and block.get("block_label") == "table":
+            primary = html_rows(str(block.get("block_content") or ""))
+            if table := row_mismatches(primary, text_rows(text)):
+                tables[(block_id, 0)] = table
+    return marks, tables
 
 
 _FIGURE_LABELS = frozenset({"image", "chart", "figure", "seal", "header_image", "footer_image"})
@@ -487,12 +552,14 @@ def _parts_text(parts: Sequence[FigurePart]) -> str:
 
 def read_figures(
     data: Mapping[str, Any], image: Image.Image, readers: CloudReaders
-) -> tuple[dict[int, list[FigurePart]], dict[int, list[str]]]:
-    """Okuyucunun içeriğini boş bıraktığı şekil blokları ({blok numarası: parçalar}) ve
-    denetimde geçiş sayısı tutmayan değerleri. Değer iki okumada sayısı tutarsa gösterilir;
-    denetim okuması alınamazsa bloğun bütün değerleri belirsizdir (denetlenmeden gösterilmez)."""
+) -> tuple[dict[int, list[FigurePart]], dict[int, list[str]], TableMarks]:
+    """Okuyucunun içeriğini boş bıraktığı şekil blokları ({blok numarası: parçalar}),
+    denetimde geçiş sayısı tutmayan değerleri ve tablo parçalarının satır işaretleri. Değer iki
+    okumada sayısı tutarsa (tabloda: aynı etiketli satırda) gösterilir; denetim okuması
+    alınamazsa bloğun bütün değerleri belirsizdir (denetlenmeden gösterilmez)."""
     figures: dict[int, list[FigurePart]] = {}
     marks: dict[int, list[str]] = {}
+    tables: TableMarks = {}
     for block in data["parsing_res_list"]:
         if block.get("block_label") not in _FIGURE_LABELS or _block_text(block).strip():
             continue
@@ -523,7 +590,30 @@ def read_figures(
         mismatched = count_mismatches(primary, other if checked is None else _parts_text(checked))
         if mismatched:
             marks[block_id] = mismatched
-    return figures, marks
+        for index, rows in _figure_rows(parts, other, checked).items():
+            tables[(block_id, index)] = rows
+    return figures, marks, tables
+
+
+def _figure_rows(
+    parts: Sequence[FigurePart], other: str, checked: Sequence[FigurePart] | None
+) -> dict[int, RowMarks]:
+    """Şeklin her tablo parçası denetim okumasının satırlarıyla satır satır sayılır: denetimin
+    tablolarının satırları ve "|" ile ayrılmış metin satırları ({parça no: satır işaretleri})."""
+    other_rows = (
+        text_rows(other)
+        if checked is None
+        else [
+            row
+            for label, content in checked
+            for row in (html_rows(content) if label == "table" else text_rows(content))
+        ]
+    )
+    found = {}
+    for index, (label, content) in enumerate(parts):
+        if label == "table" and (rows := row_mismatches(html_rows(content), other_rows)):
+            found[index] = rows
+    return found
 
 
 # --- Bloklardan öğelere ---
@@ -571,8 +661,13 @@ def _table_elements(
     tokens: Sequence[str],
     known_headers: frozenset[HeaderKey] = frozenset(),
     learned: set[HeaderKey] | None = None,
+    row_marks: Mapping[int, Sequence[str]] | None = None,
 ) -> list[Element]:
-    """Başlıklı tabloda satır "Başlık: değer" biçimindedir; başlıksız tabloda (form, tek satır)
+    """row_marks: satır düzeyindeki işaretler (kaynak satır no); satırın değerleri yalnız kendi
+    satırında belirsizdir. Satıra dönüşmeyen kaynak satırın (başlık, etiket, not) işaretleri
+    bütün tabloya uygulanır: o metin her satırın başlığında ya da bağlamında geçer.
+
+    Başlıklı tabloda satır "Başlık: değer" biçimindedir; başlıksız tabloda (form, tek satır)
     satır okunduğu gibi kalır: hücreler sırayla, ilk satır da bir satırdır, aradaki boş hücre
     yerini korur. Başlık satırının hücre sayısı bir veri satırınınkinden farklıysa tablo da
     başlıksız yazılır: okuyucu bir hücreyi düşürdüyse başlıklar bir sütun kayar ve değer yanlış
@@ -596,6 +691,10 @@ def _table_elements(
         for r, row in enumerate(rows)
         for c, text in enumerate(row)
     ]
+    grouped = group_table_rows(cells, infer_header=False)
+    by_row = row_marks or {}
+    covered = {source for row in grouped for source in row.sources}
+    shared = [*tokens, *(t for r, marks in by_row.items() if r not in covered for t in marks)]
     return [
         Element(
             ElementKind.TABLE_ROW,
@@ -603,10 +702,15 @@ def _table_elements(
             location,
             from_ocr=True,
             # Bölüm etiketi ve tablo notu satırın bağlamına girer; değerleri de satıra bağlanır.
-            ocr_uncertain=_uncertain(f"{row.text} {row.context}", tokens),
+            ocr_uncertain=_uncertain(
+                f"{row.text} {row.context}",
+                list(
+                    dict.fromkeys([*shared, *(t for r in row.sources for t in by_row.get(r, ()))])
+                ),
+            ),
             context=row.context,
         )
-        for row in group_table_rows(cells, infer_header=False)
+        for row in grouped
     ]
 
 
@@ -619,8 +723,11 @@ def page_elements(
     learned: set[HeaderKey] | None = None,
     region: Box | None = None,
     figures: Mapping[int, Sequence[FigurePart]] | None = None,
+    tables: TableMarks | None = None,
 ) -> list[Element]:
-    """Okuyucunun sayfa sonucu, okuma sırasıyla öğelere çevrilir. Metin karşılaştırılan yazımla
+    """tables: tablo parçalarının satır düzeyindeki işaretleri (`_cloud_marks`, `read_figures`).
+
+    Okuyucunun sayfa sonucu, okuma sırasıyla öğelere çevrilir. Metin karşılaştırılan yazımla
     yazılır ("14⅞" → "14 7/8"): belirsiz değerler cevap denetiminde aynı yazımla aranır.
     Tabloda hücre konumu yoktur; satırın kaynağı tablonun kutusudur. region: okunan görüntü
     sayfanın bir bölgesiyse (gömülü görsel) kutular o bölgeden sayfaya taşınır; görseldeki başlık
@@ -656,9 +763,10 @@ def page_elements(
         )
         location = SourceLocation(page=page, boxes=(box,))
         tokens = marks.get(block_id, ())
-        for label, part in parts:
+        for index, (label, part) in enumerate(parts):
             if label == "table":
-                elements += _table_elements(part, location, tokens, known_headers, learned)
+                rows = (tables or {}).get((block_id, index))
+                elements += _table_elements(part, location, tokens, known_headers, learned, rows)
                 continue
             text = canonical(part)
             heading = region is None and label in _HEADING_LABELS
@@ -844,7 +952,7 @@ def _is_blank(image: Image.Image) -> bool:
     return darkest >= _BLANK_LEVEL
 
 
-_Reading = tuple[dict[str, Any], dict[int, list[str]], dict[int, list[FigurePart]]]
+_Reading = tuple[dict[str, Any], dict[int, list[str]], dict[int, list[FigurePart]], TableMarks]
 
 
 def _read_image(
@@ -865,15 +973,15 @@ def _read_image(
         raise ReaderUnavailable(NOT_CONFIGURED)
     image.save(source)
     data = read_page(source)
-    marks = second_reading_marks(data, image, _checker(second, cloud))
     if cloud is None:
-        return data, marks, {}
+        return data, second_reading_marks(data, image, second), {}, {}
+    marks, tables = _cloud_marks(data, image, second, cloud)
     if whole_page and not data["parsing_res_list"]:
         width, height = data.get("width") or image.width, data.get("height") or image.height
         page_block = {"block_id": 0, "block_label": "image", "block_content": ""}
         data = {**data, "parsing_res_list": [{**page_block, "block_bbox": [0, 0, width, height]}]}
-    read, figure_marks = read_figures(data, image, cloud)
-    return data, {**marks, **figure_marks}, read
+    read, figure_marks, figure_tables = read_figures(data, image, cloud)
+    return data, {**marks, **figure_marks}, read, {**tables, **figure_tables}
 
 
 _MIN_IMAGE_SCALE = 1.0
@@ -920,9 +1028,15 @@ def read_embedded_images(
             source = work / f"okuyucu-s{box.page}-g{index}.png"
             read = _read_image(crop, source, read_page, second, cloud)
             if read is not None:
-                data, marks, shapes = read
+                data, marks, shapes, tables = read
                 elements += page_elements(
-                    data, box.page, page.get_size(), marks, region=box, figures=shapes
+                    data,
+                    box.page,
+                    page.get_size(),
+                    marks,
+                    region=box,
+                    figures=shapes,
+                    tables=tables,
                 )
             report_progress("images", index + 1, len(images))
         return elements
@@ -960,10 +1074,17 @@ def read_scanned_pages(
             source = work / f"okuyucu-s{number}.png"
             read = _read_image(image, source, read_page, second, cloud, whole_page=True)
             if read is not None:  # boş sayfada okunacak bir şey yok, okuyucu da gerekmez
-                data, marks, shapes = read
+                data, marks, shapes, tables = read
                 learned: set[HeaderKey] = set()
                 elements += page_elements(
-                    data, number, page.get_size(), marks, known_headers, learned, figures=shapes
+                    data,
+                    number,
+                    page.get_size(),
+                    marks,
+                    known_headers,
+                    learned,
+                    figures=shapes,
+                    tables=tables,
                 )
                 known_headers |= learned  # yalnız sonraki sayfalar için
             report_progress("pages", done, len(pages))

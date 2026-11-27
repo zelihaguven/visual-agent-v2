@@ -1363,3 +1363,149 @@ def test_rejection_warning_keeps_the_first_status() -> None:
         "2 blok bulutça reddedildi (HTTP 413); Tesseract'la denetlendi ya da şekil bloğu okunmadı."
     )
     assert outage.warning() is None  # devre açılmadı
+
+
+_TRUE_TABLE = "POM | S | M\nLG040 Waist | 12 | 13\nLG050 Hip | 14 | 15\nLG060 Inseam | 16 | 17"
+
+
+def _paddle_table(rows: list[list[str]]) -> Any:
+    def read_page(image: Path) -> dict[str, Any]:
+        width, height = Image.open(image).size
+        block = {**_block(0, "table", _html(rows)), "block_bbox": [100, 100, 300, 160]}
+        return {"width": width, "height": height, "parsing_res_list": [block]}
+
+    return read_page
+
+
+def _uncertain_by_row(elements: list[Any]) -> dict[str, tuple[str, ...]]:
+    return {e.text.split(" | ")[0]: e.ocr_uncertain for e in elements}
+
+
+def test_a_value_column_shifted_by_one_row_is_hidden(tmp_path: Path) -> None:
+    """Okuyucu değer sütununu bir satır kaydırdı; sayılar blokta aynı sayıda geçtiği için
+    blok düzeyindeki sayım kaymayı görmez. Satır düzeyinde uyuşma: değer yalnız iki okumada
+    aynı satır etiketiyle eşleşiyorsa gösterilir."""
+    shifted = [
+        ["POM", "S", "M"],
+        ["LG040 Waist", "14", "15"],
+        ["LG050 Hip", "16", "17"],
+        ["LG060 Inseam", "12", "13"],
+    ]
+    cloud = _cloud(lambda _: _TRUE_TABLE)
+
+    rows = _uncertain_by_row(_read(tmp_path, _paddle_table(shifted), str, cloud))
+
+    assert rows["POM: LG040 Waist"] == ("14", "15")
+    assert rows["POM: LG050 Hip"] == ("16", "17")
+    assert rows["POM: LG060 Inseam"] == ("12", "13")
+
+
+_TRUE_ROWS = [
+    ["POM", "S", "M"],
+    ["LG040 Waist", "12", "13"],
+    ["LG050 Hip", "14", "15"],
+    ["LG060 Inseam", "16", "17"],
+]
+
+
+def test_rows_that_agree_are_shown_even_in_another_order(tmp_path: Path) -> None:
+    reordered = "LG060 Inseam | 16 | 17\nPOM | S | M\nLG050 hip: | 14 | 15\nLG040 Waist | 12 | 13"
+
+    same = _read(tmp_path, _paddle_table(_TRUE_ROWS), str, _cloud(lambda _: _TRUE_TABLE))
+    moved = _read(tmp_path, _paddle_table(_TRUE_ROWS), str, _cloud(lambda _: reordered))
+
+    assert [e.ocr_uncertain for e in same] == [(), (), ()]
+    assert [e.ocr_uncertain for e in moved] == [(), (), ()]
+
+
+def test_a_row_missing_from_the_second_reading_is_hidden_alone(tmp_path: Path) -> None:
+    partial = "POM | S | M\nLG040 Waist | 12 | 13\nLG050 Hip | 14 | 15"
+
+    rows = _uncertain_by_row(
+        _read(tmp_path, _paddle_table(_TRUE_ROWS), str, _cloud(lambda _: partial))
+    )
+
+    assert rows == {
+        "POM: LG040 Waist": (),
+        "POM: LG050 Hip": (),
+        "POM: LG060 Inseam": ("16", "17", "LG060"),
+    }
+
+
+def test_tesseract_fallback_keeps_the_block_count(tmp_path: Path) -> None:
+    """Tesseract'ın seyrek okuması satır vermez: bulut alınamayan blok bugünkü gibi blok
+    düzeyinde sayılır (satır kayması bu yolda yakalanmaz; bilinen sınır)."""
+    shifted = [_TRUE_ROWS[0], ["LG040 Waist", "14", "15"], ["LG050 Hip", "16", "17"]]
+    tesseract = lambda _: "POM S M | LG040 Waist 14 15 | LG050 Hip 16 17"  # noqa: E731
+
+    elements = _read(tmp_path, _paddle_table(shifted), tesseract, _cloud(_unavailable))
+
+    assert [e.ocr_uncertain for e in elements] == [(), ()]
+
+
+def _figure_table(*rows: list[str]) -> str:
+    return json.dumps({"lines": [], "tables": [{"rows": [list(r) for r in rows]}]})
+
+
+def test_figure_table_rows_must_agree_row_by_row(tmp_path: Path) -> None:
+    """Şekil tablosu (Bold s.21): Qwen ikinci sütunu bir satır kaydırdı, Gemma doğru okudu."""
+    header = ["RISK", "MITIGATION"]
+    qwen = _figure_table(
+        header,
+        ["Reinforcement 18 mm", "Thread: tension"],
+        ["Over seam 3 stripes", "Reinforcement: 18 mm interlining"],
+        ["Color Block", "Over seam 3 stripes: SPI"],
+    )
+    gemma = _figure_table(
+        header,
+        ["Over seam 3 stripes", "Over seam 3 stripes: SPI"],
+        ["Color Block", "Color Block: testing"],
+        ["Reinforcement 18 mm", "Reinforcement: 18 mm interlining"],
+    )
+
+    shifted = _read_figure(tmp_path, lambda _: qwen, lambda _: gemma)
+    agreed = _read_figure(tmp_path, lambda _: gemma, lambda _: gemma)
+
+    assert {e.text.split(" | ")[0]: e.ocr_uncertain for e in shifted} == {
+        "RISK: Reinforcement 18 mm": ("18",),
+        "RISK: Over seam 3 stripes": ("18", "3"),
+        "RISK: Color Block": ("3", "SPI"),
+    }
+    assert [e.ocr_uncertain for e in agreed] == [(), (), ()]
+
+
+def test_a_row_whose_label_has_no_match_is_hidden_even_if_the_numbers_appear(
+    tmp_path: Path,
+) -> None:
+    """Sayılar ikinci okumada başka etiketli satırda geçiyor: blokta sayım tutar, satır eşi yok."""
+    other = "POM | S | M\nLG040 Waist | 12 | 13\nLG050 Hip | 14 | 15\nFront Rise | 16 | 17"
+    elements = _read(tmp_path, _paddle_table(_TRUE_ROWS), str, _cloud(lambda _: other + " LG060"))
+
+    assert _uncertain_by_row(elements)["POM: LG060 Inseam"] == ("16", "17", "LG060")
+
+
+def test_row_marks_stay_on_their_row_and_header_marks_cover_the_table(tmp_path: Path) -> None:
+    """Satırın işareti yalnız o satırdadır: aynı sayı doğru okunan başka satırda gösterilir.
+    Başlık satırının işareti her satıra girer (başlık her satırın metninde geçer)."""
+    paddle = [
+        ["POM", "28", "30"],
+        ["LG1 Waist", "12", "14"],
+        ["LG2 Hip", "13", "13"],
+        ["LG3 Inseam", "13", "16"],
+    ]
+    other = "\n".join(
+        [
+            "Point of measure | 28 | 30",
+            "LG1 Waist | 12 | 13",
+            "LG2 Hip | 13 | 14",
+            "LG3 Inseam | 13 | 16",
+        ]
+    )
+
+    rows = _uncertain_by_row(_read(tmp_path, _paddle_table(paddle), str, _cloud(lambda _: other)))
+
+    assert rows == {
+        "POM: LG1 Waist": ("POM", "28", "30", "14"),
+        "POM: LG2 Hip": ("POM", "28", "30", "13"),
+        "POM: LG3 Inseam": ("POM", "28", "30"),
+    }

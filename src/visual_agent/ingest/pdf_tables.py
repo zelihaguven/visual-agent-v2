@@ -27,6 +27,8 @@ class TableRow:
     bbox: BoundingBox | None
     context: str = ""
     """Satırın bağlı olduğu tablo notları: üstündeki bölüm etiketi ve tablonun alt bilgisi."""
+    sources: tuple[int, ...] = ()
+    """Satırı oluşturan kaynak satır numaraları (hücrelerin `row_start`'ı)."""
 
 
 _MIN_LABEL_SPAN = 0.8
@@ -188,7 +190,9 @@ def group_table_rows(raw_cells: Sequence[TableCell], infer_header: bool = True) 
         else:
             parts = _texts_with_gaps(row_cells, first_column)
         text = " | ".join(parts)
-        rows.append(TableRow(text, _union([c.bbox for c in row_cells if c.bbox is not None])))
+        bbox = _union([c.bbox for c in row_cells if c.bbox is not None])
+        sources = tuple(sorted({cell.row_start for cell in row_cells}))
+        rows.append(TableRow(text, bbox, sources=sources))
         labels.append(label)
     return _with_table_context(rows, labels)
 
