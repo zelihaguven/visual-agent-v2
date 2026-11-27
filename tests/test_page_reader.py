@@ -884,6 +884,29 @@ def _paddle(content: str, label: str = "text") -> Any:
     return read_page
 
 
+def _unavailable(_: Image.Image) -> str:
+    raise page_reader.CloudUnavailable("ulaşılamadı")
+
+
+def _cloud(
+    check: page_reader.SecondReader,
+    figure_read: page_reader.SecondReader = _unavailable,
+    figure_check: page_reader.SecondReader = _unavailable,
+) -> page_reader.CloudReaders:
+    return page_reader.CloudReaders(check, figure_read, figure_check)
+
+
+def _read(
+    tmp_path: Path,
+    read_page: Any,
+    second: page_reader.SecondReader,
+    cloud: page_reader.CloudReaders | None,
+) -> list[Any]:
+    """600x800 piksellik tek sayfalık tarama, (100, 100)–(300, 160) arası dolu."""
+    scan = _scan(tmp_path / "t.pdf")
+    return read_scanned_pages(scan, [1], tmp_path, read_page, second, cloud=cloud)
+
+
 def test_qwen_check_hides_a_value_paddle_read_differently(tmp_path: Path) -> None:
     """İkinci okuma Qwen3-VL: buluta yalnız bloğun kırpıntısı gider, yalnız ZDR sağlayıcıyla."""
     server = _OpenRouter(reply="Basınç 135 bar, kod ZP-4471")
@@ -893,10 +916,8 @@ def test_qwen_check_hides_a_value_paddle_read_differently(tmp_path: Path) -> Non
         tesseract_calls.append(image)
         return "Basınç 185 bar, kod ZP-4471"
 
-    second = page_reader.with_fallback(_qwen_check(server, tmp_path / "onbellek"), tesseract)
-    [element] = read_scanned_pages(
-        _scan(tmp_path / "t.pdf"), [1], tmp_path, _paddle("Basınç 185 bar, kod ZP-4471"), second
-    )
+    cloud = _cloud(_qwen_check(server, tmp_path / "onbellek"))
+    [element] = _read(tmp_path, _paddle("Basınç 185 bar, kod ZP-4471"), tesseract, cloud)
 
     assert element.ocr_uncertain == ("185",)
     assert tesseract_calls == []
@@ -911,13 +932,9 @@ def test_qwen_check_hides_a_value_paddle_read_differently(tmp_path: Path) -> Non
 
 def test_unreachable_qwen_falls_back_to_tesseract_and_reading_completes(tmp_path: Path) -> None:
     server = _OpenRouter(fail=True)
-    second = page_reader.with_fallback(
-        _qwen_check(server, tmp_path / "onbellek"), lambda _: "Basınç 135 bar"
-    )
+    cloud = _cloud(_qwen_check(server, tmp_path / "onbellek"))
 
-    [element] = read_scanned_pages(
-        _scan(tmp_path / "t.pdf"), [1], tmp_path, _paddle("Basınç 185 bar"), second
-    )
+    [element] = _read(tmp_path, _paddle("Basınç 185 bar"), lambda _: "Basınç 135 bar", cloud)
 
     assert element.text == "Basınç 185 bar"
     assert element.ocr_uncertain == ("185",)  # Tesseract'ın okumasıyla denetlendi
@@ -939,11 +956,11 @@ def test_after_the_first_cloud_failure_the_document_asks_the_cloud_no_more(
     iki blok da Tesseract'la denetlenir, belge raporu için tek satır kalır."""
     server = _OpenRouter(fail=True)
     tesseract = lambda _: "Basınç 135 bar Tork 12 Nm"  # noqa: E731
-    second = page_reader.with_fallback(_qwen_check(server, tmp_path / "onbellek"), tesseract)
+    cloud = _cloud(_qwen_check(server, tmp_path / "onbellek"))
     outage = CloudOutage()
     token = CLOUD_OUTAGE.set(outage)
     try:
-        elements = read_scanned_pages(_scan(tmp_path / "t.pdf"), [1], tmp_path, _two_blocks, second)
+        elements = _read(tmp_path, _two_blocks, tesseract, cloud)
     finally:
         CLOUD_OUTAGE.reset(token)
 
@@ -952,6 +969,51 @@ def test_after_the_first_cloud_failure_the_document_asks_the_cloud_no_more(
     assert outage.fallback_blocks == 2
     warning = outage.warning()
     assert warning is not None and warning.startswith("2 blok Tesseract'la denetlendi; bulut")
+
+
+def _whole(content: str, label: str = "text") -> Any:
+    """Okuyucunun bütün görüntüyü tek blok saydığı sonuç."""
+
+    def read_page(image: Path) -> dict[str, Any]:
+        width, height = Image.open(image).size
+        block = {**_block(0, label, content), "block_bbox": [0, 0, width, height]}
+        return {"width": width, "height": height, "parsing_res_list": [block]}
+
+    return read_page
+
+
+def test_a_crop_covering_the_page_is_not_sent_to_the_cloud(tmp_path: Path) -> None:
+    """Tam sayfa buluta gitmez: blok Tesseract'la denetlenir, şekil bloğu okunmaz."""
+    server = _OpenRouter(reply=_json("Tork 12 Nm"))
+    check = _qwen_check(server, tmp_path / "onbellek")
+    cloud = _cloud(check, figure_read=check, figure_check=check)
+
+    [element] = _read(tmp_path, _whole("Basınç 185 bar"), lambda _: "Basınç 135 bar", cloud)
+    figure = _read(tmp_path, _whole("", label="image"), str, cloud)
+
+    assert element.ocr_uncertain == ("185",)
+    assert figure == []
+    assert server.requests == 0
+
+
+def test_page_share_of_an_embedded_image_is_measured_against_its_page(tmp_path: Path) -> None:
+    """Gömülü görselin tamamı tek blok olsa da sayfanın küçük bir kısmıysa buluta gider; sayfayı
+    kaplayan görsel gitmez."""
+    server = _OpenRouter(reply="Basınç 185 bar")
+    cloud = _cloud(_qwen_check(server, tmp_path / "onbellek"))
+    scan = _scan(tmp_path / "t.pdf")
+
+    def read(region: Box) -> list[Any]:
+        return read_embedded_images(
+            scan, [region], tmp_path, _whole("Basınç 185 bar"), lambda _: "", cloud
+        )
+
+    [small] = read(_region(50, 80, 350, 180))
+    [whole] = read(_region(0, 0, 600, 800))
+
+    assert small.ocr_uncertain == ()  # Qwen okudu, tuttu
+    assert whole.ocr_uncertain == ("185",)  # Tesseract (boş okuma) denetledi
+    assert len(server.bodies) == 1
 
 
 def test_same_crop_is_paid_once_even_by_a_new_reader(tmp_path: Path) -> None:
@@ -973,14 +1035,8 @@ def _json(*lines: str) -> str:
 def _read_figure(
     tmp_path: Path, qwen: page_reader.SecondReader, gemma: page_reader.SecondReader
 ) -> list[Any]:
-    figures = page_reader.FigureReaders(read=qwen, check=gemma)
-    return read_scanned_pages(
-        _scan(tmp_path / "t.pdf"), [1], tmp_path, _paddle("", label="image"), str, figures=figures
-    )
-
-
-def _unavailable(_: Image.Image) -> str:
-    raise page_reader.CloudUnavailable("ulaşılamadı")
+    cloud = _cloud(_unavailable, figure_read=qwen, figure_check=gemma)
+    return _read(tmp_path, _paddle("", label="image"), str, cloud)
 
 
 def test_figure_block_values_are_shown_only_when_qwen_and_gemma_agree(tmp_path: Path) -> None:
@@ -1004,12 +1060,10 @@ def test_figure_block_is_skipped_when_qwen_fails_or_no_cloud(tmp_path: Path) -> 
 
 
 def _figure_with_tools(server: _OpenRouter, tmp_path: Path) -> list[Any]:
-    from visual_agent.ingest.tools import _figure_readers
+    from visual_agent.ingest.tools import _cloud_readers
 
-    figures = _figure_readers(server.config(tmp_path / "onbellek"))
-    return read_scanned_pages(
-        _scan(tmp_path / "t.pdf"), [1], tmp_path, _paddle("", label="image"), str, figures=figures
-    )
+    cloud = _cloud_readers(server.config(tmp_path / "onbellek"))
+    return _read(tmp_path, _paddle("", label="image"), str, cloud)
 
 
 def test_broken_figure_json_is_asked_once_more_and_not_cached(tmp_path: Path) -> None:

@@ -273,6 +273,8 @@ class CloudConfig:
     cache: Path
     reader_model: str
     figure_check_model: str
+    max_page_share: float = 0.9
+    """Bu oranda ya da daha büyük kırpıntı buluta gitmez (`CloudReaders`)."""
     transport: httpx.AsyncBaseTransport | None = None
     """Yalnız testler verir."""
 
@@ -334,27 +336,40 @@ def cloud_reader(
     return read
 
 
-def with_fallback(cloud: SecondReader, fallback: SecondReader) -> SecondReader:
-    """Bulut okuması alınamayan blok bugünkü gibi yedek okumayla (Tesseract) denetlenir."""
+@dataclass(frozen=True)
+class CloudReaders:
+    """Bulut okuyucuları (karar 0035): `check` okuyucunun bloklarını ikinci kez okur; okuyucunun
+    boş bıraktığı şekil bloklarını `figure_read` okur, `figure_check` denetler (ikisi de JSON).
+    Alanı sayfanın `max_page_share` kadarı ya da fazlası olan kırpıntı buluta gitmez (tam sayfa
+    gitmez, kural 4): o blok Tesseract'la denetlenir, şekil bloğu atlanır."""
 
-    def read(image: Image.Image) -> str:
+    check: SecondReader
+    figure_read: SecondReader
+    figure_check: SecondReader
+    max_page_share: float = 0.9
+
+    def allows(self, crop: Image.Image, page_pixels: float) -> bool:
+        return crop.width * crop.height < self.max_page_share * page_pixels
+
+
+def _checker(second: SecondReader, cloud: CloudReaders | None, page_pixels: float) -> SecondReader:
+    """İkinci okuma: bulut varsa ve kırpıntı sayfanın tamamına yakın değilse bulut; bulut
+    okuması alınamayan blok bugünkü gibi `second` (Tesseract) ile denetlenir."""
+    if cloud is None:
+        return second
+
+    def read(crop: Image.Image) -> str:
+        if not cloud.allows(crop, page_pixels):
+            return second(crop)
         try:
-            return cloud(image)
+            return cloud.check(crop)
         except CloudUnavailable:
             outage = CLOUD_OUTAGE.get()
             if outage is not None:
                 outage.fallback_blocks += 1
-            return fallback(image)
+            return second(crop)
 
     return read
-
-
-@dataclass(frozen=True)
-class FigureReaders:
-    """Okuyucunun boş bıraktığı şekil bloklarını biri okur, öbürü denetler (ikisi de JSON)."""
-
-    read: SecondReader
-    check: SecondReader
 
 
 _FIGURE_LABELS = frozenset({"image", "chart", "figure", "seal", "header_image", "footer_image"})
@@ -403,7 +418,7 @@ def _parts_text(parts: Sequence[FigurePart]) -> str:
 
 
 def read_figures(
-    data: Mapping[str, Any], image: Image.Image, readers: FigureReaders
+    data: Mapping[str, Any], image: Image.Image, readers: CloudReaders, page_pixels: float
 ) -> tuple[dict[int, list[FigurePart]], dict[int, list[str]]]:
     """Okuyucunun içeriğini boş bıraktığı şekil blokları ({blok numarası: parçalar}) ve
     denetimde geçiş sayısı tutmayan değerleri. Değer iki okumada sayısı tutarsa gösterilir;
@@ -414,10 +429,10 @@ def read_figures(
         if block.get("block_label") not in _FIGURE_LABELS or _block_text(block).strip():
             continue
         crop = _block_crop(data, image, block)
-        if _is_blank(crop):
+        if _is_blank(crop) or not readers.allows(crop, page_pixels):
             continue
         try:
-            parts = figure_parts(readers.read(crop))
+            parts = figure_parts(readers.figure_read(crop))
         except CloudUnavailable as error:
             logger.warning("Şekil bloğu okunamadı; atlanır: %s", error)
             continue
@@ -429,7 +444,7 @@ def read_figures(
         if not value_tokens(primary):
             continue  # gizlenecek değer yok; denetim okumasına gerek yok
         try:
-            other = readers.check(crop)
+            other = readers.figure_check(crop)
         except CloudUnavailable as error:
             logger.warning("Şekil bloğu denetlenemedi; değerleri gizlenir: %s", error)
             marks[block_id] = sorted(set(value_tokens(primary)))
@@ -767,20 +782,22 @@ def _read_image(
     source: Path,
     read_page: ReadPage | None,
     second: SecondReader,
-    figures: FigureReaders | None,
+    cloud: CloudReaders | None,
+    page_pixels: float,
 ) -> _Reading | None:
     """Okuyucu sonucu, ikinci okumanın işaretleri ve şekil blokları; görüntü boşsa None (okuyucu
-    gerekmez). Şekil okuyucuları yoksa şekil blokları bugünkü gibi atlanır."""
+    gerekmez). Bulut yoksa ikinci okuma `second`, şekil blokları bugünkü gibi atlanır.
+    page_pixels: sayfanın bu görüntünün ölçeğindeki piksel alanı (tam sayfa sınırı için)."""
     if _is_blank(image):
         return None
     if read_page is None:
         raise ReaderUnavailable(NOT_CONFIGURED)
     image.save(source)
     data = read_page(source)
-    marks = second_reading_marks(data, image, second)
-    if figures is None:
+    marks = second_reading_marks(data, image, _checker(second, cloud, page_pixels))
+    if cloud is None:
         return data, marks, {}
-    read, figure_marks = read_figures(data, image, figures)
+    read, figure_marks = read_figures(data, image, cloud, page_pixels)
     return data, {**marks, **figure_marks}, read
 
 
@@ -810,7 +827,7 @@ def read_embedded_images(
     work: Path,
     read_page: ReadPage | None,
     second: SecondReader,
-    figures: FigureReaders | None = None,
+    cloud: CloudReaders | None = None,
 ) -> list[Element]:
     """Metinli sayfadaki gömülü görseller sayfa okuyucusuyla okunur (karar 0028): yalnız görselin
     bölgesi kendi çözünürlüğünde çizilir, öğelerin kutuları sayfaya taşınır. Okuyucu yoksa
@@ -823,10 +840,11 @@ def read_embedded_images(
             page = document[box.page - 1]
             width, height = page.get_size()
             margins = (box.left, height - box.bottom, width - box.right, box.top)
-            bitmap = page.render(scale=_image_scale(page, box), crop=margins)
-            crop = bitmap.to_pil().convert("RGB")
+            scale = _image_scale(page, box)
+            crop = page.render(scale=scale, crop=margins).to_pil().convert("RGB")
             source = work / f"okuyucu-s{box.page}-g{index}.png"
-            read = _read_image(crop, source, read_page, second, figures)
+            page_pixels = width * height * scale * scale
+            read = _read_image(crop, source, read_page, second, cloud, page_pixels)
             if read is not None:
                 data, marks, shapes = read
                 elements += page_elements(
@@ -845,7 +863,7 @@ def read_scanned_pages(
     read_page: ReadPage | None,
     second: SecondReader,
     source_image: Path | None = None,
-    figures: FigureReaders | None = None,
+    cloud: CloudReaders | None = None,
 ) -> list[Element]:
     """Metin katmanı olmayan, zayıf ya da taranmış metin katmanlı sayfaları okur (0011, 0028).
     Okuyucu yoksa ya da ulaşılamıyorsa `ReaderUnavailable`: sayfa başka yoldan okunmaz, belge
@@ -866,7 +884,8 @@ def read_scanned_pages(
             else:
                 image = page.render(scale=_native_scale(page)).to_pil().convert("RGB")
             source = work / f"okuyucu-s{number}.png"
-            read = _read_image(image, source, read_page, second, figures)
+            page_pixels = image.width * image.height  # sayfanın (ya da görsel dosyanın) tamamı
+            read = _read_image(image, source, read_page, second, cloud, page_pixels)
             if read is not None:  # boş sayfada okunacak bir şey yok, okuyucu da gerekmez
                 data, marks, shapes = read
                 learned: set[HeaderKey] = set()

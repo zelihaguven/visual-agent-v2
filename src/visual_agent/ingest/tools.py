@@ -17,7 +17,7 @@ from visual_agent.ingest.page_reader import (
     FIGURE_MAX_TOKENS,
     FIGURE_PROMPT,
     CloudConfig,
-    FigureReaders,
+    CloudReaders,
     ReadPage,
     SecondReader,
     cloud_reader,
@@ -26,7 +26,6 @@ from visual_agent.ingest.page_reader import (
     read_embedded_images,
     read_scanned_pages,
     tesseract_reader,
-    with_fallback,
 )
 from visual_agent.ingest.pdf_tables import TableCell, group_table_rows
 from visual_agent.ingest.pipeline import IngestTools, PageInfo
@@ -125,35 +124,34 @@ def recover_page_text(path: Path, page: int) -> list[Element]:
     return [Element(ElementKind.TEXT, " ".join(text.split()), SourceLocation(page=page))]
 
 
-def _second_reader(
-    external: ExternalTools, read_page: ReadPage | None, cloud: CloudConfig | None
-) -> SecondReader:
-    """İkinci okuma bulut anahtarı varsa Qwen3-VL, alınamayan blokta ölçümdeki gibi Tesseract
-    tur+eng (0035); anahtar yoksa yalnız Tesseract. Tesseract yoksa belge bunu söyler. Okuyucu
-    yoksa boş olmayan görüntü zaten okunamaz; Tesseract aranmaz."""
+def _second_reader(external: ExternalTools, read_page: ReadPage | None) -> SecondReader:
+    """İkinci okuma ölçümdeki gibi Tesseract tur+eng; bulut varsa yalnız yedeği (0035).
+    Tesseract yoksa belge bunu söyler. Okuyucu yoksa boş olmayan görüntü zaten okunamaz;
+    Tesseract aranmaz."""
     if read_page is None:
         return lambda _: ""
-    tesseract = tesseract_reader(external.require_tesseract("tur+eng"))
-    if cloud is None:
-        return tesseract
-    check = cloud_reader(cloud, cloud.reader_model, CHECK_PROMPT, CHECK_MAX_TOKENS)
-    return with_fallback(check, tesseract)
+    return tesseract_reader(external.require_tesseract("tur+eng"))
 
 
-def _figure_readers(cloud: CloudConfig | None) -> FigureReaders | None:
-    """Anahtar yoksa şekil blokları bugünkü gibi atlanır. Okumanın JSON'u bozuk ya da yarımsa
-    (token sınırı) bir kez yeniden istenir; yine bozuksa blok atlanır."""
+def _cloud_readers(cloud: CloudConfig | None) -> CloudReaders | None:
+    """Anahtar yoksa ikinci okuma Tesseract, şekil blokları bugünkü gibi atlanır. Şekil
+    okumasının JSON'u bozuk ya da yarımsa (token sınırı) bir kez yeniden istenir; yine bozuksa
+    blok atlanır."""
     if cloud is None:
         return None
-    return FigureReaders(
-        read=cloud_reader(
+    return CloudReaders(
+        check=cloud_reader(cloud, cloud.reader_model, CHECK_PROMPT, CHECK_MAX_TOKENS),
+        figure_read=cloud_reader(
             cloud,
             cloud.reader_model,
             FIGURE_PROMPT,
             FIGURE_MAX_TOKENS,
             accept=lambda content: figure_parts(content) is not None,
         ),
-        check=cloud_reader(cloud, cloud.figure_check_model, FIGURE_PROMPT, FIGURE_MAX_TOKENS),
+        figure_check=cloud_reader(
+            cloud, cloud.figure_check_model, FIGURE_PROMPT, FIGURE_MAX_TOKENS
+        ),
+        max_page_share=cloud.max_page_share,
     )
 
 
@@ -166,9 +164,9 @@ def _read_scanned(
     read_page: ReadPage | None,
     cloud: CloudConfig | None,
 ) -> list[Element]:
-    second = _second_reader(external, read_page, cloud)
-    figures = _figure_readers(cloud)
-    return read_scanned_pages(path, pages, work, read_page, second, image, figures)
+    second = _second_reader(external, read_page)
+    readers = _cloud_readers(cloud)
+    return read_scanned_pages(path, pages, work, read_page, second, image, readers)
 
 
 def _read_images(
@@ -179,9 +177,9 @@ def _read_images(
     read_page: ReadPage | None,
     cloud: CloudConfig | None,
 ) -> list[Element]:
-    second = _second_reader(external, read_page, cloud)
-    figures = _figure_readers(cloud)
-    return read_embedded_images(path, images, work, read_page, second, figures)
+    second = _second_reader(external, read_page)
+    readers = _cloud_readers(cloud)
+    return read_embedded_images(path, images, work, read_page, second, readers)
 
 
 def default_tools(
