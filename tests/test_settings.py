@@ -49,3 +49,9 @@ def test_remote_page_reader_stops_startup() -> None:
         make_settings(page_reader="mlx-vlm-server@https://ocr.example.com/")
 
     assert make_settings(page_reader="local").page_reader == "local"
+
+
+def test_figure_check_model_must_differ_from_the_reader_model() -> None:
+    with pytest.raises(ValidationError, match="VA_READER_FIGURE_CHECK_MODEL"):
+        make_settings(reader_model="qwen/x", reader_figure_check_model="qwen/x")
+    assert make_settings(reader_model="qwen/x", reader_figure_check_model="google/y")

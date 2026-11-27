@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import AliasChoices, AnyHttpUrl, Field, SecretStr, field_validator
+from pydantic import AliasChoices, AnyHttpUrl, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -75,3 +75,14 @@ class Settings(BaseSettings):
 
         parse_reader_setting(value)
         return value
+
+    @model_validator(mode="after")
+    def figure_check_is_another_model(self) -> "Settings":
+        """Şekil bloğunu okuyan model kendi okumasını denetleyemez: aynı hatayı iki kez yapar ve
+        değer doğrulanmış görünür (karar 0035)."""
+        if self.reader_figure_check_model.strip() == self.reader_model.strip():
+            raise ValueError(
+                "VA_READER_FIGURE_CHECK_MODEL, VA_READER_MODEL ile aynı olamaz: şekil bloğunu"
+                " başka bir model denetlemeli."
+            )
+        return self
