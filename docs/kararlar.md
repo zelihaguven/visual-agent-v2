@@ -1,7 +1,7 @@
 # Karar kaydı
 
 Bugüne kadar alınmış önemli kararlar: ne, ne zaman, neden, hangi durumda yeniden düşünülür.
-Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0034) tam metni en
+Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0035) tam metni en
 sonda: [Karar belgeleri](#karar-belgeleri).
 
 **Kural:** Burada "çıkarıldı", "eklenmedi" ya da "reddedildi" yazan bir şeyi yeniden önermek
@@ -2291,3 +2291,18 @@ A-b: şekil bloğu Qwen + Tesseract, Paddle kontrolü Tesseract. A-q2: A-q1 ile 
 **Bilinen sınırlar.** Paddle ve Qwen ikisi de görüntü-dil modeli: aynı hatayı birlikte yaparlarsa yakalanmaz (150 değerde görülmedi, örneklem küçük). Qwen şu an yalnız tek ZDR sağlayıcıda (DeepInfra). Puanlamanın ~60 değeri elle. Kontrol birimi bugünkü blok; föy tablosunda bütün tablo tek bölge.
 
 **Yeniden düşünülür.** İkinci ölçüm setinde (ilk turda kullanılmayan sayfalar) ölçüt tutmazsa; Qwen ZDR erişimi kalkarsa; iki VLM'in birlikte yanlış okuduğu değer görülürse.
+
+<a id="karar-0035"></a>
+
+### 0035: A-q1 uygulandı: ikinci okuma Qwen3-VL (Tesseract yedek), şekil blokları Qwen3-VL + Gemma
+Tarih: 2026-11-27. Dal: `okuma-a-q1`. Kararı uygular: 0034 (ürün sahibi, ölçüm `docs/okuma-planlari.md`).
+
+**Ne değişti (`ingest/page_reader.py`, okuyucu yolu genişletildi; yeni yol ya da modül yok).**
+- İkinci okuma: OpenRouter anahtarı varsa her blok kırpıntısını `VA_READER_MODEL` (varsayılan `qwen/qwen3-vl-30b-a3b-instruct`) okur; sayarak karşılaştırma kuralı (`count_mismatches`) aynı. Taranmış sayfa ve metinli sayfadaki gömülü görsel ikisi de. Qwen'den okuma alınamazsa (ağ, HTTP hatası, süre, ZDR sağlayıcısı yok) o blok bugünkü gibi Tesseract'la denetlenir, okuma durmaz (`with_fallback`).
+- Şekil blokları: okuyucunun içeriğini boş bıraktığı `image`, `chart`, `figure`, `seal`, `header_image`, `footer_image` blokları bugünkü blok kırpıntısıyla (okuyucuya verilen görüntü, 4 piksel kenar) Qwen'e gider (ölçülen JSON istemi). Değer taşıyorsa aynı kırpıntıyı `VA_READER_FIGURE_CHECK_MODEL` (varsayılan `google/gemma-4-26b-a4b-it`) okur; değer sayısı tutmayan parça belirsizdir (gizlenir). Gemma okuması alınamazsa bloğun bütün değerleri belirsiz; Qwen okuması alınamazsa blok bugünkü gibi atlanır. Satırlar metin, tablolar okuyucunun tablo biçiminde (HTML) aynı öğe kuralından geçer; kutu sayfadaki blok kutusu, `from_ocr`.
+- İstemler ölçülen istemlerin aynısı (`CHECK_PROMPT`, `FIGURE_PROMPT`). İstek `JsonModel.read_image` ile (çok kipli mesaj; ZDR kısıtı ve sağlayıcı seçimi `JsonModel`/`select_providers`'tan).
+- Önbellek: bulut cevabı `VA_READER_CACHE_DIRECTORY` (varsayılan `data/okuma-onbellegi`) altında `sha256(model + istem + PNG)` adıyla; yeniden işleme aynı kırpıntı için ikinci kez ödemez.
+- Anahtar yoksa okuma 26. kuralla aynıdır: ikinci okuma Tesseract, şekil blokları atlanır.
+- Kural sürümü: PDF ve Office 26 → 27, görsel 17 → 18. Okuyucudan geçen sayfası olan (metin katmanı olmayan, zayıf, taranmış ya da metinli; metinli sayfa gömülü görsel yüzünden) bütün PDF ve Office belgeleri ile bütün görsel belgeler "Eski kural" görünür. Yeniden işleme yapılmadı.
+
+**Bilinen sınırlar.** Kesilen (token sınırı) ya da JSON olmayan şekil okuması bloğu atlatır (ölçüm betiğindeki kurtarma alınmadı). Gemma'nın JSON'u okunamazsa ham metni karşılaştırılır. Bir belgede Qwen'e ulaşılamıyorsa her blok ayrı denenir (süre sınırı 120 sn).
