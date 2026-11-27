@@ -91,3 +91,32 @@ döngüye girip token sınırına takıldı, 1 sayfada JSON bozuk. PaddleOCR-VL 
 
 Yöntem notu: A'da 10 öğeye kadar olan kırpıntı tek etiket–değer birimi, B'de ardışık 3 öğe bir birim sayıldı; sonucu etkileyebilir.
 Ölçülmeyenler: ikinci VLM (Gemma) ile A-c ve B-i; Plan C.
+
+## Plan A-q (ürün sahibi tasarımı; Windows, 2026-11-27, bir koşu)
+Paddle ana okuyucu (bugünkü okumalar); Paddle bölgelerinin kontrolcüsü Tesseract yerine Qwen3-VL-30B (kırpıntı);
+Paddle'ın boş bıraktığı şekil blokları Qwen, ikinci okuyucu A-q1 Gemma 4 26B, A-q2 Tesseract. Buluta yalnız kırpıntı.
+Aynı 150 değer, ölçüt ve eşleştirme kuralları; yeni elle karar 8 (7'si tabandan devralınan gizli-yanlış, 1 değişen: F-28-1).
+
+| | Taban | A-b | A-q1 | A-q2 |
+|---|---|---|---|---|
+| Doğru gösterilen | 81 | 94 | 115 | 106 |
+| Yanlış gösterilen | 3 | 3 | 3 | 3 |
+| Gizlenen doğru | 27 | 38 | 17 | 26 |
+| Gizlenen yanlış | 8 | 8 | 8 | 8 |
+| Okunamayan | 31 | 7 | 7 | 7 |
+| Metinli sayfada bozulan | – | 0 | 0 | 0 |
+| Şekil değerlerinde gösterilen (114) | %46 | %58 | %76 | %68 |
+| Föy kesirli değerler (18), doğru gösterilen | 0 | 7 | 15 | 15 |
+
+Yanlış gösterilen 3 değerin üçü de bilinen QM s.16 etiket hatası (metinli sayfa, bu turda kontrol dışı). 8 yanlış okuma
+dört planda da gizli kaldı; Qwen ile Paddle ya da Qwen ile Gemma'nın birlikte yanlış okuyup gösterdiği değer yok.
+Okuyucu bölgelerinde doğrulanan değer parçası: Tesseract %59 (784/1.321), Qwen %87 (1.143/1.321).
+A-q2'de Bold s.6'da iki değer (B-6-1, B-6-3) tabanda gösterilirken gizlendi (metinli sayfa değil; ölçüt 2'yi bozmaz).
+
+Maliyet ve süre: tahmin ~0,021 $, gerçek 0,0136 $ (Qwen 43 çağrı DeepInfra, Gemma 38 çağrı AkashML; ZDR). İki turun toplamı
+0,0612 $. Föy tablo sayfası başına ek ~37–42 sn ve ~0,0018 $ (bütün tablo tek kırpıntı); diğer sayfalar 3–44 sn.
+
+Sınırlar: (1) QM s.15 ve s.29'daki gömülü görsel tablolarını bu ölçümde hâlâ Tesseract kontrol ediyor (tasarımda
+"Tesseract tamamen çıkar" tam uygulanmadı). (2) Kontrol birimi bugünkü blok; föy tablosunda bütün tablo tek bölge.
+(3) İki VLM (Paddle ve Qwen) aynı hatayı yaparsa yakalanmaz; bu 150 değerde görülmedi, örneklem küçük. (4) Qwen yalnız
+tek ZDR sağlayıcıda (DeepInfra). (5) Puanlamanın bir kısmı elle.
