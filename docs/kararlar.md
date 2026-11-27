@@ -1,7 +1,7 @@
 # Karar kaydı
 
 Bugüne kadar alınmış önemli kararlar: ne, ne zaman, neden, hangi durumda yeniden düşünülür.
-Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0033) tam metni en
+Kararların tek kaydı bu dosya. Numarayla anılan karar belgelerinin (0001–0034) tam metni en
 sonda: [Karar belgeleri](#karar-belgeleri).
 
 **Kural:** Burada "çıkarıldı", "eklenmedi" ya da "reddedildi" yazan bir şeyi yeniden önermek
@@ -2260,3 +2260,44 @@ Tarih: 2026-11-27. Ürün sahibi kararı: dondurma (0031) "mevcut kod yapısın�
 - **BM25 metin biçimi (`normalize_for_bm25`) doğrulamadaki kurallarla (`canon_chars`, `turkish_lower`) ortaklaştırılmadı.** İki yerde aynı kurallar elle eşit tutuluyor; ortak yardımcı BM25 vektörlerini değiştirebileceği için yeniden indeksleme ister (ekip kararı). Değiştirilirse iki yer birlikte değişmeli.
 
 **Bu bilgisayarda test notu.** Windows kopyasında `core.autocrlf=true` olduğu için dondurulmuş dosyaların sha256 testleri (`test_committed_set_a_files_are_the_frozen_ones`, `test_scoring_is_frozen`, `test_measurement_scripts_are_frozen`) `main`'de de kalıyor (CRLF); bu işle ilgisi yok, CI (Linux) etkilenmez.
+
+<a id="karar-0034"></a>
+
+### 0034: Rakamsız belirsiz OCR sözcüğü cümleyi tek başına gizlemez (ölçüm)
+Tarih: 2026-11-27. Ürün sahibi onayı (ölçüt tutarsa). Dal: `ocr-kelime-belirsizligi` (birleştirme ekip kararı; aşağıda "Ölçüt dışı karşı örnek").
+
+**Sorun.** İkinci okuma (Tesseract) sayı ve kodları blok başına sayarak karşılaştırır; harf-yalnız büyük harfli sözcükler kod sayılır (0011). Stilize başlıklarda iki okuma uyuşmuyor, "STANDARD", "STRIPES", "PLACEMENT" belirsiz işaretleniyor; başlığın belirsiz değerleri altındaki her parçaya taşınıyor. Doğrulayıcı bu sözcüklerden birini içeren cümleyi gizliyor. Örnek: "Standart 3S SPI inç başına 12 dikiştir." (Bold 3 Stripes s.10, alıntı birebir, değer görüntüde doğru) "OCR değeri belirsiz: ['STANDARD']" ile gizlendi (#2261, #2262). Yüklü veride belirsiz işaretli 2.428 parçanın 162'sinde yalnız rakamsız belirteç var; 9.165 belirtecin 1.282'si rakamsız (88 farklı sözcük).
+
+**Değişiklik.** `verification/answer._ocr_problems`: içinde rakam olmayan belirsiz belirteç dikkate alınmaz. Rakamlı belirteç ("12", "1/4", "PNT-1162", "KNT-226129", "3S", "-3S", "3-STRIPES") eskisi gibi gizler; "3S" için özel durum yok. Bold 3 Stripes'ta belirsiz işaret "3S" değil "3" (başlık "BOLD 3 STRIPES"); "3" tam değer olarak arandığı için "3S" içeren cümleyi önce de gizlemiyordu, tek başına "3" yazan cümle yine gizlenir. İşleme, işaretler, kural sürümü, istem değişmedi; yeniden işleme yok. Netleştirme birleşmesi (`ask/agreement._unreliable`) değişmedi: orada rakamsız belirteç hâlâ eşleşmeyi bozar (daha sıkı).
+
+**Ölçüt (ölçümden önce yazıldı).** (1) Set A: yanlış gösterilen bir tane bile artmaz, doğru olup gizlenen azalır. (2) Soru günlüğü: gizliden görünüre geçen her cümle; değer bildirenler sayfa görüntüsüyle denetlenir; yeni gösterilen yanlış değer 0 (renk, durum, ad gibi sözcük değerleri dahil). (3) Taban 7, 11, FastReact önbellekten: kötüleşme yok, doğrulanmış yanlış 0.
+
+**(1) Set A (çevrimdışı; okuyucu ve Tesseract çalıştırılmadı).** Saklı okumalar ve saklı işaretler (`evals/results/2026-11-16-set-a-benzetim/paddle/*_uncertain.json`) dondurulmuş puanlamayla (`paddle_vl_page`, `score_page`) puanlandı; "sonra"da işaretlerden rakamsız belirteçler atıldı. "Önce" 0030'daki dondurulmuş kuralla aynı.
+
+| | Doğru gösterilen | Yanlış gösterilen | Gizli (doğruydu) | Gizli (yanlıştı) |
+|---|---|---|---|---|
+| Önce | 1.325 | 87 | 1.335 | 325 |
+| Sonra | 1.327 | 87 | 1.333 | 325 |
+
+Değişen iki değer: syn1 tarama s.2 "XS" (form satırı), s.6 "ELSZI-E" (hücre); ikisi de doğru okunmuştu. Set A'da başlıktan parçaya taşıma yok (işaret blok düzeyinde); uygulamadaki taşımanın etkisi (2) ile ölçüldü.
+
+**(2) Soru günlüğü (çevrimdışı, 0 $).** Ham cevabı ve kaynak parça kimlikleri `diagnosis`'te olan 95 kayıt (#2172–) veritabanı kopyasındaki parçalarla bugünkü doğrulayıcıdan geçirildi; 95'inin durumu günlükle aynı. 8 öğenin sorunu değişti: 6'sı gizliden görünüre, 0'ı görünürden gizliye, 2'si başka sorunla gizli kaldı (#2209 "XXS" düştü, rakamlı belirsizler kaldı; #2267 "AUTHOR" düştü, "3" sayısı alıntıda yok).
+
+| Kayıt | Cümle | Kaynak | Görüntüde |
+|---|---|---|---|
+| #2260 | HPS'den öne 2 şerit + 1 boşluk, arkaya 1 şerit + 1 boşluk | s.15 | doğru |
+| #2261, #2262 | Standart 3S SPI inç başına 12 dikiş | s.10 | doğru |
+| #2263 | Yeni şerit ölçüleri SS27'den itibaren | s.6 | doğru |
+| #2264, #2265 | 3S dikiş payı 1mm-2mm | s.10 | doğru |
+
+Yeni gösterilen yanlış değer 0 (6/6 görüntüyle denetlendi). Günlükte rakamsız belirteçle gizlenen 5 eski kayıt (#1999, #2001 "VARCHAR"; #2098, #2116, #2134 "UNLESS") ham cevap taşımadığı için yeniden denetlenemedi.
+
+**(3) Taban setleri: ölçülmedi.** Bu bilgisayarda önbellek (`evals/output/`) yok.
+
+**Sonuç: ölçüt tuttu.**
+
+**Ölçüt dışı karşı örnek (birleştirmeden önce ekip kararı).** Rakamsız belirteçlerin bir kısmı okuyucunun gerçek sözcük hatasını yakalıyor; bu değişiklikle o hata alıntıyla gösterilebilir. Yüklü veride görüntüyle bulunanlar: Bold 3 Stripes s.16 başlık ve metni bozuk okunmuş ("SHELLER & SLEEVI (BALLAR SLEE RESEARCH)" ← "SHOULDER & SLEEVE (RAGLAN SLEEVE REFERENCE)"; "HPA" ← "HPS"); 6013448 s.16 "BEHIND DRAWCOURDS" ← "DRAWCORDS". Kurgulanmış iki cümle ("Notches are placed at HPA.", "Tear away backing BEHIND DRAWCOURDS kullanılır.", alıntıları birebir) önce gizleniyor, sonra doğrulanıyor. Model bu cümleleri günlükte kurmadı; 88 rakamsız sözcüğün hepsi görüntüyle denetlenmedi. Aynı parçalardaki küçük harfli bozuk sözcükler ("Slope", "Unwind", "Gammet") ve rakamlı "72 cm" (görüntüde yok; "72" belirsiz, gizli) zaten bu denetimin dışındaydı.
+
+**Bilinen sınır (öncesinden).** Belirsiz "1mm" (Bold s.10) "1mm -2mm" yazımında gizlemiyor: `normalize` aralığı "1mm-2mm" yapıyor, `contains_token` ardından "-" gelen değeri tam değer saymıyor. Bu örnekte değer doğru; aralığın parçası olan belirsiz değerlerin gizlenmemesi kural 1 açısından ayrıca bakılmalı (bu işte değiştirilmedi).
+
+**Yeniden düşünülür.** Okuyucunun sözcük hatası ölçülürse (ör. set A'da sözcük değerleri, gerçek taramalarda örneklem) ya da karşı örnekler canlı cevapta görülürse.

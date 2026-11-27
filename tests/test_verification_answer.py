@@ -162,6 +162,37 @@ def test_sentence_without_the_uncertain_code_still_passes() -> None:
     assert check.ok, check.problems
 
 
+SPI = "Standard 3S SPI is 12 stitches per inch, should consistently be executed."
+
+
+def spi_check(uncertain: tuple[str, ...]) -> ItemCheck:
+    """Başlıktaki belirsiz sözcükler ("BOLD 3 STRIPES ... STANDARD") parçaya taşınmış."""
+    source = PromptSource(
+        number=1,
+        text=SPI,
+        context="Bold 3 Stripes Global Quality Standard BOLD 3 STRIPES · 3S STITCHING SPI",
+        ocr_uncertain=uncertain,
+        from_ocr=True,
+        language="en",
+    )
+    sentence = item("Standart 3S SPI inç başına 12 dikiştir.", quote=SPI.split(",")[0])
+    return verify_item(sentence, {1: source}, "tr")
+
+
+def test_uncertain_word_without_digits_does_not_hide_the_sentence() -> None:
+    check = spi_check(("BOLD", "STANDARD", "STRIPES"))
+
+    assert check.ok, check.problems
+
+
+@pytest.mark.parametrize("value", ["12", "3S"])
+def test_uncertain_value_with_digits_still_hides_the_sentence(value: str) -> None:
+    check = spi_check(("STANDARD", value))
+
+    assert not check.ok
+    assert check.problems == (f"OCR değeri belirsiz: ['{value}']",)
+
+
 @pytest.mark.parametrize(
     ("source", "text"),
     [

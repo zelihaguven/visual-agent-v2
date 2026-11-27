@@ -119,12 +119,17 @@ def code_source_number(item: ModelItem, sources: Sources) -> int | None:
 def _ocr_problems(item: ModelItem, sources: Sources) -> list[str]:
     """Belirsiz okunan değer ne alıntıda ne cümlede geçebilir: satırın bağlamından ya da
     başlıktan gelen kod alıntılanmadan cümleye yazılabiliyor (satır bağlamı ve bölüm adı
-    cümlenin teknik adlarına izin verir)."""
+    cümlenin teknik adlarına izin verir). Rakamsız belirteç ("STANDARD", "HPA") tek başına
+    gizlemez; rakamlı olan ("12", "3S", "PNT-1162") gizler (kararlar, 0034)."""
     numbers = [quote.source_no for quote in item.quotes]
     if item.code_source_no is not None:
         numbers.append(item.code_source_no)
     tokens = {
-        token for number in numbers if number in sources for token in sources[number].ocr_uncertain
+        token
+        for number in numbers
+        if number in sources
+        for token in sources[number].ocr_uncertain
+        if any(char.isdigit() for char in token)
     }
     texts = [normalize(text) for text in (item.text, *(quote.text for quote in item.quotes))]
     uncertain = sorted(

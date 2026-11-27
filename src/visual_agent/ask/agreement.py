@@ -41,7 +41,8 @@ def candidate_documents(hits: Sequence[Hit], option_numbers: Sequence[int]) -> l
 
 def _unreliable(quote: str, hit: Hit) -> bool:
     """Alıntıdaki değeri belirsiz okunmuş parça eşleşme sayılmaz: tek belgeden gelseydi cümle
-    gizlenirdi, burada netleştirme kalır."""
+    gizlenirdi, burada netleştirme kalır. Rakamsız belirteç de sayılır: burada doğrulayıcıdan
+    sıkıdır (kararlar, 0034)."""
     text = normalize(quote)
     return any(contains_token(text, normalize(t)) for t in hit.chunk.ocr_uncertain)
 
