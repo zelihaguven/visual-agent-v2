@@ -509,38 +509,64 @@ def test_ingest_reports_its_steps_in_order(tmp_path: Path) -> None:
     ]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Bilinen hata (QM s.16, 2026-11-27): yan yana tablolarda satır, okuma sırasındaki son "
-    "başlığa bağlanıyor; başlığın satırın üstünde olup olmadığına bakılmıyor. Düzeltilince "
-    "xfail kaldırılır.",
-)
+def _placed(kind: ElementKind, text: str, left: float, top: float, right: float) -> Element:
+    box = Box(
+        page=1, left=left, top=top, right=right, bottom=top + 9, page_width=612, page_height=792
+    )
+    return Element(kind, text, SourceLocation(page=1, boxes=(box,)))
+
+
+_RIGHT_TABLE = [
+    _placed(ElementKind.TABLE_ROW, "%: 0-0.99 | Score: 5", 133, 533, 184),
+    _placed(ElementKind.TABLE_ROW, "%: 1-1.99 | Score: 4", 133, 546, 184),
+]
+_LEFT_TABLE = [
+    _placed(ElementKind.TABLE_ROW, "%: 95-100 | Score: 5", 42, 533, 98),
+    _placed(ElementKind.TABLE_ROW, "%: 90-94.99 | Score: 4", 42, 546, 98),
+]
+
+
+def _sections(elements: list[Element]) -> dict[str, str]:
+    meta = DocumentMeta(doc_id="d", title="Belge", language="en")
+    return {chunk.text: chunk.section for chunk in build_chunks(elements, meta)}
+
+
 def test_side_by_side_tables_take_the_heading_above_them() -> None:
     """Yan yana iki tablo: okuma sırası başlıkları önce, sonra sağ tabloyu, sonra sol tabloyu
     verir (docling'in QM s.16'daki sırası). Her satır kendi üstündeki başlığın bölümünde olmalı;
     sağdaki başlık soldaki tablonun satırlarına geçmemeli."""
-    from visual_agent.domain.document import Box, DocumentMeta, SourceLocation
-    from visual_agent.ingest.chunking import build_chunks
-    from visual_agent.ingest.elements import Element, ElementKind
-
-    def at(kind: ElementKind, text: str, left: float, top: float, right: float) -> Element:
-        box = Box(
-            page=1, left=left, top=top, right=right, bottom=top + 9, page_width=612, page_height=792
-        )
-        return Element(kind, text, SourceLocation(page=1, boxes=(box,)))
-
     elements = [
-        at(ElementKind.HEADING, "PTH", 45, 487, 70),
-        at(ElementKind.HEADING, "OQL/SQL", 145, 487, 179),
-        at(ElementKind.TABLE_ROW, "%: 0-0.99 | Score: 5", 133, 533, 184),
-        at(ElementKind.TABLE_ROW, "%: 1-1.99 | Score: 4", 133, 546, 184),
-        at(ElementKind.TABLE_ROW, "%: 95-100 | Score: 5", 42, 533, 98),
-        at(ElementKind.TABLE_ROW, "%: 90-94.99 | Score: 4", 42, 546, 98),
+        _placed(ElementKind.HEADING, "PTH", 45, 487, 70),
+        _placed(ElementKind.HEADING, "OQL/SQL", 145, 487, 179),
+        *_RIGHT_TABLE,
+        *_LEFT_TABLE,
     ]
-    meta = DocumentMeta(doc_id="d", title="Belge", language="en")
 
-    sections = {chunk.text: chunk.section for chunk in build_chunks(elements, meta)}
+    sections = _sections(elements)
 
     assert sections["%: 95-100 | Score: 5"].endswith("PTH")
     assert sections["%: 90-94.99 | Score: 4"].endswith("PTH")
     assert sections["%: 0-0.99 | Score: 5"].endswith("OQL/SQL")
+
+
+def test_table_without_a_heading_above_it_does_not_take_the_neighbours_heading() -> None:
+    """Okuyucu sol tablonun başlığını düşürdü ("PTH"): sol tablo sağdakinin başlığını
+    ("OQL/SQL") almaz; sayfadaki genel başlıkta ya da önceki bölümde kalır."""
+    general = _placed(ElementKind.HEADING, "Supplier Scorecard", 40, 100, 570)
+    right = _placed(ElementKind.HEADING, "OQL/SQL", 145, 487, 179)
+
+    alone = _sections([right, *_RIGHT_TABLE, *_LEFT_TABLE])
+    under = _sections([general, right, *_RIGHT_TABLE, *_LEFT_TABLE])
+
+    assert alone["%: 0-0.99 | Score: 5"].endswith("OQL/SQL")
+    assert "OQL/SQL" not in alone["%: 95-100 | Score: 5"]
+    assert under["%: 90-94.99 | Score: 4"] == "Supplier Scorecard"
+    assert under["%: 1-1.99 | Score: 4"].endswith("OQL/SQL")
+
+
+def test_rows_without_boxes_keep_the_last_heading() -> None:
+    """Konum kutusu olmayan öğelerde (Markdown, Excel) bölüm okuma sırasındaki son başlıktır."""
+    heading = Element(ElementKind.HEADING, "Ölçüler", SourceLocation(), level=1)
+    row = Element(ElementKind.TABLE_ROW, "Bel: 38", SourceLocation())
+
+    assert _sections([heading, row])["Bel: 38"] == "Ölçüler"
