@@ -1028,6 +1028,28 @@ def test_same_crop_is_paid_once_even_by_a_new_reader(tmp_path: Path) -> None:
     assert len(server.bodies) == 1
 
 
+def test_cache_key_separates_models_and_prompts(tmp_path: Path) -> None:
+    """Önbellek anahtarı model + istem + görüntü: aynı kırpıntıyı başka model ya da başka istem
+    önbellekten okumaz."""
+    server = _OpenRouter(reply="Basınç 185 bar")
+    config = server.config(tmp_path)
+    crop = Image.new("RGB", (40, 20), "white")
+    ImageDraw.Draw(crop).rectangle((5, 5, 30, 15), fill="black")
+
+    def reader(model: str, prompt: str) -> page_reader.SecondReader:
+        return page_reader.cloud_reader(config, model, prompt, 100)
+
+    reader(QWEN, page_reader.CHECK_PROMPT)(crop)
+    reader(GEMMA, page_reader.CHECK_PROMPT)(crop)
+    assert [body["model"] for body in server.bodies] == [QWEN, GEMMA]
+    assert len(list(tmp_path.glob("*.json"))) == 2
+
+    reader(QWEN, page_reader.FIGURE_PROMPT)(crop)
+    reader(QWEN, page_reader.CHECK_PROMPT)(crop)  # önbellekte
+    assert len(server.bodies) == 3
+    assert len(list(tmp_path.glob("*.json"))) == 3
+
+
 def _json(*lines: str) -> str:
     return json.dumps({"lines": list(lines), "tables": []})
 
