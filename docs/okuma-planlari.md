@@ -154,3 +154,69 @@ Gözlenen sorunlar:
 Maliyet: bu set 113 çağrı (Qwen 83 DeepInfra, Gemma 30 AkashML; ZDR), 0,0160 $. Bütün okuma ölçümleri: birinci set
 0,0476 $, A-q 0,0136 $, ikinci set 0,0160 $; toplam 0,0772 $. Sayfa başına ek süre 1–74 sn (föy tablo sayfaları
 30–52 sn, Bold s.25 74 sn).
+
+## Mac kontrol listesi (A-q1'i işlenmiş veride doğrulama)
+Plan C yok (0034'te elendi). Komutlar repo kökünde; uygulama `http://127.0.0.1:8080` (`WEB_PORT`).
+
+**Hazırlık**
+1. `git fetch && git switch okuma-planlari && git pull`; `uv sync --frozen --extra retrieval --extra ingest`.
+2. `.env`: `VA_OPENROUTER_API_KEY` dolu (boşluk değil); `VA_PAGE_READER=mlx-vlm-server@http://localhost:8111/` ve
+   okuyucu sunucusu ayrı pencerede açık (README, "Taranmış sayfalar"). Anahtar yoksa okuma eski yoldan (Tesseract) yapılır
+   ama belge yine 27 damgası alır (0035, bilinen sınırlar); koşudan önce anahtarı denetle.
+3. Uygulama kapalıyken `cp -R data data-yedek-$(date +%Y%m%d)` (silinmez).
+4. Belge sayısı: Mac'te `sqlite3 data/visual_agent.db 'select count(*) from documents'`. Windows'ta 396 belge; 26 Kasım'dan
+   sonra Windows'a yüklenen iki belge Mac'te yoksa yeniden işlemeden önce yüklenir: "Quality Manual - v8.3.pdf" ve
+   "Bold 3 Stripes Global Quality Standard.pdf" (2026-11-27).
+5. Denetimler geçmeli: `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy`, `uv run pytest`
+   (Mac'te LF olduğu için 3 donmuş hash testi de geçer).
+
+**Kapsam** (Windows verisine göre; Mac'te yüklemeden sonra yeniden sayılır): 31 belge "Eski kural" olur: 25 PDF (337
+sayfa), 4 Office, 1 görsel, 1 `.sql` (SQL kural sürümü 4). Okuyucu 20 belgede 276 taranmış sayfa ve 45 gömülü görsel
+sayfası okur. Markdown (362) ve Excel değişmez.
+
+**Koşu** (uzun koşuyu ürün sahibi başlatır). İşçi API sürecinin içindedir; ayrı süreç yok.
+- Başlatma: `caffeinate -i uv run --no-sync python -m apps.local`
+- Yeniden işleme (tek komut; `outdated` alanı `GET /api/documents` cevabında, uç nokta
+  `POST /api/documents/{doc_id}/reprocess`; zaten sıradaki belge 409 döner):
+  `curl -s http://127.0.0.1:8080/api/documents | python3 -c "import json,sys;[print(d['doc_id']) for d in json.load(sys.stdin) if d.get('outdated')]" | while read id; do curl -s -X POST "http://127.0.0.1:8080/api/documents/$id/reprocess" >/dev/null; done`
+- İlerleme (kalan "Eski kural" ve durumlara göre belge sayısı):
+  `curl -s http://127.0.0.1:8080/api/documents | python3 -c "import json,sys,collections;d=json.load(sys.stdin);print('eski kural:', sum(x['outdated'] for x in d), dict(collections.Counter(x['status'] for x in d)))"`
+- Tahmini süre 3–4,5 saat. Tahmini bulut maliyeti 0,5–0,8 $; **sınır 1 $, aşarsa dur** (uygulamayı Ctrl+C ile kapat;
+  yarım kalan iş açılışta kendiliğinden yeniden başlar). Okuma çağrılarının maliyeti uygulama günlüğüne yazılmaz:
+  OpenRouter panosunda (Activity) anahtarın harcaması izlenir. Yaklaşık çağrı sayısı:
+  `ls data/okuma-onbellegi | wc -l` (önbelleğe yazılan her cevap bir ödenmiş çağrı).
+
+**Kontroller**
+- "Eski kural" 0 (ilerleme komutu).
+- Devresi açılan belge 0:
+  `sqlite3 data/visual_agent.db "SELECT d.doc_id, d.filename, w.value FROM documents d, json_each(d.report, '\$.warnings') w WHERE w.value LIKE '%bulut alınamadı%'"`.
+  0 değilse yalnız bu belgeler yeniden işlenir (`POST /api/documents/{doc_id}/reprocess`).
+- Bulutça reddedilen bloklar (ayrı sorgu, aynı biçim, `LIKE '%bulutça reddedildi%'`): sayı raporlanır; 0 değilse
+  birleştirmeden önce ürün sahibine getirilir, yeni çözüm (görüntü küçültme vb.) yazılmaz.
+- `status` `failed` ya da `waiting_reader` olan belge 0 (ilerleme komutu).
+- Testler geçiyor.
+
+**Yeniden puanlama** (313 değer: set 1 150, set 2 163; işlenmiş veriden, yeni bulut çağrısı yok). Geçme şartı:
+doğrulanmış yanlış değer 0 (QM s.16 düzeldiği için set 1'de de 0 beklenir). Prototiple farklar değer değer yazılır;
+elle karar sayısı ayrı. **Bir tane bile yanlış değer gösterilirse dur, birleştirme.** Yöntem bu belgedeki tasarım ve
+sonuç bölümlerinde (sınıflar, eşleştirme, ölçütler); prototip betikleri repoda değil, Mac oturumu yöntemi izleyerek
+yeniden kurar.
+
+**Bold beklentileri**: s.21'de B-21-3 gösterilmeli; B-21-1/2/4 gizli kalabilir. s.14: okunan ve gösterilen değerler
+raporlanır, beklenti yok. Windows duman testi: <sonra eklenecek>.
+
+**Taban setleri ve FastReact** (1. sıra): parçalar değiştiği için cevap önbelleği tutmaz; önce çağrı sayısı ve maliyet
+tahmini, sonra koşu.
+
+**Elle sorular** (arayüzde, her biri bir kez):
+- "OQL/SQL %90-94.99 puanı kaç?" (4 göstermemeli; o satır PTH tablosunun).
+- "Poly bag (BG-CV0007) rengi ne?"
+- "6013448 LG bel ölçüsü ne?"
+- B-21-3'ü soran bir soru (ör. "Bold 3 Stripes'ta color block riski nedir?" → color migration).
+
+**Bölüm yolu** değişen parçalardan üç örnek uygulamada kaynak olarak doğru görünmeli: 6013448 "POMs", QM s.16
+"4.3.2 QA Scorecard", `.sql` belgesinden bir bölüm.
+
+**Sonra**: kontroller tutunca PR açılır ve birleştirilir (CLAUDE.md birleştirme kuralı). İşlenmiş veri Windows'a
+`va-veri-<tarih>.zip` olarak, sha256 ile aktarılır (açık notlar, "Windows'a veri gönderme"); Windows'ta açılır,
+"Eski kural" 0 ve belge sayısı denetlenir.
