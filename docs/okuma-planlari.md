@@ -203,7 +203,25 @@ sonuç bölümlerinde (sınıflar, eşleştirme, ölçütler); prototip betikler
 yeniden kurar.
 
 **Bold beklentileri**: s.21'de B-21-3 gösterilmeli; B-21-1/2/4 gizli kalabilir. s.14: okunan ve gösterilen değerler
-raporlanır, beklenti yok. Windows duman testi: <sonra eklenecek>.
+raporlanır, beklenti yok.
+
+Windows duman testi (2026-11-27, dal kodu, yalnız Bold s.14 ve s.21 tek sayfalık PDF olarak, veritabanı ve indeks
+dışında; yerel PaddleOCR-VL; 7 bulut çağrısı, hepsi 200, uyarı yok, < 0,01 $; s.14 208 sn, s.21 121 sn):
+- s.21: eşiksiz tam sayfa şekil bloğu Qwen'le okundu, Gemma'yla denetlendi. Dört değerin metni parçalarda var
+  (B-21-1 "18 mm/16 mm single stripe width … bubbling/puckering", B-21-2 "tapes or elastics … upfront alignment with
+  CCDA", B-21-3 "color migration", B-21-4 "best fit insert panel width to avoid 4 stripes optic"); belirsiz işaret
+  yalnız "3S" sözcüğünde. **Ama Qwen'in tablo okumasında RISK MITIGATION sütunu bir satır kaydı:** ilk satırın iki
+  azaltma maddesi ayrı satır sayıldı, sonraki satırlar bir öncekinin azaltmasını taşıyor (ör. "Color Block … color
+  migration | RISK MITIGATION: Over seam 3 stripes …"). Sayma denetimi satır bağını görmüyor (0035, bilinen sınır).
+  Değerin kendi etiketi hücre metninde ("Trims selection: …") olduğu için 313 değerin puanında etkisi elle karar; ama
+  "Color Block riski nasıl azaltılır?" gibi bir soru yanlış satırdan cevaplanabilir.
+- s.14: tam sayfa yolu tetiklenmedi; Windows'taki yerel düzen modeli sayfada blok buldu (prototipte bulmamıştı).
+  7 değerden hiçbiri okunmadı; çıkan iki parça bozuk ("35 APPEARANCE STANDARD …", "FL to follow …"), bozuk kodlar
+  ("35", "FL") gizli. Tam sayfa yolu uçtan uca sınanmadı.
+
+Mac'te ek kontrol: s.21 tablosunda satır bağı (her RISK IDENTIFICATION kendi azaltmasıyla mı?). Kayma görülürse
+birleştirmeden önce ürün sahibine getirilir; düzeltme yazılmaz. s.14'te düzen modeli blok bulup bulmadığı ve tam
+sayfa yolunun tetiklenip tetiklenmediği yazılır.
 
 **Taban setleri ve FastReact** (1. sıra): parçalar değiştiği için cevap önbelleği tutmaz; önce çağrı sayısı ve maliyet
 tahmini, sonra koşu.
