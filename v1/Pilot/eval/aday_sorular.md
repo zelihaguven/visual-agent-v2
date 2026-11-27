@@ -1,0 +1,224 @@
+# Aday soru seti (2026-11-05: 155/155 onaylı)
+
+155 soru (17 bulunamadı, 15 netleştirme). **2026-11-05 (ölçüt düzeltildi):** 154 soru onaylandı (`dogrulandi: true`, onaylayan: geliştirme ekibi). Onay ölçütü model çıktısı DEĞİL: kanıt cümlesi beklenen sayfada ve beklenen değer kanıtta (OCR soruları hariç; onlarda beklenen değer okunaklı yazılmış olmalı), "bulunamadı" sorularında 27 Ekim korpus araması (`python -m bench.aday_kontrol`). Model çelişkisi yalnız bilgi (`model_celiskisi`). **Aşırı uyum notu:** aday arama ayarları bu setle seçildi; görülmemiş doküman testi ayrı tutulan JUKI seti. Aşağıdaki ana tablo ilk taslağın dökümüdür.
+
+## Kullanıcı kararları (2026-11-05)
+
+| # | Karar |
+|---|---|
+| A038 | Onaylandı: kanıt cümlesi çözüm satırı; E050 kodu aynı sayfada (`elle_onay`). |
+| A008 | Soru yeniden yazıldı: "Ceketin üst kol cebindeki cırt banda (loop tape) giysi başına kaç punteriz atılır?"; beklenen 8; onaylandı. Eski soru iki tablo satırını kapsıyordu (loop tape 8 / through all layers 2+2+2). İlk turun A008 cevabı eski soruya ait, kalite tablolarında yok. |
+| G8 (şekil seti) | Beklenen değer "14" → "14 1/2". |
+
+## OCR soruları (onaylı, `ocr` etiketli; raporlarda ayrıca gösterilir)
+
+| # | Soru | OCR biçimi | Beklenen |
+|---|---|---|---|
+| A022 | Pantolonun ön yan cep ağzı kaç inç olmalı? | 7-114 | 6–7-1/4 inç (punterizler arası) |
+| A025 | Pantolon cep kapaklarının üst dikişi kenardan ne kadar içeride olmalı? | 3116 to 114 | 3/16–1/4 inç (OSf-1, 301 dikiş) |
+| A026 | Pantolonda cırt bant kenar şeridinden ne kadar içeriden dikilir? | 118 to 3/16 | 1/8–3/16 inç (bağlı kenar şeridinden) |
+| A027 | Pantolonun fermuar (fly) dikişi J-dikişinin ne kadar üstünde bitmeli? | 3/8 - 112 | 3/8–1/2 inç |
+| A028 | Pantolon iç bacağında 5 iplik emniyet dikişi kullanılırsa kalıp nasıl ayarlanır? | 112 inch | Kalıplar 1/2 inç çift iğne dikişi yerine 3/8 inç dikiş payına göre ayarlanır |
+| A030 | Pantolon ısırma testinde kollar böcek kafesinde kaç dakika tutulur? | IS min | 15 dakika |
+| A034 | Pantolon temizlik muayenesinde kaç iplikten fazlası kusur sayılır? | 114 inch | 1/4 inçten uzun, kesilmemiş 3'ten fazla iplik (ayrıca 1/4 inçten küçük leke) |
+| A089 | Kalın cidarlı dökme demir parçaları kaynatırken çelik pim çapı nasıl seçilir? | (0.3...0.4)b | d = (0,3–0,4) × kırılma yerindeki parça kalınlığı (b) |
+| A092 | Dokuma tezgâhında orta onarım ne sıklıkla yapılır ve kaç kişi yapar? | at. least | Yılda en az iki kez (aşırı aşınmada daha sık), en çok bir vardiya, iki kişilik ekip |
+| A093 | Mekik kutusunda mekik yokken çözgü koruyucu uçları pedlerin kaç mm üstünde olmalı? | 1-1.5 m m | 1–1,5 mm |
+| A094 | Topuk konisinin elektrik kıvılcımıyla doldurulmasında katman kalınlığı kaç mm? | 0.2 m m | 0,2 mm |
+| A096 | Tekstil makinesi parçalarında bakır kaplama ne için kullanılır? | Copperplatingis | Rulman bilezikleri, yatak astarları ve burçların dış yüzeyini doldurmak, sonsuz vida aşınmasını gidermek; krom kaplamaya alt katman |
+| A148 | pantolon cep agzi kac inc | 7-114 | 6–7-1/4 inç |
+| A154 | pantolonda cırt bant ne kadar içerde | 1183/16 | 1/8–3/16 inç |
+
+## Model çelişkisi (yalnız bilgi; onayı etkilemez)
+
+Adım 2 ilk turunda (verify A+B, değer eşleştiricisi 2026-11-05) arama ve/veya dört model beklenenle çelişti:
+
+| # | Soru | Çelişki |
+|---|---|---|
+| A001 | Ceketin kol manşetindeki ayar tırnağı hangi genişlik ve uzunlukta olmalı? | arama ve 4 model beklenenle çelişti |
+| A006 | Ceket ceplerini otomatik cep makinesiyle takarken üst dikiş kenardan ne kadar içeride olmalı? | arama ve 4 model beklenenle çelişti |
+| A008 | Ceketin üst kol ceplerine toplam kaç punteriz atılır? | 4 model beklenenle çelişti (arama getirdi) |
+| A025 | Pantolon cep kapaklarının üst dikişi kenardan ne kadar içeride olmalı? | arama ve 4 model beklenenle çelişti |
+| A026 | Pantolonda cırt bant kenar şeridinden ne kadar içeriden dikilir? | 4 model beklenenle çelişti (arama getirdi) |
+| A033 | Pantolon beden etiketi nereye dikilir? | arama ve 4 model beklenenle çelişti |
+| A035 | Pantolonda cırt bant genişliklerinin toleransı ne kadar? | arama ve 4 model beklenenle çelişti |
+| A036 | Pantolon çiziminde hangi ölçüler verilmiş? | arama ve 4 model beklenenle çelişti |
+| A044 | S-7300A'da iplik kesildikten sonra üst ipliğin standart kuyruk uzunluğu kaç mm? | arama ve 4 model beklenenle çelişti |
+| A052 | S-7300A'da açılışta panelin otomatik kilitlenmesi hangi bellek anahtarıyla kapatılır? | 4 model beklenenle çelişti (arama getirdi) |
+| A053 | S-7300A'da dikiş dalgalı ve düzensiz çıkıyor, olası nedenler neler? | arama ve 4 model beklenenle çelişti |
+| A056 | S-7300A topraklama vidasının önerilen sıkma torku nedir? | arama ve 4 model beklenenle çelişti |
+| A086 | Terzilik kitabına göre pantolon cebinin yün yüz parçası kaç inç kesilir? | arama ve 4 model beklenenle çelişti |
+| A096 | Tekstil makinesi parçalarında bakır kaplama ne için kullanılır? | arama ve 4 model beklenenle çelişti |
+| A114 | Bosch freze tablası kaç kilogram ağırlığında? | doğrulanmış cevap üreten model: qwen36 |
+| A118 | S-7300A'da E-740 kodu çıktı, ne yapmalıyım? | doğrulanmış cevap üreten model: gpt54mini |
+| A123 | S-7300B'nin güç tüketimi kaç watt? | doğrulanmış cevap üreten model: qwen36 |
+| A124 | Ceketin kapüşon ölçüleri nedir? | doğrulanmış cevap üreten model: gpt54mini |
+| A126 | Strickland kitabına göre deri ceket nasıl dikilir? | doğrulanmış cevap üreten model: gpt54mini, qwen36 |
+| A128 | Pantolon kumaşının su geçirmezlik (hidrostatik basınç) değeri ne olmalı? | doğrulanmış cevap üreten model: gpt54mini |
+| A130 | Mr. Coffee makinesiyle espresso nasıl yapılır? | doğrulanmış cevap üreten model: gpt54mini |
+| A147 | ceket ilik dikis sayisi? | arama ve 4 model beklenenle çelişti |
+| A148 | pantolon cep agzi kac inc | arama ve 4 model beklenenle çelişti |
+| A150 | kahve makinası kireç nasil temizlenir | 4 model beklenenle çelişti (arama getirdi) |
+| A151 | freze tablası şalteri nasıl kitlenir | arama ve 4 model beklenenle çelişti |
+| A152 | granovsky sabun kaç gram | arama ve 4 model beklenenle çelişti |
+| A154 | pantolonda cırt bant ne kadar içerde | 4 model beklenenle çelişti (arama getirdi) |
+
+Etiket dağılımı: parafraz 41, sayi 32, benzer_bolum 25, tablo 20, bulunamadi 17, netlestirme 15, kod_varyant 14, ocr 12, karisan_dokuman 10, gundelik 10, kaynak_ifadesi 7, ters_soru 4, sekil 2, ingilizce 2
+
+| # | Soru | Beklenen (kabul) | Cevap | OCR biçimi | Etiketler | Kanıt / kontrol |
+|---|---|---|---|---|---|---|
+| A001 | Ceketin kol manşetindeki ayar tırnağı hangi genişlik ve uzunlukta olmalı? | gl-pd-14-04a s.[11] | 2-1/8 (± 1/8) inç genişlik × 3-1/8 (± 1/8) inç uzunluk |  | parafraz, sayi | The sleeve tabs shall be 2-1/8 (± 1/8) inches wide by 3-1/8 (± 1/8) in length |
+| A002 | Ceket manşetinde kaç tane ilik açılır? | gl-pd-14-04a s.[11] | 3 ilik |  | parafraz | The main body of the sleeve cuff shall have three (3) buttonholes spaced as per pattern |
+| A003 | Ceketteki rütbe yaması cırt bandı kaç inç olmalı? | gl-pd-14-04a s.[12, 13] | 2 × 2 inç (cırt bandın tüylü/loop kısmı) |  | parafraz, sayi | The rank patch shall be a piece of loop fastener tape, 2-inches wide by 2inches in cut length |
+| A004 | Alev almaz (Type II, III) ceketlerde FR tanıtım bandı hangi kolda bulunur? | gl-pd-14-04a s.[12, 13] | Sol kol manşetinde (giyildiğinde), dışarıdan görünür |  | parafraz | tape FR identification marker (see figure 1) on the left sleeve cuff as worn |
+| A005 | Ceketin arka körük (bi-swing) pli üst dikişinde iki sıra arası mesafe ne kadar? | gl-pd-14-04a s.[23] | 3/16–1/4 inç (iki sıra) |  | benzer_bolum, tablo | Gauge: Two (2) rows 3/16 to 1/4-inch gage apart |
+| A006 | Ceket ceplerini otomatik cep makinesiyle takarken üst dikiş kenardan ne kadar içeride olmalı? | gl-pd-14-04a s.[24] | 1/16–1/8 inç |  | benzer_bolum, tablo | Gauge: 1/16 to 1/8-inch from edge |
+| A007 | Ceketin IFF tırnak kapağına cırt bant hangi dikiş tipiyle takılır? | gl-pd-14-04a s.[25] | 301 dikiş tipi, LSbj-1 dikiş, kutu dikiş |  | tablo | Seam type: LSbj-1 / Gauge: Box, 1/8 to 3/16-inch from selvage edge (see IFF pattern template) / Stitch type: 301 |
+| A008 | Ceketin üst kol ceplerine toplam kaç punteriz atılır? | gl-pd-14-04a s.[26] | 8 punteriz (giysi başına) |  | sayi, tablo | # of Bar- tacks per garment: 8 |
+| A009 | Ceket muayenesinde isim ve U.S. Army bantları ne kadar kayarsa kusur sayılır? | gl-pd-14-04a s.[32] | Yatay hizada değilse ya da 1/4 inçten fazla düzensizse (kusur 139) |  | parafraz | Not in horizontal alignment or uneven by more than 1/4-inch |
+| A010 | Ceket şartnamesinde ASTM D 5034 neyi ölçen bir test yöntemi? | gl-pd-14-04a s.[4]; gl-pd-14-04a s.[34] | Kumaşların kopma mukavemeti ve uzaması (grab test); şartnamede düğme kopma/çekme testinde de kullanılıyor |  | parafraz | ASTM D 5034 - Standard Test Method for Breaking Strength and Elongation of Textile Fabrics (Grab Test) |
+| A011 | Ceket şartnamesine göre permetrin geri kazanımı en az yüzde kaç olmalı? | gl-pd-14-04a s.[38]; gl-pd-14-04a s.[38, 39] | %95 veya üzeri |  | karisan_dokuman, sayi | Permethrin recovery must be 95% or greater |
+| A012 | Ceket ısırma testinde gönüllünün test bölgesi kolun neresidir? | gl-pd-14-04a s.[43] | Bilekten dirsekten yaklaşık 1/2 inç öncesine kadar |  | benzer_bolum, karisan_dokuman | the region from the wrist to approximately 1/2-inch before the elbow |
+| A013 | Bitmiş ceket için toksisite şartı nedir? | gl-pd-14-04a s.[29] | Sağlığa zarar vermemeli, uzun süreli doğrudan cilt temasıyla uyumlu olmalı; EPA'nın insan kanserojeni saydığı kimyasallar kullanılamaz |  |  | The finished coat shall not present a health hazard |
+| A014 | Class 2 ceketlerde böcek koruma etiketi nereye dikilir? | gl-pd-14-04a s.[18] | Ceketin içine, sol göğüs cebinin altına (giyildiğinde) |  | parafraz | shall be stitched on inside of coat under the left chest pocket (as worn) |
+| A015 | Ceketin yaka tipi ve ön kapanışı nasıl? | gl-pd-14-04a s.[10] | Dik (band) yaka; önde çift sürgülü fermuar ve ikincil cırt bant kapanış |  | parafraz | single-breasted front with a slide fastener (double slider) closure and a secondary hook and loop fastener tape closure; a band collar |
+| A016 | Ceket yaka çiziminde rütbe yaması halkası nasıl gösteriliyor? | gl-pd-14-04a s.[53] | Ön patta, üstte ve altta 'Box X' dikişli iki kare arasında taralı dikdörtgen olarak (Figure 3, ölçeksiz) |  | sekil | FIGURE 3. Coat Collar, Army Combat Uniform |
+| A017 | Uzun boy ceketlerde 36 beden ön fermuar uzunluğu kaç inç? | gl-pd-14-04a s.[8] | 17 inç |  | tablo, sayi | Length: Long / Size 30: 16 / Size 33: 16 / Size 36: 17 |
+| A018 | Type II ceket kumaşının elyaf karışımı nedir? | gl-pd-14-04a s.[1] | %65 rayon / %25 para-aramid / %10 naylon, ripstop, alev almaz |  | sayi | Type II - 65/25/10 Rayon/Para-Aramid/Nylon Ripstop Flame Resistant |
+| A019 | Pantolon iliklerinde inç başına kaç dikiş olmalı? | gl-pd-07-14a s.[11] | 52–56 dikiş/inç (punteriz dahil) |  | benzer_bolum, sayi | possessing 52-56 stitches per inch, including tack |
+| A020 | How many stitches per inch are required for trouser buttonholes? | gl-pd-07-14a s.[11] | 52–56 stitches per inch, including tack |  | ingilizce, benzer_bolum | possessing 52-56 stitches per inch, including tack |
+| A021 | Pantolon iliklerinin kesim boyu ne kadar? | gl-pd-07-14a s.[11] | 3/4–7/8 inç |  | parafraz | The cut lengths shall be 3/4 to 7/8 inch |
+| A022 | Pantolonun ön yan cep ağzı kaç inç olmalı? | gl-pd-07-14a s.[10, 11] | 6–7-1/4 inç (punterizler arası) | 7-114 | sayi, ocr | pocket openings measuring not less than 6 inches and not more than 7-114 inches between bartacks |
+| A023 | Pantolon cep kapaklarındaki punterizler kaç dikişli olur? | gl-pd-07-14a s.[22] | 36 dikiş (punteriz başına) |  | benzer_bolum, tablo | Size of Tack: 5/8 / Stitches per Tack: 36 |
+| A024 | Pantolon cep kapağı punterizinin boyu ne kadar? | gl-pd-07-14a s.[22] | 5/8 inç |  | tablo | Size of Tack: 5/8 |
+| A025 | Pantolon cep kapaklarının üst dikişi kenardan ne kadar içeride olmalı? | gl-pd-07-14a s.[20] | 3/16–1/4 inç (OSf-1, 301 dikiş) | 3116 to 114 | benzer_bolum, ocr, tablo | Seam type: OSf-1 / Gage: 3116 to 114 inch from edge / Stitch type: 301 |
+| A026 | Pantolonda cırt bant kenar şeridinden ne kadar içeriden dikilir? | gl-pd-07-14a s.[21]; gl-pd-07-14a s.[10] | 1/8–3/16 inç (bağlı kenar şeridinden) | 118 to 3/16 | karisan_dokuman, parafraz, ocr | Gage: 118 to 3/16 inch fi'om the bound selvage |
+| A027 | Pantolonun fermuar (fly) dikişi J-dikişinin ne kadar üstünde bitmeli? | gl-pd-07-14a s.[19] | 3/8–1/2 inç | 3/8 - 112 | parafraz, ocr | shall end 3/8 - 112 inch above J-stitch |
+| A028 | Pantolon iç bacağında 5 iplik emniyet dikişi kullanılırsa kalıp nasıl ayarlanır? | gl-pd-07-14a s.[18] | Kalıplar 1/2 inç çift iğne dikişi yerine 3/8 inç dikiş payına göre ayarlanır | 112 inch | parafraz, ocr | contractor must adjust pattems for 3/8-inch gauge in lieu of 112 inch double needle seams |
+| A029 | Pantolonda 20 yıkamadan sonra permetrin miktarı en az ne olmalı? | gl-pd-07-14a s.[6] | En az 0,025 mg/cm² (en çok 0,130) |  | sayi, tablo | After 20 launderings / Min: mg/cm2: 0.025 / Max: mg/cm2: 0.130 |
+| A030 | Pantolon ısırma testinde kollar böcek kafesinde kaç dakika tutulur? | gl-pd-07-14a s.[38] | 15 dakika | IS min | ocr, benzer_bolum | exposed to a cage of insects for IS min |
+| A031 | Pantolon permetrin testinde numuneler kaç inç çapında kesilir? | gl-pd-07-14a s.[31] | 3 inç çapında (45,6037 cm²), her koşul için üç numune |  | sayi | select three 3 inch diameter specimens |
+| A032 | Pantolon barkodundaki NSN kaç haneli? | gl-pd-07-14a s.[17] | 13 haneli NSN (UPC 12 haneli) |  | sayi | The bar coding element shall be a 13 digit national stock number (NSN) |
+| A033 | Pantolon beden etiketi nereye dikilir? | gl-pd-07-14a s.[12] | İç bel bandı dikişinin altına, dikişe yakalanarak; dikiş baskıyı örtmemeli |  | benzer_bolum | shall be sewn and caught in the bottom of the inside waistband seam |
+| A034 | Pantolon temizlik muayenesinde kaç iplikten fazlası kusur sayılır? | gl-pd-07-14a s.[26] | 1/4 inçten uzun, kesilmemiş 3'ten fazla iplik (ayrıca 1/4 inçten küçük leke) | 114 inch | sayi, ocr | excessive thread (more than 3) over 114 inch not trimmed or removed |
+| A035 | Pantolonda cırt bant genişliklerinin toleransı ne kadar? | gl-pd-07-14a s.[7, 8] | ± 1/32 inç |  | parafraz, sayi | The tolerance for all widths specified shall be (± 1/32) inch |
+| A036 | Pantolon çiziminde hangi ölçüler verilmiş? | gl-pd-07-14a s.[48] | 14 1/2, 12 1/4 ve 10 1/2 inç |  | sekil | 14 1/2 inches ----- 12 1/4 inches y -4-1(--10 1/2 inches |
+| A037 | S-7300A'da E-050 hatası ne anlama gelir? | brother-s7300a s.[98] | Dikiş başlarken makine kafası geriye yatık algılandı; gücü kapatıp kafayı yerine getirin, P2 konektörünü kontrol edin |  | kod_varyant, benzer_bolum | Code: E050 / Cause: Machine head is detected as being tilted back when start sewing. |
+| A038 | S-7300A ekranında E 050 yazıyor, ne yapmalıyım? | brother-s7300a s.[98] | Gücü kapatıp makine kafasını yerine getirin; P2 konektörünün bağlantısını kontrol edin |  | kod_varyant | Turn off the power, and then return the machine head to its original position |
+| A039 | S-7300A açılırken E065 veriyor, neden? | brother-s7300a s.[98] | Açılışta devre dışı bir donanım tuşuna basılıydı; gücü kapatıp yeniden açın |  | kod_varyant | Code: E065 / Cause: A disabled hardware key was being pressed when the power was turned on. |
+| A040 | S-7300A'da E111 hata kodu ne demek? | brother-s7300a s.[98] | Motor durduğunda iğne yukarı durma konumu belirlenen değeri aştı; motor ya da iplik kesme mekanizması sıkı mı kontrol edin |  |  | Code: E111 / Cause: The needle up stop position exceeded the specified value when the sewing machine motor stopped. |
+| A041 | S-7300A'da açılışta panel bağlantısı algılanmazsa hangi hata kodu çıkar? | brother-s7300a s.[99] | E400 (P2 konektörünü kontrol edin) |  | ters_soru | Code: E400 / Cause: Panel connection was not detected when power was turned on. |
+| A042 | S-7300A'da E-700 hatasında ne kontrol edilmeli? | brother-s7300a s.[100] | Açılışta güç kaynağı geriliminde anormal yükselme; gücü kapatıp şebeke gerilimini kontrol edin |  | kod_varyant | Code: E700 / Cause: Abnormal rise in power supply voltage was detected when power was turned on. |
+| A043 | S-7300A'da ayarlar kendiliğinden sıfırlandı ve E442 göründü, ne yapmalıyım? | brother-s7300a s.[99] | Yedek bellek verisi bozuk olduğu için ayarlar sıfırlandı; gücü kapatıp yeniden açın |  | parafraz | Code: E442 / Cause: Back up memory (main internal P.C. board) data was abnormal, so settings were initialized. |
+| A044 | S-7300A'da iplik kesildikten sonra üst ipliğin standart kuyruk uzunluğu kaç mm? | brother-s7300a s.[79] | 25–30 mm (ön gerdirme ile ayarlanır) |  | benzer_bolum | The standard upper thread trailing length is 25 to 30 mm |
+| A045 | S-7300A -3 tipinde çağanoz ile masura kovanı tutucusu arasındaki boşluk ne olmalı? | brother-s7300a s.[91] | 0,4–0,7 mm (-3 tipi); -5 tipinde 0,6–1,1 mm |  | parafraz, sayi | The clearance should be 0.4 to 0.7 mm (for -[][]3 specifications) |
+| A046 | S-7300A'da iplik kesme kamı ayarlanırken iğne mili en alt konumdan kaç mm kaldırılır? | brother-s7300a s.[96] | 6 mm |  | benzer_bolum, sayi | raise the needle bar 6 mm from its lowest position |
+| A047 | S-7300A -3 tipinin en yüksek dikiş hızı nedir? | brother-s7300a s.[37] | 5000 dikiş/dk (-3 tipi); -5 tipinde 4500 |  | benzer_bolum | -3 specifications: 220 - 5000 sti/min |
+| A048 | S-7300A'da başlangıç punterizinde B dikiş sayısı hangi aralıkta ayarlanır? | brother-s7300a s.[39] | 1–19 dikiş (birim 1, başlangıç değeri 1) |  | tablo | No. of stitches B / Setting value: 1 - 19 stitches |
+| A049 | S-7300A'da alt iplik sayacı sıfırın altına düşünce makine ne yapar? | brother-s7300a s.[49] | Dikiş durunca uyarı sesi 5 kez öter, uyarı mesajı çıkar, pedala basılsa da dikmez; masura değişip Reset ile sayaç geri gelir |  | parafraz | the warning buzzer sounds 5 times (1 second on/1 second off), and a lower thread counter warning message is displayed |
+| A050 | S-7300A'da aydınlatma LED parlaklığı hangi aralıkta ayarlanır? | brother-s7300a s.[51] | 1–9 |  | benzer_bolum | The setting range is from 1 to 9. |
+| A051 | S-7300A'ya en fazla kaç farklı desen dikişi kaydedilebilir? | brother-s7300a s.[57] | 5 (DS-1 – DS-5); her biri en çok 8 grup |  | sayi | Up to 5 different types of design stitches (DS-1 to DS-5) |
+| A052 | S-7300A'da açılışta panelin otomatik kilitlenmesi hangi bellek anahtarıyla kapatılır? | brother-s7300a s.[63] | Bellek anahtarı 311 (OFF: kapalı, başlangıç ON) |  | ters_soru, tablo | No.: 311 / Setting range: OFF, ON / Initial value: ON |
+| A053 | S-7300A'da dikiş dalgalı ve düzensiz çıkıyor, olası nedenler neler? | brother-s7300a s.[103] | Baskı ayağı basıncı zayıf, transport dişlisi alçak ya da masura çizik |  | parafraz | Problem: Uneven seam |
+| A054 | S-7300A'da dikişte ilmek (halka) oluşuyor, ne yapmalıyım? | brother-s7300a s.[101] | İplik yolunu cilalayın, masuranın rahat dönüp dönmediğini kontrol edin; özel lokus 1'i deneyin |  | parafraz | Problem: Loops appear in seam. |
+| A055 | S-7300A'da ayağımı pedala koyunca makine yavaş dönmeye başlıyor, ne yapmalıyım? | brother-s7300a s.[26] | Pedal yayının pedal koluna takıldığı konumu (a–d) değiştirerek basma hassasiyetini artırın |  | parafraz | adjust the position (a to c) at which the treadle spring (1) is hooked onto the treadle lever |
+| A056 | S-7300A topraklama vidasının önerilen sıkma torku nedir? | brother-s7300a s.[20] | 1,0 ± 0,1 N·m |  | sayi | Recommended tightening torque 1.0±0.1 N.m |
+| A057 | S-7300A'da çağanoz ve masura kovanı nasıl temizlenir? | brother-s7300a s.[81] | İğne plakasını sökün, transport dişlisini fırçalayın; kafayı yatırın, masura kovanını çıkarın, çağanozu yumuşak bezle silin |  | parafraz | Wipe off any dust from the rotary hook (5) with a soft cloth |
+| A058 | S-7300A'da iğne mili yüksekliği neye göre ayarlanır? | brother-s7300a s.[89] | İğne mili en alttayken üzerindeki (a) çizgisi iğne mili burcunun alt kenarıyla hizalanmalı |  | benzer_bolum | Reference line (a) on the needle bar (1) should be aligned with the lower edge of the needle bar bush (2) |
+| A059 | S-7300A'da E210 hatası ne demek? | brother-s7300a s.[99] | Açılışta transport motoru başlangıç konumu algılanmadı; transport mekanizmasını ve P4 konektörünü kontrol edin |  | kod_varyant | E210 Feed motor origin is not detected when power is turned on. |
+| A060 | S-7300A'da E-211 kodu çıktı, ne yapmalıyım? | brother-s7300a s.[99] | Dikiş sırasında transport motorunda anormal çalışma; transport mekanizmasını ve motor/P4 konektörünü kontrol edin |  | kod_varyant | E211 Abnormal feed motor operation detected during sewing. |
+| A061 | S-7300B'de E050 hatası ne anlama gelir? | brother-s7300b s.[105] | Dikiş başlarken makine kafası geriye yatık algılandı; kafayı yerine getirin, P2 konektörünü kontrol edin |  | benzer_bolum, karisan_dokuman | Code: E050 / Cause: Machine head is detected as being tilted back when start sewing. |
+| A062 | S-7300B açılışta E210 veriyor, ne kontrol etmeliyim? | brother-s7300b s.[106] | Transport mekanizmasını ve transport motoru konektörü ile P4'ü |  |  | Code: E210 / Cause: Feed motor origin is not detected when power is turned on. |
+| A063 | S-7300B dikiş sırasında E-211 veriyor, neden? | brother-s7300b s.[106] | Dikiş sırasında transport motorunda anormal çalışma algılandı |  | kod_varyant | Code: E211 / Cause: Abnormal feed motor operation detected during sewing. |
+| A064 | S-7300B'de E705 hatası ne demek? | brother-s7300b s.[108] | Güç kaynağı geriliminde anormal düşüş; şebeke gerilimini kontrol edin |  |  | Code: E705 / Cause: Abnormal drop in power supply voltage was detected. |
+| A065 | S-7300B'de başlangıç punteriz dikiş hızının varsayılan değeri kaç? | brother-s7300b s.[39] | 1800 dikiş/dk (aralık 220–3000, birim 100) |  | benzer_bolum, tablo | Setting value: 220 - 3000 sti/min / Setting units: 100 sti/min / Initial value: 1800 |
+| A066 | S-7300B'de dikiş adımının varsayılan değeri ve ayar birimi nedir? | brother-s7300b s.[53] | Başlangıç 2,00 mm; birim 0,05 mm (aralık 0,05–5,00 mm) |  | tablo | Setting units: 0.05 mm / Initial value: 2.00 |
+| A067 | S-7300B'de iplik kesildikten sonra üst ipliğin standart kuyruk uzunluğu kaç mm? | brother-s7300b s.[82] | 30–45 mm (Premier tipinde 25–30 mm) |  | benzer_bolum | The standard length for the upper thread trailing length is 30 to 45 mm, or 25 to 30 mm for Premier specifications. |
+| A068 | What is the standard upper thread trailing length on the S-7300B after thread trimming? | brother-s7300b s.[82] | 30–45 mm (25–30 mm for Premier specifications) |  | ingilizce, benzer_bolum | The standard length for the upper thread trailing length is 30 to 45 mm |
+| A069 | S-7300B -3 tipinde çağanoz ucu, iğne mili kaç mm yükselince iğnenin ortasına gelmeli? | brother-s7300b s.[94] | 1,8 mm (-3 tipi); -5 tipinde 2,2 mm |  | parafraz, sayi | when the needle bar (1) moves up 1.8 mm (for -[][]3 specifications) |
+| A070 | S-7300B'de iplik kesme kamı ayarlanırken iğne mili en alt konumdan kaç mm kaldırılır? | brother-s7300b s.[98] | 5 mm |  | benzer_bolum, sayi | Raise the needle bar 5 mm from its lowest position |
+| A071 | S-7300B'de dizlik hareket hızı hangi bellek anahtarıyla ayarlanır? | brother-s7300b s.[65] | Bellek anahtarı 591 (1–5, başlangıç 4) |  | ters_soru, tablo | No.: 591 / Setting range: 1 - 5 / Initial value: 4 |
+| A072 | S-7300B'de başlangıç punterizi B adım düzeltme oranı hangi bellek anahtarında? | brother-s7300b s.[63] | Bellek anahtarı 202 (%50–150, başlangıç 100) |  | ters_soru, tablo | No.: 202 / Setting range: 50 - 150% / Initial value: 100 |
+| A073 | S-7300B'de kısayol tuşlarına başlangıçta hangi işlevler atanmış? | brother-s7300b s.[57, 58] | Başlangıç punterizi, bitiş punterizi, yavaş başlangıç ve iplik kesme kilidi |  |  | Initially, the start backtack key, end backtack key, slow start key and thread trimming lock key are assigned. |
+| A074 | S-7300B'de dikişin başında atlama ve iplik çözülmesi oluyor, ne yapmalıyım? | brother-s7300b s.[110] | İplik çekme yayı gerginliğini/aralığını azaltın, ön gerdirmeyi ayarlayın, kesme bıçaklarını bileyin |  | parafraz | Problem: Skipped stitches at sewing start |
+| A075 | S-7300B -3 tipinde 4000 dev/dk hızda dikiş adımı en fazla kaç mm olabilir? | brother-s7300b s.[78] | 3,0 mm (lokus 1) |  | tablo, sayi | -3 specifications 5000sti/min / 2.0 4000sti/min / 3.0 |
+| A076 | S-7300B'de alt iplik sayacı ne zaman azalır? | brother-s7300b s.[49] | Dikiş sayısı × adım 0,1 m'ye ulaştıkça 0,1 azalır; ekran pedal nötre dönünce güncellenir |  | parafraz | reduced by 0.1 each time the number of stitches x sewing pitch reaches 0.1 m |
+| A077 | S-7300B'de punteriz kenarı hizalı çıkmıyor, ne yapmalıyım? | brother-s7300b s.[112] | Transport dişlisi yüksekliğini kontrol edin, artırın |  | parafraz | Is the height of the feed dog correct? Increase the feed dog height. |
+| A078 | Terzilik kitabına göre makine dikişinde inç başına kaç dikiş kullanılmalı? | strickland-1956 s.[69] | 15–20 dikiş/inç; kalın kumaşta daha uzun dikiş |  | kaynak_ifadesi, karisan_dokuman | Use 15 to 20 stitches per inch, the longer stitch for bulky materials. |
+| A079 | Kalın kumaşlarda makine dikiş boyu nasıl seçilir? | strickland-1956 s.[69] | Daha uzun dikiş (15–20 dikiş/inç aralığının uzun ucu); önce artık kumaşta çift kat denenir |  | parafraz, karisan_dokuman | Use 15 to 20 stitches per inch, the longer stitch for bulky materials. |
+| A080 | Fransız etek ucu (French hem) nasıl yapılır? | strickland-1956 s.[84, 85] | Etek ucu işaretlenip ters yüze katlanır, kenara dik iğnelenir, denenir; kumaş saçaklanmıyorsa kenar zikzaklanıp teyellenir |  |  | French hem: After hem is marked, fold it to wrong side along marked edge |
+| A081 | Uzun kruvaze paltoda düğmelenmeyen alt kat nasıl sabitlenir? | strickland-1956 s.[98, 99] | Astar ya da yaklaşık 1 inç genişliğinde grogren kurdeleden bağcıkla |  | parafraz | held in place by a tie made of the lining, or of matching grosgrain ribbon about 1 inch wide |
+| A082 | Klapede pad dikişine kırım çizgisinin ne kadar gerisinden başlanır? | strickland-1956 s.[102, 103, 105] | 1 inç gerisinden |  | parafraz | start the pad stitch 1 inch behind the break line |
+| A083 | Gömme cepler neden tela ile desteklenir? | strickland-1956 s.[110] | Kumaşa binen aşırı gerilimi önlemek için; dikiş hattı boyunca tersten |  |  | This canvas prevents too great strain on the fabric. |
+| A084 | Ok başı punteriz (arrowhead) nasıl yapılır? | strickland-1956 s.[123, 124] | Üçgen teyelle işaretlenir; ilik ipliğiyle tabandan başlanıp karşı köşeye tabana paralel dikişlerle doldurulur |  | karisan_dokuman | Mark the arrowhead by basting a triangle at the desired position. |
+| A085 | İlik aralıklarını doğru işaretlemek için ne yapılır? | strickland-1956 s.[91, 92] | Uzun ve kısa teyellerle 'merdiven' yapılır: orta ön teyeli, iliğin bir ucu ve ilik boyu teyelle işaretlenir |  | parafraz | To be accurate in spacing the buttonholes, make a ladder, using long and short bastings. |
+| A086 | Terzilik kitabına göre pantolon cebinin yün yüz parçası kaç inç kesilir? | strickland-1956 s.[155] | 10 × 3 inç |  | karisan_dokuman, kaynak_ifadesi | Wool facing 10 inches by 3 inches. |
+| A087 | Bengalin kumaş hangi giysiler için uygundur? | strickland-1956 s.[17] | Palto ve takım (poplin benzeri rib dokuma) |  |  | Bengaline: Rib weave similar to poplin. For coats or suits. |
+| A088 | Parçaları yıkamak için sabun çözeltisinde litre başına kaç gram sabun kullanılır? | granovsky-1986 s.[66] | Litre suya 25 g sabun |  | sayi | a soap solution (25 g of soap per liter of water) |
+| A089 | Kalın cidarlı dökme demir parçaları kaynatırken çelik pim çapı nasıl seçilir? | granovsky-1986 s.[31, 32] | d = (0,3–0,4) × kırılma yerindeki parça kalınlığı (b) | (0.3...0.4)b | parafraz, sayi | d = (0.3...0.4)b |
+| A090 | Ring iplik makinesinde kondansatörün toplam stroku kaç mm olmalı? | granovsky-1986 s.[156] | 18–19 mm |  | sayi | The total stroke of the condenser should be 18-19 mm. |
+| A091 | Birinci tip çözgü makinesinin tamburunda koni açısı hangi aralıkta değişir? | granovsky-1986 s.[166] | 6–26° |  | sayi | a cone the angle of which changes from 6 to 26° |
+| A092 | Dokuma tezgâhında orta onarım ne sıklıkla yapılır ve kaç kişi yapar? | granovsky-1986 s.[201, 202] | Yılda en az iki kez (aşırı aşınmada daha sık), en çok bir vardiya, iki kişilik ekip | at. least | parafraz | carried out according to the schedule at. least twice a year |
+| A093 | Mekik kutusunda mekik yokken çözgü koruyucu uçları pedlerin kaç mm üstünde olmalı? | granovsky-1986 s.[231] | 1–1,5 mm | 1-1.5 m m | parafraz, sayi, ocr | the warp protector nibs must be 1-1.5 m m above the edges of the pads |
+| A094 | Topuk konisinin elektrik kıvılcımıyla doldurulmasında katman kalınlığı kaç mm? | granovsky-1986 s.[256] | 0,2 mm | 0.2 m m | sayi, ocr | the thickness of the built-up layer is 0.2 m m |
+| A095 | Granovsky'ye göre santrifüj kavrama ne zaman devreye girer? | granovsky-1986 s.[51, 52] | Önceden belirlenen dönme hızı aşıldığında milleri otomatik bağlar |  | kaynak_ifadesi | Centrifugal clutches automatically connect the shafts only when the preset rotational speed is exceeded. |
+| A096 | Tekstil makinesi parçalarında bakır kaplama ne için kullanılır? | granovsky-1986 s.[41] | Rulman bilezikleri, yatak astarları ve burçların dış yüzeyini doldurmak, sonsuz vida aşınmasını gidermek; krom kaplamaya alt katman | Copperplatingis | parafraz | Copperplatingis used to hard face the outer surfaces of rings in antifriction bearings |
+| A097 | Yağ damperi ayar düzeneğindeki lamba kaç voltluk? | granovsky-1986 s.[216, 217] | 3,5 V |  | sayi | a lamp 3 for 3.5 V |
+| A098 | Kahve makinesinde gecikmeli demleme saati nasıl ayarlanır? | mrcoffee-2003 s.[9]; mrcoffee-2003 s.[15] | Saat modundayken SET DELAY'e basın; sarı DELAY BREW ışığı yanıp sönerken HOUR ve MINUTE ile saati girin |  | parafraz | simply press the SET DELAY button (Figure 3) and, while the DELAY BREW yellow light is flashing, set the brew time |
+| A099 | Kahve makinesinin su filtresi klorun yüzde kaçını giderir? | mrcoffee-2003 s.[10]; mrcoffee-2003 s.[12] | %97'ye kadar |  | sayi | removing up to 97% of the chlorine from the water |
+| A100 | Kahve makinesinde bir fincan kaç ons su sayılıyor? | mrcoffee-2003 s.[12]; mrcoffee-2003 s.[13] | 5 ons |  | sayi | (1 cup equals 5 ounces) |
+| A101 | Kahve makinesinin kirecini temizlerken temizleyici yerine ne kadar sirke kullanılabilir? | mrcoffee-2003 s.[16]; mrcoffee-2003 s.[8] | 4 fincan (20 fl. oz.) seyreltilmemiş beyaz sirke |  | parafraz | 4 cups or 20 fl. oz. of undiluted, white household vinegar may be used as a substitute |
+| A102 | Cam sürahideki beyaz kireç lekeleri nasıl çıkarılır? | mrcoffee-2003 s.[18]; mrcoffee-2003 s.[6, 7] | Sürahiyi yarı su yarı sirkeyle doldurup yaklaşık 20 dakika bekletin, sonra yıkayın |  | parafraz | a solution of equal parts water and vinegar and let the solution stand in the decanter for approximately 20 minutes |
+| A103 | Sürahi ısıtma plakasından 30 saniyeden uzun alınırsa ne olur, ne yapmalıyım? | mrcoffee-2003 s.[19] | Taşma olabilir: makineyi kapatıp fişten çekin, soğumasını bekleyin, dökülenleri silin; sıcak sürahiyi ıslak plakaya koymayın |  | tablo | The decanter was removed from the warmer plate for more than 30 seconds. |
+| A104 | Programlanabilir kahve makinelerinde temizleme döngüsü ne kadar sürer? | mrcoffee-2003 s.[7]; mrcoffee-2003 s.[17] | 45–60 dakika |  | karisan_dokuman | El ciclo completo tomará de 45 a 60 minutos en completarse. |
+| A105 | Yedek su filtresi diskleri nereden alınır? | mrcoffee-2003 s.[21]; mrcoffee-2003 s.[3] | Yerel satıcıdan ya da 1-800-MR-COFFEE (ABD) / 1-800-667-8623 (Kanada) aranarak (kâğıt filtreler ise marketlerde) |  |  | Water Filtration - Replacement water filtration disks can be purchased through your local retailer or by calling 1-800-MR-COFFEE |
+| A106 | Freze tablasıyla çalışırken hangi kişisel koruyucu ekipmanlar kullanılmalı? | bosch-ra1171 s.[2]; bosch-ra1171 s.[32]; bosch-ra1171 s.[63] | ANSI Z87.1 uyumlu koruyucu gözlük; gerekirse kaymaz ayakkabı, baret, toz maskesi ve kulak koruyucu |  | parafraz | Wear safety goggles (must comply with ANSI Standard Z87.1) at all times. |
+| A107 | Freze tablası şalteri için en az kaç gauge uzatma kablosu gerekir? | bosch-ra1171 s.[19]; bosch-ra1171 s.[49]; bosch-ra1171 s.[81] | 14 gauge ya da daha kalın, üç telli topraklı |  | sayi | A 14-gauge (or heavier) three-wire extension cord |
+| A108 | Frezemin modeli bağlantı tablosunda yoksa ne yapmalıyım? | bosch-ra1171 s.[14]; bosch-ra1171 s.[44]; bosch-ra1171 s.[76] | Ayrıca satılan BOSCH RA1186 adaptör plakası alınmalı |  | parafraz | If it is NOT listed, you must purchase a BOSCH RA1186 Router Adapter Plate |
+| A109 | Bosch 1617 serisi frezeyi tablaya bağlamak için hangi vidalar gerekir? | bosch-ra1171 s.[15]; bosch-ra1171 s.[45]; bosch-ra1171 s.[77] | 10-24 × 3/4″ yıldız başlı makine vidaları (46), delik deseni B |  | tablo, kod_varyant | Fasteners Required: 10-24 x 3/4″ Phillips machine screws (46) |
+| A110 | Çit yüzleri freze ucuna ne kadar yakın olmalı? | bosch-ra1171 s.[25]; bosch-ra1171 s.[55]; bosch-ra1171 s.[87] | Uca değmeyecek kadar yakın, tipik olarak yaklaşık 1/4″ |  | parafraz | (typically about 1/4″ from the bit is a suitable distance) |
+| A111 | Freze tablasının gönye kanalı hangi ölçüdeki gönye kılavuzlarına uyar? | bosch-ra1171 s.[31]; bosch-ra1171 s.[61]; bosch-ra1171 s.[93] | 3/4″ genişlik × 3/8″ derinlik |  | sayi | miter gauges that measure 3/4″ wide x 3/8″ deep |
+| A112 | Freze tablası şalteri kapalı konumda nasıl kilitlenir? | bosch-ra1171 s.[21]; bosch-ra1171 s.[51]; bosch-ra1171 s.[83] | Kapağa basıp kapatın, kilit anahtarını tamamen çıkarın; kırmızı sürgü şalterin üst yarısını örter |  |  | remove the lockout key completely from the side of the switch case |
+| A113 | Parça listesinde 38 numaralı Allen başlı bağlantı vidasından kaç adet var? | bosch-ra1171 s.[8]; bosch-ra1171 s.[38]; bosch-ra1171 s.[70] | 13 adet |  | tablo, sayi | Key No.: 38 / Description: Allen-Head Connector Screw / Quantity: 13 |
+| A114 | Bosch freze tablası kaç kilogram ağırlığında? | bulunamadı |  |  | bulunamadi | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), ağırlık değeri geçmiyor; yalnız sembol tablosunda 'kg = Kilograms, Weight' birim açıklaması var |
+| A115 | Granovsky kitabına göre bilgisayarlı nakış makinesinin yazılımı nasıl güncellenir? | bulunamadı |  |  | bulunamadi, kaynak_ifadesi | chunks.jsonl'de 'embroider/software/computer' geçmiyor |
+| A116 | Pantolon şartnamesinde kemer tokası kaç gram olmalı? | bulunamadı |  |  | bulunamadi | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), 'buckle' geçmiyor |
+| A117 | S-7300A'da E133 hatası ne demek? | bulunamadı |  |  | bulunamadi, kod_varyant | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), S-7300A'da geçmiyor (yalnız S-7300B'de var) |
+| A118 | S-7300A'da E-740 kodu çıktı, ne yapmalıyım? | bulunamadı |  |  | bulunamadi, kod_varyant | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), S-7300A'da geçmiyor (yalnız S-7300B'de var) |
+| A119 | S-7300A'da E582 hatası neden olur? | bulunamadı |  |  | bulunamadi, kod_varyant | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), S-7300A'da geçmiyor (yalnız S-7300B'de var) |
+| A120 | Bosch freze tablasının garanti süresi ne kadar? | bulunamadı |  |  | bulunamadi | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), garanti bilgisi geçmiyor ('warrants special attention' ifadesi garanti değil) |
+| A121 | Mr. Coffee kahve makinesi kaç watt? | bulunamadı |  |  | bulunamadi | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), watt değeri geçmiyor |
+| A122 | Mr. Coffee kahve makinesiyle süt nasıl köpürtülür? | bulunamadı |  |  | bulunamadi, parafraz | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), 'milk/froth/leche' geçmiyor |
+| A123 | S-7300B'nin güç tüketimi kaç watt? | bulunamadı |  |  | bulunamadi | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), güç değeri geçmiyor; yalnız 'güç kaynağı tüketimden büyük olmalı' uyarısı var |
+| A124 | Ceketin kapüşon ölçüleri nedir? | bulunamadı |  |  | bulunamadi | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), 'hood' geçmiyor |
+| A125 | Ceket fermuarı hangi markadan olmalı? | bulunamadı |  |  | bulunamadi | chunks.jsonl'de 'YKK/Talon/brand name' ceket şartnamesinde geçmiyor; fermuar yalnız standartla tanımlı |
+| A126 | Strickland kitabına göre deri ceket nasıl dikilir? | bulunamadı |  |  | bulunamadi, kaynak_ifadesi | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), 'leather' geçmiyor |
+| A127 | S-7300A Bluetooth ya da Wi-Fi ile nasıl bağlanır? | bulunamadı |  |  | bulunamadi | chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), 'bluetooth/wireless/wi-fi' geçmiyor |
+| A128 | Pantolon kumaşının su geçirmezlik (hidrostatik basınç) değeri ne olmalı? | bulunamadı |  |  | bulunamadi | chunks.jsonl'de 'hydrostatic/water resist' pantolon şartnamesinde geçmiyor |
+| A129 | Terzilik kitabına göre overlok makinesi nasıl ayarlanır? | bulunamadı |  |  | bulunamadi, kaynak_ifadesi | chunks.jsonl'de 'overlock/serger' Strickland'de geçmiyor |
+| A130 | Mr. Coffee makinesiyle espresso nasıl yapılır? | bulunamadı |  |  | bulunamadi | chunks.jsonl'de 'espresso' geçmiyor |
+| A131 | E050 ne demek? | netleştirme: brother-s7300a s.[98], brother-s7300b s.[105] | S-7300A s.98 ve S-7300B s.105: makine kafası geriye yatık algılandı |  | netlestirme, kod_varyant |  |
+| A132 | Dikişte ilmek oluşuyor, ne yapmalıyım? | netleştirme: brother-s7300a s.[101], brother-s7300b s.[109] | S-7300A s.101, S-7300B s.109 (aynı sorun satırı) |  | netlestirme, parafraz |  |
+| A133 | İplik kesildikten sonra üst iplik kuyruğu kaç mm olmalı? | netleştirme: brother-s7300a s.[79], brother-s7300b s.[82] | S-7300A: 25–30 mm · S-7300B: 30–45 mm (Premier 25–30): değer modele göre değişiyor |  | netlestirme, benzer_bolum |  |
+| A134 | Alt iplik sayacı nasıl azalıyor? | netleştirme: brother-s7300a s.[49], brother-s7300b s.[49] | İki modelde aynı: dikiş × adım 0,1 m'de bir 0,1 azalır |  | netlestirme |  |
+| A135 | Aydınlatma LED'i nasıl açılıp kapatılır? | netleştirme: brother-s7300a s.[32], brother-s7300b s.[33] | S-7300A s.32, S-7300B s.33: LED tuşu |  | netlestirme |  |
+| A136 | Topraklama vidası hangi torkla sıkılır? | netleştirme: brother-s7300a s.[20], brother-s7300b s.[24] | İki modelde 1,0 ± 0,1 N·m |  | netlestirme |  |
+| A137 | Çağanoz ile masura kovanı tutucusu arasındaki boşluk ne olmalı? | netleştirme: brother-s7300a s.[91], brother-s7300b s.[94] | S-7300A s.91, S-7300B s.94: -3 tipi 0,4–0,7 mm, -5 tipi 0,6–1,1 mm |  | netlestirme, parafraz |  |
+| A138 | İplik kesme kamı ayarında iğne mili kaç mm kaldırılır? | netleştirme: brother-s7300a s.[96], brother-s7300b s.[98] | S-7300A: 6 mm · S-7300B: 5 mm: değer modele göre değişiyor |  | netlestirme, benzer_bolum |  |
+| A139 | Makine kafası dik konuma nasıl getirilir? | netleştirme: brother-s7300a s.[14], brother-s7300b s.[14] | İki modelde s.14 (yüz plakasından sol elle tutarak) |  | netlestirme |  |
+| A140 | İliklerde inç başına kaç dikiş olmalı? | netleştirme: gl-pd-14-04a s.[22, 23], gl-pd-07-14a s.[11] | Ceket: 54 ± 2 (s.22) · Pantolon: 52–56 (s.11): değer ürüne göre değişiyor |  | netlestirme, benzer_bolum |  |
+| A141 | Cırt bant kenardan ne kadar içeriden dikilir? | netleştirme: gl-pd-14-04a s.[10], gl-pd-07-14a s.[10] | Ceket ve pantolonda 1/8–3/16 inç (ceket s.10, pantolon s.10/21) |  | netlestirme, karisan_dokuman |  |
+| A142 | Beden etiketi nereye dikilir? | netleştirme: gl-pd-14-04a s.[13], gl-pd-07-14a s.[12] | Ceket: iç orta arka (s.13) · Pantolon: iç bel bandı dikişi (s.12) |  | netlestirme, benzer_bolum |  |
+| A143 | Isırma testinde kollar böcek kafesinde kaç dakika tutulur? | netleştirme: gl-pd-14-04a s.[44], gl-pd-07-14a s.[38] | Ceket ve pantolonda 15 dakika (pantolonda OCR: 'IS min') |  | netlestirme, ocr |  |
+| A144 | Permetrin geri kazanımı en az yüzde kaç olmalı? | netleştirme: gl-pd-14-04a s.[38, 39], gl-pd-07-14a s.[33] | Ceket ve pantolonda %95 veya üzeri |  | netlestirme |  |
+| A145 | Cep kapağı punterizi kaç dikişli olur? | netleştirme: gl-pd-14-04a s.[25], gl-pd-07-14a s.[22] | Ceket s.25 ve pantolon s.22 punteriz tabloları (pantolon: 36 dikiş, 5/8 inç) |  | netlestirme, benzer_bolum, tablo |  |
+| A146 | s7300a e50 ne demek | brother-s7300a s.[98] | E050: makine kafası geriye yatık |  | gundelik, kod_varyant | Code: E050 / Cause: Machine head is detected as being tilted back |
+| A147 | ceket ilik dikis sayisi? | gl-pd-14-04a s.[22, 23] | 54 ± 2 dikiş/inç (punteriz dahil) |  | gundelik | Buttonholes shall be 54 (± 2) stitches per inch including tack. |
+| A148 | pantolon cep agzi kac inc | gl-pd-07-14a s.[10, 11] | 6–7-1/4 inç | 7-114 | gundelik, ocr | not less than 6 inches and not more than 7-114 inches |
+| A149 | masura nasıl takılır s7300b | brother-s7300b s.[28] | Gücü kapatın, iğneyi plakanın üstüne kaldırın, masura kovanını takın |  | gundelik | Turn off the power switch before installing the bobbin case. |
+| A150 | kahve makinası kireç nasil temizlenir | mrcoffee-2003 s.[16]; mrcoffee-2003 s.[17]; mrcoffee-2003 s.[8]; mrcoffee-2003 s.[7] | Temizleyici ya da 4 fincan sirkeyle temizleme demlemesi (anahtarlı modeller s.16; programlanabilirlerde CLEAN döngüsü s.17) |  | gundelik | Follow package instructions to prepare one batch of MR. COFFEE ® Coffeemaker Cleaner. |
+| A151 | freze tablası şalteri nasıl kitlenir | bosch-ra1171 s.[21]; bosch-ra1171 s.[51]; bosch-ra1171 s.[83] | Kilit anahtarını çıkarın; kırmızı sürgü şalteri örter |  | gundelik | remove the lockout key completely from the side of the switch case |
+| A152 | granovsky sabun kaç gram | granovsky-1986 s.[66] | Litre suya 25 g |  | gundelik, kaynak_ifadesi | 25 g of soap per liter of water |
+| A153 | s7300a iplik gerginligi nasıl ayarlanır | brother-s7300a s.[78] | Önce alt iplik gerginliği, sonra düzgün dikiş elde edilecek şekilde üst iplik gerginliği ayarlanır |  | gundelik | After the lower thread tension has been adjusted, adjust the upper thread tension |
+| A154 | pantolonda cırt bant ne kadar içerde | gl-pd-07-14a s.[10]; gl-pd-07-14a s.[21] | 1/8–3/16 inç | 1183/16 | gundelik, ocr | sewn 1183/16 inch from bound selvage |
+| A155 | s7300b E-050? | brother-s7300b s.[105] | Makine kafası geriye yatık |  | gundelik, kod_varyant | Code: E050 |

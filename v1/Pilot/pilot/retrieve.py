@@ -1,0 +1,224 @@
+"""Hibrit arama (dense + sparse, RRF) + marka/doküman filtresi + reranker."""
+import os
+import re
+import time
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
+
+from qdrant_client import models
+
+from .config import (COLLECTION, DENSE_MODE, DENSE_SHORT_DIM, HNSW_EF, QUANT_OVERSAMPLING, QUANT_RESCORE,
+                     RERANK_FUSION, RERANK_FUSION_K, RERANK_PASSAGE, SHORT_OVERSAMPLE, SPARSE_KIND)
+from .embed import encode_query, rerank, rerank_enabled
+from .index import SPARSE_NAMES, release, search_client, short_name
+
+PREFETCH_K = int(os.environ.get("PILOT_PREFETCH_K", "30"))   # her kolun (dense, sparse) getirdiği aday sayısı
+FUSED_K = int(os.environ.get("PILOT_FUSED_K", "20"))         # RRF sonrası rerank'a giden aday sayısı
+
+# İsteğe bağlı zamanlama kancası (bench/measure.py): aşama adı ve süresi (sn) ile çağrılır. None: ölçüm yok.
+timing_hook: Callable[[str, float], None] | None = None
+
+
+def _lap(stage: str, t: float) -> float:
+    now = time.perf_counter()
+    if timing_hook is not None:
+        timing_hook(stage, now - t)
+    return now
+
+# İçindekiler satırı ("5-5-1. Needle up/down ........ 32"): Hiçbir soruya cevap değil ama terimleri içerdiği için
+# üst sıralara çıkıyor (çağanoz sorusunda 1., "A makinesi ceket ölçüsü" cevabında alıntı olarak kullanıldı).
+# Dar tutuldu: "TOTAL. ....... 1 | 00.00%" gibi gerçek tablo satırları elenmez.
+_TOC = re.compile(r"\.{5,}\s*\d+")
+_TOC_LINE = re.compile(r"\s*[\w\-. ()/]{3,80}?\s*\.{5,}\s*\d+\s*")
+
+
+def is_toc(text: str) -> bool:
+    return len(_TOC.findall(text)) >= 2 or bool(_TOC_LINE.fullmatch(text))
+
+
+@dataclass(frozen=True)
+class Hit:
+    chunk: dict[str, Any]
+    fused_rank: int
+    rerank_score: float | None = None
+    fused_score: float | None = None     # rerank öncesi skor: hibritte RRF, tek kolda o kolun skoru
+
+
+def _filter(brands: list[str] | None, doc_ids: list[str] | None,
+            access: list[str] | None = None) -> models.Filter | None:
+    """access: kullanıcının yetki grupları. Verilirse yalnız 'all' ya da bu gruplardan birine açık parçalar aranır;
+    koşul Qdrant filtresinin içindedir (sonradan eleme değil), yetkisiz parça hiçbir kola ve rerank'a girmez."""
+    must = []
+    if brands:
+        must.append(models.FieldCondition(key="brand", match=models.MatchAny(any=brands)))
+    if doc_ids:
+        must.append(models.FieldCondition(key="doc_id", match=models.MatchAny(any=doc_ids)))
+    if access is not None:
+        must.append(models.FieldCondition(key="access", match=models.MatchAny(any=sorted({*access, "all"}))))
+    # Gezinme parçaları (içindekiler, dizin, ön sayfa; chunk.nav_kind) aranmaz. 'nav' alanı olmayan eski indekste
+    # koşul hiçbir parçayı elemez (davranış aynı).
+    return models.Filter(must=must or None, must_not=[NAV_EXCLUDE])
+
+
+NAV_EXCLUDE = models.FieldCondition(key="nav", match=models.MatchAny(any=["toc", "index", "front_matter"]))
+ARM_MARGIN = 10      # kol sınırındaki eşit skorlar için fazladan aday; sıralamadan sonra PREFETCH_K'ya kesilir
+RRF_K = 2            # Qdrant'ın RRF'iyle aynı: skor = Σ 1 / (sıra + RRF_K), sıra 0'dan başlar
+
+
+def fused_order(scores: list[float], k: int = RERANK_FUSION_K) -> list[int]:
+    """Reranker sırası ile hibrit (giriş) sırasının RRF birleşimi: skor_i = 1/(k + rerank_sırası) + 1/(k + giriş_sırası),
+    sıralar 1'den başlar; eşitlikte giriş sırası. Reranker tek başına karar vermez, hibrit aramanın sırası korunur."""
+    rr = sorted(range(len(scores)), key=lambda i: (-scores[i], i))
+    pos = {i: r + 1 for r, i in enumerate(rr)}
+    return sorted(range(len(scores)), key=lambda i: (-(1 / (k + pos[i]) + 1 / (k + i + 1)), i))
+
+
+def rerank_order(scores: list[float], fusion: str = RERANK_FUSION) -> list[int]:
+    if fusion == "rrf":
+        return fused_order(scores)
+    return sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
+
+
+def canonical(points: list[Any], limit: int) -> list[Any]:
+    """Kol sonucunu skor (azalan), eşitse kimlik (artan) sırasına koyar. Eşit skorların sırası Qdrant'ta moda göre
+    değişiyordu (gömülü ve sunucu farklı); bu sıralamayla sonuç yalnız skor değerlerine bağlı."""
+    return sorted(points, key=lambda p: (-p.score, _id_key(p.id)))[:limit]
+
+
+def _id_key(pid: Any) -> tuple[int, Any]:
+    return (0, pid) if isinstance(pid, int) else (1, str(pid))
+
+
+def rrf_fuse(dense: list[Any], sparse: list[Any], limit: int) -> list[tuple[Any, float]]:
+    """RRF füzyonu, belirli sırayla: füzyon skoru (azalan), eşitse dense skoru (azalan; dense kolda yoksa en sonda),
+    o da eşitse parça kimliği (artan). Döner: (nokta, füzyon skoru); nokta payload'ı taşır."""
+    fused: dict[Any, float] = {}
+    point: dict[Any, Any] = {}
+    dense_score: dict[Any, float] = {}
+    for arm in (dense, sparse):
+        for rank, p in enumerate(arm):
+            fused[p.id] = fused.get(p.id, 0.0) + 1.0 / (rank + RRF_K)
+            point.setdefault(p.id, p)
+    for p in dense:
+        dense_score[p.id] = p.score
+    order = sorted(fused, key=lambda i: (-fused[i], -dense_score.get(i, float("-inf")), _id_key(i)))
+    return [(point[i], fused[i]) for i in order[:limit]]
+
+
+def dense_params(hnsw_ef: int | None = HNSW_EF, rescore: str | None = QUANT_RESCORE,
+                 oversampling: float | None = QUANT_OVERSAMPLING) -> models.SearchParams | None:
+    """Dense kolun sorgu anı ayarları (sunucu modunda HNSW/quantization). Hepsi boşsa None: Qdrant varsayılanı."""
+    quant = None
+    if rescore is not None or oversampling is not None:
+        quant = models.QuantizationSearchParams(rescore=None if rescore is None else rescore == "1",
+                                                oversampling=oversampling)
+    if hnsw_ef is None and quant is None:
+        return None
+    return models.SearchParams(hnsw_ef=hnsw_ef, quantization=quant)
+
+
+def candidates(qc: Any, q: dict[str, Any], flt: models.Filter | None, mode: str = "hybrid", *,
+               collection: str = COLLECTION, sparse_name: str = SPARSE_NAMES[SPARSE_KIND],
+               dense_mode: str = DENSE_MODE, short_dim: int = DENSE_SHORT_DIM, prefetch_k: int | None = None,
+               fused_k: int | None = None, dparams: models.SearchParams | None = None) -> list[Any]:
+    """Rerank öncesi aday listesi (RRF sırası, içindekiler satırı elenmiş). q: encode_query çıktısı.
+    dense_mode: full | short (yalnız MRL kısa vektör) | short_rescore (kısa vektörle aday, tam vektörle sıra; tek istek).
+    İki kol tek istekte; füzyon burada (rrf_fuse), çünkü Qdrant'ın RRF'i eşit skorları moda göre farklı sıralıyor."""
+    prefetch_k = PREFETCH_K if prefetch_k is None else prefetch_k
+    fused_k = FUSED_K if fused_k is None else fused_k
+    limit = (fused_k if mode != "hybrid" else prefetch_k) + ARM_MARGIN
+    reqs = []
+    if mode in ("dense", "hybrid"):
+        if dense_mode == "full":
+            reqs.append(models.QueryRequest(query=q["dense"], using="dense", filter=flt, limit=limit, params=dparams,
+                                            with_payload=True))
+        elif dense_mode == "short":
+            reqs.append(models.QueryRequest(query=q["short"], using=short_name(short_dim), filter=flt, limit=limit,
+                                            params=dparams, with_payload=True))
+        elif dense_mode == "short_rescore":
+            pre = models.Prefetch(query=q["short"], using=short_name(short_dim), filter=flt, params=dparams,
+                                  limit=int(limit * SHORT_OVERSAMPLE))
+            reqs.append(models.QueryRequest(prefetch=pre, query=q["dense"], using="dense", filter=flt, limit=limit,
+                                            with_payload=True))
+        else:
+            raise ValueError(f"bilinmeyen dense_mode: {dense_mode}")
+    if mode in ("sparse", "hybrid"):
+        sp = q["sparse"]
+        reqs.append(models.QueryRequest(query=models.SparseVector(indices=list(sp.keys()), values=list(sp.values())),
+                                        using=sparse_name, filter=flt, limit=limit, with_payload=True))
+    arms = [canonical(r.points, limit - ARM_MARGIN) for r in qc.query_batch_points(collection, requests=reqs)]
+    # Noktanın skoru füzyon skoruyla değiştirilir (Hit.fused_score; netleştirme ve "bulunamadı" kararları için)
+    ranked = ([p.model_copy(update={"score": sc}) for p, sc in rrf_fuse(arms[0], arms[1], fused_k)] if mode == "hybrid"
+              else arms[0][:fused_k])
+    return [p for p in ranked if not is_toc(p.payload["text"])]
+
+
+_POOL: Any = None
+last_translation: dict[str, Any] = {}     # son aramanın çevirisi (kayıt ve arayüz için): metin, süre, sınır aşıldı mı
+
+
+def _encode_with_translation(query: str, translate: Callable[[], str | None], limit_s: float) -> dict[str, Any]:
+    """Çeviri ‖ dense embed; çeviri limit_s içinde gelirse BM25 onunla, gelmezse özgün soruyla."""
+    from concurrent.futures import ThreadPoolExecutor
+    from concurrent.futures import TimeoutError as FutTimeout
+    global _POOL
+    if _POOL is None:
+        _POOL = ThreadPoolExecutor(4, thread_name_prefix="ceviri")
+    t0 = time.perf_counter()
+
+    def run() -> tuple[str | None, float]:
+        t = time.perf_counter()
+        try:
+            return translate(), time.perf_counter() - t
+        except Exception:  # noqa: BLE001 — çeviri hatası aramayı durdurmaz: BM25 çevirisiz
+            return None, time.perf_counter() - t
+
+    fut = _POOL.submit(run)
+    q = encode_query(query)
+    try:
+        text, secs = fut.result(timeout=max(0.0, limit_s - (time.perf_counter() - t0)))
+        late = False
+    except FutTimeout:
+        text, secs, late = None, None, True
+    last_translation.clear()
+    last_translation.update(metin=text, sn=secs, sinir_asildi=late)
+    if text:
+        from .sparse import bm25_query
+        if SPARSE_KIND == "bm25":
+            q["sparse"] = bm25_query(text)
+        else:
+            q = encode_query(query, text)
+    return q
+
+
+def search(query: str, *, brands: list[str] | None = None, doc_ids: list[str] | None = None,
+           mode: str = "hybrid", top_k: int = 5, do_rerank: bool = True,
+           query_en: str | None = None, access: list[str] | None = None,
+           translate: Callable[[], str | None] | None = None, translate_limit_s: float = 1.2) -> list[Hit]:
+    """mode: 'dense' | 'sparse' | 'hybrid'. query_en verilirse sparse kol ona göre çalışır
+    (TR soru + EN doküman: kelime araması için çeviri). access: kullanıcının yetki grupları (None: kontrol yok).
+    Sorgu vektörleri sağlayıcıya göre (embed.encode_query): local bge-m3 ya da bulut dense + BM25.
+    translate (ikili yol, Adım 2 planı §29): BM25 sorgu metnini veren çağrı; dense embed ile paralel çalışır,
+    translate_limit_s içinde gelmezse BM25 özgün soruyla aranır (çağrı arka planda biter)."""
+    flt = _filter(brands, doc_ids, access)
+    t = time.perf_counter()
+    if translate is not None and query_en is None:
+        q = _encode_with_translation(query, translate, translate_limit_s)
+    else:
+        q = encode_query(query, query_en)
+    t = _lap("embed", t)
+    qc = search_client()
+    t = _lap("qdrant_open", t)
+    try:
+        points = candidates(qc, q, flt, mode, dparams=dense_params())
+    finally:
+        release(qc)
+    t = _lap("qdrant", t)
+    if not do_rerank or not rerank_enabled() or not points:
+        return [Hit(p.payload, i, None, p.score) for i, p in enumerate(points[:top_k])]
+    passages = [p.payload.get(RERANK_PASSAGE) or p.payload["text"] for p in points]
+    scores = rerank(query, passages)
+    _lap("rerank", t)
+    order = rerank_order(scores)[:top_k]
+    return [Hit(points[i].payload, i, scores[i], points[i].score) for i in order]

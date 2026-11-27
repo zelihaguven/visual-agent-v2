@@ -1,0 +1,294 @@
+"""Sorgu analizi (kural tabanlı): sorudaki varlıklar (makine, ürün, marka) → doküman filtresi,
+seçilen kaynakla uyum ve sorunun neyi sorduğunu belirtip belirtmediği. Akış: MIMARI.md §4."""
+import json
+import re
+from dataclasses import dataclass
+from functools import lru_cache
+
+from .config import CHUNKS_PATH
+from .registry import BY_ID, DOCS, product_names
+
+
+_TR_LOWER = str.maketrans({"I": "ı", "İ": "i"})
+
+
+def _squash(text: str) -> str:
+    """Karşılaştırma için: küçük harf (Türkçe I/İ), '-', boşluk, '.' ve '_' atılmış. ı/i farkı yok sayılır: İngilizce
+    başlık ("UNIFORM") Türkçe küçük harfle "unıform" olur, kayıttaki ad "uniform" (2026-11-06)."""
+    return re.sub(r"[\s\-_.]+", "", text.translate(_TR_LOWER).lower()).replace("ı", "i")
+
+
+# Varlık türü: Sorudaki ifade hangi tür dokümana işaret ediyor.
+#   makine: makine modeli / makine markası (kılavuz)    urun: ürün adı (şartname)
+#   marka:  müşteri markası (şartnamenin sahibi)          rehber: genel terzilik kaynağı
+KIND_OF_DOC_TYPE = {"machine_manual": "makine", "product_standard": "urun", "tailoring_guide": "rehber"}
+
+# Seçilen kaynağın türüne göre sorudaki varlığın rolü (MIMARI.md §4.3):
+#   True  → eşleşmeli: Kaynak bu türden bilgiye göre değişir. Varlık seçilen kaynakta yoksa cevap başka bir şey
+#           içindir (ör. S-7300A kılavuzunda "ceket" bilgisi olmaz; Nike sorusuna US Army şartnamesi cevap olmaz).
+#   False → bağlam: Kaynaktaki bilgi bu varlığa göre değişmez (ceket şartnamesi hangi makinede dikilirse dikilsin aynı).
+# Tabloda olmayan kaynak türünde (rehber) hiçbir varlık engellemez.
+MUST_MATCH: dict[str, dict[str, bool]] = {
+    "machine_manual":   {"makine": True,  "urun": True,  "marka": False},
+    "product_standard": {"makine": False, "urun": True,  "marka": True},
+}
+
+
+@dataclass(frozen=True)
+class QueryContext:
+    doc_ids: tuple[str, ...]      # boşsa filtre yok
+    matched: tuple[str, ...]      # hangi ifadeler eşleşti (arayüzde gösterilir)
+    variants: tuple[str, ...] = ()         # belirsiz: soru aynı türden birden çok dokümana uyuyor (S-7300 → A, B)
+    # Sorudaki her varlık: (eşleşen ifade, tür, doküman kimlikleri).
+    # Kullanıcı bir kaynak seçtiğinde, varlığın seçilen kaynakta karşılığı var mı diye bakılır (MUST_MATCH).
+    entities: tuple[tuple[str, str, tuple[str, ...]], ...] = ()
+
+
+
+# --- Söylenmiş kodlar: "Es yetmiş üç yüz A" → "S-7300A", "E sıfır elli" → "E050" ---------------------------
+# Sesli soruda Whisper kodu söylendiği gibi yazabiliyor (kullanıcı denemesi, 2026-10-13): "S-7300A" tanınmayınca
+# kaynak belirsiz sanılıp "hangi model?" soruluyordu. Yalnızca bir kod harfinden sonra gelen sayı kelimeleri
+# çevrilir; "bir sorun", "iki iplik" gibi sıradan metne dokunulmaz.
+# "de" bilerek yok: bağlaçtır ("... de iki ..."), D ile başlayan kod pilot dokümanlarında yok.
+_LETTERS = {"es": "S", "s": "S", "e": "E", "a": "A", "be": "B", "b": "B", "ce": "C", "c": "C", "d": "D",
+            "ka": "K", "ke": "K", "k": "K", "pe": "P", "p": "P", "te": "T", "t": "T", "ha": "H", "he": "H"}
+_UNITS_TR = {"bir": 1, "iki": 2, "üç": 3, "dört": 4, "beş": 5, "altı": 6, "yedi": 7, "sekiz": 8, "dokuz": 9}
+_TENS_TR = {"on": 10, "yirmi": 20, "otuz": 30, "kırk": 40, "elli": 50, "altmış": 60, "yetmiş": 70, "seksen": 80,
+            "doksan": 90}
+_NUM_WORDS = set(_UNITS_TR) | set(_TENS_TR) | {"sıfır", "yüz", "bin"}
+
+
+def _code_digits(words: list[str]) -> str:
+    """Kodun sayı kelimeleri → rakam dizisi. Kod rakam rakam da okunabilir: "sıfır elli" → "050", "bir üç üç" → "133".
+    Konuşma dilindeki yüzler: "yetmiş üç yüz" → 7300 (yetmiş üç kere yüz)."""
+    out, value, last = [], 0, None
+
+    def close():
+        nonlocal value, last
+        if last is not None:
+            out.append(str(value))
+        value, last = 0, None
+
+    for w in words:
+        if w == "sıfır":
+            close()
+            out.append("0")
+        elif w in _UNITS_TR:
+            if last == "unit" or value % 10:
+                close()
+            value, last = value + _UNITS_TR[w], "unit"
+        elif w in _TENS_TR:
+            if last in ("unit", "ten") or value % 100:
+                close()
+            value, last = value + _TENS_TR[w], "ten"
+        elif w == "yüz":
+            part = value % 1000
+            value, last = value - part + (part * 100 if part else 100), "hundred"
+        elif w == "bin":
+            value, last = (value or 1) * 1000, "thousand"
+    close()
+    return "".join(out)
+
+
+def spoken_codes(text: str) -> str:
+    """'Es yetmiş üç yüz A'da E sıfır elli hatası' → "S-7300A'da E050 hatası". Kod yoksa metin aynen döner."""
+    tokens = text.split(" ")
+    out, i = [], 0
+    while i < len(tokens):
+        letter = _LETTERS.get(tokens[i].translate(_TR_LOWER).lower())
+        j = i + 1
+        while j < len(tokens) and re.sub(r"['’].*|[.,?!]$", "", tokens[j]).translate(_TR_LOWER).lower() in _NUM_WORDS:
+            j += 1
+        if letter is None or j == i + 1:
+            out.append(tokens[i])
+            i += 1
+            continue
+        words = [re.sub(r"['’].*|[.,?!]$", "", t).translate(_TR_LOWER).lower() for t in tokens[i + 1:j]]
+        tail = tokens[j - 1][len(re.sub(r"['’].*|[.,?!]$", "", tokens[j - 1])):]     # son sayının eki: "elli'de"
+        digits = _code_digits(words)
+        suffix = ""
+        if not tail and j < len(tokens):             # model harfi: "... yüz A'da" / "... yüz be"
+            m = re.fullmatch(r"([A-Za-z]{1,2})(['’].*|[.,?!])?", tokens[j])
+            if m and m.group(1).lower() in ("a", "b", "be"):
+                suffix, tail = ("B" if m.group(1).lower() == "be" else m.group(1).upper()), m.group(2) or ""
+                j += 1
+        sep = "-" if suffix or len(digits) >= 4 else ""
+        out.append(f"{letter}{sep}{digits}{suffix}{tail}")
+        i = j
+    return " ".join(out)
+
+
+# --- Kod biçimi: "e50" ↔ "E050" -------------------------------------------------------------------------
+# Kod: 1–3 harf + isteğe bağlı ayırıcı + 2–5 rakam. İki kod, harfleri (büyük/küçük farkı yok) ve rakamlarının sayısal
+# değeri aynıysa aynıdır: baştaki sıfır yazılmayabilir ("E50" = "E050"), ama değer farklıysa farklıdır ("E05" ≠
+# "E050"). Hangi yazımın var olduğu korpustan otomatik çıkarılır (doküman başına kod tablosu); dokümana özgü eşleme yok.
+CODE_IN_TEXT = re.compile(r"(?<![\w-])([A-Za-z]{1,3})[-\s]?(\d{2,5})(?![\w-])")
+CODE_IN_QUESTION = re.compile(r"(?<![\w-])([A-Za-z]{1,3}\d{2,5})(?![\w-])")
+
+
+def code_key(code: str) -> tuple[str, int] | None:
+    m = re.fullmatch(r"([A-Za-z]{1,3})[-\s]?(\d{2,5})", code.strip())
+    return (m.group(1).upper(), int(m.group(2))) if m else None
+
+
+@lru_cache(maxsize=1)
+def _code_forms() -> dict[str, dict[tuple[str, int], frozenset[str]]]:
+    """Doküman → kod anahtarı → korpustaki yazımlar (harfler büyük, ayırıcısız: "E050")."""
+    out: dict[str, dict[tuple[str, int], set[str]]] = {}
+    if CHUNKS_PATH.exists():
+        with CHUNKS_PATH.open(encoding="utf-8") as f:
+            for line in f:
+                c = json.loads(line)
+                forms = out.setdefault(c["doc_id"], {})
+                for m in CODE_IN_TEXT.finditer(c["text"]):
+                    forms.setdefault((m.group(1).upper(), int(m.group(2))), set()).add(m.group(1).upper() + m.group(2))
+    return {d: {k: frozenset(v) for k, v in f.items()} for d, f in out.items()}
+
+
+def normalize_codes(question: str, scope: list[str] | None) -> str:
+    """Sorudaki kodu korpustaki yazımına çevirir: aynı yazım kapsamda yoksa ve anahtarı kapsamda tek bir yazıma
+    düşüyorsa ("e50" → "E050"). Birden çok yazıma düşerse ya da hiç düşmezse olduğu gibi kalır (kod araması
+    anahtarla eşler; hiç yoksa "kapsamda yok"). Doküman takma adları ("s7300a") kod sayılmaz."""
+    tables = _code_forms()
+    docs = scope or list(tables)
+    aliases = {_squash(a) for d in DOCS for a in product_names(d)}
+
+    def repl(m: re.Match) -> str:
+        code = m.group(1)
+        key = code_key(code)
+        if key is None or _squash(code) in aliases:
+            return code
+        forms = set().union(*(tables.get(d, {}).get(key, frozenset()) for d in docs))
+        return next(iter(forms)) if len(forms) == 1 and code.upper() not in forms else code
+
+    return CODE_IN_QUESTION.sub(repl, question)
+
+
+_TR_HINTS = {"ne", "nedir", "nasıl", "kaç", "mı", "mi", "mu", "mü", "için", "olmalı", "hangi", "neden", "ve", "bir",
+             "ile", "var", "yok", "değil", "ayarlanır", "takılır", "makinesi", "makinesinde", "hatası", "dikiş"}
+_EN_HINTS = {"the", "how", "what", "which", "is", "are", "for", "of", "many", "much", "should", "does", "do", "on",
+             "in", "to", "with", "machine", "required", "per", "when", "why", "can"}
+
+
+def question_lang(question: str) -> str:
+    """Sorunun dili: 'tr' ya da 'en'. Cevap sorunun dilinde verilir (karar). Emin olunamazsa Türkçe."""
+    if re.search(r"[çğıöşüÇĞİÖŞÜ]", question):
+        return "tr"
+    words = re.findall(r"[a-z]+", question.lower())
+    en, tr = sum(w in _EN_HINTS for w in words), sum(w in _TR_HINTS for w in words)
+    return "en" if en > tr else "tr"
+
+
+def analyze_query(question: str) -> QueryContext:
+    q = _squash(spoken_codes(question))
+    doc_ids: list[str] = []
+    matched: list[str] = []
+    entities: list[tuple[str, str, tuple[str, ...]]] = []
+    variants: list[str] = []
+
+    for doc in DOCS:
+        for alias in product_names(doc):
+            if _squash(alias) in q:
+                doc_ids.append(doc.doc_id)
+                matched.append(alias)
+                entities.append((alias, KIND_OF_DOC_TYPE.get(doc.doc_type, "rehber"), (doc.doc_id,)))
+                break
+    return QueryContext(tuple(dict.fromkeys(doc_ids)), tuple(matched),
+                        tuple(dict.fromkeys(variants)), tuple(entities))
+
+
+def _must_match(kind: str, scope: list[str]) -> bool:
+    return any(MUST_MATCH.get(BY_ID[d].doc_type, {}).get(kind, False) for d in scope)
+
+
+def missing_entities(ctx: QueryContext, scope: list[str]) -> list[tuple[str, str, tuple[str, ...]]]:
+    """Sorudaki varlıklardan, seçilen kaynak türü için eşleşmesi gerekip (MUST_MATCH) seçilen kaynakta karşılığı
+    olmayanlar.
+
+    "Brother A makinesi ceket ölçüsü" + S-7300A → 'ceket' eksik (kılavuz ürüne özgü bilgi içermez).
+    Aynı soru + Ceket şartnamesi → 'brother' bağlamdır, eksik sayılmaz (şartname makineden bağımsız).
+    """
+    reach = set(scope)
+    return [e for e in ctx.entities if _must_match(e[1], scope) and not reach & set(e[2])]
+
+
+def context_entities(ctx: QueryContext, scope: list[str]) -> list[str]:
+    """Seçilen kaynak için bağlam olan (aramayı ve cevabı etkilememesi gereken) varlık ifadeleri."""
+    reach = set(scope)
+    return [e[0] for e in ctx.entities if not _must_match(e[1], scope) and not reach & set(e[2])]
+
+
+def strip_terms(question: str, aliases: list[str]) -> str:
+    """Sorudan verilen ifadelerle başlayan kelimeleri çıkarır ("Brother'da", "ceketin" dahil)."""
+    keys = [_squash(a) for a in aliases]
+    words = [w for w in question.split() if not any(_squash(w).startswith(k) for k in keys)]
+    return " ".join(words)
+
+
+# Kaynak ifadesi: "Granovsky kitabına göre", "S-7300A kılavuzunda", "kılavuza göre", "according to the X manual".
+# Kaynak zaten filtreyle seçildiği için bu kelimeler aramaya bir şey katmıyor; sparse kolda dizin/başlık sayfalarını
+# ("Granovsky", "kitap") öne çekiyordu (BENCHMARK-RAPORU Aşama 2.5, N1/N2). Yalnız aramadan çıkarılır, modele giden
+# soru değişmez. Varlık tek başına geçiyorsa ("S-7300A'da E050") dokunulmaz: o sorunun parçası.
+DOC_NOUNS = ("kitab", "kitap", "kılavuz", "kilavuz", "şartname", "sartname", "doküman", "dokuman", "manuel", "katalog",
+             "talimat", "döküman")
+EN_DOC_NOUNS = ("manual", "book", "guide", "handbook", "specification", "document", "catalog", "catalogue")
+_GORE = ("göre", "gore")
+
+
+def strip_source_phrases(question: str, aliases: list[str]) -> str:
+    words = question.split()
+    keys = [_squash(a) for a in aliases if _squash(a)]
+    is_alias = [any(_squash(w).startswith(k) for k in keys) for w in words]
+    is_noun = [any(_squash(w).startswith(n) for n in DOC_NOUNS) for w in words]
+    drop = [False] * len(words)
+    for i, w in enumerate(words):
+        nxt = _squash(words[i + 1]) if i + 1 < len(words) else ""
+        if is_alias[i] and i + 1 < len(words) and (is_noun[i + 1] or nxt in _GORE):
+            drop[i] = drop[i + 1] = True                       # "Granovsky kitabına", "Granovsky'ye göre"
+        elif is_noun[i] and (nxt in _GORE or (i > 0 and drop[i - 1])):
+            drop[i] = True                                     # "kılavuza (göre)", "X kitabına göre"
+        if drop[i] and nxt in _GORE:
+            drop[i + 1] = True
+    out = [w for w, d in zip(words, drop) if not d]
+    text = " ".join(out)
+    # İngilizce: "according to (the) <X> (manual)", "in the <X> manual"
+    alias_re = "|".join(re.escape(a) for a in aliases if a)
+    if alias_re:
+        nouns = "|".join(EN_DOC_NOUNS)
+        text = re.sub(rf"\b(?:according to|in|from)\s+(?:the\s+)?(?:{alias_re})(?:'s)?(?:\s+(?:{nouns}))?\b[,]?\s*",
+                      "", text, flags=re.I)
+    text = re.sub(r"\baccording to the (?:" + "|".join(EN_DOC_NOUNS) + r")\b[,]?\s*", "", text, flags=re.I)
+    return text.strip() or question
+
+
+def source_aliases(ctx: "QueryContext", scope: list[str] | None) -> list[str]:
+    """Sorudaki, kapsamdaki dokümanı adlandıran ifadeler (strip_source_phrases için)."""
+    if not scope:
+        return []
+    return [e[0] for e in ctx.entities if set(e[2]) & set(scope)]
+
+
+# --- Soru neyi soruyor? ----------------------------------------------------------------------------
+# Kaynak belli olsa bile "ceket ölçüsü" bir şey sormuyor: şartnamede beden tablosu, dikiş sıklığı, punteriz
+# ölçüsü ... hepsi "ölçü". Bu durumda arama rastgele tablolar getiriyor, model de uydurmaya ya da boş cevaba
+# kayıyor (Windows denemesi, 2026-10-13). Soruda varlıklar ve genel kelimeler dışında hiçbir şey kalmıyorsa
+# model çağrılmadan "hangi bilgi?" diye sorulur.
+
+# Tek başına bir şey sormayan kelimeler (kelime başı eşleşir: "ölçüsü", "makinesinde", "dikişleri")
+GENERIC_PREFIXES = ("ölçü", "değer", "bilgi", "özellik", "dikiş", "ayar", "makine", "marka", "model", "ürün",
+                    "şartname", "kılavuz", "manuel", "detay", "hakkında")
+STOPWORDS = {"ne", "nedir", "neler", "nelerdir", "kaç", "kadar", "nasıl", "mı", "mi", "mu", "mü", "mıdır", "midir",
+             "için", "icin", "ile", "ve", "veya", "ya", "da", "de", "bir", "bu", "şu", "olmalı", "olmalıdır",
+             "olması", "olur", "olan", "var", "yok", "hangi", "hangisi", "gerekir", "gerekli", "lazım", "acaba",
+             "the", "of", "for", "what", "is", "are", "an", "in", "on", "how", "much", "many", "which"}
+
+
+def asks_nothing_specific(question: str, ctx: QueryContext) -> bool:
+    """Soruda varlık adları, genel kelimeler ve bağlaçlar dışında kelime yoksa True ("Brother A ceket ölçüsü")."""
+    keys = [_squash(e[0]) for e in ctx.entities]
+    for word in re.findall(r"[\w'’\-]+", question.translate(_TR_LOWER).lower()):
+        w = _squash(re.split(r"['’]", word)[0])       # "S-7300A'da" → "s7300a"
+        if len(w) <= 1 or w in STOPWORDS or w.startswith(GENERIC_PREFIXES) or any(w.startswith(k) for k in keys):
+            continue
+        return False
+    return True

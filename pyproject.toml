@@ -85,7 +85,8 @@ line-length = 100
 target-version = "py312"
 src = ["src", "."]
 # Dondurulmuş ölçüm kayıtlarındaki betikler ölçüldükleri haliyle saklanır; biçimlenmez.
-extend-exclude = ["evals/results"]
+# v1/ eski Visual Agent ağacıdır; karşılaştırma için olduğu gibi saklanır, denetlenmez.
+extend-exclude = ["evals/results", "v1"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "C90"]
