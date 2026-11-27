@@ -25,7 +25,7 @@ import math
 import re
 import tempfile
 from collections import Counter
-from collections.abc import Awaitable, Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from html.parser import HTMLParser
@@ -219,13 +219,9 @@ def text_rows(text: str) -> list[list[str]]:
     return rows
 
 
-def _row_labels(row: Sequence[str]) -> list[str]:
-    """Satırın etiketleri: ilk dolu hücre ve rakamsız öbür hücreler. Form tablosunda bir satır
-    birkaç "etiket | değer" çifti taşır ("Sample Status | … | Main Material # | KNT-222888");
-    öbür okuma her çifti ayrı satıra yazabilir."""
-    rest = [cell for cell in row[1:] if cell.strip() and not _DIGIT_RE.search(cell)]
-    keys = [_row_key(row), *(_row_key([cell]) for cell in rest)]
-    return list(dict.fromkeys(key for key in keys if key))
+def _squash(text: str) -> str:
+    """Hücre karşılaştırma biçimi: harf büyüklüğü, noktalama ve boşluk yok sayılır."""
+    return "".join(ch for ch in canonical(text).casefold() if ch.isalnum())
 
 
 _MIN_PREFIX_LABEL = 4
@@ -239,38 +235,68 @@ def _label_matches(label: str, key: str, exact: bool) -> bool:
     return key.startswith(label) or label.startswith(key)
 
 
-def row_mismatches(primary: Sequence[Sequence[str]], other: Sequence[Sequence[str]]) -> RowMarks:
-    """Birinci okumanın her satırı öbür okumada etiketi aynı olan satırlarla eşlenir (önce
-    birebir, yoksa ön ek; aynı etiket birden çok geçerse sırayla; bir satır bir kez kullanılır);
-    satırın sayı ve kodları yalnız eşlenen satırlarla sayılır. Eşi olmayan satırın bütün
-    hücreleri (sayı içermeyen sözcükleri de) belirsizdir: satır indekste kalır, ondan alıntı
-    yapan cümle gizlenir. Satır sırası önemsizdir, bağı önemlidir: değer sütunu bir satır
-    kayarsa blokta sayılar tutar, satırda tutmaz. Değer taşıyan satırlar önce eşlenir: sayısız
-    satırların eşlemeye katılması onların eşini değiştirmez.
+_Keyed = Sequence[tuple[str, str]]
+"""Öbür okumanın satırları: (etiket, karşılaştırma biçimindeki bütün metni)."""
 
-    Sınır: eşleme yalnız etikete (ilk hücre) bakar; etiketi doğru ama başka sütunu kaymış satır
-    eşini bulur, sayı taşımayan kaymış metni gizlenmez (Bold s.21)."""
-    keyed = [(_row_key(row), row) for row in other]
-    used: set[int] = set()
 
-    def take(label: str) -> Sequence[str] | None:
-        for exact in (True, False):
-            for index, (key, row) in enumerate(keyed):
-                if index not in used and _label_matches(label, key, exact):
-                    used.add(index)
-                    return row
+def _candidates(label: str, keyed: _Keyed, used: set[int], taken: Sequence[int]) -> Iterator[int]:
+    for exact in (True, False):
+        for index, (key, _) in enumerate(keyed):
+            if index not in used and index not in taken and _label_matches(label, key, exact):
+                yield index
+
+
+def _bind(row: Sequence[str], keyed: _Keyed, used: set[int]) -> list[int] | None:
+    """Satırın öbür okumadaki eşleri (`row_mismatches`); bulunamazsa None. Bulunanlar
+    kullanılmış sayılır."""
+    cells = [(cell, text) for cell in row if (text := _squash(cell))]
+    if not cells:
         return None
+    for first in _candidates(cells[0][1], keyed, used, ()):
+        chosen = [first]
+        for cell, text in cells:
+            if text in keyed[chosen[-1]][1]:
+                continue
+            digits = _DIGIT_RE.search(cell)
+            pair = None if digits else next(_candidates(text, keyed, used, chosen), None)
+            if pair is None:
+                break
+            chosen.append(pair)
+        else:
+            used.update(chosen)
+            return chosen
+    return None
+
+
+def row_mismatches(primary: Sequence[Sequence[str]], other: Sequence[Sequence[str]]) -> RowMarks:
+    """Birinci okumanın her satırı öbür okumada eşine bağlanır: ilk dolu hücre (etiket) öbür
+    satırın ilk hücresiyle eşleşir (önce birebir, yoksa ön ek; aynı etiket birden çok geçerse
+    hücreleri tutan ilk satır; bir satır bir kez kullanılır), sonraki her hücre de eşlenen
+    satırda geçmelidir (harf büyüklüğü, noktalama ve boşluk yok sayılır). Geçmeyen rakamsız
+    hücre yeni bir "etiket | değer" çiftinin etiketi olabilir: form satırını öbür okuma çift
+    çift ayrı satıra yazar ("Sample Status | … | Main Material # | KNT-222888"). Satırın sayı ve
+    kodları eşlenen satırlarla sayılır.
+
+    Eşi olmayan satırın bütün hücreleri (sayı içermeyen sözcükleri de) belirsizdir: satır
+    indekste kalır, ondan alıntı yapan cümle gizlenir. Satır sırası önemsizdir, bağı önemlidir:
+    sütun bir satır kayarsa (Bold s.21: risk doğru, azaltma bir öncekinin) blokta sözcükler ve
+    sayılar tutar, satırda tutmaz. Değer taşıyan satırlar önce eşlenir.
+
+    Sınır: öbür okuma her hücreyi ayrı satıra yazarsa (ayraçsız satır listesi) rakamsız hücre
+    çift etiketi gibi her yerde bulunur; rakamsız hücrenin kayması bu durumda yakalanmaz."""
+    keyed = [(_row_key(row), _squash(" ".join(row))) for row in other]
+    used: set[int] = set()
 
     marks: RowMarks = {}
     texts = [" ".join(row) for row in primary]
     for index in sorted(range(len(primary)), key=lambda i: not value_tokens(texts[i])):
-        row, text = primary[index], texts[index]
-        matched = [found for label in _row_labels(row) if (found := take(label)) is not None]
-        if not matched:
-            if words := _words(text):
+        text = texts[index]
+        matched = _bind(primary[index], keyed, used)
+        if matched is None:
+            if words := [word for word in _words(text) if any(ch.isalnum() for ch in word)]:
                 marks[index] = sorted(set(words))
             continue
-        mismatched = count_mismatches(text, " ".join(" ".join(other_row) for other_row in matched))
+        mismatched = count_mismatches(text, " ".join(" ".join(other[i]) for i in matched))
         if mismatched:
             marks[index] = mismatched
     return marks

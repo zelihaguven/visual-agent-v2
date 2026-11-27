@@ -1395,9 +1395,10 @@ def test_a_value_column_shifted_by_one_row_is_hidden(tmp_path: Path) -> None:
 
     rows = _uncertain_by_row(_read(tmp_path, _paddle_table(shifted), str, cloud))
 
-    assert rows["POM: LG040 Waist"] == ("14", "15")
-    assert rows["POM: LG050 Hip"] == ("16", "17")
-    assert rows["POM: LG060 Inseam"] == ("12", "13")
+    # Hücreleri tutmayan satırın eşi yok: etiketi dahil bütün sözcükleri belirsiz.
+    assert rows["POM: LG040 Waist"] == ("14", "15", "LG040", "Waist")
+    assert rows["POM: LG050 Hip"] == ("16", "17", "Hip", "LG050")
+    assert rows["POM: LG060 Inseam"] == ("12", "13", "Inseam", "LG060")
 
 
 _TRUE_ROWS = [
@@ -1467,9 +1468,11 @@ def test_figure_table_rows_must_agree_row_by_row(tmp_path: Path) -> None:
     agreed = _read_figure(tmp_path, lambda _: gemma, lambda _: gemma)
 
     assert {e.text.split(" | ")[0]: e.ocr_uncertain for e in shifted} == {
-        "RISK: Reinforcement 18 mm": ("18",),
-        "RISK: Over seam 3 stripes": ("18", "3"),
-        "RISK: Color Block": ("3", "SPI"),
+        "RISK: Reinforcement 18 mm": ("18", "Reinforcement", "Thread", "mm", "tension"),
+        "RISK: Over seam 3 stripes": (
+            *("18", "3", "Over", "Reinforcement", "interlining", "mm", "seam", "stripes"),
+        ),
+        "RISK: Color Block": ("3", "Block", "Color", "Over", "SPI", "seam", "stripes"),
     }
     assert [e.ocr_uncertain for e in agreed] == [(), (), ()]
 
@@ -1505,7 +1508,7 @@ def test_row_marks_stay_on_their_row_and_header_marks_cover_the_table(tmp_path: 
     rows = _uncertain_by_row(_read(tmp_path, _paddle_table(paddle), str, _cloud(lambda _: other)))
 
     assert rows == {
-        "POM: LG1 Waist": ("POM", "28", "30", "14"),
+        "POM: LG1 Waist": ("POM", "28", "30", "12", "14", "LG1", "Waist"),
         "POM: LG2 Hip": ("POM", "28", "30", "13"),
         "POM: LG3 Inseam": ("POM", "28", "30"),
     }
@@ -1524,7 +1527,7 @@ def test_form_row_with_several_label_value_pairs_matches_split_rows(tmp_path: Pa
     wrong = "Sample Status | Fit Approved\nMain Material # | KNT-222889\nKNT-222888 | not"
 
     assert read(split) == ()
-    assert read(wrong) == ("KNT-222888",)
+    assert read(wrong) == ("Approved", "Fit", "KNT-222888", "Main", "Material", "Sample", "Status")
 
 
 def test_label_and_value_written_in_one_cell_still_match(tmp_path: Path) -> None:
@@ -1573,13 +1576,69 @@ def test_rows_without_numbers_do_not_take_the_match_of_a_row_with_values() -> No
     assert marks == {0: ["Note", "chart", "see"]}
 
 
-def test_a_shifted_text_column_under_a_matching_label_is_not_caught(tmp_path: Path) -> None:
-    """Bilinen sınır (Bold s.21): etiketi doğru, azaltma sütunu kaymış satır eşini bulur;
-    sayı taşımayan kaymış metin belirsiz sayılmaz, cevapta gösterilebilir."""
+def test_a_shifted_text_column_under_a_matching_label_is_hidden(tmp_path: Path) -> None:
+    """Bold s.21: etiketi doğru, azaltma sütunu kaymış satırın eşi yok (iki yolda da)."""
     header = ["RISK", "MITIGATION"]
     qwen = _figure_table(header, ["Color Block 3S", "Over seam: presser foot settings"])
     gemma = _figure_table(header, ["Color Block 3S", "Conduct proper testing"])
+    paddle = [header, ["Color Block 3S", "Over seam: presser foot settings"]]
+    check = "RISK | MITIGATION\nColor Block 3S | Conduct proper testing"
+    marked = ("3S", "Block", "Color", "Over", "foot", "presser", "seam", "settings")
 
-    rows = _uncertain_by_row(_read_figure(tmp_path, lambda _: qwen, lambda _: gemma))
+    figure = _uncertain_by_row(_read_figure(tmp_path, lambda _: qwen, lambda _: gemma))
+    region = _uncertain_by_row(_read(tmp_path, _paddle_table(paddle), str, _cloud(lambda _: check)))
 
-    assert rows == {"RISK: Color Block 3S": ()}
+    assert figure == {"RISK: Color Block 3S": marked}
+    assert region == {"RISK: Color Block 3S": marked}
+
+
+_RISKS = [
+    ["RISK", "MITIGATION"],
+    ["Color Block 3S", "Conduct proper testing."],
+    ["Insert Block Panel", "Choose the best fit width"],
+]
+
+
+@pytest.mark.parametrize(
+    "other",
+    [
+        "RISK | MITIGATION\nColor Block 3S | Conduct proper testing.\n"
+        "Insert Block Panel | Choose the best fit width",
+        # Yalnız harf büyüklüğü, noktalama ve boşluk farkı. Büyük harfli sözcük kod sayıldığı
+        # için ("RISK") blok sayımı onun harf farkını yine görür (0035, bilinen sınır).
+        "RISK | MITIGATION\ncolor block 3S: | conduct proper-testing\n"
+        "Insert Block Panel | Choose the best fit  width.",
+    ],
+)
+def test_rows_whose_cells_agree_are_not_marked_on_either_path(tmp_path: Path, other: str) -> None:
+    gemma = _figure_table(*page_reader.text_rows(other))
+
+    figure = _read_figure(tmp_path, lambda _: _figure_table(*_RISKS), lambda _: gemma)
+    region = _read(tmp_path, _paddle_table(_RISKS), str, _cloud(lambda _: other))
+
+    assert [e.ocr_uncertain for e in figure] == [(), ()]
+    assert [e.ocr_uncertain for e in region] == [(), ()]
+
+
+def test_a_cell_written_as_its_own_line_still_matches_its_row(tmp_path: Path) -> None:
+    """Denetim okuması satır listesi yazarsa (Mac'te s.21) rakamsız hücre kendi satırında
+    bulunur: doğru tablo işaretlenmez. Sınır: rakamsız hücrenin kayması bu biçimde yakalanmaz."""
+    lines = json.dumps(
+        {
+            "lines": [
+                "RISK",
+                "MITIGATION",
+                "Color Block 3S: color migration",
+                "Color Block: Conduct proper testing",
+            ],
+            "tables": [],
+        }
+    )
+    table = _figure_table(
+        ["RISK", "MITIGATION"],
+        ["Color Block 3S: color migration", "Color Block: Conduct proper testing"],
+    )
+
+    [row] = _read_figure(tmp_path, lambda _: table, lambda _: lines)
+
+    assert row.ocr_uncertain == ()
