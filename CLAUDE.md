@@ -18,7 +18,7 @@ Fabrikadaki iç belgeler (kılavuzlar, sürüm notları, teknik föyler, Excel/W
 1. **Yanlış değer asla verilmez.** Ölçü, ayar değeri, vida değeri gibi sayılar kaynakta doğrulanmadan kullanıcıya gösterilmez. Emin olunamıyorsa cevap vermemek, yanlış vermekten iyidir.
 2. **Alana bağımsız ve otomatik.** Şu anki test belgeleri üretimde kullanılmayacak. Gerçek belgeler elle düzeltilemez. Her kural, hiç görülmemiş belgelerde de kendiliğinden çalışmalı. Belgeye, soruya ya da belirli bir modele özel yama yazma.
 3. **Karışık belge türleri.** Gerçek belgeler ham (PDF, taranmış PDF, Word, Excel) ya da hazır Markdown olarak gelebilir. Dönüştürmede içerik kaybı olmamalı.
-4. **Bulut kullanımı.** Buluta yalnızca parçalar (chunk) gider, bütün belge gitmez. Yalnızca ZDR (Zero Data Retention) sağlayan sağlayıcılar kullanılır.
+4. **Bulut kullanımı.** Bulut yalnız ZDR ile; ZDR'siz model çağrılmaz. Soru anında buluta yalnız soru ve ilgili parçalar gider. Belge okumada taranmış ve görsel sayfaların yazı bölgesi kırpıntıları ve gerektiğinde tam sayfa görüntüsü ZDR'li VLM'e gidebilir (27 Kasım şirket onayı, 0035). Tek sayfalık görsel bir belgede bu, belgenin tamamı demektir; onay bunu kapsıyor.
 5. **Maliyet / kalite dengesi.** Ucuz ama zayıf model kabul edilmez; maliyet de uçmamalı. Model değişikliği ölçümle gerekçelendirilir.
 6. **Uygulama boş açılmaz.** Repodaki örnek belgeler ve FastReact belgeleri uygulamada yüklü kalır.
 
