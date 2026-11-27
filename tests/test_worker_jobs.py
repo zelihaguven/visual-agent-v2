@@ -1,5 +1,5 @@
 import asyncio
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -15,6 +15,7 @@ from visual_agent.ingest.external import (
     MissingTool,
     ReaderUnavailable,
 )
+from visual_agent.ingest.page_reader import READ_PROGRESS
 from visual_agent.ingest.pipeline import IngestReport, IngestResult
 
 
@@ -343,3 +344,41 @@ def test_document_waits_when_the_page_reader_is_unavailable(tmp_path: Path) -> N
 
     assert repository.waiting == [("d", "okuyucu bekleniyor")]
     assert repository.failed == [] and repository.ready == [] and indexer.indexed == []
+
+
+def _reading_ingest(
+    seen: list[dict[str, tuple[str, int, int]]],
+    board: dict[str, tuple[str, int, int]],
+    error: bool = False,
+) -> Callable[[Path, DocumentMeta, Path], IngestResult]:
+    """Okuyucunun yaptığı gibi ilerleme bildirir ve o anki kaydı not eder."""
+
+    def ingest(path: Path, meta: DocumentMeta, work: Path) -> IngestResult:
+        sink = READ_PROGRESS.get()
+        assert sink is not None
+        for done in range(3):
+            sink("image", done, 2)
+        seen.append(dict(board))
+        if error:
+            raise RuntimeError("okuma hatası")
+        return IngestResult(chunks=(_chunk(),), report=REPORT, display_pdf=None)
+
+    return ingest
+
+
+@pytest.mark.parametrize("error", [False, True])
+def test_reading_progress_is_shown_while_reading_and_cleared_afterwards(
+    tmp_path: Path, error: bool
+) -> None:
+    board: dict[str, tuple[str, int, int]] = {}
+    seen: list[dict[str, tuple[str, int, int]]] = []
+    repository = FakeRepository(queued=[document(tmp_path)])
+    processor = DocumentProcessor(
+        repository, FakeIndexer(), _reading_ingest(seen, board, error), progress=board
+    )
+
+    asyncio.run(processor.process_next())
+
+    assert seen == [{"d": ("image", 2, 2)}]
+    assert board == {}
+    assert READ_PROGRESS.get() is None

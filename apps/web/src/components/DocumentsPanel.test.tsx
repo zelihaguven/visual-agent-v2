@@ -54,6 +54,38 @@ describe("DocumentsPanel", () => {
     expect(within(pendingRow).getByRole("button", { name: /Yeniden İşle/ })).toBeDisabled();
     expect(within(pendingRow).getByRole("button", { name: /Sil/ })).toBeEnabled();
   });
+  it("shows reading progress only while the document is processed", async () => {
+    const base = { filename: "x.pdf", error: null, report: null };
+    const documents: DocumentInfo[] = [
+      {
+        ...base,
+        doc_id: "p",
+        title: "okunuyor",
+        status: "processing",
+        progress: { kind: "image", done: 12, total: 54 },
+      },
+      { ...base, doc_id: "s", title: "sirada", status: "queued", progress: null },
+      {
+        ...base,
+        doc_id: "r",
+        title: "hazir",
+        status: "ready",
+        progress: { kind: "page", done: 3, total: 3 },
+      },
+    ];
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(documents))));
+    render(<DocumentsPanel onClose={() => undefined} />);
+
+    const reading = (await screen.findByText("okunuyor")).closest("li") as HTMLElement;
+    const bar = within(reading).getByRole("progressbar", { name: "Okunuyor: Görsel 12 / 54" });
+    expect(bar).toHaveAttribute("value", "12");
+    expect(bar).toHaveAttribute("max", "54");
+    expect(within(reading).getByText("Görsel 12 / 54")).toBeInTheDocument();
+    for (const title of ["sirada", "hazir"]) {
+      const row = screen.getByText(title).closest("li") as HTMLElement;
+      expect(within(row).queryByRole("progressbar")).toBeNull();
+    }
+  });
   it("shows a document waiting for the page reader and lets it be reprocessed", async () => {
     const waiting: DocumentInfo = {
       doc_id: "w",

@@ -95,6 +95,8 @@ class ApiServices:
     remove_vectors: RemoveVectors = _no_vectors
     question_log: QuestionRecorder | None = None
     document_names: DocumentNames = field(default_factory=DocumentNames)
+    reading_progress: Mapping[str, tuple[str, int, int]] = field(default_factory=dict)
+    """İşçinin yazdığı okuma ilerlemesi: belge → ("page" ya da "image", okunan, toplam)."""
 
 
 class HealthResponse(BaseModel):
@@ -120,6 +122,12 @@ class AskBody(BaseModel):
         return stripped
 
 
+class ReadingProgress(BaseModel):
+    kind: Literal["page", "image"]
+    done: int
+    total: int
+
+
 class DocumentResponse(BaseModel):
     doc_id: str
     title: str
@@ -131,9 +139,15 @@ class DocumentResponse(BaseModel):
     """Belge, biçiminin bugünkü parçalama kuralından eski bir kuralla işlendi."""
     topic: str | None = None
     """Arayüzün belgeyi gruplamak için kullandığı konu adı; henüz verilmediyse None."""
+    progress: ReadingProgress | None = None
+    """İşlenen belgenin okuyucu adımı (okunan / toplam sayfa ya da görsel); yoksa None."""
 
 
-async def _document_response(document: StoredDocument, names: DocumentNames) -> DocumentResponse:
+async def _document_response(
+    document: StoredDocument,
+    names: DocumentNames,
+    progress: Mapping[str, tuple[str, int, int]] | None = None,
+) -> DocumentResponse:
     async def itself(_: str) -> StoredDocument:
         return document
 
@@ -146,7 +160,18 @@ async def _document_response(document: StoredDocument, names: DocumentNames) -> 
         report=document.report,
         outdated=document.report is not None and is_outdated(document.report, document.filename),
         topic=document.topic,
+        progress=_reading_progress(document, progress or {}),
     )
+
+
+def _reading_progress(
+    document: StoredDocument, progress: Mapping[str, tuple[str, int, int]]
+) -> ReadingProgress | None:
+    found = progress.get(document.doc_id)
+    if found is None or document.status != DocumentStatus.PROCESSING:
+        return None
+    kind, done, total = found
+    return ReadingProgress.model_validate({"kind": kind, "done": done, "total": total})
 
 
 def _result_payload(result: AskResult) -> dict[str, object]:
@@ -446,7 +471,8 @@ def _library_router(app: FastAPI) -> APIRouter:
     async def documents(services: ServicesDep) -> list[DocumentResponse]:
         names = services.document_names
         return [
-            await _document_response(d, names) for d in await services.repository.list_documents()
+            await _document_response(d, names, services.reading_progress)
+            for d in await services.repository.list_documents()
         ]
 
     @router.post("/documents", response_model=DocumentResponse, status_code=201)
