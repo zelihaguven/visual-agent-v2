@@ -570,3 +570,33 @@ def test_rows_without_boxes_keep_the_last_heading() -> None:
     row = Element(ElementKind.TABLE_ROW, "Bel: 38", SourceLocation())
 
     assert _sections([heading, row])["Bel: 38"] == "Ölçüler"
+
+
+def _heading(text: str, level: int | None = None) -> Element:
+    return Element(ElementKind.HEADING, text, SourceLocation(page=1), level=level)
+
+
+def _row(text: str) -> Element:
+    return Element(ElementKind.TABLE_ROW, text, SourceLocation(page=1))
+
+
+def test_headings_without_level_are_siblings() -> None:
+    """Düzeyi bilinmeyen başlık öncekinin altına girmez: kopuk parça ("FW") kök olmaz."""
+    sections = _sections([_heading("FW"), _row("A: 1"), _heading("POMs"), _row("Bel: 38")])
+
+    assert sections == {"A: 1": "FW", "Bel: 38": "POMs"}
+
+
+def test_code_carrying_first_heading_stays_the_root() -> None:
+    """Karar 0025: kod taşıyan ilk başlık belge başlığıdır; sonraki başlıklar altına girer."""
+    root = "SS28-6026412-US-TEE CHART"
+    sections = _sections([_heading(root), _heading("BOM"), _row("Kod: BG-1"), _heading(root)])
+
+    assert sections == {"Kod: BG-1": f"{root} · BOM"}
+
+
+def test_levelled_headings_still_nest() -> None:
+    """Düzey kanıtı olan başlıklar (Markdown, Excel) iç içe kalır."""
+    elements = [_heading("Kılavuz", 1), _heading("Kurulum", 2), _row("Adım: 1")]
+
+    assert _sections(elements) == {"Adım: 1": "Kılavuz · Kurulum"}
