@@ -205,7 +205,9 @@ sayfası okur. Markdown (362) ve Excel değişmez.
 **Yeniden puanlama** (313 değer: set 1 150, set 2 163; işlenmiş veriden, yeni bulut çağrısı yok). Geçme şartı:
 doğrulanmış yanlış değer 0 (QM s.16 düzeldiği için set 1'de de 0 beklenir). Değer satır etiketiyle birlikte
 denetlenir: değer doğru ama yanlış satıra (yanlış etikete) bağlıysa "yanlış gösterilen" sayılır. Prototiple farklar değer değer yazılır;
-elle karar sayısı ayrı. **Bir tane bile yanlış değer gösterilirse dur, birleştirme.** Yöntem bu belgedeki tasarım ve
+elle karar sayısı ayrı. **Ek kayıp sayımı** (satır düzeyinde uyuşmanın ve eşsiz satırın sözcük işaretinin gizlediği
+doğru değerler; prototipte F-20-2) bu turda yapılmadı: bu yeniden puanlamada ayrıca raporlanır (tabandan ve prototipten
+gizlenen doğru farkı, değer değer). **Bir tane bile yanlış değer gösterilirse dur, birleştirme.** Yöntem bu belgedeki tasarım ve
 sonuç bölümlerinde (sınıflar, eşleştirme, ölçütler); prototip betikleri repoda değil, Mac oturumu yöntemi izleyerek
 yeniden kurar.
 
