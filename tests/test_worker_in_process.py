@@ -133,3 +133,4 @@ def test_cloud_reading_uses_the_configured_models_and_page_share() -> None:
         0.5,
     )
     assert cloud_config(Settings(_env_file=None, openrouter_api_key=None)) is None
+    assert cloud_config(Settings(_env_file=None, openrouter_api_key="  ")) is None

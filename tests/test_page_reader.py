@@ -1050,6 +1050,25 @@ def test_cache_key_separates_models_and_prompts(tmp_path: Path) -> None:
     assert len(list(tmp_path.glob("*.json"))) == 3
 
 
+def test_empty_answer_is_not_cached_and_a_broken_cache_file_is_asked_again(
+    tmp_path: Path,
+) -> None:
+    server = _OpenRouter(reply=["", "Basınç 185 bar", "Basınç 185 bar"])
+    crop = Image.new("RGB", (40, 20), "white")
+    ImageDraw.Draw(crop).rectangle((5, 5, 30, 15), fill="black")
+
+    assert _qwen_check(server, tmp_path)(crop) == ""
+    assert not list(tmp_path.glob("*.json"))
+    assert _qwen_check(server, tmp_path)(crop) == "Basınç 185 bar"
+    [cached] = tmp_path.glob("*.json")
+    cached.write_text('{"content": "Bas', encoding="utf-8")  # yarım yazılmış dosya
+
+    assert _qwen_check(server, tmp_path)(crop) == "Basınç 185 bar"
+    assert len(server.bodies) == 3
+    assert _qwen_check(server, tmp_path)(crop) == "Basınç 185 bar"  # yeniden yazıldı
+    assert len(server.bodies) == 3
+
+
 def _json(*lines: str) -> str:
     return json.dumps({"lines": list(lines), "tables": []})
 

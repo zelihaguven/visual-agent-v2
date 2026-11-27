@@ -55,15 +55,20 @@ def default_ingest(settings: Settings) -> Ingest:
 
 
 def cloud_config(settings: Settings) -> "CloudConfig | None":
-    """Sayfa okuyucusunun bulut okuması (karar 0035); anahtar yoksa None (Tesseract)."""
+    """Sayfa okuyucusunun bulut okuması (karar 0035); anahtar yoksa None (Tesseract). Yalnız
+    boşluk bırakılmış anahtar da yok sayılır (`apps.local.api_key_missing` gibi)."""
     from visual_agent.ingest.page_reader import CloudConfig
 
-    key = settings.openrouter_api_key
-    if key is None or not key.get_secret_value():
+    key = (
+        settings.openrouter_api_key.get_secret_value().strip()
+        if settings.openrouter_api_key
+        else ""
+    )
+    if not key:
         return None
     return CloudConfig(
         base_url=str(settings.openrouter_url).rstrip("/"),
-        api_key=key.get_secret_value(),
+        api_key=key,
         cache=Path(settings.reader_cache_directory),
         reader_model=settings.reader_model,
         figure_check_model=settings.reader_figure_check_model,

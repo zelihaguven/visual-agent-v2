@@ -279,6 +279,16 @@ class CloudConfig:
     """Yalnız testler verir."""
 
 
+def _cached_content(path: Path) -> str | None:
+    """Önbellekteki cevap; dosya yoksa ya da bozuksa (yarım yazılmış, elle değişmiş) None:
+    bozuk dosya yok sayılır, cevap yeniden istenir ve dosyanın üstüne yazılır."""
+    try:
+        content = json.loads(path.read_text(encoding="utf-8"))["content"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    return content if isinstance(content, str) else None
+
+
 def cloud_reader(
     config: CloudConfig,
     model: str,
@@ -292,7 +302,8 @@ def cloud_reader(
     sonra belgenin kalanında istek gitmez (`CLOUD_OUTAGE`, ZDR dizini de yeniden istenmez).
 
     accept: cevabın kullanılabilir olduğu denetimi (ör. şekil okumasında JSON). Kullanılamayan
-    cevap önbelleğe yazılmaz ve bir kez yeniden istenir; yine kullanılamazsa olduğu gibi döner."""
+    cevap önbelleğe yazılmaz ve bir kez yeniden istenir; yine kullanılamazsa olduğu gibi döner.
+    Boş cevap da önbelleğe yazılmaz."""
     chosen: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
     own = CloudOutage()
 
@@ -311,8 +322,8 @@ def cloud_reader(
         png = buffer.getvalue()
         key = hashlib.sha256(b"\0".join([model.encode(), prompt.encode(), png])).hexdigest()
         cached = config.cache / f"{key}.json"
-        if cached.exists():
-            return str(json.loads(cached.read_text(encoding="utf-8"))["content"])
+        if (stored := _cached_content(cached)) is not None:
+            return stored
         outage = CLOUD_OUTAGE.get() or own
         if model in outage.reasons:
             raise CloudUnavailable(f"{model}: {outage.reasons[model]}")
@@ -323,7 +334,7 @@ def cloud_reader(
                 outage.reasons[model] = repr(error)[:200]
                 logger.warning("Bulut okuması alınamadı; belgenin kalanında istenmez: %s", error)
                 raise CloudUnavailable(f"{model}: {error!r}"[:300]) from error
-            if accept is None or accept(content):
+            if content.strip() and (accept is None or accept(content)):
                 config.cache.mkdir(parents=True, exist_ok=True)
                 partial = cached.with_suffix(".tmp")
                 partial.write_text(
