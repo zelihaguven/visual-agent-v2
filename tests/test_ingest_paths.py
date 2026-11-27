@@ -97,6 +97,26 @@ def test_sql_file_becomes_code_with_comment_as_heading(tmp_path: Path) -> None:
     assert elements[1].text == "SELECT SUM(TUTAR)\nFROM FATURA;"
 
 
+def test_sql_comment_headings_are_siblings(tmp_path: Path) -> None:
+    """SQL 4 (karar 0035): yorum başlıkları düzeysiz, kardeştir; ikinci sorgu öncekinin altına
+    girmez."""
+    path = tmp_path / "raporlar.sql"
+    path.write_text("-- Rapor A\nSELECT 1;\n\n-- Rapor B\nSELECT 2;\n", encoding="utf-8")
+
+    chunks = build_chunks(parse_plain_text(path, InputFormat.SQL), META)
+
+    assert [(chunk.text, chunk.section) for chunk in chunks] == [
+        ("SELECT 1;", "Rapor A"),
+        ("SELECT 2;", "Rapor B"),
+    ]
+
+
+def test_sql_rules_version_counts_the_sibling_headings() -> None:
+    from visual_agent.ingest.formats import RULES_VERSIONS
+
+    assert RULES_VERSIONS[InputFormat.SQL] == 4
+
+
 def test_text_file_is_split_into_paragraphs(tmp_path: Path) -> None:
     path = tmp_path / "notlar.txt"
     path.write_text("Birinci paragraf.\n\nİkinci paragraf.\n", encoding="utf-8")

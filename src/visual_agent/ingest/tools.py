@@ -12,8 +12,16 @@ from visual_agent.domain.document import Box, SourceLocation
 from visual_agent.ingest.elements import Element, ElementKind, carries_value
 from visual_agent.ingest.external import ExternalTools, locate_tools
 from visual_agent.ingest.page_reader import (
+    CHECK_MAX_TOKENS,
+    CHECK_PROMPT,
+    FIGURE_MAX_TOKENS,
+    FIGURE_PROMPT,
+    CloudConfig,
+    CloudReaders,
     ReadPage,
     SecondReader,
+    cloud_reader,
+    figure_parts,
     is_ocr_layer,
     read_embedded_images,
     read_scanned_pages,
@@ -117,11 +125,33 @@ def recover_page_text(path: Path, page: int) -> list[Element]:
 
 
 def _second_reader(external: ExternalTools, read_page: ReadPage | None) -> SecondReader:
-    """İkinci okuma ölçümdeki gibi Tesseract tur+eng; Tesseract yoksa belge bunu söyler.
-    Okuyucu yoksa boş olmayan görüntü zaten okunamaz; Tesseract aranmaz."""
+    """İkinci okuma ölçümdeki gibi Tesseract tur+eng; bulut varsa yalnız yedeği (0035).
+    Tesseract yoksa belge bunu söyler. Okuyucu yoksa boş olmayan görüntü zaten okunamaz;
+    Tesseract aranmaz."""
     if read_page is None:
         return lambda _: ""
     return tesseract_reader(external.require_tesseract("tur+eng"))
+
+
+def _cloud_readers(cloud: CloudConfig | None) -> CloudReaders | None:
+    """Anahtar yoksa ikinci okuma Tesseract, şekil blokları bugünkü gibi atlanır. Şekil
+    okumasının JSON'u bozuk ya da yarımsa (token sınırı) bir kez yeniden istenir; yine bozuksa
+    blok atlanır."""
+    if cloud is None:
+        return None
+    return CloudReaders(
+        check=cloud_reader(cloud, cloud.reader_model, CHECK_PROMPT, CHECK_MAX_TOKENS),
+        figure_read=cloud_reader(
+            cloud,
+            cloud.reader_model,
+            FIGURE_PROMPT,
+            FIGURE_MAX_TOKENS,
+            accept=lambda content: figure_parts(content) is not None,
+        ),
+        figure_check=cloud_reader(
+            cloud, cloud.figure_check_model, FIGURE_PROMPT, FIGURE_MAX_TOKENS
+        ),
+    )
 
 
 def _read_scanned(
@@ -131,33 +161,46 @@ def _read_scanned(
     image: Path | None,
     external: ExternalTools,
     read_page: ReadPage | None,
+    cloud: CloudConfig | None,
 ) -> list[Element]:
     second = _second_reader(external, read_page)
-    return read_scanned_pages(path, pages, work, read_page, second, image)
+    readers = _cloud_readers(cloud)
+    return read_scanned_pages(path, pages, work, read_page, second, image, readers)
 
 
 def _read_images(
-    path: Path, images: list[Box], work: Path, external: ExternalTools, read_page: ReadPage | None
+    path: Path,
+    images: list[Box],
+    work: Path,
+    external: ExternalTools,
+    read_page: ReadPage | None,
+    cloud: CloudConfig | None,
 ) -> list[Element]:
     second = _second_reader(external, read_page)
-    return read_embedded_images(path, images, work, read_page, second)
+    readers = _cloud_readers(cloud)
+    return read_embedded_images(path, images, work, read_page, second, readers)
 
 
 def default_tools(
-    external: ExternalTools | None = None, read_page: ReadPage | None = None
+    external: ExternalTools | None = None,
+    read_page: ReadPage | None = None,
+    cloud: CloudConfig | None = None,
 ) -> IngestTools:
     """Araç yolları verilmezse PATH'te aranır. Sayfa okuyucusu yoksa yalnız metinli olmayan
-    sayfası (metin katmansız, zayıf ya da taranmış katmanlı) olan belge okuyucuyu bekler."""
+    sayfası (metin katmansız, zayıf ya da taranmış katmanlı) olan belge okuyucuyu bekler.
+    cloud: OpenRouter bağlantısı (0035); yoksa ikinci okuma Tesseract, şekil blokları atlanır."""
     found = external if external is not None else locate_tools(None, None)
     return IngestTools(
-        read_scanned_pages=partial(_read_scanned, external=found, read_page=read_page),
+        read_scanned_pages=partial(_read_scanned, external=found, read_page=read_page, cloud=cloud),
         office_to_pdf=partial(office_to_pdf, external=found),
         legacy_spreadsheet_to_xlsx=partial(legacy_spreadsheet_to_xlsx, external=found),
         image_to_pdf=image_to_pdf,
         inspect_pdf=inspect_pdf,
         parse_pdf=parse_pdf,
         recover_page_text=recover_page_text,
-        read_embedded_images=partial(_read_images, external=found, read_page=read_page),
+        read_embedded_images=partial(
+            _read_images, external=found, read_page=read_page, cloud=cloud
+        ),
     )
 
 

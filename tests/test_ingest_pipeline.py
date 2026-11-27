@@ -6,7 +6,14 @@ import pytest
 from visual_agent.domain.answer import ModelItem, PromptSource, Quote
 from visual_agent.domain.document import Box, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.chunking import build_chunks
-from visual_agent.ingest.elements import INGEST_PROGRESS, Element, ElementKind, carries_value
+from visual_agent.ingest.elements import (
+    CLOUD_OUTAGE,
+    INGEST_PROGRESS,
+    CloudOutage,
+    Element,
+    ElementKind,
+    carries_value,
+)
 from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.pipeline import (
     IngestTools,
@@ -259,6 +266,31 @@ def test_report_counts_a_heading_value_once_not_in_every_chunk(tmp_path: Path) -
     assert result.report.uncertain_values == 1
 
 
+def test_report_counts_only_values_not_the_words_of_a_row_without_a_match(
+    tmp_path: Path,
+) -> None:
+    """Eşi bulunamayan tablo satırının sözcükleri de belirsiz işaretlidir (gizleme için); belgenin
+    "değer net okunamadı" sayısı yalnız sayı ve kodları sayar."""
+    path = tmp_path / "tarama.pdf"
+    path.write_bytes(b"%PDF-x")
+
+    def read_scanned(path: Path, pages: list[int], work: Path, image: Path | None) -> list[Element]:
+        row = Element(
+            ElementKind.TABLE_ROW,
+            "Color Block | Over seam 3 stripes",
+            SourceLocation(page=1),
+            from_ocr=True,
+            ocr_uncertain=("3", "Block", "Color", "Over", "seam", "stripes"),
+        )
+        return [row]
+
+    tools = replace(_fake_tools([], page_kind=PageKind.NONE), read_scanned_pages=read_scanned)
+    result = ingest_document(path, META, tools, tmp_path)
+
+    assert result.chunks[0].ocr_uncertain == ("3", "Block", "Color", "Over", "seam", "stripes")
+    assert result.report.uncertain_values == 1
+
+
 def test_unreadable_document_is_reported_as_a_warning(tmp_path: Path) -> None:
     path = tmp_path / "notlar.txt"
     path.write_text("   \n", encoding="utf-8")
@@ -381,6 +413,53 @@ def test_unavailable_reader_stops_the_document(
     assert not any(call.startswith("parse") for call in calls)
 
 
+def test_blocks_rejected_by_the_cloud_get_their_own_warning(tmp_path: Path) -> None:
+    """Bloğa özgü 4xx devreyi açmaz ama içerik kaybı sessiz kalmaz (kural 3)."""
+    path = tmp_path / "tarama.pdf"
+    path.write_bytes(b"%PDF-x")
+
+    def reject(path: Path, pages: list[int], work: Path, image: Path | None) -> list[Element]:
+        outage = CLOUD_OUTAGE.get()
+        assert outage is not None
+        outage.rejected_blocks, outage.rejected_status, outage.fallback_blocks = 2, 413, 1
+        return []
+
+    tools = replace(_fake_tools([], page_kind=PageKind.NONE), read_scanned_pages=reject)
+    warnings = ingest_document(path, META, tools, tmp_path).report.warnings
+
+    assert (
+        "2 blok bulutça reddedildi (HTTP 413); Tesseract'la denetlendi ya da şekil bloğu okunmadı."
+        in warnings
+    )
+    assert not any("bulut alınamadı" in warning for warning in warnings)
+
+
+def test_cloud_outage_is_one_warning_per_document(tmp_path: Path) -> None:
+    """Devre kesicinin durumu belge başınadır: bir belgenin kesintisi sonrakine geçmez."""
+    path = tmp_path / "tarama.pdf"
+    path.write_bytes(b"%PDF-x")
+    outages: list[CloudOutage | None] = []
+
+    def cut(path: Path, pages: list[int], work: Path, image: Path | None) -> list[Element]:
+        outage = CLOUD_OUTAGE.get()
+        outages.append(outage)
+        if outage is not None and len(outages) == 1:
+            outage.reasons["qwen"] = "ConnectError()"
+            outage.fallback_blocks = 3
+        return []
+
+    tools = replace(_fake_tools([], page_kind=PageKind.NONE), read_scanned_pages=cut)
+    first = ingest_document(path, META, tools, tmp_path)
+    second = ingest_document(path, META, tools, tmp_path)
+
+    assert (
+        "3 blok Tesseract'la denetlendi; bulut alınamadı (qwen: ConnectError())."
+        in first.report.warnings
+    )
+    assert not any("Tesseract" in warning for warning in second.report.warnings)
+    assert outages[0] is not outages[1]
+
+
 def test_image_file_itself_is_given_to_the_page_reader(tmp_path: Path) -> None:
     path = tmp_path / "foto.jpg"
     path.write_bytes(b"\xff\xd8\xffx")
@@ -474,3 +553,96 @@ def test_ingest_reports_its_steps_in_order(tmp_path: Path) -> None:
         "text",
         "chunks",
     ]
+
+
+def _placed(kind: ElementKind, text: str, left: float, top: float, right: float) -> Element:
+    box = Box(
+        page=1, left=left, top=top, right=right, bottom=top + 9, page_width=612, page_height=792
+    )
+    return Element(kind, text, SourceLocation(page=1, boxes=(box,)))
+
+
+_RIGHT_TABLE = [
+    _placed(ElementKind.TABLE_ROW, "%: 0-0.99 | Score: 5", 133, 533, 184),
+    _placed(ElementKind.TABLE_ROW, "%: 1-1.99 | Score: 4", 133, 546, 184),
+]
+_LEFT_TABLE = [
+    _placed(ElementKind.TABLE_ROW, "%: 95-100 | Score: 5", 42, 533, 98),
+    _placed(ElementKind.TABLE_ROW, "%: 90-94.99 | Score: 4", 42, 546, 98),
+]
+
+
+def _sections(elements: list[Element]) -> dict[str, str]:
+    meta = DocumentMeta(doc_id="d", title="Belge", language="en")
+    return {chunk.text: chunk.section for chunk in build_chunks(elements, meta)}
+
+
+def test_side_by_side_tables_take_the_heading_above_them() -> None:
+    """Yan yana iki tablo: okuma sırası başlıkları önce, sonra sağ tabloyu, sonra sol tabloyu
+    verir (docling'in QM s.16'daki sırası). Her satır kendi üstündeki başlığın bölümünde olmalı;
+    sağdaki başlık soldaki tablonun satırlarına geçmemeli."""
+    elements = [
+        _placed(ElementKind.HEADING, "PTH", 45, 487, 70),
+        _placed(ElementKind.HEADING, "OQL/SQL", 145, 487, 179),
+        *_RIGHT_TABLE,
+        *_LEFT_TABLE,
+    ]
+
+    sections = _sections(elements)
+
+    assert sections["%: 95-100 | Score: 5"].endswith("PTH")
+    assert sections["%: 90-94.99 | Score: 4"].endswith("PTH")
+    assert sections["%: 0-0.99 | Score: 5"].endswith("OQL/SQL")
+
+
+def test_table_without_a_heading_above_it_does_not_take_the_neighbours_heading() -> None:
+    """Okuyucu sol tablonun başlığını düşürdü ("PTH"): sol tablo sağdakinin başlığını
+    ("OQL/SQL") almaz; sayfadaki genel başlıkta ya da önceki bölümde kalır."""
+    general = _placed(ElementKind.HEADING, "Supplier Scorecard", 40, 100, 570)
+    right = _placed(ElementKind.HEADING, "OQL/SQL", 145, 487, 179)
+
+    alone = _sections([right, *_RIGHT_TABLE, *_LEFT_TABLE])
+    under = _sections([general, right, *_RIGHT_TABLE, *_LEFT_TABLE])
+
+    assert alone["%: 0-0.99 | Score: 5"].endswith("OQL/SQL")
+    assert "OQL/SQL" not in alone["%: 95-100 | Score: 5"]
+    assert under["%: 90-94.99 | Score: 4"] == "Supplier Scorecard"
+    assert under["%: 1-1.99 | Score: 4"].endswith("OQL/SQL")
+
+
+def test_rows_without_boxes_keep_the_last_heading() -> None:
+    """Konum kutusu olmayan öğelerde (Markdown, Excel) bölüm okuma sırasındaki son başlıktır."""
+    heading = Element(ElementKind.HEADING, "Ölçüler", SourceLocation(), level=1)
+    row = Element(ElementKind.TABLE_ROW, "Bel: 38", SourceLocation())
+
+    assert _sections([heading, row])["Bel: 38"] == "Ölçüler"
+
+
+def _heading(text: str, level: int | None = None) -> Element:
+    return Element(ElementKind.HEADING, text, SourceLocation(page=1), level=level)
+
+
+def _row(text: str) -> Element:
+    return Element(ElementKind.TABLE_ROW, text, SourceLocation(page=1))
+
+
+def test_headings_without_level_are_siblings() -> None:
+    """Düzeyi bilinmeyen başlık öncekinin altına girmez: kopuk parça ("FW") kök olmaz."""
+    sections = _sections([_heading("FW"), _row("A: 1"), _heading("POMs"), _row("Bel: 38")])
+
+    assert sections == {"A: 1": "FW", "Bel: 38": "POMs"}
+
+
+def test_code_carrying_first_heading_stays_the_root() -> None:
+    """Karar 0025: kod taşıyan ilk başlık belge başlığıdır; sonraki başlıklar altına girer."""
+    root = "SS28-6026412-US-TEE CHART"
+    sections = _sections([_heading(root), _heading("BOM"), _row("Kod: BG-1"), _heading(root)])
+
+    assert sections == {"Kod: BG-1": f"{root} · BOM"}
+
+
+def test_levelled_headings_still_nest() -> None:
+    """Düzey kanıtı olan başlıklar (Markdown, Excel) iç içe kalır."""
+    elements = [_heading("Kılavuz", 1), _heading("Kurulum", 2), _row("Adım: 1")]
+
+    assert _sections(elements) == {"Adım: 1": "Kılavuz · Kurulum"}

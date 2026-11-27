@@ -1,5 +1,6 @@
 """Bir dosyayı arama parçalarına ve kapsam raporuna dönüştürür."""
 
+import logging
 import re
 from collections import Counter
 from collections.abc import Callable, Sequence
@@ -8,7 +9,13 @@ from pathlib import Path
 
 from visual_agent.domain.document import Box, Chunk, DocumentMeta, FrozenModel
 from visual_agent.ingest.chunking import build_chunks
-from visual_agent.ingest.elements import Element, ElementKind, report_progress
+from visual_agent.ingest.elements import (
+    CLOUD_OUTAGE,
+    CloudOutage,
+    Element,
+    ElementKind,
+    report_progress,
+)
 from visual_agent.ingest.formats import (
     RULES_VERSIONS,
     UNRECORDED_RULES,
@@ -16,8 +23,11 @@ from visual_agent.ingest.formats import (
     detect_format,
 )
 from visual_agent.ingest.markdown import parse_plain_text
+from visual_agent.ingest.page_reader import value_tokens
 from visual_agent.ingest.spreadsheet import parse_workbook
 from visual_agent.ingest.text_layer import PageKind
+
+logger = logging.getLogger(__name__)
 
 _MIN_CAPTURED_TEXT_RATIO = 0.5
 _SQL_STATEMENT = (
@@ -203,11 +213,13 @@ def _build_report(
         # Sayfa başına tekil değer: başlıktaki belirsiz değer altındaki her parçaya taşınır
         # (doğrulama için), değer taşıyan başlık metin olarak da kalır, satır bağlamı gruptaki
         # her satıra yazılır; belgenin "net okunamadı" sayısında aynı değer bir kez geçer.
+        # Eşi bulunmayan tablo satırının sayısız sözcükleri de işaretlidir; sayılmaz (değer değil).
         uncertain_values=len(
             {
                 (element.location.page, element.location.sheet, token)
                 for element in parsed.elements
                 for token in element.ocr_uncertain
+                if value_tokens(token)
             }
         ),
         chunks_by_kind=dict(Counter(chunk.kind.value for chunk in chunks)),
@@ -246,9 +258,20 @@ def _parse(path: Path, input_format: InputFormat, tools: IngestTools, work: Path
 
 
 def ingest_document(path: Path, meta: DocumentMeta, tools: IngestTools, work: Path) -> IngestResult:
+    """Bulut okumasının devre kesicisi belge başınadır: kesinti raporda tek satır uyarıdır."""
     input_format = detect_format(path)
     report_progress("prepare")
-    parsed = _parse(path, input_format, tools, work)
+    outage = CloudOutage()
+    token = CLOUD_OUTAGE.set(outage)
+    try:
+        parsed = _parse(path, input_format, tools, work)
+    finally:
+        CLOUD_OUTAGE.reset(token)
+    cloud = [w for w in (outage.warning(), outage.rejection_warning()) if w is not None]
+    for warning in cloud:
+        logger.warning("%s: %s", meta.doc_id, warning)
+    if cloud:
+        parsed = replace(parsed, warnings=(*parsed.warnings, *cloud))
     report_progress("chunks")
     chunks = tuple(build_chunks(parsed.elements, meta))
     report = _build_report(meta, input_format, chunks, parsed)

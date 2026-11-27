@@ -3,7 +3,7 @@
 import re
 from collections.abc import Callable, Sequence
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Literal
 
@@ -94,3 +94,66 @@ def report_progress(step: IngestStep, done: int = 0, total: int = 0) -> None:
     sink = INGEST_PROGRESS.get()
     if sink is not None:
         sink(step, done, total)
+
+
+@dataclass
+class CloudOutage:
+    """Bir belgenin işlenmesi boyunca bulut okumasının durumu (devre kesici, karar 0035): bir
+    modelin ilk hatasından sonra belgenin kalanında o modele istek gitmez."""
+
+    reasons: dict[str, str] = field(default_factory=dict)
+    """Model → ilk hatanın nedeni."""
+    fallback_blocks: int = 0
+    """Bulut yerine Tesseract'la denetlenen blok sayısı."""
+    skipped_figures: int = 0
+    """Okuması alınamadığı için atlanan şekil bloğu sayısı."""
+    unchecked_figures: int = 0
+    """Denetim okuması alınamadığı için değerleri gizlenen şekil bloğu sayısı."""
+    rejected_blocks: int = 0
+    """Bulutun bloğa özgü 4xx ile reddettiği blok sayısı (devreyi açmaz)."""
+    rejected_status: int | None = None
+    """İlk reddin HTTP kodu."""
+
+    def reject(self, status: int) -> None:
+        self.rejected_blocks += 1
+        if self.rejected_status is None:
+            self.rejected_status = status
+
+    def rejection_warning(self) -> str | None:
+        """Reddedilen blokların ayrı rapor satırı. `CLOUD_OUTAGE_MARK` içermez: yeniden işleme bu
+        blokları düzeltmez, devresi açılan belgelerin sorgusuna düşmemeli."""
+        if not self.rejected_blocks:
+            return None
+        return (
+            f"{self.rejected_blocks} blok bulutça reddedildi (HTTP {self.rejected_status});"
+            " Tesseract'la denetlendi ya da şekil bloğu okunmadı."
+        )
+
+    def warning(self) -> str | None:
+        """Belge raporunun tek satırı; kesinti olmadıysa None. Yalnız etkilenen blok türleri
+        yazılır ("2 şekil bloğunun değerleri gizlendi; bulut alınamadı (…)")."""
+        if not self.reasons:
+            return None
+        effects = [
+            f"{count} {text}"
+            for count, text in (
+                (self.fallback_blocks, "blok Tesseract'la denetlendi"),
+                (self.skipped_figures, "şekil bloğu atlandı"),
+                (self.unchecked_figures, "şekil bloğunun değerleri gizlendi"),
+            )
+            if count
+        ]
+        causes = "; ".join(f"{model}: {reason}" for model, reason in self.reasons.items())
+        prefix = ", ".join(effects) + "; " if effects else ""
+        return f"{prefix}{CLOUD_OUTAGE_MARK} ({causes})."
+
+
+CLOUD_OUTAGE_MARK = "bulut alınamadı"
+"""Devresi açılan belgenin rapor uyarısındaki sabit metin; belgeler bununla aranır:
+`SELECT d.doc_id, d.filename, w.value FROM documents d, json_each(d.report, '$.warnings') w
+WHERE w.value LIKE '%bulut alınamadı%'`."""
+
+
+CLOUD_OUTAGE: ContextVar[CloudOutage | None] = ContextVar("cloud_outage", default=None)
+"""Belgeyi işleyen (`ingest_document`) her belge için yenisini kurar; kurulmadıysa her bulut
+okuyucusu kendi durumunu tutar."""

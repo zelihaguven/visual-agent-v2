@@ -115,3 +115,21 @@ def test_in_process_worker_stops_without_waiting_the_full_interval() -> None:
         return await asyncio.wait_for(process_until_stopped(process_next, stop, 30.0), 2.0)
 
     assert asyncio.run(run()) == 0
+
+
+def test_cloud_reading_uses_the_configured_models() -> None:
+    from apps.worker.run import cloud_config
+    from visual_agent.settings import Settings
+
+    settings = Settings(
+        _env_file=None,
+        openrouter_api_key="anahtar",
+        reader_model="qwen/x",
+        reader_figure_check_model="google/y",
+    )
+    config = cloud_config(settings)
+
+    assert config is not None
+    assert (config.reader_model, config.figure_check_model) == ("qwen/x", "google/y")
+    assert cloud_config(Settings(_env_file=None, openrouter_api_key=None)) is None
+    assert cloud_config(Settings(_env_file=None, openrouter_api_key="  ")) is None

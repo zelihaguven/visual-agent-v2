@@ -292,3 +292,30 @@ def test_turkish_tables_with_inch_or_ten_stay_turkish(rows: list[str]) -> None:
     chunks = [_chunk("a.md", index, text) for index, text in enumerate(rows)]
 
     assert document_language(chunks) == "tr"
+
+
+def test_documents_are_processed_outside_the_running_event_loop(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Ölçüm betikleri belgeyi olay döngüsünün içinden işler; bulut okuması kendi döngüsünü
+    açtığı (asyncio.run) için döngü içinde devre kesici açılır ve okuma Tesseract'a düşerdi."""
+    import apps.worker.run
+
+    def ingest(path: Path, meta: object, work: Path) -> object:
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            raise ValueError("döngü dışında") from None
+        raise ValueError("döngü içinde")
+
+    monkeypatch.setattr(apps.worker.run, "default_ingest", lambda settings: ingest)
+    document = tmp_path / "a.md"
+    document.write_text("# A", encoding="utf-8")
+
+    async def measure() -> tuple[dict[str, list[Chunk]], dict[str, Any]]:
+        return load_or_ingest(folder_documents(tmp_path), tmp_path / "work")
+
+    (tmp_path / "work").mkdir()
+    _, manifest = asyncio.run(measure())
+
+    assert manifest["errors"] == {"a.md": "ValueError: döngü dışında"}

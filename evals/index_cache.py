@@ -10,6 +10,7 @@ import sys
 import tempfile
 import time
 from collections.abc import Sequence
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -48,8 +49,11 @@ def _ingest_all(documents: Documents) -> tuple[dict[str, list[Chunk]], dict[str,
     for path, meta in documents:
         begun = time.perf_counter()
         try:
-            with tempfile.TemporaryDirectory() as work:
-                result = ingest(path, meta, Path(work))
+            # Ayrı iş parçacığında, uygulamadaki gibi (`asyncio.to_thread`): ölçüm betikleri
+            # olay döngüsünün içinden çağırır, bulut okuması ise kendi döngüsünü açar
+            # (asyncio.run); döngü içinde devre kesici açılır, okuma Tesseract'a düşerdi.
+            with tempfile.TemporaryDirectory() as work, ThreadPoolExecutor(1) as pool:
+                result = pool.submit(ingest, path, meta, Path(work)).result()
         except Exception as error:
             errors[meta.doc_id] = f"{type(error).__name__}: {error}"
             continue

@@ -317,3 +317,23 @@ def test_missing_first_token_moves_to_the_next_provider() -> None:
 
     assert result.provider == "beta"
     assert result.attempts[0].error == "ilk token süresinde gelmedi"
+
+
+def test_helper_request_cannot_override_the_zdr_constraint() -> None:
+    from visual_agent.generation.helpers import JsonModel
+
+    bodies: list[dict[str, Any]] = []
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        bodies.append(json.loads(request.content))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "{}"}}]})
+
+    async def run() -> None:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handle)) as http:
+            model = JsonModel(http, "https://openrouter.test", "k", MODEL, ("beta",), ())
+            await model._content([], 10, provider={"zdr": False, "data_collection": "allow"})
+
+    asyncio.run(run())
+
+    assert bodies[0]["provider"]["zdr"] is True
+    assert bodies[0]["provider"]["data_collection"] == "deny"

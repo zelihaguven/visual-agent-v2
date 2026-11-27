@@ -1,11 +1,14 @@
 """Sayfa okuyucusu: ölçülmüş kodun kopyası set A kaydıyla aynı sonucu verir; okuyucu yoksa
 belge bekler."""
 
+import base64
+import io
 import json
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
+import httpx
 import pypdfium2
 import pytest
 from PIL import Image, ImageDraw
@@ -15,7 +18,13 @@ from reportlab.pdfgen.canvas import Canvas
 from evals import ocr_score, ocr_truth
 from visual_agent.domain.document import Box
 from visual_agent.ingest import page_reader
-from visual_agent.ingest.elements import INGEST_PROGRESS, ElementKind
+from visual_agent.ingest.elements import (
+    CLOUD_OUTAGE,
+    CLOUD_OUTAGE_MARK,
+    INGEST_PROGRESS,
+    CloudOutage,
+    ElementKind,
+)
 from visual_agent.ingest.external import ReaderUnavailable
 from visual_agent.ingest.page_reader import (
     PaddleVlReader,
@@ -817,3 +826,819 @@ def test_reading_without_a_progress_sink_reads_the_same(tmp_path: Path) -> None:
     finally:
         INGEST_PROGRESS.reset(token)
     assert heard == quiet
+
+
+# --- Bulut okuması (karar 0035) ---
+
+QWEN = "qwen/qwen3-vl-30b-a3b-instruct"
+GEMMA = "google/gemma-4-26b-a4b-it"
+
+
+class _OpenRouter:
+    """Sahte OpenRouter: ZDR dizini ve sohbet tamamlama; istekleri sayar."""
+
+    def __init__(self, reply: str | list[str] = "", fail: bool = False) -> None:
+        """reply: her isteğe aynı cevap ya da sırayla verilecek cevaplar."""
+        self.replies = reply if isinstance(reply, list) else None
+        self.reply, self.fail = reply, fail
+        self.bodies: list[dict[str, Any]] = []
+        self.requests = 0
+
+    def handle(self, request: httpx.Request) -> httpx.Response:
+        self.requests += 1
+        if self.fail:
+            raise httpx.ConnectError("ulaşılamadı", request=request)
+        if request.url.path.endswith("/endpoints/zdr"):
+            entries = [
+                {"model_id": model, "tag": "zdr-saglayici", "safety_retention": False}
+                for model in (QWEN, GEMMA)
+            ]
+            return httpx.Response(200, json={"data": entries})
+        self.bodies.append(json.loads(request.content))
+        content = self.replies.pop(0) if self.replies is not None else self.reply
+        return httpx.Response(200, json={"choices": [{"message": {"content": content}}]})
+
+    def config(self, cache: Path) -> page_reader.CloudConfig:
+        return page_reader.CloudConfig(
+            base_url="https://openrouter.test/api/v1",
+            api_key="test",
+            cache=cache,
+            reader_model=QWEN,
+            figure_check_model=GEMMA,
+            transport=httpx.MockTransport(self.handle),
+        )
+
+
+def _qwen_check(server: _OpenRouter, cache: Path) -> page_reader.SecondReader:
+    config = server.config(cache)
+    return page_reader.cloud_reader(
+        config, config.reader_model, page_reader.CHECK_PROMPT, page_reader.CHECK_MAX_TOKENS
+    )
+
+
+def _paddle(content: str, label: str = "text") -> Any:
+    def read_page(image: Path) -> dict[str, Any]:
+        width, height = Image.open(image).size
+        block = {**_block(0, label, content), "block_bbox": [100, 100, 300, 160]}
+        return {"width": width, "height": height, "parsing_res_list": [block]}
+
+    return read_page
+
+
+def _unavailable(_: Image.Image) -> str:
+    raise page_reader.CloudUnavailable("ulaşılamadı")
+
+
+def _cloud(
+    check: page_reader.SecondReader,
+    figure_read: page_reader.SecondReader = _unavailable,
+    figure_check: page_reader.SecondReader = _unavailable,
+) -> page_reader.CloudReaders:
+    return page_reader.CloudReaders(check, figure_read, figure_check)
+
+
+def _read(
+    tmp_path: Path,
+    read_page: Any,
+    second: page_reader.SecondReader,
+    cloud: page_reader.CloudReaders | None,
+) -> list[Any]:
+    """600x800 piksellik tek sayfalık tarama, (100, 100)–(300, 160) arası dolu."""
+    scan = _scan(tmp_path / "t.pdf")
+    return read_scanned_pages(scan, [1], tmp_path, read_page, second, cloud=cloud)
+
+
+def test_qwen_check_hides_a_value_paddle_read_differently(tmp_path: Path) -> None:
+    """İkinci okuma Qwen3-VL: buluta yalnız bloğun kırpıntısı gider, yalnız ZDR sağlayıcıyla."""
+    server = _OpenRouter(reply="Basınç 135 bar, kod ZP-4471")
+    tesseract_calls: list[Image.Image] = []
+
+    def tesseract(image: Image.Image) -> str:
+        tesseract_calls.append(image)
+        return "Basınç 185 bar, kod ZP-4471"
+
+    cloud = _cloud(_qwen_check(server, tmp_path / "onbellek"))
+    [element] = _read(tmp_path, _paddle("Basınç 185 bar, kod ZP-4471"), tesseract, cloud)
+
+    assert element.ocr_uncertain == ("185",)
+    assert tesseract_calls == []
+    [body] = server.bodies
+    assert body["model"] == QWEN
+    assert body["provider"]["zdr"] is True
+    assert body["provider"]["only"] == ["zdr-saglayici"]
+    image_part = body["messages"][0]["content"][1]["image_url"]["url"]
+    sent = Image.open(io.BytesIO(base64.b64decode(image_part.split(",", 1)[1])))
+    assert sent.size == (208, 68)  # blok + 4 piksel kenar, bütün sayfa (600x800) değil
+
+
+def test_unreachable_qwen_falls_back_to_tesseract_and_reading_completes(tmp_path: Path) -> None:
+    server = _OpenRouter(fail=True)
+    cloud = _cloud(_qwen_check(server, tmp_path / "onbellek"))
+
+    [element] = _read(tmp_path, _paddle("Basınç 185 bar"), lambda _: "Basınç 135 bar", cloud)
+
+    assert element.text == "Basınç 185 bar"
+    assert element.ocr_uncertain == ("185",)  # Tesseract'ın okumasıyla denetlendi
+
+
+def _two_blocks(image: Path) -> dict[str, Any]:
+    width, height = Image.open(image).size
+    blocks = [
+        {**_block(0, "text", "Basınç 185 bar"), "block_bbox": [100, 100, 300, 130]},
+        {**_block(1, "text", "Tork 12 Nm"), "block_bbox": [100, 130, 300, 160]},
+    ]
+    return {"width": width, "height": height, "parsing_res_list": blocks}
+
+
+def test_after_the_first_cloud_failure_the_document_asks_the_cloud_no_more(
+    tmp_path: Path,
+) -> None:
+    """Devre kesici: ilk hatadan (ZDR dizini bile alınamadı) sonra ikinci blokta istek gitmez;
+    iki blok da Tesseract'la denetlenir, belge raporu için tek satır kalır."""
+    server = _OpenRouter(fail=True)
+    tesseract = lambda _: "Basınç 135 bar Tork 12 Nm"  # noqa: E731
+    cloud = _cloud(_qwen_check(server, tmp_path / "onbellek"))
+    outage = CloudOutage()
+    token = CLOUD_OUTAGE.set(outage)
+    try:
+        elements = _read(tmp_path, _two_blocks, tesseract, cloud)
+    finally:
+        CLOUD_OUTAGE.reset(token)
+
+    assert server.requests == 1
+    assert [e.ocr_uncertain for e in elements] == [("185",), ()]
+    assert outage.fallback_blocks == 2
+    warning = outage.warning()
+    assert warning is not None and warning.startswith("2 blok Tesseract'la denetlendi; bulut")
+
+
+def _whole(content: str, label: str = "text") -> Any:
+    """Okuyucunun bütün görüntüyü tek blok saydığı sonuç."""
+
+    def read_page(image: Path) -> dict[str, Any]:
+        width, height = Image.open(image).size
+        block = {**_block(0, label, content), "block_bbox": [0, 0, width, height]}
+        return {"width": width, "height": height, "parsing_res_list": [block]}
+
+    return read_page
+
+
+def test_a_block_covering_the_page_is_read_by_the_cloud_like_any_block(tmp_path: Path) -> None:
+    """Şirket onayı (2026-11-27): sayfayı kaplayan blok da buluta gider. Metin bloğunu Qwen
+    denetler (Tesseract değil); şekil bloğunu Qwen okur, Gemma denetler."""
+    sizes: list[tuple[int, int]] = []
+
+    def qwen(crop: Image.Image) -> str:
+        sizes.append(crop.size)
+        return "Basınç 185 bar"
+
+    cloud = _cloud(
+        qwen, figure_read=lambda _: _json("Tork 12 Nm"), figure_check=lambda _: _json("Tork 12 Nm")
+    )
+    tesseract = lambda _: "Basınç 135 bar"  # noqa: E731
+
+    [element] = _read(tmp_path, _whole("Basınç 185 bar"), tesseract, cloud)
+    [figure] = _read(tmp_path, _whole("", label="image"), tesseract, cloud)
+
+    assert element.ocr_uncertain == ()
+    assert sizes == [(600, 800)]
+    assert (figure.text, figure.ocr_uncertain) == ("Tork 12 Nm", ())
+
+
+def test_same_crop_is_paid_once_even_by_a_new_reader(tmp_path: Path) -> None:
+    server = _OpenRouter(reply="Basınç 185 bar")
+    crop = Image.new("RGB", (40, 20), "white")
+    ImageDraw.Draw(crop).rectangle((5, 5, 30, 15), fill="black")
+
+    first = _qwen_check(server, tmp_path)(crop)
+    again = _qwen_check(server, tmp_path)(crop.copy())  # yeniden işleme: yeni okuyucu
+
+    assert first == again == "Basınç 185 bar"
+    assert len(server.bodies) == 1
+
+
+class _Failing(_OpenRouter):
+    """İlk sohbet isteğine verilen HTTP durumunu döner, sonrakilere cevap verir."""
+
+    def __init__(self, status: int) -> None:
+        super().__init__(reply="Basınç 135 bar Tork 12 Nm")
+        self.status: int | None = status
+
+    def handle(self, request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/chat/completions") and self.status is not None:
+            status, self.status = self.status, None
+            self.requests += 1
+            return httpx.Response(status, json={"error": "hata"})
+        return super().handle(request)
+
+
+@pytest.mark.parametrize(
+    ("status", "opens"), [(413, False), (400, False), (500, True), (401, True)]
+)
+def test_only_errors_beyond_the_block_open_the_circuit(
+    tmp_path: Path, status: int, opens: bool
+) -> None:
+    """Bloğa özgü 4xx (çok büyük ya da bozuk görüntü) yalnız o bloğu Tesseract'a düşürür; 5xx ve
+    kimlik hatası belgenin devresini açar."""
+    server = _Failing(status)
+    tesseract = lambda _: ""  # noqa: E731
+    cloud = _cloud(_qwen_check(server, tmp_path / "onbellek"))
+    outage = CloudOutage()
+    token = CLOUD_OUTAGE.set(outage)
+    try:
+        elements = _read(tmp_path, _two_blocks, tesseract, cloud)
+    finally:
+        CLOUD_OUTAGE.reset(token)
+
+    assert (QWEN in outage.reasons) is opens
+    assert (outage.rejected_blocks, outage.rejected_status) == ((0, None) if opens else (1, status))
+    rejection = outage.rejection_warning()
+    if opens:
+        assert rejection is None
+    else:
+        assert rejection is not None and f"HTTP {status}" in rejection
+        assert CLOUD_OUTAGE_MARK not in rejection
+    assert len(server.bodies) == (0 if opens else 1)  # ikinci blok buluta gitti mi
+    assert elements[0].ocr_uncertain == ("185",)  # ilk blok Tesseract'la (boş okuma) denetlendi
+    assert elements[1].ocr_uncertain == (("12",) if opens else ())
+
+
+class _Limited(_OpenRouter):
+    """İlk `limited` sohbet isteğine 429 döner (Retry-After başlığı isteğe bağlı)."""
+
+    def __init__(self, limited: int, retry_after: str | None) -> None:
+        super().__init__(reply="Basınç 185 bar")
+        self.limited, self.retry_after = limited, retry_after
+
+    def handle(self, request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/chat/completions") and self.limited:
+            self.limited -= 1
+            self.requests += 1
+            headers = {"Retry-After": self.retry_after} if self.retry_after else {}
+            return httpx.Response(429, headers=headers, json={"error": "rate limited"})
+        return super().handle(request)
+
+
+def _limited_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, limited: int, retry_after: str | None
+) -> tuple[_Limited, list[float], CloudOutage, str | None]:
+    waits: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr(page_reader, "_sleep", sleep)
+    server = _Limited(limited, retry_after)
+    crop = Image.new("RGB", (40, 20), "white")
+    outage = CloudOutage()
+    token = CLOUD_OUTAGE.set(outage)
+    try:
+        text: str | None = _qwen_check(server, tmp_path)(crop)
+    except page_reader.CloudUnavailable:
+        text = None
+    finally:
+        CLOUD_OUTAGE.reset(token)
+    return server, waits, outage, text
+
+
+def test_rate_limit_waits_as_told_and_does_not_open_the_circuit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    server, waits, outage, text = _limited_read(tmp_path, monkeypatch, 2, "7")
+
+    assert text == "Basınç 185 bar"
+    assert waits == [7.0, 7.0]
+    assert outage.reasons == {}
+    assert len(server.bodies) == 1
+
+
+def test_rate_limit_without_header_backs_off_within_a_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, waits, outage, text = _limited_read(tmp_path, monkeypatch, 3, None)
+    _, capped, _, _ = _limited_read(tmp_path / "b", monkeypatch, 1, "3600")
+
+    assert (text, waits, outage.reasons) == ("Basınç 185 bar", [2.0, 4.0, 8.0], {})
+    assert capped == [60.0]
+
+
+def test_rate_limit_opens_the_circuit_only_when_retries_run_out(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    server, waits, outage, text = _limited_read(tmp_path, monkeypatch, 10, "1")
+
+    assert text is None
+    assert waits == [1.0, 1.0, 1.0]
+    assert server.requests == 1 + 4  # ZDR dizini + dört okuma denemesi
+    assert QWEN in outage.reasons
+
+
+def test_cache_key_separates_models_and_prompts(tmp_path: Path) -> None:
+    """Önbellek anahtarı model + istem + görüntü: aynı kırpıntıyı başka model ya da başka istem
+    önbellekten okumaz."""
+    server = _OpenRouter(reply="Basınç 185 bar")
+    config = server.config(tmp_path)
+    crop = Image.new("RGB", (40, 20), "white")
+    ImageDraw.Draw(crop).rectangle((5, 5, 30, 15), fill="black")
+
+    def reader(model: str, prompt: str) -> page_reader.SecondReader:
+        return page_reader.cloud_reader(config, model, prompt, 100)
+
+    reader(QWEN, page_reader.CHECK_PROMPT)(crop)
+    reader(GEMMA, page_reader.CHECK_PROMPT)(crop)
+    assert [body["model"] for body in server.bodies] == [QWEN, GEMMA]
+    assert len(list(tmp_path.glob("*.json"))) == 2
+
+    reader(QWEN, page_reader.FIGURE_PROMPT)(crop)
+    reader(QWEN, page_reader.CHECK_PROMPT)(crop)  # önbellekte
+    assert len(server.bodies) == 3
+    assert len(list(tmp_path.glob("*.json"))) == 3
+
+
+def test_empty_answer_is_not_cached_and_a_broken_cache_file_is_asked_again(
+    tmp_path: Path,
+) -> None:
+    server = _OpenRouter(reply=["", "Basınç 185 bar", "Basınç 185 bar"])
+    crop = Image.new("RGB", (40, 20), "white")
+    ImageDraw.Draw(crop).rectangle((5, 5, 30, 15), fill="black")
+
+    assert _qwen_check(server, tmp_path)(crop) == ""
+    assert not list(tmp_path.glob("*.json"))
+    assert _qwen_check(server, tmp_path)(crop) == "Basınç 185 bar"
+    [cached] = tmp_path.glob("*.json")
+    cached.write_text('{"content": "Bas', encoding="utf-8")  # yarım yazılmış dosya
+
+    assert _qwen_check(server, tmp_path)(crop) == "Basınç 185 bar"
+    assert len(server.bodies) == 3
+    assert _qwen_check(server, tmp_path)(crop) == "Basınç 185 bar"  # yeniden yazıldı
+    assert len(server.bodies) == 3
+
+
+def _json(*lines: str) -> str:
+    return json.dumps({"lines": list(lines), "tables": []})
+
+
+def _read_figure(
+    tmp_path: Path, qwen: page_reader.SecondReader, gemma: page_reader.SecondReader
+) -> list[Any]:
+    cloud = _cloud(_unavailable, figure_read=qwen, figure_check=gemma)
+    return _read(tmp_path, _paddle("", label="image"), str, cloud)
+
+
+def test_figure_block_values_are_shown_only_when_qwen_and_gemma_agree(tmp_path: Path) -> None:
+    agree = _read_figure(tmp_path, lambda _: _json("Tork 12 Nm"), lambda _: _json("Tork 12 Nm"))
+    differ = _read_figure(tmp_path, lambda _: _json("Tork 12 Nm"), lambda _: _json("Tork 13 Nm"))
+    unchecked = _read_figure(tmp_path, lambda _: _json("Tork 12 Nm"), _unavailable)
+
+    assert [(e.text, e.ocr_uncertain, e.from_ocr) for e in agree] == [("Tork 12 Nm", (), True)]
+    assert [e.ocr_uncertain for e in differ] == [("12",)]
+    assert [e.ocr_uncertain for e in unchecked] == [("12",)]
+    box = agree[0].location.boxes[0]
+    assert (box.left, box.top, box.right, box.bottom) == (100, 100, 300, 160)
+
+
+def test_figure_block_is_skipped_when_qwen_fails_or_no_cloud(tmp_path: Path) -> None:
+    assert _read_figure(tmp_path, _unavailable, lambda _: _json("Tork 12 Nm")) == []
+    no_cloud = read_scanned_pages(
+        _scan(tmp_path / "t.pdf"), [1], tmp_path, _paddle("", label="image"), str
+    )
+    assert no_cloud == []
+
+
+def _figure_with_tools(server: _OpenRouter, tmp_path: Path) -> list[Any]:
+    from visual_agent.ingest.tools import _cloud_readers
+
+    cloud = _cloud_readers(server.config(tmp_path / "onbellek"))
+    return _read(tmp_path, _paddle("", label="image"), str, cloud)
+
+
+def test_broken_figure_json_is_asked_once_more_and_not_cached(tmp_path: Path) -> None:
+    truncated = '{"lines": ["Tork 12 Nm", "Bas'
+    server = _OpenRouter(reply=[truncated, _json("Tork 12 Nm"), _json("Tork 12 Nm")])
+
+    elements = _figure_with_tools(server, tmp_path)
+
+    assert [(e.text, e.ocr_uncertain) for e in elements] == [("Tork 12 Nm", ())]
+    assert [body["model"] for body in server.bodies] == [QWEN, QWEN, GEMMA]
+    assert _figure_with_tools(server, tmp_path) == elements  # iyi cevaplar önbellekte
+    assert len(server.bodies) == 3
+
+
+def test_figure_is_skipped_when_both_readings_are_broken(tmp_path: Path) -> None:
+    server = _OpenRouter(reply=["okunamadı", '{"lines": ['])
+
+    assert _figure_with_tools(server, tmp_path) == []
+    assert [body["model"] for body in server.bodies] == [QWEN, QWEN]
+    assert not list((tmp_path / "onbellek").glob("*.json"))
+
+
+def test_figure_table_is_read_as_a_table() -> None:
+    content = json.dumps({"lines": ["Ölçü"], "tables": [{"rows": [["A", "B"], ["1 <2", ""]]}]})
+
+    assert page_reader.figure_parts(content) == [
+        ("text", "Ölçü"),
+        ("table", "<table><tr><td>A</td><td>B</td></tr><tr><td>1 &lt;2</td><td></td></tr></table>"),
+    ]
+    assert page_reader.figure_parts("okunamadı") is None
+
+
+def _no_blocks(image: Path) -> dict[str, Any]:
+    width, height = Image.open(image).size
+    return {"width": width, "height": height, "parsing_res_list": []}
+
+
+def _counting_cloud(calls: list[str]) -> page_reader.CloudReaders:
+    def figure(crop: Image.Image) -> str:
+        calls.append(f"{crop.width}x{crop.height}")
+        return _json("Tork 12 Nm")
+
+    return _cloud(lambda _: "", figure_read=figure, figure_check=lambda _: _json("Tork 12 Nm"))
+
+
+def test_page_without_layout_blocks_is_read_as_one_figure(tmp_path: Path) -> None:
+    """Metin katmanı olmayan sayfada düzen modeli blok bulamazsa sayfa tek şekil bloğudur."""
+    calls: list[str] = []
+
+    [element] = _read(tmp_path, _no_blocks, str, _counting_cloud(calls))
+
+    assert calls == ["600x800"]
+    assert (element.text, element.ocr_uncertain, element.from_ocr) == ("Tork 12 Nm", (), True)
+    box = element.location.boxes[0]
+    assert (box.left, box.top, box.right, box.bottom) == (0, 0, 600, 800)
+
+
+def test_whole_page_figure_only_when_the_layout_found_nothing(tmp_path: Path) -> None:
+    calls: list[str] = []
+
+    elements = _read(tmp_path, _paddle("Basınç 185 bar"), str, _counting_cloud(calls))
+    no_cloud = _read(tmp_path, _no_blocks, str, None)
+
+    assert [e.text for e in elements] == ["Basınç 185 bar"]
+    assert calls == []
+    assert no_cloud == []
+
+
+def test_embedded_image_on_a_text_page_is_not_read_as_a_whole_page(tmp_path: Path) -> None:
+    calls: list[str] = []
+    scan = _scan(tmp_path / "t.pdf")
+
+    elements = read_embedded_images(
+        scan, [_region(50, 80, 350, 180)], tmp_path, _no_blocks, str, _counting_cloud(calls)
+    )
+
+    assert (elements, calls) == ([], [])
+
+
+class _ZdrLimited(_OpenRouter):
+    """ZDR dizini isteğine bir kez 429 döner."""
+
+    def __init__(self) -> None:
+        super().__init__(reply="Basınç 185 bar")
+        self.limited = True
+
+    def handle(self, request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/endpoints/zdr") and self.limited:
+            self.limited = False
+            self.requests += 1
+            return httpx.Response(429, headers={"Retry-After": "5"}, json={"error": "limit"})
+        return super().handle(request)
+
+
+def test_zdr_index_rate_limit_is_waited_out_like_a_reading(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    waits: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr(page_reader, "_sleep", sleep)
+    server = _ZdrLimited()
+    outage = CloudOutage()
+    token = CLOUD_OUTAGE.set(outage)
+    try:
+        text = _qwen_check(server, tmp_path)(Image.new("RGB", (40, 20), "white"))
+    finally:
+        CLOUD_OUTAGE.reset(token)
+
+    assert (text, waits, outage.reasons) == ("Basınç 185 bar", [5.0], {})
+    assert server.requests == 3  # ZDR 429, ZDR, okuma
+
+
+def test_outage_counts_skipped_and_unchecked_figure_blocks(tmp_path: Path) -> None:
+    def count(qwen: page_reader.SecondReader, gemma: page_reader.SecondReader) -> CloudOutage:
+        outage = CloudOutage(reasons={"model": "hata"})
+        token = CLOUD_OUTAGE.set(outage)
+        try:
+            _read_figure(tmp_path, qwen, gemma)
+        finally:
+            CLOUD_OUTAGE.reset(token)
+        return outage
+
+    skipped = count(_unavailable, lambda _: _json("Tork 12 Nm"))
+    unchecked = count(lambda _: _json("Tork 12 Nm"), _unavailable)
+
+    assert (skipped.skipped_figures, skipped.unchecked_figures) == (1, 0)
+    assert (unchecked.skipped_figures, unchecked.unchecked_figures) == (0, 1)
+    assert (
+        unchecked.warning() == "1 şekil bloğunun değerleri gizlendi; bulut alınamadı (model: hata)."
+    )
+
+
+@pytest.mark.parametrize("header", ["nan", "inf", "-inf"])
+def test_retry_after_that_is_not_a_finite_number_is_ignored(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, header: str
+) -> None:
+    _, waits, outage, text = _limited_read(tmp_path, monkeypatch, 1, header)
+
+    assert (text, waits, outage.reasons) == ("Basınç 185 bar", [2.0], {})
+
+
+def test_rejection_warning_keeps_the_first_status() -> None:
+    outage = CloudOutage()
+    outage.reject(413)
+    outage.reject(400)
+
+    assert outage.rejection_warning() == (
+        "2 blok bulutça reddedildi (HTTP 413); Tesseract'la denetlendi ya da şekil bloğu okunmadı."
+    )
+    assert outage.warning() is None  # devre açılmadı
+
+
+_TRUE_TABLE = "POM | S | M\nLG040 Waist | 12 | 13\nLG050 Hip | 14 | 15\nLG060 Inseam | 16 | 17"
+
+
+def _paddle_table(rows: list[list[str]]) -> Any:
+    def read_page(image: Path) -> dict[str, Any]:
+        width, height = Image.open(image).size
+        block = {**_block(0, "table", _html(rows)), "block_bbox": [100, 100, 300, 160]}
+        return {"width": width, "height": height, "parsing_res_list": [block]}
+
+    return read_page
+
+
+def _uncertain_by_row(elements: list[Any]) -> dict[str, tuple[str, ...]]:
+    return {e.text.split(" | ")[0]: e.ocr_uncertain for e in elements}
+
+
+def test_a_value_column_shifted_by_one_row_is_hidden(tmp_path: Path) -> None:
+    """Okuyucu değer sütununu bir satır kaydırdı; sayılar blokta aynı sayıda geçtiği için
+    blok düzeyindeki sayım kaymayı görmez. Satır düzeyinde uyuşma: değer yalnız iki okumada
+    aynı satır etiketiyle eşleşiyorsa gösterilir."""
+    shifted = [
+        ["POM", "S", "M"],
+        ["LG040 Waist", "14", "15"],
+        ["LG050 Hip", "16", "17"],
+        ["LG060 Inseam", "12", "13"],
+    ]
+    cloud = _cloud(lambda _: _TRUE_TABLE)
+
+    rows = _uncertain_by_row(_read(tmp_path, _paddle_table(shifted), str, cloud))
+
+    # Hücreleri tutmayan satırın eşi yok: etiketi dahil bütün sözcükleri belirsiz.
+    assert rows["POM: LG040 Waist"] == ("14", "15", "LG040", "Waist")
+    assert rows["POM: LG050 Hip"] == ("16", "17", "Hip", "LG050")
+    assert rows["POM: LG060 Inseam"] == ("12", "13", "Inseam", "LG060")
+
+
+_TRUE_ROWS = [
+    ["POM", "S", "M"],
+    ["LG040 Waist", "12", "13"],
+    ["LG050 Hip", "14", "15"],
+    ["LG060 Inseam", "16", "17"],
+]
+
+
+def test_rows_that_agree_are_shown_even_in_another_order(tmp_path: Path) -> None:
+    reordered = "LG060 Inseam | 16 | 17\nPOM | S | M\nLG050 hip: | 14 | 15\nLG040 Waist | 12 | 13"
+
+    same = _read(tmp_path, _paddle_table(_TRUE_ROWS), str, _cloud(lambda _: _TRUE_TABLE))
+    moved = _read(tmp_path, _paddle_table(_TRUE_ROWS), str, _cloud(lambda _: reordered))
+
+    assert [e.ocr_uncertain for e in same] == [(), (), ()]
+    assert [e.ocr_uncertain for e in moved] == [(), (), ()]
+
+
+def test_a_row_missing_from_the_second_reading_is_hidden_alone(tmp_path: Path) -> None:
+    partial = "POM | S | M\nLG040 Waist | 12 | 13\nLG050 Hip | 14 | 15"
+
+    rows = _uncertain_by_row(
+        _read(tmp_path, _paddle_table(_TRUE_ROWS), str, _cloud(lambda _: partial))
+    )
+
+    assert rows == {
+        "POM: LG040 Waist": (),
+        "POM: LG050 Hip": (),
+        "POM: LG060 Inseam": ("16", "17", "LG060", "Inseam"),
+    }
+
+
+def test_tesseract_fallback_keeps_the_block_count(tmp_path: Path) -> None:
+    """Tesseract'ın seyrek okuması satır vermez: bulut alınamayan blok bugünkü gibi blok
+    düzeyinde sayılır (satır kayması bu yolda yakalanmaz; bilinen sınır)."""
+    shifted = [_TRUE_ROWS[0], ["LG040 Waist", "14", "15"], ["LG050 Hip", "16", "17"]]
+    tesseract = lambda _: "POM S M | LG040 Waist 14 15 | LG050 Hip 16 17"  # noqa: E731
+
+    elements = _read(tmp_path, _paddle_table(shifted), tesseract, _cloud(_unavailable))
+
+    assert [e.ocr_uncertain for e in elements] == [(), ()]
+
+
+def _figure_table(*rows: list[str]) -> str:
+    return json.dumps({"lines": [], "tables": [{"rows": [list(r) for r in rows]}]})
+
+
+def test_figure_table_rows_must_agree_row_by_row(tmp_path: Path) -> None:
+    """Şekil tablosu (Bold s.21): Qwen ikinci sütunu bir satır kaydırdı, Gemma doğru okudu."""
+    header = ["RISK", "MITIGATION"]
+    qwen = _figure_table(
+        header,
+        ["Reinforcement 18 mm", "Thread: tension"],
+        ["Over seam 3 stripes", "Reinforcement: 18 mm interlining"],
+        ["Color Block", "Over seam 3 stripes: SPI"],
+    )
+    gemma = _figure_table(
+        header,
+        ["Over seam 3 stripes", "Over seam 3 stripes: SPI"],
+        ["Color Block", "Color Block: testing"],
+        ["Reinforcement 18 mm", "Reinforcement: 18 mm interlining"],
+    )
+
+    shifted = _read_figure(tmp_path, lambda _: qwen, lambda _: gemma)
+    agreed = _read_figure(tmp_path, lambda _: gemma, lambda _: gemma)
+
+    assert {e.text.split(" | ")[0]: e.ocr_uncertain for e in shifted} == {
+        "RISK: Reinforcement 18 mm": ("18", "Reinforcement", "Thread", "mm", "tension"),
+        "RISK: Over seam 3 stripes": (
+            *("18", "3", "Over", "Reinforcement", "interlining", "mm", "seam", "stripes"),
+        ),
+        "RISK: Color Block": ("3", "Block", "Color", "Over", "SPI", "seam", "stripes"),
+    }
+    assert [e.ocr_uncertain for e in agreed] == [(), (), ()]
+
+
+def test_a_row_whose_label_has_no_match_is_hidden_even_if_the_numbers_appear(
+    tmp_path: Path,
+) -> None:
+    """Sayılar ikinci okumada başka etiketli satırda geçiyor: blokta sayım tutar, satır eşi yok."""
+    other = "POM | S | M\nLG040 Waist | 12 | 13\nLG050 Hip | 14 | 15\nFront Rise | 16 | 17"
+    elements = _read(tmp_path, _paddle_table(_TRUE_ROWS), str, _cloud(lambda _: other + " LG060"))
+
+    assert _uncertain_by_row(elements)["POM: LG060 Inseam"] == ("16", "17", "Inseam", "LG060")
+
+
+def test_row_marks_stay_on_their_row_and_header_marks_cover_the_table(tmp_path: Path) -> None:
+    """Satırın işareti yalnız o satırdadır: aynı sayı doğru okunan başka satırda gösterilir.
+    Başlık satırının işareti her satıra girer (başlık her satırın metninde geçer)."""
+    paddle = [
+        ["POM", "28", "30"],
+        ["LG1 Waist", "12", "14"],
+        ["LG2 Hip", "13", "13"],
+        ["LG3 Inseam", "13", "16"],
+    ]
+    other = "\n".join(
+        [
+            "Point of measure | 28 | 30",
+            "LG1 Waist | 12 | 13",
+            "LG2 Hip | 13 | 14",
+            "LG3 Inseam | 13 | 16",
+        ]
+    )
+
+    rows = _uncertain_by_row(_read(tmp_path, _paddle_table(paddle), str, _cloud(lambda _: other)))
+
+    assert rows == {
+        "POM: LG1 Waist": ("POM", "28", "30", "12", "14", "LG1", "Waist"),
+        "POM: LG2 Hip": ("POM", "28", "30", "13"),
+        "POM: LG3 Inseam": ("POM", "28", "30"),
+    }
+
+
+def test_form_row_with_several_label_value_pairs_matches_split_rows(tmp_path: Path) -> None:
+    """Form satırı birkaç "etiket | değer" çifti taşır; öbür okuma çiftleri ayrı satıra yazar."""
+    form = [["Sample Status", "Fit Approved", "Main Material #", "KNT-222888"]]
+
+    def read(other: str) -> tuple[str, ...]:
+        [element] = _read(tmp_path, _paddle_table(form), str, _cloud(lambda _: other))
+        return tuple(element.ocr_uncertain)
+
+    split = "Sample Status | Fit Approved\nMain Material # | KNT-222888"
+    # Rakamlı hücre etiket sayılmaz: değerle başlayan başka satır kanıt olmaz.
+    wrong = "Sample Status | Fit Approved\nMain Material # | KNT-222889\nKNT-222888 | not"
+
+    assert read(split) == ()
+    assert read(wrong) == ("Approved", "Fit", "KNT-222888", "Main", "Material", "Sample", "Status")
+
+
+def test_label_and_value_written_in_one_cell_still_match(tmp_path: Path) -> None:
+    """Öbür okuma etiketle değeri aynı hücreye ya da ayraçsız satıra yazabilir: etiket ön ek
+    olarak eşleşir. Çok kısa etiket ön ek olarak eşleşmez."""
+    form = [["Size Range", "XS-4XL, SMT-4XLT"], ["Fit", "Regular 2"]]
+    other = "Size Range XS-4XL, SMT-4XLT\nFitness 2"
+
+    elements = _read(tmp_path, _paddle_table(form), str, _cloud(lambda _: other))
+
+    assert [tuple(e.ocr_uncertain) for e in elements] == [(), ("2", "Fit", "Regular")]
+
+
+def test_every_word_of_a_row_without_a_match_is_uncertain(tmp_path: Path) -> None:
+    """Eşi bulunamayan satırın bütün hücreleri belirsizdir; sayı taşımayan satır da. Doğru
+    eşleşen satırlar ve sütun adlarının satırı etkilenmez."""
+    header = ["RISK", "MITIGATION"]
+    qwen = _figure_table(
+        header,
+        ["Color Block 3S", "Conduct proper testing"],
+        ["Insert Block Panel", "Choose the best fit width"],
+        ["Seam Types", "Ensure the selection of stitch types"],
+    )
+    gemma = _figure_table(
+        header,
+        ["Color Block 3S", "Conduct proper testing"],
+        ["Insert Block Panel", "Choose the best fit width"],
+    )
+
+    rows = _uncertain_by_row(_read_figure(tmp_path, lambda _: qwen, lambda _: gemma))
+
+    assert rows == {
+        "RISK": (),
+        "Color Block 3S": (),
+        "Insert Block Panel": (),
+        "Seam Types": ("Ensure", "Seam", "Types", "of", "selection", "stitch", "the", "types"),
+    }
+
+
+def test_rows_without_numbers_do_not_take_the_match_of_a_row_with_values() -> None:
+    """Sayısız satırlar eşlemeye sonra girer: aynı etiketli değer satırının eşini almaz."""
+    marks = page_reader.row_mismatches(
+        [["Note", "see chart"], ["Note", "12 cm"]], [["Note", "12 cm"]]
+    )
+
+    assert marks == {0: ["Note", "chart", "see"]}
+
+
+def test_a_shifted_text_column_under_a_matching_label_is_hidden(tmp_path: Path) -> None:
+    """Bold s.21: etiketi doğru, azaltma sütunu kaymış satırın eşi yok (iki yolda da)."""
+    header = ["RISK", "MITIGATION"]
+    qwen = _figure_table(header, ["Color Block 3S", "Over seam: presser foot settings"])
+    gemma = _figure_table(header, ["Color Block 3S", "Conduct proper testing"])
+    paddle = [header, ["Color Block 3S", "Over seam: presser foot settings"]]
+    check = "RISK | MITIGATION\nColor Block 3S | Conduct proper testing"
+    marked = ("3S", "Block", "Color", "Over", "foot", "presser", "seam", "settings")
+
+    figure = _uncertain_by_row(_read_figure(tmp_path, lambda _: qwen, lambda _: gemma))
+    region = _uncertain_by_row(_read(tmp_path, _paddle_table(paddle), str, _cloud(lambda _: check)))
+
+    assert figure == {"RISK: Color Block 3S": marked}
+    assert region == {"RISK: Color Block 3S": marked}
+
+
+_RISKS = [
+    ["RISK", "MITIGATION"],
+    ["Color Block 3S", "Conduct proper testing."],
+    ["Insert Block Panel", "Choose the best fit width"],
+]
+
+
+@pytest.mark.parametrize(
+    "other",
+    [
+        "RISK | MITIGATION\nColor Block 3S | Conduct proper testing.\n"
+        "Insert Block Panel | Choose the best fit width",
+        # Yalnız harf büyüklüğü, noktalama ve boşluk farkı. Büyük harfli sözcük kod sayıldığı
+        # için ("RISK") blok sayımı onun harf farkını yine görür (0035, bilinen sınır).
+        "RISK | MITIGATION\ncolor block 3S: | conduct proper-testing\n"
+        "Insert Block Panel | Choose the best fit  width.",
+    ],
+)
+def test_rows_whose_cells_agree_are_not_marked_on_either_path(tmp_path: Path, other: str) -> None:
+    gemma = _figure_table(*page_reader.text_rows(other))
+
+    figure = _read_figure(tmp_path, lambda _: _figure_table(*_RISKS), lambda _: gemma)
+    region = _read(tmp_path, _paddle_table(_RISKS), str, _cloud(lambda _: other))
+
+    assert [e.ocr_uncertain for e in figure] == [(), ()]
+    assert [e.ocr_uncertain for e in region] == [(), ()]
+
+
+def test_a_cell_written_as_its_own_line_still_matches_its_row(tmp_path: Path) -> None:
+    """Denetim okuması satır listesi yazarsa (Mac'te s.21) rakamsız hücre kendi satırında
+    bulunur: doğru tablo işaretlenmez. Sınır: rakamsız hücrenin kayması bu biçimde yakalanmaz."""
+    lines = json.dumps(
+        {
+            "lines": [
+                "RISK",
+                "MITIGATION",
+                "Color Block 3S: color migration",
+                "Color Block: Conduct proper testing",
+            ],
+            "tables": [],
+        }
+    )
+    table = _figure_table(
+        ["RISK", "MITIGATION"],
+        ["Color Block 3S: color migration", "Color Block: Conduct proper testing"],
+    )
+
+    [row] = _read_figure(tmp_path, lambda _: table, lambda _: lines)
+
+    assert row.ocr_uncertain == ()

@@ -147,6 +147,59 @@ def test_interrupted_documents_return_to_the_queue_on_start(tmp_path: Path) -> N
     assert asyncio.run(run()) == [DocumentStatus.FAILED, DocumentStatus.QUEUED]
 
 
+def test_documents_whose_cloud_circuit_opened_are_found_by_a_query(tmp_path: Path) -> None:
+    """Devresi açılan belge rapor uyarısından bulunur (Mac'te tek sqlite3 komutu)."""
+    from visual_agent.ingest.elements import CloudOutage
+
+    qwen = CloudOutage(
+        reasons={"qwen/qwen3-vl": "ConnectError()"}, fallback_blocks=4, skipped_figures=1
+    )
+    gemma = CloudOutage(reasons={"google/gemma": "ReadTimeout()"}, unchecked_figures=2)
+
+    class Warned(FrozenModel):
+        warnings: tuple[str, ...]
+
+    repository = _repository(tmp_path)
+
+    async def run() -> None:
+        documents = (
+            ("a", (str(qwen.warning()),)),
+            ("b", ("Sayfa 2: görsel",)),
+            ("c", (str(gemma.warning()),)),
+            # Reddedilen bloklar yeniden işlemeyle düzelmez: sorguya düşmez.
+            ("d", (str(CloudOutage(rejected_blocks=2, rejected_status=413).rejection_warning()),)),
+        )
+        for doc_id, warnings in documents:
+            await repository.create_document(_document(doc_id))
+            await repository.claim_next()
+            await repository.mark_ready(doc_id, "tr", [], Warned(warnings=warnings), None)
+
+    asyncio.run(run())
+    connection = connect(tmp_path / "veri" / "katalog.db")
+    try:
+        found = [
+            tuple(row)
+            for row in connection.execute(
+                "SELECT d.doc_id, w.value FROM documents d, json_each(d.report, '$.warnings') w"
+                " WHERE w.value LIKE '%bulut alınamadı%'"
+            )
+        ]
+    finally:
+        connection.close()
+
+    assert found == [
+        (
+            "a",
+            "4 blok Tesseract'la denetlendi, 1 şekil bloğu atlandı; bulut alınamadı"
+            " (qwen/qwen3-vl: ConnectError()).",
+        ),
+        (
+            "c",
+            "2 şekil bloğunun değerleri gizlendi; bulut alınamadı (google/gemma: ReadTimeout()).",
+        ),
+    ]
+
+
 def test_ready_document_keeps_chunks_report_and_language(tmp_path: Path) -> None:
     repository = _repository(tmp_path)
     chunks = [_chunk("a", 0), _chunk("a", 1, sheet="Ölçüler"), _chunk("a", 2, sheet="Ölçüler")]

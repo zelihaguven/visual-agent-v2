@@ -1,9 +1,11 @@
-"""Taranmış sayfaların ve gömülü görsellerin okuyucusu: PaddleOCR-VL okur, Tesseract ikinci
-kez okur (0011, 0028).
+"""Taranmış sayfaların ve gömülü görsellerin okuyucusu: PaddleOCR-VL okur, ikinci okuma bloğu
+yeniden okur (0011, 0028, 0035).
 
 Karar 0010: sayfa PaddleOCR-VL'nin resmi akışıyla (düzen + bölge) okunur; her bloğun sayı ve
-kodları Tesseract'ın aynı bloktaki okumasıyla sayılarak karşılaştırılır, sayısı tutmayan değer
-belirsiz sayılır ve cevapta gizlenir.
+kodları ikinci okumanın aynı bloktaki okumasıyla sayılarak karşılaştırılır, sayısı tutmayan değer
+belirsiz sayılır ve cevapta gizlenir. Karar 0035: OpenRouter anahtarı varsa ikinci okuma
+Qwen3-VL'dir (ZDR), alınamayan blokta Tesseract; okuyucunun boş bıraktığı şekil bloklarını Qwen3-VL
+okur, Gemma denetler.
 
 Eşdeğerlik kuralları ve sayarak karşılaştırma `evals/ocr_score.py` ile `evals/ocr_truth.py`
 içindeki ölçülmüş kodun kopyasıdır: o dosyalar sha256 ile donmuştur, uygulama da ölçüm
@@ -11,13 +13,21 @@ paketinden içe aktarmaz. İki kopyanın aynı sonucu verdiğini `tests/test_pag
 kaydı üzerinde sınar; biri değişirse test kırılır.
 """
 
+import asyncio
+import email.utils
+import hashlib
+import html
+import io
 import ipaddress
+import json
 import logging
+import math
 import re
 import tempfile
 from collections import Counter
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, replace
+from datetime import UTC, datetime
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, cast
@@ -29,7 +39,11 @@ import pypdfium2.raw as pdfium_c
 from PIL import Image, ImageOps
 
 from visual_agent.domain.document import Box, SourceLocation
+from visual_agent.generation.helpers import JsonModel
+from visual_agent.generation.openrouter import fetch_zdr_index, select_providers
 from visual_agent.ingest.elements import (
+    CLOUD_OUTAGE,
+    CloudOutage,
     Element,
     ElementKind,
     carries_value,
@@ -158,15 +172,19 @@ _CODE_RE = re.compile(r"^[A-ZÇĞİÖŞÜ]{2,}(?:-[A-Z0-9ÇĞİÖŞÜ]+)*$")
 """Rakamsız kod: en az iki büyük harf, tireyle parçalar ("AXL", "XS-AXL")."""
 
 
+def _words(text: str) -> list[str]:
+    """Metnin sözcükleri, karşılaştırılan yazımla ve kenar noktalaması atılmış."""
+    return [token for raw in canonical(text).split() if (token := raw.strip(_TOKEN_EDGES))]
+
+
 def value_tokens(text: str) -> list[str]:
     """Karşılaştırılan sayı ve kod parçaları: rakam içeren her parça ve rakamsız kodlar.
     "27 1/2" iki parçadır: "27" ve "1/2"."""
-    tokens = []
-    for raw in canonical(text).split():
-        token = raw.strip(_TOKEN_EDGES)
-        if token and (any(ch.isdigit() for ch in token) or _CODE_RE.match(token)):
-            tokens.append(token)
-    return tokens
+    return [
+        token
+        for token in _words(text)
+        if any(ch.isdigit() for ch in token) or _CODE_RE.match(token)
+    ]
 
 
 def count_mismatches(primary: str, second: str) -> list[str]:
@@ -174,6 +192,114 @@ def count_mismatches(primary: str, second: str) -> list[str]:
     Bilinen zayıflık: aynı bloktaki iki hata birbirini dengelerse sayılar tutar ve geçer."""
     first, other = Counter(value_tokens(primary)), Counter(value_tokens(second))
     return sorted(token for token, count in first.items() if other[token] != count)
+
+
+# --- Satır düzeyinde uyuşma (karar 0035): tablo okumalarında sayım satır satır ---
+
+RowMarks = dict[int, list[str]]
+"""Tablonun satır numarasına göre uyuşmayan parçalar ({kaynak satır no: [parça]})."""
+
+
+def _row_key(cells: Sequence[str]) -> str:
+    """Satır etiketi: satırın ilk dolu hücresi, harf ve rakam dışı karakterler atılmış, küçük
+    harfle ("LG040 Waist:" ile "lg040 waist" aynı)."""
+    first = next((cell for cell in cells if cell.strip()), "")
+    return "".join(ch for ch in canonical(first).casefold() if ch.isalnum())
+
+
+def text_rows(text: str) -> list[list[str]]:
+    """Düz metin okumasının satırları: her satır bir tablo satırıdır, hücreler "|" ile ayrılır
+    (iki istem de tabloyu böyle ister); ayraçsız satır tek hücredir (form satırını
+    "Size Range XS-4XL" diye yazabilir). Ayraç satırları ("---|---") atılır."""
+    rows = []
+    for line in text.splitlines():
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if any(ch.isalnum() for cell in cells for ch in cell):
+            rows.append(cells)
+    return rows
+
+
+def _squash(text: str) -> str:
+    """Hücre karşılaştırma biçimi: harf büyüklüğü, noktalama ve boşluk yok sayılır."""
+    return "".join(ch for ch in canonical(text).casefold() if ch.isalnum())
+
+
+_MIN_PREFIX_LABEL = 4
+"""Etiket ön ek olarak eşleşebilir ("styleactualsizes" ile "styleactualsizesxssm…": öbür okuma
+etiketle değeri aynı hücreye yazdı); çok kısa etiket ön ek olarak eşleşmez."""
+
+
+def _label_matches(label: str, key: str, exact: bool) -> bool:
+    if exact or min(len(label), len(key)) < _MIN_PREFIX_LABEL:
+        return label == key
+    return key.startswith(label) or label.startswith(key)
+
+
+_Keyed = Sequence[tuple[str, str]]
+"""Öbür okumanın satırları: (etiket, karşılaştırma biçimindeki bütün metni)."""
+
+
+def _candidates(label: str, keyed: _Keyed, used: set[int], taken: Sequence[int]) -> Iterator[int]:
+    for exact in (True, False):
+        for index, (key, _) in enumerate(keyed):
+            if index not in used and index not in taken and _label_matches(label, key, exact):
+                yield index
+
+
+def _bind(row: Sequence[str], keyed: _Keyed, used: set[int]) -> list[int] | None:
+    """Satırın öbür okumadaki eşleri (`row_mismatches`); bulunamazsa None. Bulunanlar
+    kullanılmış sayılır."""
+    cells = [(cell, text) for cell in row if (text := _squash(cell))]
+    if not cells:
+        return None
+    for first in _candidates(cells[0][1], keyed, used, ()):
+        chosen = [first]
+        for cell, text in cells:
+            if text in keyed[chosen[-1]][1]:
+                continue
+            digits = _DIGIT_RE.search(cell)
+            pair = None if digits else next(_candidates(text, keyed, used, chosen), None)
+            if pair is None:
+                break
+            chosen.append(pair)
+        else:
+            used.update(chosen)
+            return chosen
+    return None
+
+
+def row_mismatches(primary: Sequence[Sequence[str]], other: Sequence[Sequence[str]]) -> RowMarks:
+    """Birinci okumanın her satırı öbür okumada eşine bağlanır: ilk dolu hücre (etiket) öbür
+    satırın ilk hücresiyle eşleşir (önce birebir, yoksa ön ek; aynı etiket birden çok geçerse
+    hücreleri tutan ilk satır; bir satır bir kez kullanılır), sonraki her hücre de eşlenen
+    satırda geçmelidir (harf büyüklüğü, noktalama ve boşluk yok sayılır). Geçmeyen rakamsız
+    hücre yeni bir "etiket | değer" çiftinin etiketi olabilir: form satırını öbür okuma çift
+    çift ayrı satıra yazar ("Sample Status | … | Main Material # | KNT-222888"). Satırın sayı ve
+    kodları eşlenen satırlarla sayılır.
+
+    Eşi olmayan satırın bütün hücreleri (sayı içermeyen sözcükleri de) belirsizdir: satır
+    indekste kalır, ondan alıntı yapan cümle gizlenir. Satır sırası önemsizdir, bağı önemlidir:
+    sütun bir satır kayarsa (Bold s.21: risk doğru, azaltma bir öncekinin) blokta sözcükler ve
+    sayılar tutar, satırda tutmaz. Değer taşıyan satırlar önce eşlenir.
+
+    Sınır: öbür okuma her hücreyi ayrı satıra yazarsa (ayraçsız satır listesi) rakamsız hücre
+    çift etiketi gibi her yerde bulunur; rakamsız hücrenin kayması bu durumda yakalanmaz."""
+    keyed = [(_row_key(row), _squash(" ".join(row))) for row in other]
+    used: set[int] = set()
+
+    marks: RowMarks = {}
+    texts = [" ".join(row) for row in primary]
+    for index in sorted(range(len(primary)), key=lambda i: not value_tokens(texts[i])):
+        text = texts[index]
+        matched = _bind(primary[index], keyed, used)
+        if matched is None:
+            if words := [word for word in _words(text) if any(ch.isalnum() for ch in word)]:
+                marks[index] = sorted(set(words))
+            continue
+        mismatched = count_mismatches(text, " ".join(" ".join(other[i]) for i in matched))
+        if mismatched:
+            marks[index] = mismatched
+    return marks
 
 
 SecondReader = Callable[[Image.Image], str]
@@ -187,26 +313,33 @@ def _block_text(block: Mapping[str, Any]) -> str:
     return content
 
 
-def second_reading_marks(
-    data: Mapping[str, Any], image: Image.Image, read: SecondReader
-) -> dict[int, list[str]]:
-    """Her blok için ikinci okumayla geçiş sayısı tutmayan parçalar ({blok numarası: [parça]}).
-    Blok kutusu okuyucuya verilen görüntünün pikselidir."""
+def _block_crop(
+    data: Mapping[str, Any], image: Image.Image, block: Mapping[str, Any]
+) -> Image.Image:
+    """Bloğun kırpıntısı; blok kutusu okuyucuya verilen görüntünün pikselidir."""
     scale_x = image.width / float(data.get("width") or image.width)
     scale_y = image.height / float(data.get("height") or image.height)
-    marks: dict[int, list[str]] = {}
-    for block in data["parsing_res_list"]:
-        content = _block_text(block)
-        if not value_tokens(content):
-            continue
-        left, top, right, bottom = block["block_bbox"]
-        box = (
+    left, top, right, bottom = block["block_bbox"]
+    return image.crop(
+        (
             max(0, int(left * scale_x) - _BLOCK_PAD),
             max(0, int(top * scale_y) - _BLOCK_PAD),
             min(image.width, int(right * scale_x) + _BLOCK_PAD),
             min(image.height, int(bottom * scale_y) + _BLOCK_PAD),
         )
-        mismatched = count_mismatches(content, read(image.crop(box)))
+    )
+
+
+def second_reading_marks(
+    data: Mapping[str, Any], image: Image.Image, read: SecondReader
+) -> dict[int, list[str]]:
+    """Her blok için ikinci okumayla geçiş sayısı tutmayan parçalar ({blok numarası: [parça]})."""
+    marks: dict[int, list[str]] = {}
+    for block in data["parsing_res_list"]:
+        content = _block_text(block)
+        if not value_tokens(content):
+            continue
+        mismatched = count_mismatches(content, read(_block_crop(data, image, block)))
         if mismatched:
             marks[int(block["block_id"])] = mismatched
     return marks
@@ -225,11 +358,332 @@ def tesseract_reader(executable: str, language: str = "tur+eng") -> SecondReader
     return read
 
 
+# --- Bulut okuması (karar 0035): ikinci okuma Qwen3-VL, şekil blokları Qwen3-VL + Gemma ---
+
+CHECK_PROMPT = (
+    "Görüntüdeki bütün yazıyı, sayıları ve işaretleri olduğu gibi aynen yaz. Tablo varsa her satırı"
+    " ayrı satıra yaz, hücreleri ' | ' ile ayır. Düzeltme, çeviri, özet ya da yorum ekleme;"
+    " okuyamadığını yazma. Yalnız metni ver."
+)
+FIGURE_PROMPT = (
+    "Görseldeki bütün yazıları, sayıları ve etiketleri satır satır aynen yaz; tablo varsa"
+    " satır/sütunla; yorum ekleme. Okuyamadığını yazma."
+    ' Yalnız JSON ver: {"lines": ["..."], "tables": [{"rows": [["hücre", "..."]]}]}.'
+    " Yazı yoksa boş listeler ver."
+)
+"""İki istem de ölçülen istemlerdir (docs/okuma-planlari.md, A-q1)."""
+CHECK_MAX_TOKENS = 4096
+FIGURE_MAX_TOKENS = 2048
+_CLOUD_SECONDS = 120.0
+_RATE_LIMIT_RETRIES = 3
+"""429 (istek sınırı) alınan çağrı en çok bu kadar kez beklenip yeniden denenir."""
+_RATE_LIMIT_FIRST_WAIT = 2.0
+_RATE_LIMIT_MAX_WAIT = 60.0
+_sleep = asyncio.sleep
+"""Testler sahte uykuyla değiştirir."""
+
+
+def _rate_limit_wait(response: httpx.Response, attempt: int) -> float:
+    """Retry-After (saniye ya da HTTP tarihi) varsa ona uyulur, yoksa 2, 4, 8 sn; üst sınır
+    60 sn."""
+    header = str(response.headers.get("retry-after", "")).strip()
+    wait: float = _RATE_LIMIT_FIRST_WAIT * 2**attempt
+    if header:
+        try:
+            seconds = float(header)
+            if math.isfinite(seconds):  # "nan" ve "inf" yok sayılır
+                wait = seconds
+        except ValueError:
+            try:
+                when = email.utils.parsedate_to_datetime(header)
+                wait = (when - datetime.now(when.tzinfo or UTC)).total_seconds()
+            except (TypeError, ValueError):
+                pass
+    return min(max(wait, 0.0), _RATE_LIMIT_MAX_WAIT)
+
+
+async def _with_retries[T](request: Callable[[], Awaitable[T]]) -> T:
+    """429 alan istek (okuma ya da ZDR dizini) beklenip yeniden denenir; denemeler tükenirse
+    hata yükselir ve çağıran belgenin devresini açar."""
+    for attempt in range(_RATE_LIMIT_RETRIES):
+        try:
+            return await request()
+        except httpx.HTTPStatusError as error:
+            if error.response.status_code != httpx.codes.TOO_MANY_REQUESTS:
+                raise
+            await _sleep(_rate_limit_wait(error.response, attempt))
+    return await request()
+
+
+class CloudUnavailable(RuntimeError):
+    """Bulut okuması alınamadı: ağ, HTTP hatası, süre, ZDR sağlayıcısı yok."""
+
+
+@dataclass(frozen=True)
+class CloudConfig:
+    base_url: str
+    api_key: str
+    cache: Path
+    reader_model: str
+    figure_check_model: str
+    transport: httpx.AsyncBaseTransport | None = None
+    """Yalnız testler verir."""
+
+
+_REQUEST_ERRORS = frozenset({400, 413, 415, 422})
+"""İsteğin kendisine özgü hatalar (bozuk ya da çok büyük görüntü): belgenin devresini açmaz."""
+
+
+def _rejected_request(error: Exception) -> bool:
+    """Okuma isteği bu bloğa özgü bir 4xx ile reddedildi: yalnız o blok yedeğe düşer. Ağ
+    hatası, zaman aşımı, 5xx, kimlik/yetki hataları ve denemeleri tükenmiş 429 devreyi açar."""
+    return (
+        isinstance(error, httpx.HTTPStatusError)
+        and error.response.status_code in _REQUEST_ERRORS
+        and error.request.url.path.endswith("/chat/completions")
+    )
+
+
+def _cached_content(path: Path) -> str | None:
+    """Önbellekteki cevap; dosya yoksa ya da bozuksa (yarım yazılmış, elle değişmiş) None:
+    bozuk dosya yok sayılır, cevap yeniden istenir ve dosyanın üstüne yazılır."""
+    try:
+        content = json.loads(path.read_text(encoding="utf-8"))["content"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    return content if isinstance(content, str) else None
+
+
+def cloud_reader(
+    config: CloudConfig,
+    model: str,
+    prompt: str,
+    max_tokens: int,
+    accept: Callable[[str], bool] | None = None,
+) -> SecondReader:
+    """Bloğun kırpıntısını bulut modeli okur: buluta bütün sayfa değil blok gider, yalnız ZDR
+    sağlayıcılarla (kural 4). Cevap diskte sha256(model + istem + görüntü) adıyla saklanır:
+    aynı kırpıntı ikinci kez ödenmez. Okunamazsa `CloudUnavailable`; o modelin ilk hatasından
+    sonra belgenin kalanında istek gitmez (`CLOUD_OUTAGE`, ZDR dizini de yeniden istenmez).
+
+    accept: cevabın kullanılabilir olduğu denetimi (ör. şekil okumasında JSON). Kullanılamayan
+    cevap önbelleğe yazılmaz ve bir kez yeniden istenir; yine kullanılamazsa olduğu gibi döner.
+    Boş cevap da önbelleğe yazılmaz."""
+    chosen: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
+    own = CloudOutage()
+
+    async def call(png: bytes) -> str:
+        async with httpx.AsyncClient(transport=config.transport, timeout=_CLOUD_SECONDS) as http:
+            if not chosen:
+                index = await _with_retries(
+                    lambda: fetch_zdr_index(http, config.base_url, config.api_key)
+                )
+                chosen.append(select_providers(model, (), index))
+            providers, ignored = chosen[0]
+            client = JsonModel(http, config.base_url, config.api_key, model, providers, ignored)
+            return await _with_retries(lambda: client.read_image(prompt, png, max_tokens))
+
+    def read(image: Image.Image) -> str:
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        png = buffer.getvalue()
+        key = hashlib.sha256(b"\0".join([model.encode(), prompt.encode(), png])).hexdigest()
+        cached = config.cache / f"{key}.json"
+        if (stored := _cached_content(cached)) is not None:
+            return stored
+        outage = CLOUD_OUTAGE.get() or own
+        if model in outage.reasons:
+            raise CloudUnavailable(f"{model}: {outage.reasons[model]}")
+        for _ in range(1 if accept is None else 2):
+            try:
+                content = asyncio.run(call(png))
+            except Exception as error:  # okuma durmaz; çağıran yedeğe geçer ya da değeri gizler
+                if _rejected_request(error):
+                    logger.warning("Bulut bu bloğu reddetti; yalnız blok yedeğe düşer: %s", error)
+                    outage.reject(cast(httpx.HTTPStatusError, error).response.status_code)
+                else:
+                    outage.reasons[model] = repr(error)[:200]
+                    logger.warning(
+                        "Bulut okuması alınamadı; belgenin kalanında istenmez: %s", error
+                    )
+                raise CloudUnavailable(f"{model}: {error!r}"[:300]) from error
+            if content.strip() and (accept is None or accept(content)):
+                config.cache.mkdir(parents=True, exist_ok=True)
+                partial = cached.with_suffix(".tmp")
+                partial.write_text(
+                    json.dumps({"model": model, "content": content}), encoding="utf-8"
+                )
+                partial.replace(cached)
+                break
+        return content
+
+    return read
+
+
+def _outage() -> CloudOutage:
+    """Belgenin bulut durumu; belge dışında (doğrudan çağrı) sayım bir yere yazılmaz."""
+    return CLOUD_OUTAGE.get() or CloudOutage()
+
+
+@dataclass(frozen=True)
+class CloudReaders:
+    """Bulut okuyucuları (karar 0035): `check` okuyucunun bloklarını ikinci kez okur; okuyucunun
+    boş bıraktığı şekil bloklarını `figure_read` okur, `figure_check` denetler (ikisi de JSON).
+    Sayfayı kaplayan blok da buluta gider (şirket onayı, 2026-11-27; karar 0035)."""
+
+    check: SecondReader
+    figure_read: SecondReader
+    figure_check: SecondReader
+
+
+TableMarks = dict[tuple[int, int], RowMarks]
+"""Tablo parçalarının satır düzeyindeki işaretleri ({(blok no, parça no): satır işaretleri});
+okuyucunun kendi tablosu bloğun 0. parçasıdır."""
+
+
+def _cloud_marks(
+    data: Mapping[str, Any], image: Image.Image, second: SecondReader, cloud: CloudReaders
+) -> tuple[dict[int, list[str]], TableMarks]:
+    """İkinci okuma bulutta: her blok bugünkü gibi sayılır; tablo bloğu ayrıca satır satır
+    (`row_mismatches`). Bulut okuması alınamayan blok `second` (Tesseract) ile yalnız blok
+    düzeyinde sayılır: Tesseract'ın seyrek okuması satır vermez."""
+    marks: dict[int, list[str]] = {}
+    tables: TableMarks = {}
+    for block in data["parsing_res_list"]:
+        content = _block_text(block)
+        if not value_tokens(content):
+            continue
+        block_id, crop = int(block["block_id"]), _block_crop(data, image, block)
+        try:
+            text, rows = cloud.check(crop), True
+        except CloudUnavailable:
+            _outage().fallback_blocks += 1
+            text, rows = second(crop), False
+        if mismatched := count_mismatches(content, text):
+            marks[block_id] = mismatched
+        if rows and block.get("block_label") == "table":
+            primary = html_rows(str(block.get("block_content") or ""))
+            if table := row_mismatches(primary, text_rows(text)):
+                tables[(block_id, 0)] = table
+    return marks, tables
+
+
+_FIGURE_LABELS = frozenset({"image", "chart", "figure", "seal", "header_image", "footer_image"})
+FigurePart = tuple[str, str]
+"""Şekil okumasının bir parçası, okuyucunun blok biçiminde: ("text", satır) ya da
+("table", HTML tablo)."""
+_JSON_OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
+
+
+def figure_parts(content: str) -> list[FigurePart] | None:
+    """Şekil okumasının JSON'u parçalara: her satır bir metin, her tablo bir HTML tablo. JSON
+    nesnesi yoksa None."""
+    match = _JSON_OBJECT_RE.search(content)
+    try:
+        parsed = json.loads(match.group(0)) if match else None
+    except json.JSONDecodeError:
+        parsed = None
+    if not isinstance(parsed, dict):
+        return None
+    lines, tables = parsed.get("lines"), parsed.get("tables")
+    parts = [
+        ("text", str(line))
+        for line in (lines if isinstance(lines, list) else [])
+        if str(line).strip()
+    ]
+    for table in tables if isinstance(tables, list) else []:
+        rows = table.get("rows") if isinstance(table, dict) else table
+        cells = [
+            [html.escape(str(cell)) for cell in (row if isinstance(row, list) else [row])]
+            for row in (rows if isinstance(rows, list) else [])
+        ]
+        body = "".join(
+            "<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>"
+            for row in cells
+            if any(cell.strip() for cell in row)
+        )
+        if body:
+            parts.append(("table", f"<table>{body}</table>"))
+    return parts
+
+
+def _parts_text(parts: Sequence[FigurePart]) -> str:
+    return " ".join(
+        _block_text({"block_label": label, "block_content": content}) for label, content in parts
+    )
+
+
+def read_figures(
+    data: Mapping[str, Any], image: Image.Image, readers: CloudReaders
+) -> tuple[dict[int, list[FigurePart]], dict[int, list[str]], TableMarks]:
+    """Okuyucunun içeriğini boş bıraktığı şekil blokları ({blok numarası: parçalar}),
+    denetimde geçiş sayısı tutmayan değerleri ve tablo parçalarının satır işaretleri. Değer iki
+    okumada sayısı tutarsa (tabloda: aynı etiketli satırda) gösterilir; denetim okuması
+    alınamazsa bloğun bütün değerleri belirsizdir (denetlenmeden gösterilmez)."""
+    figures: dict[int, list[FigurePart]] = {}
+    marks: dict[int, list[str]] = {}
+    tables: TableMarks = {}
+    for block in data["parsing_res_list"]:
+        if block.get("block_label") not in _FIGURE_LABELS or _block_text(block).strip():
+            continue
+        crop = _block_crop(data, image, block)
+        if _is_blank(crop):
+            continue
+        try:
+            parts = figure_parts(readers.figure_read(crop))
+        except CloudUnavailable as error:
+            logger.warning("Şekil bloğu okunamadı; atlanır: %s", error)
+            _outage().skipped_figures += 1
+            continue
+        if not parts:
+            continue
+        block_id = int(block["block_id"])
+        figures[block_id] = parts
+        primary = _parts_text(parts)
+        if not value_tokens(primary):
+            continue  # gizlenecek değer yok; denetim okumasına gerek yok
+        try:
+            other = readers.figure_check(crop)
+        except CloudUnavailable as error:
+            logger.warning("Şekil bloğu denetlenemedi; değerleri gizlenir: %s", error)
+            _outage().unchecked_figures += 1
+            marks[block_id] = sorted(set(value_tokens(primary)))
+            continue
+        checked = figure_parts(other)
+        mismatched = count_mismatches(primary, other if checked is None else _parts_text(checked))
+        if mismatched:
+            marks[block_id] = mismatched
+        for index, rows in _figure_rows(parts, other, checked).items():
+            tables[(block_id, index)] = rows
+    return figures, marks, tables
+
+
+def _figure_rows(
+    parts: Sequence[FigurePart], other: str, checked: Sequence[FigurePart] | None
+) -> dict[int, RowMarks]:
+    """Şeklin her tablo parçası denetim okumasının satırlarıyla satır satır sayılır: denetimin
+    tablolarının satırları ve "|" ile ayrılmış metin satırları ({parça no: satır işaretleri})."""
+    other_rows = (
+        text_rows(other)
+        if checked is None
+        else [
+            row
+            for label, content in checked
+            for row in (html_rows(content) if label == "table" else text_rows(content))
+        ]
+    )
+    found = {}
+    for index, (label, content) in enumerate(parts):
+        if label == "table" and (rows := row_mismatches(html_rows(content), other_rows)):
+            found[index] = rows
+    return found
+
+
 # --- Bloklardan öğelere ---
 
 
 def _uncertain(text: str, tokens: Sequence[str]) -> tuple[str, ...]:
-    present = set(value_tokens(text))
+    present = set(_words(text))
     return tuple(token for token in tokens if token in present)
 
 
@@ -270,8 +724,15 @@ def _table_elements(
     tokens: Sequence[str],
     known_headers: frozenset[HeaderKey] = frozenset(),
     learned: set[HeaderKey] | None = None,
+    row_marks: Mapping[int, Sequence[str]] | None = None,
 ) -> list[Element]:
-    """Başlıklı tabloda satır "Başlık: değer" biçimindedir; başlıksız tabloda (form, tek satır)
+    """row_marks: satır düzeyindeki işaretler (kaynak satır no); satırın değerleri yalnız kendi
+    satırında belirsizdir. Satıra dönüşmeyen kaynak satırın (başlık, etiket, not) sayı ve kod
+    işaretleri bütün tabloya uygulanır: o metin her satırın başlığında ya da bağlamında geçer.
+    Eşi olmayan böyle bir satırın sayısız sözcükleri tabloya yayılmaz: sütun adı her satırda
+    geçtiği için doğru eşleşen satırları da gizlerdi.
+
+    Başlıklı tabloda satır "Başlık: değer" biçimindedir; başlıksız tabloda (form, tek satır)
     satır okunduğu gibi kalır: hücreler sırayla, ilk satır da bir satırdır, aradaki boş hücre
     yerini korur. Başlık satırının hücre sayısı bir veri satırınınkinden farklıysa tablo da
     başlıksız yazılır: okuyucu bir hücreyi düşürdüyse başlıklar bir sütun kayar ve değer yanlış
@@ -295,6 +756,11 @@ def _table_elements(
         for r, row in enumerate(rows)
         for c, text in enumerate(row)
     ]
+    grouped = group_table_rows(cells, infer_header=False)
+    by_row = row_marks or {}
+    covered = {source for row in grouped for source in row.sources}
+    header_marks = (t for r, marks in by_row.items() if r not in covered for t in marks)
+    shared = [*tokens, *(t for t in header_marks if value_tokens(t))]
     return [
         Element(
             ElementKind.TABLE_ROW,
@@ -302,10 +768,15 @@ def _table_elements(
             location,
             from_ocr=True,
             # Bölüm etiketi ve tablo notu satırın bağlamına girer; değerleri de satıra bağlanır.
-            ocr_uncertain=_uncertain(f"{row.text} {row.context}", tokens),
+            ocr_uncertain=_uncertain(
+                f"{row.text} {row.context}",
+                list(
+                    dict.fromkeys([*shared, *(t for r in row.sources for t in by_row.get(r, ()))])
+                ),
+            ),
             context=row.context,
         )
-        for row in group_table_rows(cells, infer_header=False)
+        for row in grouped
     ]
 
 
@@ -317,12 +788,18 @@ def page_elements(
     known_headers: frozenset[HeaderKey] = frozenset(),
     learned: set[HeaderKey] | None = None,
     region: Box | None = None,
+    figures: Mapping[int, Sequence[FigurePart]] | None = None,
+    tables: TableMarks | None = None,
 ) -> list[Element]:
-    """Okuyucunun sayfa sonucu, okuma sırasıyla öğelere çevrilir. Metin karşılaştırılan yazımla
+    """tables: tablo parçalarının satır düzeyindeki işaretleri (`_cloud_marks`, `read_figures`).
+
+    Okuyucunun sayfa sonucu, okuma sırasıyla öğelere çevrilir. Metin karşılaştırılan yazımla
     yazılır ("14⅞" → "14 7/8"): belirsiz değerler cevap denetiminde aynı yazımla aranır.
     Tabloda hücre konumu yoktur; satırın kaynağı tablonun kutusudur. region: okunan görüntü
     sayfanın bir bölgesiyse (gömülü görsel) kutular o bölgeden sayfaya taşınır; görseldeki başlık
-    bölüm açmaz, metin olarak kalır (altındaki dijital metin görselin başlığına bağlanmasın)."""
+    bölüm açmaz, metin olarak kalır (altındaki dijital metin görselin başlığına bağlanmasın).
+    figures: okuyucunun boş bıraktığı şekil bloklarının bulut okuması (`read_figures`); şeklin
+    her satırı ve tablosu bloğun yerinde ayrı öğedir."""
     page_width, page_height = page_size
     left0, top0 = (region.left, region.top) if region else (0.0, 0.0)
     width = region.right - region.left if region else page_width
@@ -331,8 +808,14 @@ def page_elements(
     scale_y = height / float(data.get("height") or height)
     elements: list[Element] = []
     for block in data["parsing_res_list"]:
+        block_id = int(block.get("block_id", -1))
         content = str(block.get("block_content") or "")
-        if not content.strip():
+        parts: Sequence[FigurePart] = (
+            [(str(block.get("block_label")), content)]
+            if content.strip()
+            else (figures or {}).get(block_id, ())
+        )
+        if not parts:
             continue
         left, top, right, bottom = block["block_bbox"]
         box = Box(
@@ -345,23 +828,25 @@ def page_elements(
             page_height=page_height,
         )
         location = SourceLocation(page=page, boxes=(box,))
-        tokens = marks.get(int(block.get("block_id", -1)), ())
-        if block.get("block_label") == "table":
-            elements += _table_elements(content, location, tokens, known_headers, learned)
-            continue
-        text = canonical(content)
-        heading = region is None and block.get("block_label") in _HEADING_LABELS
-        element = Element(
-            ElementKind.HEADING if heading else ElementKind.TEXT,
-            text,
-            location,
-            from_ocr=True,
-            ocr_uncertain=_uncertain(text, tokens),
-        )
-        elements.append(element)
-        # Değer taşıyan başlık metin olarak da kalır (docling yolundaki kural).
-        if heading and carries_value(text):
-            elements.append(replace(element, kind=ElementKind.TEXT))
+        tokens = marks.get(block_id, ())
+        for index, (label, part) in enumerate(parts):
+            if label == "table":
+                rows = (tables or {}).get((block_id, index))
+                elements += _table_elements(part, location, tokens, known_headers, learned, rows)
+                continue
+            text = canonical(part)
+            heading = region is None and label in _HEADING_LABELS
+            element = Element(
+                ElementKind.HEADING if heading else ElementKind.TEXT,
+                text,
+                location,
+                from_ocr=True,
+                ocr_uncertain=_uncertain(text, tokens),
+            )
+            elements.append(element)
+            # Değer taşıyan başlık metin olarak da kalır (docling yolundaki kural).
+            if heading and carries_value(text):
+                elements.append(replace(element, kind=ElementKind.TEXT))
     return elements
 
 
@@ -528,18 +1013,41 @@ def page_reader_from_setting(value: str | None) -> ReadPage | None:
     return PaddleVlReader(config).read
 
 
-def _read_image(
-    image: Image.Image, source: Path, read_page: ReadPage | None, second: SecondReader
-) -> tuple[dict[str, Any], dict[int, list[str]]] | None:
-    """Okuyucu sonucu ve ikinci okumanın işaretleri; görüntü boşsa None (okuyucu gerekmez)."""
+def _is_blank(image: Image.Image) -> bool:
     darkest, _ = cast(tuple[int, int], image.convert("L").getextrema())
-    if darkest >= _BLANK_LEVEL:
+    return darkest >= _BLANK_LEVEL
+
+
+_Reading = tuple[dict[str, Any], dict[int, list[str]], dict[int, list[FigurePart]], TableMarks]
+
+
+def _read_image(
+    image: Image.Image,
+    source: Path,
+    read_page: ReadPage | None,
+    second: SecondReader,
+    cloud: CloudReaders | None,
+    whole_page: bool = False,
+) -> _Reading | None:
+    """Okuyucu sonucu, ikinci okumanın işaretleri ve şekil blokları; görüntü boşsa None (okuyucu
+    gerekmez). Bulut yoksa ikinci okuma `second`, şekil blokları bugünkü gibi atlanır.
+    whole_page: görüntü metin katmanı olmayan bir sayfanın tamamı; düzen modeli üzerinde hiç
+    blok bulamazsa (Bold s.14) sayfa tek şekil bloğu sayılır ve şekil gibi okunur."""
+    if _is_blank(image):
         return None
     if read_page is None:
         raise ReaderUnavailable(NOT_CONFIGURED)
     image.save(source)
     data = read_page(source)
-    return data, second_reading_marks(data, image, second)
+    if cloud is None:
+        return data, second_reading_marks(data, image, second), {}, {}
+    marks, tables = _cloud_marks(data, image, second, cloud)
+    if whole_page and not data["parsing_res_list"]:
+        width, height = data.get("width") or image.width, data.get("height") or image.height
+        page_block = {"block_id": 0, "block_label": "image", "block_content": ""}
+        data = {**data, "parsing_res_list": [{**page_block, "block_bbox": [0, 0, width, height]}]}
+    read, figure_marks, figure_tables = read_figures(data, image, cloud)
+    return data, {**marks, **figure_marks}, read, {**tables, **figure_tables}
 
 
 _MIN_IMAGE_SCALE = 1.0
@@ -568,6 +1076,7 @@ def read_embedded_images(
     work: Path,
     read_page: ReadPage | None,
     second: SecondReader,
+    cloud: CloudReaders | None = None,
 ) -> list[Element]:
     """Metinli sayfadaki gömülü görseller sayfa okuyucusuyla okunur (karar 0028): yalnız görselin
     bölgesi kendi çözünürlüğünde çizilir, öğelerin kutuları sayfaya taşınır. Okuyucu yoksa
@@ -583,10 +1092,18 @@ def read_embedded_images(
             bitmap = page.render(scale=_image_scale(page, box), crop=margins)
             crop = bitmap.to_pil().convert("RGB")
             source = work / f"okuyucu-s{box.page}-g{index}.png"
-            read = _read_image(crop, source, read_page, second)
+            read = _read_image(crop, source, read_page, second, cloud)
             if read is not None:
-                data, marks = read
-                elements += page_elements(data, box.page, page.get_size(), marks, region=box)
+                data, marks, shapes, tables = read
+                elements += page_elements(
+                    data,
+                    box.page,
+                    page.get_size(),
+                    marks,
+                    region=box,
+                    figures=shapes,
+                    tables=tables,
+                )
             report_progress("images", index + 1, len(images))
         return elements
     finally:
@@ -600,6 +1117,7 @@ def read_scanned_pages(
     read_page: ReadPage | None,
     second: SecondReader,
     source_image: Path | None = None,
+    cloud: CloudReaders | None = None,
 ) -> list[Element]:
     """Metin katmanı olmayan, zayıf ya da taranmış metin katmanlı sayfaları okur (0011, 0028).
     Okuyucu yoksa ya da ulaşılamıyorsa `ReaderUnavailable`: sayfa başka yoldan okunmaz, belge
@@ -619,12 +1137,20 @@ def read_scanned_pages(
                     image = ImageOps.exif_transpose(opened).convert("RGB")
             else:
                 image = page.render(scale=_native_scale(page)).to_pil().convert("RGB")
-            read = _read_image(image, work / f"okuyucu-s{number}.png", read_page, second)
+            source = work / f"okuyucu-s{number}.png"
+            read = _read_image(image, source, read_page, second, cloud, whole_page=True)
             if read is not None:  # boş sayfada okunacak bir şey yok, okuyucu da gerekmez
-                data, marks = read
+                data, marks, shapes, tables = read
                 learned: set[HeaderKey] = set()
                 elements += page_elements(
-                    data, number, page.get_size(), marks, known_headers, learned
+                    data,
+                    number,
+                    page.get_size(),
+                    marks,
+                    known_headers,
+                    learned,
+                    figures=shapes,
+                    tables=tables,
                 )
                 known_headers |= learned  # yalnız sonraki sayfalar için
             report_progress("pages", done, len(pages))

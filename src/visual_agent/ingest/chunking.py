@@ -3,7 +3,7 @@
 import re
 from collections.abc import Iterable, Sequence
 
-from visual_agent.domain.document import Chunk, ChunkKind, DocumentMeta, SourceLocation
+from visual_agent.domain.document import Box, Chunk, ChunkKind, DocumentMeta, SourceLocation
 from visual_agent.ingest.elements import SECTION_SEPARATOR, Element, ElementKind
 from visual_agent.verification.text import contains_token, identifiers_in
 
@@ -76,19 +76,21 @@ _ROOT_LEVEL = 0
 _UNKNOWN_LEVEL = 99
 
 
-def _next_path(path: HeadingPath, heading: Element, after_content: bool = False) -> HeadingPath:
+def _next_path(path: HeadingPath, heading: Element) -> HeadingPath:
     """Düzeyi bilinen başlık kendi düzeyindeki ve altındaki başlıkların yerini alır.
 
-    Düzeyi bilinmeyen başlık belgenin ilk başlığının altına girer; ilk başlığın aynısıysa
-    bölüm yalnız ilk başlıktır. Belgenin ilk başlığı içerikten sonra geliyor ve kod taşımıyorsa
-    (after_content) belge başlığı değildir: düzeyi bilinmeyen başlıklar kardeştir, her biri
-    öncekinin yerini alır.
+    Düzeyi bilinmeyen başlıklar kardeştir, her biri öncekinin yerini alır: alt bölüm yalnız
+    düzey kanıtıyla (Markdown, Excel) kurulur; docling ve sayfa okuyucusu düzey vermez,
+    sıradaki başlığı öncekinin altına koymak kopuk parçaları ("FW") kök yapıyordu. Tek istisna
+    kod taşıyan ilk başlıktır (karar 0025): belge başlığıdır, kök kalır, sonraki düzeysiz
+    başlıklar onun altına girer (kod bölüm yolunda olmalı: kod dizini ve cevap denetimi onu
+    bağlamdan okur); aynısı yeniden gelirse bölüm yalnız odur.
     """
     if heading.level is not None:
         kept = tuple(item for item in path if item[0] < heading.level)
         return (*kept, (heading.level, heading.text))
     if not path:
-        return ((_UNKNOWN_LEVEL if after_content else _ROOT_LEVEL, heading.text),)
+        return ((_ROOT_LEVEL if identifiers_in(heading.text) else _UNKNOWN_LEVEL, heading.text),)
     root = path[0]
     if root[0] == _UNKNOWN_LEVEL:
         return ((_UNKNOWN_LEVEL, heading.text),)
@@ -102,29 +104,26 @@ def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str, t
     output: list[tuple[Element, str, tuple[str, ...]]] = []
     group: list[Element] = []
     path: HeadingPath = ()
-    section = ""
     heading_uncertain: dict[str, tuple[str, ...]] = {}
-    section_uncertain: tuple[str, ...] = ()
+    page_headings: dict[int | None, list[_PlacedHeading]] = {}
+
+    def uncertain_of(of: HeadingPath) -> tuple[str, ...]:
+        return tuple(
+            dict.fromkeys(token for _, text in of for token in heading_uncertain.get(text, ()))
+        )
 
     def flush() -> None:
         if group:
-            output.append((_merge_group(group), section, section_uncertain))
+            output.append((_merge_group(group), _section(path), uncertain_of(path)))
             group.clear()
 
     for element in elements:
         if element.kind is ElementKind.HEADING:
             flush()
-            # Kod taşıyan ilk başlık içerikten sonra da gelse belge başlığıdır (kod bölüm yolunda
-            # kalmalı: kod dizini ve cevap denetimi onu bağlamdan okur).
-            after_content = bool(output) and not identifiers_in(element.text)
-            path = _next_path(path, element, after_content)
-            section = SECTION_SEPARATOR.join(text for _, text in path)
+            before, path = path, _next_path(path, element)
             heading_uncertain[element.text] = element.ocr_uncertain
-            section_uncertain = tuple(
-                dict.fromkeys(
-                    token for _, text in path for token in heading_uncertain.get(text, ())
-                )
-            )
+            placed = page_headings.setdefault(element.location.page, [])
+            placed.append((_page_box(element), before, path))
         elif element.kind is ElementKind.TEXT:
             for piece in _split_element(element):
                 if not _can_merge(group, piece):
@@ -132,15 +131,48 @@ def _sectioned_chunks(elements: Iterable[Element]) -> list[tuple[Element, str, t
                 group.append(piece)
         else:
             flush()
-            output.append(
-                (
-                    element,
-                    SECTION_SEPARATOR.join(p for p in (section, element.context) if p),
-                    section_uncertain,
-                )
-            )
+            own = path
+            if element.kind is ElementKind.TABLE_ROW:
+                own = _row_path(path, element, page_headings.get(element.location.page, []))
+            section = SECTION_SEPARATOR.join(p for p in (_section(own), element.context) if p)
+            output.append((element, section, uncertain_of(own)))
     flush()
     return output
+
+
+def _section(path: HeadingPath) -> str:
+    return SECTION_SEPARATOR.join(text for _, text in path)
+
+
+_PlacedHeading = tuple[Box | None, HeadingPath, HeadingPath]
+"""Sayfadaki başlık: kutusu, kendisinden önceki ve sonraki bölüm yolu."""
+
+
+def _page_box(element: Element) -> Box | None:
+    page = element.location.page
+    return next((box for box in element.location.boxes if box.page == page), None)
+
+
+def _row_path(path: HeadingPath, row: Element, headings: Sequence[_PlacedHeading]) -> HeadingPath:
+    """Tablo satırının bölümü: aynı sayfada satırın üstünde başlayan ve yatayda satırla örtüşen
+    en yakın başlığın yolu. Yan yana tablolarda okuma sırası başlıkları önce, tabloları sonra
+    verebilir; son başlık öbür tablonun başlığıdır (QM s.16). Üstünde örtüşen başlık yoksa
+    sayfanın başlıkları devralınmaz: yol sayfadaki ilk başlıktan öncekidir. Satırın ya da
+    sayfadaki bir başlığın kutusu yoksa (Markdown, Excel) bölüm okuma sırasındaki son başlıktır."""
+    box = _page_box(row)
+    if box is None or not headings or any(heading is None for heading, _, _ in headings):
+        return path
+    above = [
+        (heading, after)
+        for heading, _, after in headings
+        if heading is not None
+        and heading.top < box.top
+        and heading.left < box.right
+        and box.left < heading.right
+    ]
+    if above:
+        return max(above, key=lambda item: item[0].bottom)[1]
+    return headings[0][1]
 
 
 def _location(element: Element, section: str) -> SourceLocation:
