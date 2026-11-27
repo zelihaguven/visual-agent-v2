@@ -1,0 +1,5731 @@
+[
+ {
+  "id": "A001",
+  "kind": "değer",
+  "q": "Ceketin kol manşetindeki ayar tırnağı hangi genişlik ve uzunlukta olmalı?",
+  "zorluk": [
+   "parafraz",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   11
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00102"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     11
+    ],
+    "chunk_id": "gl-pd-14-04a-00102"
+   }
+  ],
+  "expect_in_answer": [
+   "2-1/8",
+   "3-1/8"
+  ],
+  "cevap": "2-1/8 (± 1/8) inç genişlik × 3-1/8 (± 1/8) inç uzunluk",
+  "kanit": "The sleeve tabs shall be 2-1/8 (± 1/8) inches wide by 3-1/8 (± 1/8) in length",
+  "bolum": "3.7.5 Sleeve cuff",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A002",
+  "kind": "değer",
+  "q": "Ceket manşetinde kaç tane ilik açılır?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   11
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00102"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     11
+    ],
+    "chunk_id": "gl-pd-14-04a-00102"
+   }
+  ],
+  "expect_in_answer": [
+   "3"
+  ],
+  "cevap": "3 ilik",
+  "kanit": "The main body of the sleeve cuff shall have three (3) buttonholes spaced as per pattern",
+  "bolum": "3.7.5 Sleeve cuff",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A003",
+  "kind": "değer",
+  "q": "Ceketteki rütbe yaması cırt bandı kaç inç olmalı?",
+  "zorluk": [
+   "parafraz",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   12,
+   13
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00113"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     12,
+     13
+    ],
+    "chunk_id": "gl-pd-14-04a-00113"
+   }
+  ],
+  "expect_in_answer": [
+   "2"
+  ],
+  "cevap": "2 × 2 inç (cırt bandın tüylü/loop kısmı)",
+  "kanit": "The rank patch shall be a piece of loop fastener tape, 2-inches wide by 2inches in cut length",
+  "bolum": "3.7.11 Rank patch",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A004",
+  "kind": "değer",
+  "q": "Alev almaz (Type II, III) ceketlerde FR tanıtım bandı hangi kolda bulunur?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   12,
+   13
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00113"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     12,
+     13
+    ],
+    "chunk_id": "gl-pd-14-04a-00113"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Sol kol manşetinde (giyildiğinde), dışarıdan görünür",
+  "kanit": "tape FR identification marker (see figure 1) on the left sleeve cuff as worn",
+  "bolum": "3.7.11 Rank patch",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A005",
+  "kind": "değer",
+  "q": "Ceketin arka körük (bi-swing) pli üst dikişinde iki sıra arası mesafe ne kadar?",
+  "zorluk": [
+   "benzer_bolum",
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   23
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00185"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     23
+    ],
+    "chunk_id": "gl-pd-14-04a-00185"
+   }
+  ],
+  "expect_in_answer": [
+   "3/16–1/4"
+  ],
+  "cevap": "3/16–1/4 inç (iki sıra)",
+  "kanit": "Gauge: Two (2) rows 3/16 to 1/4-inch gage apart",
+  "bolum": "3.11.1.1 Repair of stitch.",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A006",
+  "kind": "değer",
+  "q": "Ceket ceplerini otomatik cep makinesiyle takarken üst dikiş kenardan ne kadar içeride olmalı?",
+  "zorluk": [
+   "benzer_bolum",
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   24
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00190"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     24
+    ],
+    "chunk_id": "gl-pd-14-04a-00190"
+   }
+  ],
+  "expect_in_answer": [
+   "1/16–1/8"
+  ],
+  "cevap": "1/16–1/8 inç",
+  "kanit": "Gauge: 1/16 to 1/8-inch from edge",
+  "bolum": "3.11.1.1 Repair of stitch.",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A007",
+  "kind": "değer",
+  "q": "Ceketin IFF tırnak kapağına cırt bant hangi dikiş tipiyle takılır?",
+  "zorluk": [
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   25
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00206"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     25
+    ],
+    "chunk_id": "gl-pd-14-04a-00206"
+   }
+  ],
+  "expect_in_answer": [
+   "301"
+  ],
+  "cevap": "301 dikiş tipi, LSbj-1 dikiş, kutu dikiş",
+  "kanit": "Seam type: LSbj-1 | Gauge: Box, 1/8 to 3/16-inch from selvage edge (see IFF pattern template) | Stitch type: 301",
+  "bolum": "3.11.1.1 Repair of stitch.",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A008",
+  "kind": "değer",
+  "q": "Ceketin üst kol cebindeki cırt banda (loop tape) giysi başına kaç punteriz atılır?",
+  "zorluk": [
+   "sayi",
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (kullanıcı): soru loop tape satırına göre yeniden yazıldı, beklenen 8",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   26
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00221"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     26
+    ],
+    "chunk_id": "gl-pd-14-04a-00221"
+   }
+  ],
+  "expect_in_answer": [
+   "8"
+  ],
+  "cevap": "8 punteriz (giysi başına)",
+  "kanit": "# of Bar- tacks per garment: 8",
+  "bolum": "3.11.3 Bar-tacks and back-tacks",
+  "model_celiskisi": "4 model beklenenle çelişti (arama getirdi)",
+  "onaylayan": "kullanıcı",
+  "onay_tarihi": "2026-11-05",
+  "onceki_soru": "Ceketin üst kol ceplerine toplam kaç punteriz atılır?",
+  "elle_onay": "soru yeniden yazıldı: loop tape satırı (giysi başına 8); eski soru iki satırı kapsıyordu"
+ },
+ {
+  "id": "A009",
+  "kind": "değer",
+  "q": "Ceket muayenesinde isim ve U.S. Army bantları ne kadar kayarsa kusur sayılır?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   32
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00321"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     32
+    ],
+    "chunk_id": "gl-pd-14-04a-00321"
+   }
+  ],
+  "expect_in_answer": [
+   "1/4"
+  ],
+  "cevap": "Yatay hizada değilse ya da 1/4 inçten fazla düzensizse (kusur 139)",
+  "kanit": "Not in horizontal alignment or uneven by more than 1/4-inch",
+  "bolum": "TABLE VIII. Coat visual examination - Continued",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A010",
+  "kind": "değer",
+  "q": "Ceket şartnamesinde ASTM D 5034 neyi ölçen bir test yöntemi?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   4,
+   34
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00040",
+   "gl-pd-14-04a-00351"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     4
+    ],
+    "chunk_id": "gl-pd-14-04a-00040"
+   },
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     34
+    ],
+    "chunk_id": "gl-pd-14-04a-00351"
+   }
+  ],
+  "expect_in_answer": [
+   "5034"
+  ],
+  "cevap": "Kumaşların kopma mukavemeti ve uzaması (grab test); şartnamede düğme kopma/çekme testinde de kullanılıyor",
+  "kanit": "ASTM D 5034 - Standard Test Method for Breaking Strength and Elongation of Textile Fabrics (Grab Test)",
+  "bolum": "ASTM INTERNATIONAL",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A011",
+  "kind": "değer",
+  "q": "Ceket şartnamesine göre permetrin geri kazanımı en az yüzde kaç olmalı?",
+  "zorluk": [
+   "karisan_dokuman",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   38,
+   39
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00379",
+   "gl-pd-14-04a-00382"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     38
+    ],
+    "chunk_id": "gl-pd-14-04a-00379"
+   },
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     38,
+     39
+    ],
+    "chunk_id": "gl-pd-14-04a-00382"
+   }
+  ],
+  "expect_in_answer": [
+   "95"
+  ],
+  "cevap": "%95 veya üzeri",
+  "kanit": "Permethrin recovery must be 95% or greater",
+  "bolum": "F.1.3.1 Parameters.",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A012",
+  "kind": "değer",
+  "q": "Ceket ısırma testinde gönüllünün test bölgesi kolun neresidir?",
+  "zorluk": [
+   "benzer_bolum",
+   "karisan_dokuman"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   43
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00421"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     43
+    ],
+    "chunk_id": "gl-pd-14-04a-00421"
+   }
+  ],
+  "expect_in_answer": [
+   "1/2"
+  ],
+  "cevap": "Bilekten dirsekten yaklaşık 1/2 inç öncesine kadar",
+  "kanit": "the region from the wrist to approximately 1/2-inch before the elbow",
+  "bolum": "4.5.2.3.5 Volunteer's test area",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A013",
+  "kind": "prosedür",
+  "q": "Bitmiş ceket için toksisite şartı nedir?",
+  "zorluk": [],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   29
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00294"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     29
+    ],
+    "chunk_id": "gl-pd-14-04a-00294"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Sağlığa zarar vermemeli, uzun süreli doğrudan cilt temasıyla uyumlu olmalı; EPA'nın insan kanserojeni saydığı kimyasallar kullanılamaz",
+  "kanit": "The finished coat shall not present a health hazard",
+  "bolum": "3.13 Toxicity",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A014",
+  "kind": "değer",
+  "q": "Class 2 ceketlerde böcek koruma etiketi nereye dikilir?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   18
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00151"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     18
+    ],
+    "chunk_id": "gl-pd-14-04a-00151"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Ceketin içine, sol göğüs cebinin altına (giyildiğinde)",
+  "kanit": "shall be stitched on inside of coat under the left chest pocket (as worn)",
+  "bolum": "DO NOT REMOVE THIS LABEL THIS GARMENT IS FLAME RESISTANT",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A015",
+  "kind": "değer",
+  "q": "Ceketin yaka tipi ve ön kapanışı nasıl?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   10
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00090"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     10
+    ],
+    "chunk_id": "gl-pd-14-04a-00090"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Dik (band) yaka; önde çift sürgülü fermuar ve ikincil cırt bant kapanış",
+  "kanit": "single-breasted front with a slide fastener (double slider) closure and a secondary hook and loop fastener tape closure; a band collar",
+  "bolum": "3.6 Design",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A016",
+  "kind": "şekil",
+  "q": "Ceket yaka çiziminde rütbe yaması halkası nasıl gösteriliyor?",
+  "zorluk": [
+   "sekil"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   53
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00560"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     53
+    ],
+    "chunk_id": "gl-pd-14-04a-00560"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Ön patta, üstte ve altta 'Box X' dikişli iki kare arasında taralı dikdörtgen olarak (Figure 3, ölçeksiz)",
+  "kanit": "FIGURE 3. Coat Collar, Army Combat Uniform",
+  "bolum": "6.8 Subject term (key word) listing.",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A017",
+  "kind": "değer",
+  "q": "Uzun boy ceketlerde 36 beden ön fermuar uzunluğu kaç inç?",
+  "zorluk": [
+   "tablo",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   8
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00071"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     8
+    ],
+    "chunk_id": "gl-pd-14-04a-00071"
+   }
+  ],
+  "expect_in_answer": [
+   "17"
+  ],
+  "cevap": "17 inç",
+  "kanit": "Length: Long | Size 30: 16 | Size 33: 16 | Size 36: 17",
+  "bolum": "3.5.1.1 Coat front slide fastener",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A018",
+  "kind": "değer",
+  "q": "Type II ceket kumaşının elyaf karışımı nedir?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   1
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00002"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     1
+    ],
+    "chunk_id": "gl-pd-14-04a-00002"
+   }
+  ],
+  "expect_in_answer": [
+   "65/25/10"
+  ],
+  "cevap": "%65 rayon / %25 para-aramid / %10 naylon, ripstop, alev almaz",
+  "kanit": "Type II - 65/25/10 Rayon/Para-Aramid/Nylon Ripstop Flame Resistant",
+  "bolum": "1.2.1 Types.",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A019",
+  "kind": "değer",
+  "q": "Pantolon iliklerinde inç başına kaç dikiş olmalı?",
+  "zorluk": [
+   "benzer_bolum",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   11
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00092"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     11
+    ],
+    "chunk_id": "gl-pd-07-14a-00092"
+   }
+  ],
+  "expect_in_answer": [
+   "52–56"
+  ],
+  "cevap": "52–56 dikiş/inç (punteriz dahil)",
+  "kanit": "possessing 52-56 stitches per inch, including tack",
+  "bolum": "3.7.7 Pockets and flaps",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A020",
+  "kind": "değer",
+  "q": "How many stitches per inch are required for trouser buttonholes?",
+  "zorluk": [
+   "ingilizce",
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   11
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00092"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     11
+    ],
+    "chunk_id": "gl-pd-07-14a-00092"
+   }
+  ],
+  "expect_in_answer": [
+   "52–56"
+  ],
+  "cevap": "52–56 stitches per inch, including tack",
+  "kanit": "possessing 52-56 stitches per inch, including tack",
+  "bolum": "3.7.7 Pockets and flaps",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A021",
+  "kind": "değer",
+  "q": "Pantolon iliklerinin kesim boyu ne kadar?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   11
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00092"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     11
+    ],
+    "chunk_id": "gl-pd-07-14a-00092"
+   }
+  ],
+  "expect_in_answer": [
+   "3/4–7/8"
+  ],
+  "cevap": "3/4–7/8 inç",
+  "kanit": "The cut lengths shall be 3/4 to 7/8 inch",
+  "bolum": "3.7.7 Pockets and flaps",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A022",
+  "kind": "değer",
+  "q": "Pantolonun ön yan cep ağzı kaç inç olmalı?",
+  "zorluk": [
+   "sayi",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   10,
+   11
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00088"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     10,
+     11
+    ],
+    "chunk_id": "gl-pd-07-14a-00088"
+   }
+  ],
+  "expect_in_answer": [
+   "6–7-1/4"
+  ],
+  "cevap": "6–7-1/4 inç (punterizler arası)",
+  "kanit": "pocket openings measuring not less than 6 inches and not more than 7-114 inches between bartacks",
+  "bolum": "3.7.7 Pockets and flaps",
+  "ocr_bicimi": "7-114",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A023",
+  "kind": "değer",
+  "q": "Pantolon cep kapaklarındaki punterizler kaç dikişli olur?",
+  "zorluk": [
+   "benzer_bolum",
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   22
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00172"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     22
+    ],
+    "chunk_id": "gl-pd-07-14a-00172"
+   }
+  ],
+  "expect_in_answer": [
+   "36"
+  ],
+  "cevap": "36 dikiş (punteriz başına)",
+  "kanit": "Size of Tack: 5/8 | Stitches per Tack: 36",
+  "bolum": "3.11.2 Bartacking",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A024",
+  "kind": "değer",
+  "q": "Pantolon cep kapağı punterizinin boyu ne kadar?",
+  "zorluk": [
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   22
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00172"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     22
+    ],
+    "chunk_id": "gl-pd-07-14a-00172"
+   }
+  ],
+  "expect_in_answer": [
+   "5/8"
+  ],
+  "cevap": "5/8 inç",
+  "kanit": "Size of Tack: 5/8",
+  "bolum": "3.11.2 Bartacking",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A025",
+  "kind": "değer",
+  "q": "Pantolon cep kapaklarının üst dikişi kenardan ne kadar içeride olmalı?",
+  "zorluk": [
+   "benzer_bolum",
+   "ocr",
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   20
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00148"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     20
+    ],
+    "chunk_id": "gl-pd-07-14a-00148"
+   }
+  ],
+  "expect_in_answer": [
+   "3/16–1/4"
+  ],
+  "cevap": "3/16–1/4 inç (OSf-1, 301 dikiş)",
+  "kanit": "Seam type: OSf-1 | Gage: 3116 to 114 inch from edge | Stitch type: 301",
+  "bolum": "3.11.1.2 Fly seaming and stitching",
+  "ocr_bicimi": "3116 to 114",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A026",
+  "kind": "değer",
+  "q": "Pantolonda cırt bant kenar şeridinden ne kadar içeriden dikilir?",
+  "zorluk": [
+   "karisan_dokuman",
+   "parafraz",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   10,
+   21
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00160",
+   "gl-pd-07-14a-00082"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     21
+    ],
+    "chunk_id": "gl-pd-07-14a-00160"
+   },
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     10
+    ],
+    "chunk_id": "gl-pd-07-14a-00082"
+   }
+  ],
+  "expect_in_answer": [
+   "1/8–3/16"
+  ],
+  "cevap": "1/8–3/16 inç (bağlı kenar şeridinden)",
+  "kanit": "Gage: 118 to 3/16 inch fi'om the bound selvage",
+  "bolum": "OLlPD 07-14A",
+  "ocr_bicimi": "118 to 3/16",
+  "model_celiskisi": "4 model beklenenle çelişti (arama getirdi)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A027",
+  "kind": "değer",
+  "q": "Pantolonun fermuar (fly) dikişi J-dikişinin ne kadar üstünde bitmeli?",
+  "zorluk": [
+   "parafraz",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   19
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00144"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     19
+    ],
+    "chunk_id": "gl-pd-07-14a-00144"
+   }
+  ],
+  "expect_in_answer": [
+   "3/8–1/2"
+  ],
+  "cevap": "3/8–1/2 inç",
+  "kanit": "shall end 3/8 - 112 inch above J-stitch",
+  "bolum": "3.11.1.2 Fly seaming and stitching",
+  "ocr_bicimi": "3/8 - 112",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A028",
+  "kind": "prosedür",
+  "q": "Pantolon iç bacağında 5 iplik emniyet dikişi kullanılırsa kalıp nasıl ayarlanır?",
+  "zorluk": [
+   "parafraz",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   18
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00135"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     18
+    ],
+    "chunk_id": "gl-pd-07-14a-00135"
+   }
+  ],
+  "expect_in_answer": [
+   "3/8"
+  ],
+  "cevap": "Kalıplar 1/2 inç çift iğne dikişi yerine 3/8 inç dikiş payına göre ayarlanır",
+  "kanit": "contractor must adjust pattems for 3/8-inch gauge in lieu of 112 inch double needle seams",
+  "bolum": "3.10 List of pattem parts",
+  "ocr_bicimi": "112 inch",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A029",
+  "kind": "değer",
+  "q": "Pantolonda 20 yıkamadan sonra permetrin miktarı en az ne olmalı?",
+  "zorluk": [
+   "sayi",
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   6
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00050"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     6
+    ],
+    "chunk_id": "gl-pd-07-14a-00050"
+   }
+  ],
+  "expect_in_answer": [
+   "0.025"
+  ],
+  "cevap": "En az 0,025 mg/cm² (en çok 0,130)",
+  "kanit": "After 20 launderings | Min: mg/cm2: 0.025 | Max: mg/cm2: 0.130",
+  "bolum": "3.4.1 Pelmethrin treatment (Class 2 only)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A030",
+  "kind": "değer",
+  "q": "Pantolon ısırma testinde kollar böcek kafesinde kaç dakika tutulur?",
+  "zorluk": [
+   "ocr",
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   38
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00297"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     38
+    ],
+    "chunk_id": "gl-pd-07-14a-00297"
+   }
+  ],
+  "expect_in_answer": [
+   "15"
+  ],
+  "cevap": "15 dakika",
+  "kanit": "exposed to a cage of insects for IS min",
+  "bolum": "4.5.2.3.7 Biting Exposure",
+  "ocr_bicimi": "IS min",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A031",
+  "kind": "değer",
+  "q": "Pantolon permetrin testinde numuneler kaç inç çapında kesilir?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   31
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00253"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     31
+    ],
+    "chunk_id": "gl-pd-07-14a-00253"
+   }
+  ],
+  "expect_in_answer": [
+   "3"
+  ],
+  "cevap": "3 inç çapında (45,6037 cm²), her koşul için üç numune",
+  "kanit": "select three 3 inch diameter specimens",
+  "bolum": "D.2 Test specimens.",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A032",
+  "kind": "değer",
+  "q": "Pantolon barkodundaki NSN kaç haneli?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   17
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00132"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     17
+    ],
+    "chunk_id": "gl-pd-07-14a-00132"
+   }
+  ],
+  "expect_in_answer": [
+   "13"
+  ],
+  "cevap": "13 haneli NSN (UPC 12 haneli)",
+  "kanit": "The bar coding element shall be a 13 digit national stock number (NSN)",
+  "bolum": "3.8.3 Barcode label",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A033",
+  "kind": "değer",
+  "q": "Pantolon beden etiketi nereye dikilir?",
+  "zorluk": [
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   12
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00096"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     12
+    ],
+    "chunk_id": "gl-pd-07-14a-00096"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "İç bel bandı dikişinin altına, dikişe yakalanarak; dikiş baskıyı örtmemeli",
+  "kanit": "shall be sewn and caught in the bottom of the inside waistband seam",
+  "bolum": "3.8.1 Size label",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A034",
+  "kind": "değer",
+  "q": "Pantolon temizlik muayenesinde kaç iplikten fazlası kusur sayılır?",
+  "zorluk": [
+   "sayi",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   26
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00230"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     26
+    ],
+    "chunk_id": "gl-pd-07-14a-00230"
+   }
+  ],
+  "expect_in_answer": [
+   "3"
+  ],
+  "cevap": "1/4 inçten uzun, kesilmemiş 3'ten fazla iplik (ayrıca 1/4 inçten küçük leke)",
+  "kanit": "excessive thread (more than 3) over 114 inch not trimmed or removed",
+  "bolum": "4. VERIFICATION",
+  "ocr_bicimi": "114 inch",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A035",
+  "kind": "değer",
+  "q": "Pantolonda cırt bant genişliklerinin toleransı ne kadar?",
+  "zorluk": [
+   "parafraz",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   7,
+   8
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00060"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     7,
+     8
+    ],
+    "chunk_id": "gl-pd-07-14a-00060"
+   }
+  ],
+  "expect_in_answer": [
+   "1/32"
+  ],
+  "cevap": "± 1/32 inç",
+  "kanit": "The tolerance for all widths specified shall be (± 1/32) inch",
+  "bolum": "3.5.1 Tape and cord",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A036",
+  "kind": "şekil",
+  "q": "Pantolon çiziminde hangi ölçüler verilmiş?",
+  "zorluk": [
+   "sekil"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   48
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00313"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     48
+    ],
+    "chunk_id": "gl-pd-07-14a-00313"
+   }
+  ],
+  "expect_in_answer": [
+   "14 1/2",
+   "12 1/4",
+   "10 1/2"
+  ],
+  "cevap": "14 1/2, 12 1/4 ve 10 1/2 inç",
+  "kanit": "14 1/2 inches ----- 12 1/4 inches y -4-1(--10 1/2 inches",
+  "bolum": "6.11 Subject term (key word) listing.",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A037",
+  "kind": "kod",
+  "q": "S-7300A'da E-050 hatası ne anlama gelir?",
+  "zorluk": [
+   "kod_varyant",
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   98
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00409"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     98
+    ],
+    "chunk_id": "brother-s7300a-00409"
+   }
+  ],
+  "expect_in_answer": [
+   "E050"
+  ],
+  "cevap": "Dikiş başlarken makine kafası geriye yatık algılandı; gücü kapatıp kafayı yerine getirin, P2 konektörünü kontrol edin",
+  "kanit": "Code: E050 | Cause: Machine head is detected as being tilted back when start sewing.",
+  "bolum": "Switch-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A038",
+  "kind": "kod",
+  "q": "S-7300A ekranında E 050 yazıyor, ne yapmalıyım?",
+  "zorluk": [
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (kullanıcı): kanıt çözüm satırı, kod aynı sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   98
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00409"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     98
+    ],
+    "chunk_id": "brother-s7300a-00409"
+   }
+  ],
+  "expect_in_answer": [
+   "E050"
+  ],
+  "cevap": "Gücü kapatıp makine kafasını yerine getirin; P2 konektörünün bağlantısını kontrol edin",
+  "kanit": "Turn off the power, and then return the machine head to its original position",
+  "bolum": "Switch-related errors",
+  "onaylayan": "kullanıcı",
+  "onay_tarihi": "2026-11-05",
+  "elle_onay": "kanıt cümlesi çözüm satırı; E050 kodu aynı sayfada (kullanıcı kararı 2026-11-05)"
+ },
+ {
+  "id": "A039",
+  "kind": "kod",
+  "q": "S-7300A açılırken E065 veriyor, neden?",
+  "zorluk": [
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   98
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00413"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     98
+    ],
+    "chunk_id": "brother-s7300a-00413"
+   }
+  ],
+  "expect_in_answer": [
+   "E065"
+  ],
+  "cevap": "Açılışta devre dışı bir donanım tuşuna basılıydı; gücü kapatıp yeniden açın",
+  "kanit": "Code: E065 | Cause: A disabled hardware key was being pressed when the power was turned on.",
+  "bolum": "Switch-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A040",
+  "kind": "kod",
+  "q": "S-7300A'da E111 hata kodu ne demek?",
+  "zorluk": [],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   98
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00421"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     98
+    ],
+    "chunk_id": "brother-s7300a-00421"
+   }
+  ],
+  "expect_in_answer": [
+   "E111"
+  ],
+  "cevap": "Motor durduğunda iğne yukarı durma konumu belirlenen değeri aştı; motor ya da iplik kesme mekanizması sıkı mı kontrol edin",
+  "kanit": "Code: E111 | Cause: The needle up stop position exceeded the specified value when the sewing machine motor stopped.",
+  "bolum": "Sewing machine motor-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A041",
+  "kind": "kod",
+  "q": "S-7300A'da açılışta panel bağlantısı algılanmazsa hangi hata kodu çıkar?",
+  "zorluk": [
+   "ters_soru"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   99
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00437"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     99
+    ],
+    "chunk_id": "brother-s7300a-00437"
+   }
+  ],
+  "expect_in_answer": [
+   "E400"
+  ],
+  "cevap": "E400 (P2 konektörünü kontrol edin)",
+  "kanit": "Code: E400 | Cause: Panel connection was not detected when power was turned on.",
+  "bolum": "Communication and memory-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A042",
+  "kind": "kod",
+  "q": "S-7300A'da E-700 hatasında ne kontrol edilmeli?",
+  "zorluk": [
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   100
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00447"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     100
+    ],
+    "chunk_id": "brother-s7300a-00447"
+   }
+  ],
+  "expect_in_answer": [
+   "E700"
+  ],
+  "cevap": "Açılışta güç kaynağı geriliminde anormal yükselme; gücü kapatıp şebeke gerilimini kontrol edin",
+  "kanit": "Code: E700 | Cause: Abnormal rise in power supply voltage was detected when power was turned on.",
+  "bolum": "P.C. board-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A043",
+  "kind": "kod",
+  "q": "S-7300A'da ayarlar kendiliğinden sıfırlandı ve E442 göründü, ne yapmalıyım?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   99
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00444"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     99
+    ],
+    "chunk_id": "brother-s7300a-00444"
+   }
+  ],
+  "expect_in_answer": [
+   "E442"
+  ],
+  "cevap": "Yedek bellek verisi bozuk olduğu için ayarlar sıfırlandı; gücü kapatıp yeniden açın",
+  "kanit": "Code: E442 | Cause: Back up memory (main internal P.C. board) data was abnormal, so settings were initialized.",
+  "bolum": "Communication and memory-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A044",
+  "kind": "değer",
+  "q": "S-7300A'da iplik kesildikten sonra üst ipliğin standart kuyruk uzunluğu kaç mm?",
+  "zorluk": [
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   79
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00369"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     79
+    ],
+    "chunk_id": "brother-s7300a-00369"
+   }
+  ],
+  "expect_in_answer": [
+   "25–30"
+  ],
+  "cevap": "25–30 mm (ön gerdirme ile ayarlanır)",
+  "kanit": "The standard upper thread trailing length is 25 to 30 mm",
+  "bolum": "9-3. Adjusting the trailing length after thread trimming",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A045",
+  "kind": "değer",
+  "q": "S-7300A -3 tipinde çağanoz ile masura kovanı tutucusu arasındaki boşluk ne olmalı?",
+  "zorluk": [
+   "parafraz",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   91
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00401"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     91
+    ],
+    "chunk_id": "brother-s7300a-00401"
+   }
+  ],
+  "expect_in_answer": [
+   "0.4–0.7"
+  ],
+  "cevap": "0,4–0,7 mm (-3 tipi); -5 tipinde 0,6–1,1 mm",
+  "kanit": "The clearance should be 0.4 to 0.7 mm (for -[][]3 specifications)",
+  "bolum": "<Checking the clearance between the rotary hook and bobbin c",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A046",
+  "kind": "değer",
+  "q": "S-7300A'da iplik kesme kamı ayarlanırken iğne mili en alt konumdan kaç mm kaldırılır?",
+  "zorluk": [
+   "benzer_bolum",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   96
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00406"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     96
+    ],
+    "chunk_id": "brother-s7300a-00406"
+   }
+  ],
+  "expect_in_answer": [
+   "6"
+  ],
+  "cevap": "6 mm",
+  "kanit": "raise the needle bar 6 mm from its lowest position",
+  "bolum": "<Thread trimming cam position adjustment>",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A047",
+  "kind": "değer",
+  "q": "S-7300A -3 tipinin en yüksek dikiş hızı nedir?",
+  "zorluk": [
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   37
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00128"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     37
+    ],
+    "chunk_id": "brother-s7300a-00128"
+   }
+  ],
+  "expect_in_answer": [
+   "5000"
+  ],
+  "cevap": "5000 dikiş/dk (-3 tipi); -5 tipinde 4500",
+  "kanit": "-3 specifications: 220 - 5000 sti/min",
+  "bolum": "(1) Start backtack sewing parameters",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A048",
+  "kind": "değer",
+  "q": "S-7300A'da başlangıç punterizinde B dikiş sayısı hangi aralıkta ayarlanır?",
+  "zorluk": [
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   39
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00160"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     39
+    ],
+    "chunk_id": "brother-s7300a-00160"
+   }
+  ],
+  "expect_in_answer": [
+   "1–19"
+  ],
+  "cevap": "1–19 dikiş (birim 1, başlangıç değeri 1)",
+  "kanit": "No. of stitches B | Setting value: 1 - 19 stitches",
+  "bolum": "Start backtack sewing parameters",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A049",
+  "kind": "prosedür",
+  "q": "S-7300A'da alt iplik sayacı sıfırın altına düşünce makine ne yapar?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   49
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00240"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     49
+    ],
+    "chunk_id": "brother-s7300a-00240"
+   }
+  ],
+  "expect_in_answer": [
+   "5"
+  ],
+  "cevap": "Dikiş durunca uyarı sesi 5 kez öter, uyarı mesajı çıkar, pedala basılsa da dikmez; masura değişip Reset ile sayaç geri gelir",
+  "kanit": "the warning buzzer sounds 5 times (1 second on/1 second off), and a lower thread counter warning message is displayed",
+  "bolum": "<Lower thread out warning when sewing stops (before thread t",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A050",
+  "kind": "değer",
+  "q": "S-7300A'da aydınlatma LED parlaklığı hangi aralıkta ayarlanır?",
+  "zorluk": [
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   51
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00247"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     51
+    ],
+    "chunk_id": "brother-s7300a-00247"
+   }
+  ],
+  "expect_in_answer": [
+   "1–9"
+  ],
+  "cevap": "1–9",
+  "kanit": "The setting range is from 1 to 9.",
+  "bolum": "For the menu screen",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A051",
+  "kind": "değer",
+  "q": "S-7300A'ya en fazla kaç farklı desen dikişi kaydedilebilir?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   57
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00264"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     57
+    ],
+    "chunk_id": "brother-s7300a-00264"
+   }
+  ],
+  "expect_in_answer": [
+   "5"
+  ],
+  "cevap": "5 (DS-1 – DS-5); her biri en çok 8 grup",
+  "kanit": "Up to 5 different types of design stitches (DS-1 to DS-5)",
+  "bolum": "6-5. Shortcut key assignment method",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A052",
+  "kind": "değer",
+  "q": "S-7300A'da açılışta panelin otomatik kilitlenmesi hangi bellek anahtarıyla kapatılır?",
+  "zorluk": [
+   "ters_soru",
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   63
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00302"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     63
+    ],
+    "chunk_id": "brother-s7300a-00302"
+   }
+  ],
+  "expect_in_answer": [
+   "311"
+  ],
+  "cevap": "Bellek anahtarı 311 (OFF: kapalı, başlangıç ON)",
+  "kanit": "No.: 311 | Setting range: OFF, ON | Initial value: ON",
+  "bolum": "Panel operation settings (300 to 399)",
+  "model_celiskisi": "4 model beklenenle çelişti (arama getirdi)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A053",
+  "kind": "arıza",
+  "q": "S-7300A'da dikiş dalgalı ve düzensiz çıkıyor, olası nedenler neler?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   103
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00474"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     103
+    ],
+    "chunk_id": "brother-s7300a-00474"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Baskı ayağı basıncı zayıf, transport dişlisi alçak ya da masura çizik",
+  "kanit": "Problem: Uneven seam",
+  "bolum": "14. TROUBLESHOOTING",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A054",
+  "kind": "arıza",
+  "q": "S-7300A'da dikişte ilmek (halka) oluşuyor, ne yapmalıyım?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   101
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00469"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     101
+    ],
+    "chunk_id": "brother-s7300a-00469"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "İplik yolunu cilalayın, masuranın rahat dönüp dönmediğini kontrol edin; özel lokus 1'i deneyin",
+  "kanit": "Problem: Loops appear in seam.",
+  "bolum": "14. TROUBLESHOOTING",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A055",
+  "kind": "arıza",
+  "q": "S-7300A'da ayağımı pedala koyunca makine yavaş dönmeye başlıyor, ne yapmalıyım?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   26
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00080"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     26
+    ],
+    "chunk_id": "brother-s7300a-00080"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Pedal yayının pedal koluna takıldığı konumu (a–d) değiştirerek basma hassasiyetini artırın",
+  "kanit": "adjust the position (a to c) at which the treadle spring (1) is hooked onto the treadle lever",
+  "bolum": "<Forward depression sensitivity adjustment>",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A056",
+  "kind": "değer",
+  "q": "S-7300A topraklama vidasının önerilen sıkma torku nedir?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   20
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00068"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     20
+    ],
+    "chunk_id": "brother-s7300a-00068"
+   }
+  ],
+  "expect_in_answer": [
+   "1.0"
+  ],
+  "cevap": "1,0 ± 0,1 N·m",
+  "kanit": "Recommended tightening torque 1.0±0.1 N.m",
+  "bolum": "4. Ground wire",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A057",
+  "kind": "prosedür",
+  "q": "S-7300A'da çağanoz ve masura kovanı nasıl temizlenir?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   81
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00375"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     81
+    ],
+    "chunk_id": "brother-s7300a-00375"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "İğne plakasını sökün, transport dişlisini fırçalayın; kafayı yatırın, masura kovanını çıkarın, çağanozu yumuşak bezle silin",
+  "kanit": "Wipe off any dust from the rotary hook (5) with a soft cloth",
+  "bolum": "1. Cleaning",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A058",
+  "kind": "prosedür",
+  "q": "S-7300A'da iğne mili yüksekliği neye göre ayarlanır?",
+  "zorluk": [
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   89
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00396"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     89
+    ],
+    "chunk_id": "brother-s7300a-00396"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "İğne mili en alttayken üzerindeki (a) çizgisi iğne mili burcunun alt kenarıyla hizalanmalı",
+  "kanit": "Reference line (a) on the needle bar (1) should be aligned with the lower edge of the needle bar bush (2)",
+  "bolum": "12-7. Adjusting the needle bar height",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A059",
+  "kind": "kod",
+  "q": "S-7300A'da E210 hatası ne demek?",
+  "zorluk": [
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   99
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00434"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     99
+    ],
+    "chunk_id": "brother-s7300a-00434"
+   }
+  ],
+  "expect_in_answer": [
+   "E210"
+  ],
+  "cevap": "Açılışta transport motoru başlangıç konumu algılanmadı; transport mekanizmasını ve P4 konektörünü kontrol edin",
+  "kanit": "E210 Feed motor origin is not detected when power is turned on.",
+  "bolum": "Feed mechanism-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A060",
+  "kind": "kod",
+  "q": "S-7300A'da E-211 kodu çıktı, ne yapmalıyım?",
+  "zorluk": [
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   99
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00435"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     99
+    ],
+    "chunk_id": "brother-s7300a-00435"
+   }
+  ],
+  "expect_in_answer": [
+   "E211"
+  ],
+  "cevap": "Dikiş sırasında transport motorunda anormal çalışma; transport mekanizmasını ve motor/P4 konektörünü kontrol edin",
+  "kanit": "E211 Abnormal feed motor operation detected during sewing.",
+  "bolum": "Feed mechanism-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A061",
+  "kind": "kod",
+  "q": "S-7300B'de E050 hatası ne anlama gelir?",
+  "zorluk": [
+   "benzer_bolum",
+   "karisan_dokuman"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   105
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00437"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     105
+    ],
+    "chunk_id": "brother-s7300b-00437"
+   }
+  ],
+  "expect_in_answer": [
+   "E050"
+  ],
+  "cevap": "Dikiş başlarken makine kafası geriye yatık algılandı; kafayı yerine getirin, P2 konektörünü kontrol edin",
+  "kanit": "Code: E050 | Cause: Machine head is detected as being tilted back when start sewing.",
+  "bolum": "Switch-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A062",
+  "kind": "kod",
+  "q": "S-7300B açılışta E210 veriyor, ne kontrol etmeliyim?",
+  "zorluk": [],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   106
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00463"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     106
+    ],
+    "chunk_id": "brother-s7300b-00463"
+   }
+  ],
+  "expect_in_answer": [
+   "E210"
+  ],
+  "cevap": "Transport mekanizmasını ve transport motoru konektörü ile P4'ü",
+  "kanit": "Code: E210 | Cause: Feed motor origin is not detected when power is turned on.",
+  "bolum": "Feed mechanism-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A063",
+  "kind": "kod",
+  "q": "S-7300B dikiş sırasında E-211 veriyor, neden?",
+  "zorluk": [
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   106
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00464"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     106
+    ],
+    "chunk_id": "brother-s7300b-00464"
+   }
+  ],
+  "expect_in_answer": [
+   "E211"
+  ],
+  "cevap": "Dikiş sırasında transport motorunda anormal çalışma algılandı",
+  "kanit": "Code: E211 | Cause: Abnormal feed motor operation detected during sewing.",
+  "bolum": "Feed mechanism-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A064",
+  "kind": "kod",
+  "q": "S-7300B'de E705 hatası ne demek?",
+  "zorluk": [],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   108
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00483"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     108
+    ],
+    "chunk_id": "brother-s7300b-00483"
+   }
+  ],
+  "expect_in_answer": [
+   "E705"
+  ],
+  "cevap": "Güç kaynağı geriliminde anormal düşüş; şebeke gerilimini kontrol edin",
+  "kanit": "Code: E705 | Cause: Abnormal drop in power supply voltage was detected.",
+  "bolum": "P.C. board-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A065",
+  "kind": "değer",
+  "q": "S-7300B'de başlangıç punteriz dikiş hızının varsayılan değeri kaç?",
+  "zorluk": [
+   "benzer_bolum",
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   39
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00150"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     39
+    ],
+    "chunk_id": "brother-s7300b-00150"
+   }
+  ],
+  "expect_in_answer": [
+   "1800"
+  ],
+  "cevap": "1800 dikiş/dk (aralık 220–3000, birim 100)",
+  "kanit": "Setting value: 220 - 3000 sti/min | Setting units: 100 sti/min | Initial value: 1800",
+  "bolum": "Start backtack sewing parameters",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A066",
+  "kind": "değer",
+  "q": "S-7300B'de dikiş adımının varsayılan değeri ve ayar birimi nedir?",
+  "zorluk": [
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   53
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00249"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     53
+    ],
+    "chunk_id": "brother-s7300b-00249"
+   }
+  ],
+  "expect_in_answer": [
+   "2.00",
+   "0.05"
+  ],
+  "cevap": "Başlangıç 2,00 mm; birim 0,05 mm (aralık 0,05–5,00 mm)",
+  "kanit": "Setting units: 0.05 mm | Initial value: 2.00",
+  "bolum": "From add/delete step mode",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A067",
+  "kind": "değer",
+  "q": "S-7300B'de iplik kesildikten sonra üst ipliğin standart kuyruk uzunluğu kaç mm?",
+  "zorluk": [
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   82
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00393"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     82
+    ],
+    "chunk_id": "brother-s7300b-00393"
+   }
+  ],
+  "expect_in_answer": [
+   "30–45"
+  ],
+  "cevap": "30–45 mm (Premier tipinde 25–30 mm)",
+  "kanit": "The standard length for the upper thread trailing length is 30 to 45 mm, or 25 to 30 mm for Premier specifications.",
+  "bolum": "9-3. Adjusting the trailing length after thread trimming",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A068",
+  "kind": "değer",
+  "q": "What is the standard upper thread trailing length on the S-7300B after thread trimming?",
+  "zorluk": [
+   "ingilizce",
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   82
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00393"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     82
+    ],
+    "chunk_id": "brother-s7300b-00393"
+   }
+  ],
+  "expect_in_answer": [
+   "30–45"
+  ],
+  "cevap": "30–45 mm (25–30 mm for Premier specifications)",
+  "kanit": "The standard length for the upper thread trailing length is 30 to 45 mm",
+  "bolum": "9-3. Adjusting the trailing length after thread trimming",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A069",
+  "kind": "değer",
+  "q": "S-7300B -3 tipinde çağanoz ucu, iğne mili kaç mm yükselince iğnenin ortasına gelmeli?",
+  "zorluk": [
+   "parafraz",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   94
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00423"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     94
+    ],
+    "chunk_id": "brother-s7300b-00423"
+   }
+  ],
+  "expect_in_answer": [
+   "1.8"
+  ],
+  "cevap": "1,8 mm (-3 tipi); -5 tipinde 2,2 mm",
+  "kanit": "when the needle bar (1) moves up 1.8 mm (for -[][]3 specifications)",
+  "bolum": "12-9. Needle and rotary hook timing",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A070",
+  "kind": "değer",
+  "q": "S-7300B'de iplik kesme kamı ayarlanırken iğne mili en alt konumdan kaç mm kaldırılır?",
+  "zorluk": [
+   "benzer_bolum",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi); 2026-11-06 belge içi varyant: doğru = netleştirme YA DA iki varyantı etiketiyle vermek (standart 5 mm, Premier 6 mm)",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   98,
+   102,
+   103
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00430",
+   "brother-s7300b-00434"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     98
+    ],
+    "chunk_id": "brother-s7300b-00430"
+   },
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     102,
+     103
+    ],
+    "chunk_id": "brother-s7300b-00434"
+   }
+  ],
+  "expect_in_answer": [
+   "5",
+   "6"
+  ],
+  "cevap": "Standart: 5 mm (s.98) · Premier spesifikasyonu: 6 mm (s.102–103, 12-11-1 Thread trimming (Premier specifications))",
+  "kanit": "Raise the needle bar 5 mm from its lowest position",
+  "bolum": "<Thread trimming cam position adjustment>",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05",
+  "varyantlar": [
+   {
+    "etiket": "standart",
+    "etiket_re": "standart|standard|normal|premier olmayan|premier dışı|premier (?:özelliği )?olmayan",
+    "degerler": [
+     "5"
+    ],
+    "kaynak": "s.98 <Thread trimming cam position adjustment>"
+   },
+   {
+    "etiket": "Premier",
+    "etiket_re": "premier(?! olmayan)(?! dışı)",
+    "degerler": [
+     "6"
+    ],
+    "kaynak": "s.102–103, 12-11-1. Thread trimming (Premier specifications)"
+   }
+  ]
+ },
+ {
+  "id": "A071",
+  "kind": "değer",
+  "q": "S-7300B'de dizlik hareket hızı hangi bellek anahtarıyla ayarlanır?",
+  "zorluk": [
+   "ters_soru",
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   65
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00316"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     65
+    ],
+    "chunk_id": "brother-s7300b-00316"
+   }
+  ],
+  "expect_in_answer": [
+   "591"
+  ],
+  "cevap": "Bellek anahtarı 591 (1–5, başlangıç 4)",
+  "kanit": "No.: 591 | Setting range: 1 - 5 | Initial value: 4",
+  "bolum": "Digital foot lifter settings (580 to)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A072",
+  "kind": "değer",
+  "q": "S-7300B'de başlangıç punterizi B adım düzeltme oranı hangi bellek anahtarında?",
+  "zorluk": [
+   "ters_soru",
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   63
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00283"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     63
+    ],
+    "chunk_id": "brother-s7300b-00283"
+   }
+  ],
+  "expect_in_answer": [
+   "202"
+  ],
+  "cevap": "Bellek anahtarı 202 (%50–150, başlangıç 100)",
+  "kanit": "No.: 202 | Setting range: 50 - 150% | Initial value: 100",
+  "bolum": "Feed motor settings (200 to)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A073",
+  "kind": "değer",
+  "q": "S-7300B'de kısayol tuşlarına başlangıçta hangi işlevler atanmış?",
+  "zorluk": [],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   57,
+   58
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00256"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     57,
+     58
+    ],
+    "chunk_id": "brother-s7300b-00256"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Başlangıç punterizi, bitiş punterizi, yavaş başlangıç ve iplik kesme kilidi",
+  "kanit": "Initially, the start backtack key, end backtack key, slow start key and thread trimming lock key are assigned.",
+  "bolum": "6-6. Shortcut key assignment method",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A074",
+  "kind": "arıza",
+  "q": "S-7300B'de dikişin başında atlama ve iplik çözülmesi oluyor, ne yapmalıyım?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   110
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00507"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     110
+    ],
+    "chunk_id": "brother-s7300b-00507"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "İplik çekme yayı gerginliğini/aralığını azaltın, ön gerdirmeyi ayarlayın, kesme bıçaklarını bileyin",
+  "kanit": "Problem: Skipped stitches at sewing start",
+  "bolum": "14. TROUBLESHOOTING",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A075",
+  "kind": "değer",
+  "q": "S-7300B -3 tipinde 4000 dev/dk hızda dikiş adımı en fazla kaç mm olabilir?",
+  "zorluk": [
+   "tablo",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   78
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00374"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     78
+    ],
+    "chunk_id": "brother-s7300b-00374"
+   }
+  ],
+  "expect_in_answer": [
+   "3.0"
+  ],
+  "cevap": "3,0 mm (lokus 1)",
+  "kanit": "-3 specifications 5000sti/min / 2.0 4000sti/min / 3.0",
+  "bolum": "8-3. Using the feed dog locus",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A076",
+  "kind": "prosedür",
+  "q": "S-7300B'de alt iplik sayacı ne zaman azalır?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   49
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00230"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     49
+    ],
+    "chunk_id": "brother-s7300b-00230"
+   }
+  ],
+  "expect_in_answer": [
+   "0.1"
+  ],
+  "cevap": "Dikiş sayısı × adım 0,1 m'ye ulaştıkça 0,1 azalır; ekran pedal nötre dönünce güncellenir",
+  "kanit": "reduced by 0.1 each time the number of stitches x sewing pitch reaches 0.1 m",
+  "bolum": "<Lower thread counter operation>",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A077",
+  "kind": "arıza",
+  "q": "S-7300B'de punteriz kenarı hizalı çıkmıyor, ne yapmalıyım?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   112
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00515"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     112
+    ],
+    "chunk_id": "brother-s7300b-00515"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Transport dişlisi yüksekliğini kontrol edin, artırın",
+  "kanit": "Is the height of the feed dog correct? Increase the feed dog height.",
+  "bolum": "14. TROUBLESHOOTING",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A078",
+  "kind": "değer",
+  "q": "Terzilik kitabına göre makine dikişinde inç başına kaç dikiş kullanılmalı?",
+  "zorluk": [
+   "kaynak_ifadesi",
+   "karisan_dokuman"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "strickland-1956"
+  ],
+  "expect_pages": [
+   69
+  ],
+  "expect_chunk_ids": [
+   "strickland-1956-00106"
+  ],
+  "kabul": [
+   {
+    "doc": "strickland-1956",
+    "pages": [
+     69
+    ],
+    "chunk_id": "strickland-1956-00106"
+   }
+  ],
+  "expect_in_answer": [
+   "15–20"
+  ],
+  "cevap": "15–20 dikiş/inç; kalın kumaşta daha uzun dikiş",
+  "kanit": "Use 15 to 20 stitches per inch, the longer stitch for bulky materials.",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A079",
+  "kind": "değer",
+  "q": "Kalın kumaşlarda makine dikiş boyu nasıl seçilir?",
+  "zorluk": [
+   "parafraz",
+   "karisan_dokuman"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "strickland-1956"
+  ],
+  "expect_pages": [
+   69
+  ],
+  "expect_chunk_ids": [
+   "strickland-1956-00106"
+  ],
+  "kabul": [
+   {
+    "doc": "strickland-1956",
+    "pages": [
+     69
+    ],
+    "chunk_id": "strickland-1956-00106"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Daha uzun dikiş (15–20 dikiş/inç aralığının uzun ucu); önce artık kumaşta çift kat denenir",
+  "kanit": "Use 15 to 20 stitches per inch, the longer stitch for bulky materials.",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A080",
+  "kind": "prosedür",
+  "q": "Fransız etek ucu (French hem) nasıl yapılır?",
+  "zorluk": [],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "strickland-1956"
+  ],
+  "expect_pages": [
+   84,
+   85
+  ],
+  "expect_chunk_ids": [
+   "strickland-1956-00143"
+  ],
+  "kabul": [
+   {
+    "doc": "strickland-1956",
+    "pages": [
+     84,
+     85
+    ],
+    "chunk_id": "strickland-1956-00143"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Etek ucu işaretlenip ters yüze katlanır, kenara dik iğnelenir, denenir; kumaş saçaklanmıyorsa kenar zikzaklanıp teyellenir",
+  "kanit": "French hem: After hem is marked, fold it to wrong side along marked edge",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A081",
+  "kind": "prosedür",
+  "q": "Uzun kruvaze paltoda düğmelenmeyen alt kat nasıl sabitlenir?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "strickland-1956"
+  ],
+  "expect_pages": [
+   98,
+   99
+  ],
+  "expect_chunk_ids": [
+   "strickland-1956-00173"
+  ],
+  "kabul": [
+   {
+    "doc": "strickland-1956",
+    "pages": [
+     98,
+     99
+    ],
+    "chunk_id": "strickland-1956-00173"
+   }
+  ],
+  "expect_in_answer": [
+   "1"
+  ],
+  "cevap": "Astar ya da yaklaşık 1 inç genişliğinde grogren kurdeleden bağcıkla",
+  "kanit": "held in place by a tie made of the lining, or of matching grosgrain ribbon about 1 inch wide",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A082",
+  "kind": "değer",
+  "q": "Klapede pad dikişine kırım çizgisinin ne kadar gerisinden başlanır?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "strickland-1956"
+  ],
+  "expect_pages": [
+   102,
+   103,
+   105
+  ],
+  "expect_chunk_ids": [
+   "strickland-1956-00182"
+  ],
+  "kabul": [
+   {
+    "doc": "strickland-1956",
+    "pages": [
+     102,
+     103,
+     105
+    ],
+    "chunk_id": "strickland-1956-00182"
+   }
+  ],
+  "expect_in_answer": [
+   "1"
+  ],
+  "cevap": "1 inç gerisinden",
+  "kanit": "start the pad stitch 1 inch behind the break line",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A083",
+  "kind": "prosedür",
+  "q": "Gömme cepler neden tela ile desteklenir?",
+  "zorluk": [],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "strickland-1956"
+  ],
+  "expect_pages": [
+   110
+  ],
+  "expect_chunk_ids": [
+   "strickland-1956-00196"
+  ],
+  "kabul": [
+   {
+    "doc": "strickland-1956",
+    "pages": [
+     110
+    ],
+    "chunk_id": "strickland-1956-00196"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Kumaşa binen aşırı gerilimi önlemek için; dikiş hattı boyunca tersten",
+  "kanit": "This canvas prevents too great strain on the fabric.",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A084",
+  "kind": "prosedür",
+  "q": "Ok başı punteriz (arrowhead) nasıl yapılır?",
+  "zorluk": [
+   "karisan_dokuman"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "strickland-1956"
+  ],
+  "expect_pages": [
+   123,
+   124
+  ],
+  "expect_chunk_ids": [
+   "strickland-1956-00224"
+  ],
+  "kabul": [
+   {
+    "doc": "strickland-1956",
+    "pages": [
+     123,
+     124
+    ],
+    "chunk_id": "strickland-1956-00224"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Üçgen teyelle işaretlenir; ilik ipliğiyle tabandan başlanıp karşı köşeye tabana paralel dikişlerle doldurulur",
+  "kanit": "Mark the arrowhead by basting a triangle at the desired position.",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A085",
+  "kind": "prosedür",
+  "q": "İlik aralıklarını doğru işaretlemek için ne yapılır?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "strickland-1956"
+  ],
+  "expect_pages": [
+   91,
+   92
+  ],
+  "expect_chunk_ids": [
+   "strickland-1956-00158"
+  ],
+  "kabul": [
+   {
+    "doc": "strickland-1956",
+    "pages": [
+     91,
+     92
+    ],
+    "chunk_id": "strickland-1956-00158"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Uzun ve kısa teyellerle 'merdiven' yapılır: orta ön teyeli, iliğin bir ucu ve ilik boyu teyelle işaretlenir",
+  "kanit": "To be accurate in spacing the buttonholes, make a ladder, using long and short bastings.",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A086",
+  "kind": "değer",
+  "q": "Terzilik kitabına göre pantolon cebinin yün yüz parçası kaç inç kesilir?",
+  "zorluk": [
+   "karisan_dokuman",
+   "kaynak_ifadesi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "strickland-1956"
+  ],
+  "expect_pages": [
+   155
+  ],
+  "expect_chunk_ids": [
+   "strickland-1956-00296"
+  ],
+  "kabul": [
+   {
+    "doc": "strickland-1956",
+    "pages": [
+     155
+    ],
+    "chunk_id": "strickland-1956-00296"
+   }
+  ],
+  "expect_in_answer": [
+   "10",
+   "3"
+  ],
+  "cevap": "10 × 3 inç",
+  "kanit": "Wool facing 10 inches by 3 inches.",
+  "bolum": "",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A087",
+  "kind": "değer",
+  "q": "Bengalin kumaş hangi giysiler için uygundur?",
+  "zorluk": [],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "strickland-1956"
+  ],
+  "expect_pages": [
+   17
+  ],
+  "expect_chunk_ids": [
+   "strickland-1956-00014"
+  ],
+  "kabul": [
+   {
+    "doc": "strickland-1956",
+    "pages": [
+     17
+    ],
+    "chunk_id": "strickland-1956-00014"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Palto ve takım (poplin benzeri rib dokuma)",
+  "kanit": "Bengaline: Rib weave similar to poplin. For coats or suits.",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A088",
+  "kind": "değer",
+  "q": "Parçaları yıkamak için sabun çözeltisinde litre başına kaç gram sabun kullanılır?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "granovsky-1986"
+  ],
+  "expect_pages": [
+   66
+  ],
+  "expect_chunk_ids": [
+   "granovsky-1986-00190"
+  ],
+  "kabul": [
+   {
+    "doc": "granovsky-1986",
+    "pages": [
+     66
+    ],
+    "chunk_id": "granovsky-1986-00190"
+   }
+  ],
+  "expect_in_answer": [
+   "25"
+  ],
+  "cevap": "Litre suya 25 g sabun",
+  "kanit": "a soap solution (25 g of soap per liter of water)",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A089",
+  "kind": "değer",
+  "q": "Kalın cidarlı dökme demir parçaları kaynatırken çelik pim çapı nasıl seçilir?",
+  "zorluk": [
+   "parafraz",
+   "sayi",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "granovsky-1986"
+  ],
+  "expect_pages": [
+   31,
+   32
+  ],
+  "expect_chunk_ids": [
+   "granovsky-1986-00088"
+  ],
+  "kabul": [
+   {
+    "doc": "granovsky-1986",
+    "pages": [
+     31,
+     32
+    ],
+    "chunk_id": "granovsky-1986-00088"
+   }
+  ],
+  "expect_in_answer": [
+   "0.3–0.4"
+  ],
+  "cevap": "d = (0,3–0,4) × kırılma yerindeki parça kalınlığı (b)",
+  "kanit": "d = (0.3...0.4)b",
+  "bolum": "",
+  "ocr_bicimi": "(0.3...0.4)b",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A090",
+  "kind": "değer",
+  "q": "Ring iplik makinesinde kondansatörün toplam stroku kaç mm olmalı?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "granovsky-1986"
+  ],
+  "expect_pages": [
+   156
+  ],
+  "expect_chunk_ids": [
+   "granovsky-1986-00475"
+  ],
+  "kabul": [
+   {
+    "doc": "granovsky-1986",
+    "pages": [
+     156
+    ],
+    "chunk_id": "granovsky-1986-00475"
+   }
+  ],
+  "expect_in_answer": [
+   "18–19"
+  ],
+  "cevap": "18–19 mm",
+  "kanit": "The total stroke of the condenser should be 18-19 mm.",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A091",
+  "kind": "değer",
+  "q": "Birinci tip çözgü makinesinin tamburunda koni açısı hangi aralıkta değişir?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "granovsky-1986"
+  ],
+  "expect_pages": [
+   166
+  ],
+  "expect_chunk_ids": [
+   "granovsky-1986-00504"
+  ],
+  "kabul": [
+   {
+    "doc": "granovsky-1986",
+    "pages": [
+     166
+    ],
+    "chunk_id": "granovsky-1986-00504"
+   }
+  ],
+  "expect_in_answer": [
+   "6–26"
+  ],
+  "cevap": "6–26°",
+  "kanit": "a cone the angle of which changes from 6 to 26°",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A092",
+  "kind": "değer",
+  "q": "Dokuma tezgâhında orta onarım ne sıklıkla yapılır ve kaç kişi yapar?",
+  "zorluk": [
+   "parafraz",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "granovsky-1986"
+  ],
+  "expect_pages": [
+   201,
+   202
+  ],
+  "expect_chunk_ids": [
+   "granovsky-1986-00606"
+  ],
+  "kabul": [
+   {
+    "doc": "granovsky-1986",
+    "pages": [
+     201,
+     202
+    ],
+    "chunk_id": "granovsky-1986-00606"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Yılda en az iki kez (aşırı aşınmada daha sık), en çok bir vardiya, iki kişilik ekip",
+  "kanit": "carried out according to the schedule at. least twice a year",
+  "bolum": "c: o o",
+  "ocr_bicimi": "at. least",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A093",
+  "kind": "değer",
+  "q": "Mekik kutusunda mekik yokken çözgü koruyucu uçları pedlerin kaç mm üstünde olmalı?",
+  "zorluk": [
+   "parafraz",
+   "sayi",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "granovsky-1986"
+  ],
+  "expect_pages": [
+   231
+  ],
+  "expect_chunk_ids": [
+   "granovsky-1986-00690"
+  ],
+  "kabul": [
+   {
+    "doc": "granovsky-1986",
+    "pages": [
+     231
+    ],
+    "chunk_id": "granovsky-1986-00690"
+   }
+  ],
+  "expect_in_answer": [
+   "1–1.5"
+  ],
+  "cevap": "1–1,5 mm",
+  "kanit": "the warp protector nibs must be 1-1.5 m m above the edges of the pads",
+  "bolum": "c: o o",
+  "ocr_bicimi": "1-1.5 m m",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A094",
+  "kind": "değer",
+  "q": "Topuk konisinin elektrik kıvılcımıyla doldurulmasında katman kalınlığı kaç mm?",
+  "zorluk": [
+   "sayi",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "granovsky-1986"
+  ],
+  "expect_pages": [
+   256
+  ],
+  "expect_chunk_ids": [
+   "granovsky-1986-00761"
+  ],
+  "kabul": [
+   {
+    "doc": "granovsky-1986",
+    "pages": [
+     256
+    ],
+    "chunk_id": "granovsky-1986-00761"
+   }
+  ],
+  "expect_in_answer": [
+   "0.2"
+  ],
+  "cevap": "0,2 mm",
+  "kanit": "the thickness of the built-up layer is 0.2 m m",
+  "bolum": "c: o o",
+  "ocr_bicimi": "0.2 m m",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A095",
+  "kind": "değer",
+  "q": "Granovsky'ye göre santrifüj kavrama ne zaman devreye girer?",
+  "zorluk": [
+   "kaynak_ifadesi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "granovsky-1986"
+  ],
+  "expect_pages": [
+   51,
+   52
+  ],
+  "expect_chunk_ids": [
+   "granovsky-1986-00153"
+  ],
+  "kabul": [
+   {
+    "doc": "granovsky-1986",
+    "pages": [
+     51,
+     52
+    ],
+    "chunk_id": "granovsky-1986-00153"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Önceden belirlenen dönme hızı aşıldığında milleri otomatik bağlar",
+  "kanit": "Centrifugal clutches automatically connect the shafts only when the preset rotational speed is exceeded.",
+  "bolum": "",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A096",
+  "kind": "değer",
+  "q": "Tekstil makinesi parçalarında bakır kaplama ne için kullanılır?",
+  "zorluk": [
+   "parafraz",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "granovsky-1986"
+  ],
+  "expect_pages": [
+   41
+  ],
+  "expect_chunk_ids": [
+   "granovsky-1986-00120"
+  ],
+  "kabul": [
+   {
+    "doc": "granovsky-1986",
+    "pages": [
+     41
+    ],
+    "chunk_id": "granovsky-1986-00120"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Rulman bilezikleri, yatak astarları ve burçların dış yüzeyini doldurmak, sonsuz vida aşınmasını gidermek; krom kaplamaya alt katman",
+  "kanit": "Copperplatingis used to hard face the outer surfaces of rings in antifriction bearings",
+  "bolum": "",
+  "ocr_bicimi": "Copperplatingis",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A097",
+  "kind": "değer",
+  "q": "Yağ damperi ayar düzeneğindeki lamba kaç voltluk?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "granovsky-1986"
+  ],
+  "expect_pages": [
+   216,
+   217
+  ],
+  "expect_chunk_ids": [
+   "granovsky-1986-00645"
+  ],
+  "kabul": [
+   {
+    "doc": "granovsky-1986",
+    "pages": [
+     216,
+     217
+    ],
+    "chunk_id": "granovsky-1986-00645"
+   }
+  ],
+  "expect_in_answer": [
+   "3.5"
+  ],
+  "cevap": "3,5 V",
+  "kanit": "a lamp 3 for 3.5 V",
+  "bolum": "c: o o",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A098",
+  "kind": "prosedür",
+  "q": "Kahve makinesinde gecikmeli demleme saati nasıl ayarlanır?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "mrcoffee-2003"
+  ],
+  "expect_pages": [
+   9
+  ],
+  "expect_chunk_ids": [
+   "mrcoffee-2003-00056"
+  ],
+  "kabul": [
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     9
+    ],
+    "chunk_id": "mrcoffee-2003-00056"
+   },
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     15
+    ],
+    "chunk_id": "mrcoffee-2003-00096",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Saat modundayken SET DELAY'e basın; sarı DELAY BREW ışığı yanıp sönerken HOUR ve MINUTE ile saati girin",
+  "kanit": "simply press the SET DELAY button (Figure 3) and, while the DELAY BREW yellow light is flashing, set the brew time",
+  "bolum": "To Set the Delay Brew Time:",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A099",
+  "kind": "değer",
+  "q": "Kahve makinesinin su filtresi klorun yüzde kaçını giderir?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "mrcoffee-2003"
+  ],
+  "expect_pages": [
+   10
+  ],
+  "expect_chunk_ids": [
+   "mrcoffee-2003-00057"
+  ],
+  "kabul": [
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     10
+    ],
+    "chunk_id": "mrcoffee-2003-00057"
+   },
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     12
+    ],
+    "chunk_id": "mrcoffee-2003-00075",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [
+   "97"
+  ],
+  "cevap": "%97'ye kadar",
+  "kanit": "removing up to 97% of the chlorine from the water",
+  "bolum": "A. Water Filtration System (not on FTS12/FTS13)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A100",
+  "kind": "değer",
+  "q": "Kahve makinesinde bir fincan kaç ons su sayılıyor?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "mrcoffee-2003"
+  ],
+  "expect_pages": [
+   12
+  ],
+  "expect_chunk_ids": [
+   "mrcoffee-2003-00073"
+  ],
+  "kabul": [
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     12
+    ],
+    "chunk_id": "mrcoffee-2003-00073"
+   },
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     13
+    ],
+    "chunk_id": "mrcoffee-2003-00077",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [
+   "5"
+  ],
+  "cevap": "5 ons",
+  "kanit": "(1 cup equals 5 ounces)",
+  "bolum": "B. Adding Water and Ground Coffee",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A101",
+  "kind": "değer",
+  "q": "Kahve makinesinin kirecini temizlerken temizleyici yerine ne kadar sirke kullanılabilir?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "mrcoffee-2003"
+  ],
+  "expect_pages": [
+   16
+  ],
+  "expect_chunk_ids": [
+   "mrcoffee-2003-00102"
+  ],
+  "kabul": [
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     16
+    ],
+    "chunk_id": "mrcoffee-2003-00102"
+   },
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     8
+    ],
+    "chunk_id": "mrcoffee-2003-00050",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [
+   "4",
+   "20"
+  ],
+  "cevap": "4 fincan (20 fl. oz.) seyreltilmemiş beyaz sirke",
+  "kanit": "4 cups or 20 fl. oz. of undiluted, white household vinegar may be used as a substitute",
+  "bolum": "For Switch models (FT12/FT13, FTS12/FTS13):",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A102",
+  "kind": "prosedür",
+  "q": "Cam sürahideki beyaz kireç lekeleri nasıl çıkarılır?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "mrcoffee-2003"
+  ],
+  "expect_pages": [
+   18
+  ],
+  "expect_chunk_ids": [
+   "mrcoffee-2003-00116"
+  ],
+  "kabul": [
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     18
+    ],
+    "chunk_id": "mrcoffee-2003-00116"
+   },
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     6,
+     7
+    ],
+    "chunk_id": "mrcoffee-2003-00039",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [
+   "20"
+  ],
+  "cevap": "Sürahiyi yarı su yarı sirkeyle doldurup yaklaşık 20 dakika bekletin, sonra yıkayın",
+  "kanit": "a solution of equal parts water and vinegar and let the solution stand in the decanter for approximately 20 minutes",
+  "bolum": "Cleaning the Decanter",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A103",
+  "kind": "arıza",
+  "q": "Sürahi ısıtma plakasından 30 saniyeden uzun alınırsa ne olur, ne yapmalıyım?",
+  "zorluk": [
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "mrcoffee-2003"
+  ],
+  "expect_pages": [
+   19
+  ],
+  "expect_chunk_ids": [
+   "mrcoffee-2003-00128"
+  ],
+  "kabul": [
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     19
+    ],
+    "chunk_id": "mrcoffee-2003-00128"
+   }
+  ],
+  "expect_in_answer": [
+   "30"
+  ],
+  "cevap": "Taşma olabilir: makineyi kapatıp fişten çekin, soğumasını bekleyin, dökülenleri silin; sıcak sürahiyi ıslak plakaya koymayın",
+  "kanit": "The decanter was removed from the warmer plate for more than 30 seconds.",
+  "bolum": "SOLUTION",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A104",
+  "kind": "değer",
+  "q": "Programlanabilir kahve makinelerinde temizleme döngüsü ne kadar sürer?",
+  "zorluk": [
+   "karisan_dokuman"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "mrcoffee-2003"
+  ],
+  "expect_pages": [
+   7,
+   17
+  ],
+  "expect_chunk_ids": [
+   "mrcoffee-2003-00041",
+   "mrcoffee-2003-00110"
+  ],
+  "kabul": [
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     7
+    ],
+    "chunk_id": "mrcoffee-2003-00041"
+   },
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     17
+    ],
+    "chunk_id": "mrcoffee-2003-00110"
+   }
+  ],
+  "expect_in_answer": [
+   "45–60"
+  ],
+  "cevap": "45–60 dakika",
+  "kanit": "El ciclo completo tomará de 45 a 60 minutos en completarse.",
+  "bolum": "Para modelos programables (FTX20/FTX23/FTX25/FTX26, FTXSS20/",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A105",
+  "kind": "değer",
+  "q": "Yedek su filtresi diskleri nereden alınır?",
+  "zorluk": [],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "mrcoffee-2003"
+  ],
+  "expect_pages": [
+   21
+  ],
+  "expect_chunk_ids": [
+   "mrcoffee-2003-00142"
+  ],
+  "kabul": [
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     21
+    ],
+    "chunk_id": "mrcoffee-2003-00142"
+   },
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     3
+    ],
+    "chunk_id": "mrcoffee-2003-00013",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Yerel satıcıdan ya da 1-800-MR-COFFEE (ABD) / 1-800-667-8623 (Kanada) aranarak (kâğıt filtreler ise marketlerde)",
+  "kanit": "Water Filtration - Replacement water filtration disks can be purchased through your local retailer or by calling 1-800-MR-COFFEE",
+  "bolum": "Replacement Parts",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A106",
+  "kind": "prosedür",
+  "q": "Freze tablasıyla çalışırken hangi kişisel koruyucu ekipmanlar kullanılmalı?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "bosch-ra1171"
+  ],
+  "expect_pages": [
+   2
+  ],
+  "expect_chunk_ids": [
+   "bosch-ra1171-00009"
+  ],
+  "kabul": [
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     2
+    ],
+    "chunk_id": "bosch-ra1171-00009"
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     32
+    ],
+    "chunk_id": "bosch-ra1171-00196",
+    "dil_kopyasi": true
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     63
+    ],
+    "chunk_id": "bosch-ra1171-00400",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "ANSI Z87.1 uyumlu koruyucu gözlük; gerekirse kaymaz ayakkabı, baret, toz maskesi ve kulak koruyucu",
+  "kanit": "Wear safety goggles (must comply with ANSI Standard Z87.1) at all times.",
+  "bolum": "Personal Safety",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A107",
+  "kind": "değer",
+  "q": "Freze tablası şalteri için en az kaç gauge uzatma kablosu gerekir?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "bosch-ra1171"
+  ],
+  "expect_pages": [
+   19
+  ],
+  "expect_chunk_ids": [
+   "bosch-ra1171-00144"
+  ],
+  "kabul": [
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     19
+    ],
+    "chunk_id": "bosch-ra1171-00144"
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     49
+    ],
+    "chunk_id": "bosch-ra1171-00340",
+    "dil_kopyasi": true
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     81
+    ],
+    "chunk_id": "bosch-ra1171-00543",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [
+   "14"
+  ],
+  "cevap": "14 gauge ya da daha kalın, üç telli topraklı",
+  "kanit": "A 14-gauge (or heavier) three-wire extension cord",
+  "bolum": "ELECTRICAL REQUIREMENTS",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A108",
+  "kind": "prosedür",
+  "q": "Frezemin modeli bağlantı tablosunda yoksa ne yapmalıyım?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "bosch-ra1171"
+  ],
+  "expect_pages": [
+   14
+  ],
+  "expect_chunk_ids": [
+   "bosch-ra1171-00121"
+  ],
+  "kabul": [
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     14
+    ],
+    "chunk_id": "bosch-ra1171-00121"
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     44
+    ],
+    "chunk_id": "bosch-ra1171-00314",
+    "dil_kopyasi": true
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     76
+    ],
+    "chunk_id": "bosch-ra1171-00518",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [
+   "RA1186"
+  ],
+  "cevap": "Ayrıca satılan BOSCH RA1186 adaptör plakası alınmalı",
+  "kanit": "If it is NOT listed, you must purchase a BOSCH RA1186 Router Adapter Plate",
+  "bolum": "DETERMINE THE MOUNTING METHOD TO BE USED (see chart on page ",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A109",
+  "kind": "değer",
+  "q": "Bosch 1617 serisi frezeyi tablaya bağlamak için hangi vidalar gerekir?",
+  "zorluk": [
+   "tablo",
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "bosch-ra1171"
+  ],
+  "expect_pages": [
+   15
+  ],
+  "expect_chunk_ids": [
+   "bosch-ra1171-00124"
+  ],
+  "kabul": [
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     15
+    ],
+    "chunk_id": "bosch-ra1171-00124"
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     45
+    ],
+    "chunk_id": "bosch-ra1171-00318",
+    "dil_kopyasi": true
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     77
+    ],
+    "chunk_id": "bosch-ra1171-00521",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [
+   "10-24"
+  ],
+  "cevap": "10-24 × 3/4″ yıldız başlı makine vidaları (46), delik deseni B",
+  "kanit": "Fasteners Required: 10-24 x 3/4″ Phillips machine screws (46)",
+  "bolum": "CHART 1",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A110",
+  "kind": "değer",
+  "q": "Çit yüzleri freze ucuna ne kadar yakın olmalı?",
+  "zorluk": [
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "bosch-ra1171"
+  ],
+  "expect_pages": [
+   25
+  ],
+  "expect_chunk_ids": [
+   "bosch-ra1171-00170"
+  ],
+  "kabul": [
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     25
+    ],
+    "chunk_id": "bosch-ra1171-00170"
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     55
+    ],
+    "chunk_id": "bosch-ra1171-00369",
+    "dil_kopyasi": true
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     87
+    ],
+    "chunk_id": "bosch-ra1171-00569",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [
+   "1/4"
+  ],
+  "cevap": "Uca değmeyecek kadar yakın, tipik olarak yaklaşık 1/4″",
+  "kanit": "(typically about 1/4″ from the bit is a suitable distance)",
+  "bolum": "ADJUSTING THE FENCE FACING (Fig. 22)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A111",
+  "kind": "değer",
+  "q": "Freze tablasının gönye kanalı hangi ölçüdeki gönye kılavuzlarına uyar?",
+  "zorluk": [
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "bosch-ra1171"
+  ],
+  "expect_pages": [
+   31
+  ],
+  "expect_chunk_ids": [
+   "bosch-ra1171-00187"
+  ],
+  "kabul": [
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     31
+    ],
+    "chunk_id": "bosch-ra1171-00187"
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     61
+    ],
+    "chunk_id": "bosch-ra1171-00390",
+    "dil_kopyasi": true
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     93
+    ],
+    "chunk_id": "bosch-ra1171-00591",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [
+   "3/4",
+   "3/8"
+  ],
+  "cevap": "3/4″ genişlik × 3/8″ derinlik",
+  "kanit": "miter gauges that measure 3/4″ wide x 3/8″ deep",
+  "bolum": "USING AMITER GAUGE (not supplied)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A112",
+  "kind": "prosedür",
+  "q": "Freze tablası şalteri kapalı konumda nasıl kilitlenir?",
+  "zorluk": [],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "bosch-ra1171"
+  ],
+  "expect_pages": [
+   21
+  ],
+  "expect_chunk_ids": [
+   "bosch-ra1171-00155"
+  ],
+  "kabul": [
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     21
+    ],
+    "chunk_id": "bosch-ra1171-00155"
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     51
+    ],
+    "chunk_id": "bosch-ra1171-00352",
+    "dil_kopyasi": true
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     83
+    ],
+    "chunk_id": "bosch-ra1171-00554",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Kapağa basıp kapatın, kilit anahtarını tamamen çıkarın; kırmızı sürgü şalterin üst yarısını örter",
+  "kanit": "remove the lockout key completely from the side of the switch case",
+  "bolum": "UNATTENDED WHILE IT IS RUNNING OR BEFORE IT COMES TO A COMPL",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A113",
+  "kind": "değer",
+  "q": "Parça listesinde 38 numaralı Allen başlı bağlantı vidasından kaç adet var?",
+  "zorluk": [
+   "tablo",
+   "sayi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "bosch-ra1171"
+  ],
+  "expect_pages": [
+   8
+  ],
+  "expect_chunk_ids": [
+   "bosch-ra1171-00097"
+  ],
+  "kabul": [
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     8
+    ],
+    "chunk_id": "bosch-ra1171-00097"
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     38
+    ],
+    "chunk_id": "bosch-ra1171-00287",
+    "dil_kopyasi": true
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     70
+    ],
+    "chunk_id": "bosch-ra1171-00492",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [
+   "13"
+  ],
+  "cevap": "13 adet",
+  "kanit": "Key No.: 38 | Description: Allen-Head Connector Screw | Quantity: 13",
+  "bolum": "Parts List",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A114",
+  "kind": "bulunamadı",
+  "q": "Bosch freze tablası kaç kilogram ağırlığında?",
+  "zorluk": [
+   "bulunamadi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), ağırlık değeri geçmiyor; yalnız sembol tablosunda 'kg = Kilograms, Weight' birim açıklaması var",
+  "model_celiskisi": "doğrulanmış cevap üreten model: qwen36",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A115",
+  "kind": "bulunamadı",
+  "q": "Granovsky kitabına göre bilgisayarlı nakış makinesinin yazılımı nasıl güncellenir?",
+  "zorluk": [
+   "bulunamadi",
+   "kaynak_ifadesi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl'de 'embroider|software|computer' geçmiyor",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A116",
+  "kind": "bulunamadı",
+  "q": "Pantolon şartnamesinde kemer tokası kaç gram olmalı?",
+  "zorluk": [
+   "bulunamadi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), 'buckle' geçmiyor",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A117",
+  "kind": "bulunamadı",
+  "q": "S-7300A'da E133 hatası ne demek?",
+  "zorluk": [
+   "bulunamadi",
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), S-7300A'da geçmiyor (yalnız S-7300B'de var)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A118",
+  "kind": "bulunamadı",
+  "q": "S-7300A'da E-740 kodu çıktı, ne yapmalıyım?",
+  "zorluk": [
+   "bulunamadi",
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), S-7300A'da geçmiyor (yalnız S-7300B'de var)",
+  "model_celiskisi": "doğrulanmış cevap üreten model: gpt54mini",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A119",
+  "kind": "bulunamadı",
+  "q": "S-7300A'da E582 hatası neden olur?",
+  "zorluk": [
+   "bulunamadi",
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), S-7300A'da geçmiyor (yalnız S-7300B'de var)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A120",
+  "kind": "bulunamadı",
+  "q": "Bosch freze tablasının garanti süresi ne kadar?",
+  "zorluk": [
+   "bulunamadi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), garanti bilgisi geçmiyor ('warrants special attention' ifadesi garanti değil)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A121",
+  "kind": "bulunamadı",
+  "q": "Mr. Coffee kahve makinesi kaç watt?",
+  "zorluk": [
+   "bulunamadi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), watt değeri geçmiyor",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A122",
+  "kind": "bulunamadı",
+  "q": "Mr. Coffee kahve makinesiyle süt nasıl köpürtülür?",
+  "zorluk": [
+   "bulunamadi",
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), 'milk|froth|leche' geçmiyor",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A123",
+  "kind": "bulunamadı",
+  "q": "S-7300B'nin güç tüketimi kaç watt?",
+  "zorluk": [
+   "bulunamadi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), güç değeri geçmiyor; yalnız 'güç kaynağı tüketimden büyük olmalı' uyarısı var",
+  "model_celiskisi": "doğrulanmış cevap üreten model: qwen36",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A124",
+  "kind": "bulunamadı",
+  "q": "Ceketin kapüşon ölçüleri nedir?",
+  "zorluk": [
+   "bulunamadi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), 'hood' geçmiyor",
+  "model_celiskisi": "doğrulanmış cevap üreten model: gpt54mini",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A125",
+  "kind": "bulunamadı",
+  "q": "Ceket fermuarı hangi markadan olmalı?",
+  "zorluk": [
+   "bulunamadi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl'de 'YKK|Talon|brand name' ceket şartnamesinde geçmiyor; fermuar yalnız standartla tanımlı",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A126",
+  "kind": "bulunamadı",
+  "q": "Strickland kitabına göre deri ceket nasıl dikilir?",
+  "zorluk": [
+   "bulunamadi",
+   "kaynak_ifadesi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), 'leather' geçmiyor",
+  "model_celiskisi": "doğrulanmış cevap üreten model: gpt54mini, qwen36",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A127",
+  "kind": "bulunamadı",
+  "q": "S-7300A Bluetooth ya da Wi-Fi ile nasıl bağlanır?",
+  "zorluk": [
+   "bulunamadi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl ve PDF metin katmanında arandı (2026-10-27), 'bluetooth|wireless|wi-fi' geçmiyor",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A128",
+  "kind": "bulunamadı",
+  "q": "Pantolon kumaşının su geçirmezlik (hidrostatik basınç) değeri ne olmalı?",
+  "zorluk": [
+   "bulunamadi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl'de 'hydrostatic|water resist' pantolon şartnamesinde geçmiyor",
+  "model_celiskisi": "doğrulanmış cevap üreten model: gpt54mini",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A129",
+  "kind": "bulunamadı",
+  "q": "Terzilik kitabına göre overlok makinesi nasıl ayarlanır?",
+  "zorluk": [
+   "bulunamadi",
+   "kaynak_ifadesi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl'de 'overlock|serger' Strickland'de geçmiyor",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A130",
+  "kind": "bulunamadı",
+  "q": "Mr. Coffee makinesiyle espresso nasıl yapılır?",
+  "zorluk": [
+   "bulunamadi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; 27 Ekim korpus araması",
+  "expect_docs": [],
+  "expect_pages": [],
+  "expect_in_answer": [],
+  "expect_not_found": true,
+  "nf_kontrol": "chunks.jsonl'de 'espresso' geçmiyor",
+  "model_celiskisi": "doğrulanmış cevap üreten model: gpt54mini",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A131",
+  "kind": "netleştirme",
+  "q": "E050 ne demek?",
+  "zorluk": [
+   "netlestirme",
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   98,
+   105
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     98
+    ],
+    "chunk_id": "brother-s7300a-00409"
+   },
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     105
+    ],
+    "chunk_id": "brother-s7300b-00437"
+   }
+  ],
+  "olasi_urunler": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "cevap": "S-7300A s.98 ve S-7300B s.105: makine kafası geriye yatık algılandı",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A132",
+  "kind": "netleştirme",
+  "q": "Dikişte ilmek oluşuyor, ne yapmalıyım?",
+  "zorluk": [
+   "netlestirme",
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   101,
+   109
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     101
+    ],
+    "chunk_id": "brother-s7300a-00469"
+   },
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     109
+    ],
+    "chunk_id": "brother-s7300b-00504"
+   }
+  ],
+  "olasi_urunler": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "cevap": "S-7300A s.101, S-7300B s.109 (aynı sorun satırı)",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A133",
+  "kind": "netleştirme",
+  "q": "İplik kesildikten sonra üst iplik kuyruğu kaç mm olmalı?",
+  "zorluk": [
+   "netlestirme",
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   79,
+   82
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     79
+    ],
+    "chunk_id": "brother-s7300a-00369"
+   },
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     82
+    ],
+    "chunk_id": "brother-s7300b-00393"
+   }
+  ],
+  "olasi_urunler": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "cevap": "S-7300A: 25–30 mm · S-7300B: 30–45 mm (Premier 25–30): değer modele göre değişiyor",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A134",
+  "kind": "netleştirme",
+  "q": "Alt iplik sayacı nasıl azalıyor?",
+  "zorluk": [
+   "netlestirme"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   49
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     49
+    ],
+    "chunk_id": "brother-s7300a-00239"
+   },
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     49
+    ],
+    "chunk_id": "brother-s7300b-00230"
+   }
+  ],
+  "olasi_urunler": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "cevap": "İki modelde aynı: dikiş × adım 0,1 m'de bir 0,1 azalır",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A135",
+  "kind": "netleştirme",
+  "q": "Aydınlatma LED'i nasıl açılıp kapatılır?",
+  "zorluk": [
+   "netlestirme"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   32,
+   33
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     32
+    ],
+    "chunk_id": "brother-s7300a-00093"
+   },
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     33
+    ],
+    "chunk_id": "brother-s7300b-00112"
+   }
+  ],
+  "olasi_urunler": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "cevap": "S-7300A s.32, S-7300B s.33: LED tuşu",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A136",
+  "kind": "netleştirme",
+  "q": "Topraklama vidası hangi torkla sıkılır?",
+  "zorluk": [
+   "netlestirme"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   20,
+   24
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     20
+    ],
+    "chunk_id": "brother-s7300a-00068"
+   },
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     24
+    ],
+    "chunk_id": "brother-s7300b-00075"
+   }
+  ],
+  "olasi_urunler": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "cevap": "İki modelde 1,0 ± 0,1 N·m",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A137",
+  "kind": "netleştirme",
+  "q": "Çağanoz ile masura kovanı tutucusu arasındaki boşluk ne olmalı?",
+  "zorluk": [
+   "netlestirme",
+   "parafraz"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   91,
+   94
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     91
+    ],
+    "chunk_id": "brother-s7300a-00401"
+   },
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     94
+    ],
+    "chunk_id": "brother-s7300b-00425"
+   }
+  ],
+  "olasi_urunler": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "cevap": "S-7300A s.91, S-7300B s.94: -3 tipi 0,4–0,7 mm, -5 tipi 0,6–1,1 mm",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A138",
+  "kind": "netleştirme",
+  "q": "İplik kesme kamı ayarında iğne mili kaç mm kaldırılır?",
+  "zorluk": [
+   "netlestirme",
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   96,
+   98
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     96
+    ],
+    "chunk_id": "brother-s7300a-00406"
+   },
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     98
+    ],
+    "chunk_id": "brother-s7300b-00430"
+   }
+  ],
+  "olasi_urunler": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "cevap": "S-7300A: 6 mm · S-7300B: 5 mm: değer modele göre değişiyor",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A139",
+  "kind": "netleştirme",
+  "q": "Makine kafası dik konuma nasıl getirilir?",
+  "zorluk": [
+   "netlestirme"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   14
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     14
+    ],
+    "chunk_id": "brother-s7300a-00050"
+   },
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     14
+    ],
+    "chunk_id": "brother-s7300b-00047"
+   }
+  ],
+  "olasi_urunler": [
+   "brother-s7300a",
+   "brother-s7300b"
+  ],
+  "cevap": "İki modelde s.14 (yüz plakasından sol elle tutarak)",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A140",
+  "kind": "netleştirme",
+  "q": "İliklerde inç başına kaç dikiş olmalı?",
+  "zorluk": [
+   "netlestirme",
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   11,
+   22,
+   23
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     22,
+     23
+    ],
+    "chunk_id": "gl-pd-14-04a-00178"
+   },
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     11
+    ],
+    "chunk_id": "gl-pd-07-14a-00092"
+   }
+  ],
+  "olasi_urunler": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "cevap": "Ceket: 54 ± 2 (s.22) · Pantolon: 52–56 (s.11): değer ürüne göre değişiyor",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A141",
+  "kind": "netleştirme",
+  "q": "Cırt bant kenardan ne kadar içeriden dikilir?",
+  "zorluk": [
+   "netlestirme",
+   "karisan_dokuman"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   10
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     10
+    ],
+    "chunk_id": "gl-pd-14-04a-00093"
+   },
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     10
+    ],
+    "chunk_id": "gl-pd-07-14a-00082"
+   }
+  ],
+  "olasi_urunler": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "cevap": "Ceket ve pantolonda 1/8–3/16 inç (ceket s.10, pantolon s.10/21)",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A142",
+  "kind": "netleştirme",
+  "q": "Beden etiketi nereye dikilir?",
+  "zorluk": [
+   "netlestirme",
+   "benzer_bolum"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   12,
+   13
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     13
+    ],
+    "chunk_id": "gl-pd-14-04a-00116"
+   },
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     12
+    ],
+    "chunk_id": "gl-pd-07-14a-00096"
+   }
+  ],
+  "olasi_urunler": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "cevap": "Ceket: iç orta arka (s.13) · Pantolon: iç bel bandı dikişi (s.12)",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A143",
+  "kind": "netleştirme",
+  "q": "Isırma testinde kollar böcek kafesinde kaç dakika tutulur?",
+  "zorluk": [
+   "netlestirme",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   38,
+   44
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     44
+    ],
+    "chunk_id": "gl-pd-14-04a-00423"
+   },
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     38
+    ],
+    "chunk_id": "gl-pd-07-14a-00297"
+   }
+  ],
+  "olasi_urunler": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "cevap": "Ceket ve pantolonda 15 dakika (pantolonda OCR: 'IS min')",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A144",
+  "kind": "netleştirme",
+  "q": "Permetrin geri kazanımı en az yüzde kaç olmalı?",
+  "zorluk": [
+   "netlestirme"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   33,
+   38,
+   39
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     38,
+     39
+    ],
+    "chunk_id": "gl-pd-14-04a-00382"
+   },
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     33
+    ],
+    "chunk_id": "gl-pd-07-14a-00259"
+   }
+  ],
+  "olasi_urunler": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "cevap": "Ceket ve pantolonda %95 veya üzeri",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A145",
+  "kind": "netleştirme",
+  "q": "Cep kapağı punterizi kaç dikişli olur?",
+  "zorluk": [
+   "netlestirme",
+   "benzer_bolum",
+   "tablo"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_clarify": true,
+  "expect_docs": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   22,
+   25
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     25
+    ],
+    "chunk_id": "gl-pd-14-04a-00211"
+   },
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     22
+    ],
+    "chunk_id": "gl-pd-07-14a-00172"
+   }
+  ],
+  "olasi_urunler": [
+   "gl-pd-14-04a",
+   "gl-pd-07-14a"
+  ],
+  "cevap": "Ceket s.25 ve pantolon s.22 punteriz tabloları (pantolon: 36 dikiş, 5/8 inç)",
+  "expect_in_answer": [],
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A146",
+  "kind": "kod",
+  "q": "s7300a e50 ne demek",
+  "zorluk": [
+   "gundelik",
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   98
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00409"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     98
+    ],
+    "chunk_id": "brother-s7300a-00409"
+   }
+  ],
+  "expect_in_answer": [
+   "E050"
+  ],
+  "cevap": "E050: makine kafası geriye yatık",
+  "kanit": "Code: E050 | Cause: Machine head is detected as being tilted back",
+  "bolum": "Switch-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A147",
+  "kind": "değer",
+  "q": "ceket ilik dikis sayisi?",
+  "zorluk": [
+   "gundelik"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "gl-pd-14-04a"
+  ],
+  "expect_pages": [
+   22,
+   23
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-14-04a-00178"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-14-04a",
+    "pages": [
+     22,
+     23
+    ],
+    "chunk_id": "gl-pd-14-04a-00178"
+   }
+  ],
+  "expect_in_answer": [
+   "54"
+  ],
+  "cevap": "54 ± 2 dikiş/inç (punteriz dahil)",
+  "kanit": "Buttonholes shall be 54 (± 2) stitches per inch including tack.",
+  "bolum": "3.11.1 Seams and stitching",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A148",
+  "kind": "değer",
+  "q": "pantolon cep agzi kac inc",
+  "zorluk": [
+   "gundelik",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   10,
+   11
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00088"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     10,
+     11
+    ],
+    "chunk_id": "gl-pd-07-14a-00088"
+   }
+  ],
+  "expect_in_answer": [
+   "6–7-1/4"
+  ],
+  "cevap": "6–7-1/4 inç",
+  "kanit": "not less than 6 inches and not more than 7-114 inches",
+  "bolum": "3.7.7 Pockets and flaps",
+  "ocr_bicimi": "7-114",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A149",
+  "kind": "prosedür",
+  "q": "masura nasıl takılır s7300b",
+  "zorluk": [
+   "gundelik"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   28
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00087"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     28
+    ],
+    "chunk_id": "brother-s7300b-00087"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Gücü kapatın, iğneyi plakanın üstüne kaldırın, masura kovanını takın",
+  "kanit": "Turn off the power switch before installing the bobbin case.",
+  "bolum": "4-4. Installing the bobbin case",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A150",
+  "kind": "prosedür",
+  "q": "kahve makinası kireç nasil temizlenir",
+  "zorluk": [
+   "gundelik"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "mrcoffee-2003"
+  ],
+  "expect_pages": [
+   16,
+   17
+  ],
+  "expect_chunk_ids": [
+   "mrcoffee-2003-00102",
+   "mrcoffee-2003-00110"
+  ],
+  "kabul": [
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     16
+    ],
+    "chunk_id": "mrcoffee-2003-00102"
+   },
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     17
+    ],
+    "chunk_id": "mrcoffee-2003-00110"
+   },
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     8
+    ],
+    "chunk_id": "mrcoffee-2003-00050",
+    "dil_kopyasi": true
+   },
+   {
+    "doc": "mrcoffee-2003",
+    "pages": [
+     7
+    ],
+    "chunk_id": "mrcoffee-2003-00041",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Temizleyici ya da 4 fincan sirkeyle temizleme demlemesi (anahtarlı modeller s.16; programlanabilirlerde CLEAN döngüsü s.17)",
+  "kanit": "Follow package instructions to prepare one batch of MR. COFFEE ® Coffeemaker Cleaner.",
+  "bolum": "For Switch models (FT12/FT13, FTS12/FTS13):",
+  "model_celiskisi": "4 model beklenenle çelişti (arama getirdi)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A151",
+  "kind": "prosedür",
+  "q": "freze tablası şalteri nasıl kitlenir",
+  "zorluk": [
+   "gundelik"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "bosch-ra1171"
+  ],
+  "expect_pages": [
+   21
+  ],
+  "expect_chunk_ids": [
+   "bosch-ra1171-00155"
+  ],
+  "kabul": [
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     21
+    ],
+    "chunk_id": "bosch-ra1171-00155"
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     51
+    ],
+    "chunk_id": "bosch-ra1171-00352",
+    "dil_kopyasi": true
+   },
+   {
+    "doc": "bosch-ra1171",
+    "pages": [
+     83
+    ],
+    "chunk_id": "bosch-ra1171-00554",
+    "dil_kopyasi": true
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Kilit anahtarını çıkarın; kırmızı sürgü şalteri örter",
+  "kanit": "remove the lockout key completely from the side of the switch case",
+  "bolum": "UNATTENDED WHILE IT IS RUNNING OR BEFORE IT COMES TO A COMPL",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A152",
+  "kind": "değer",
+  "q": "granovsky sabun kaç gram",
+  "zorluk": [
+   "gundelik",
+   "kaynak_ifadesi"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "granovsky-1986"
+  ],
+  "expect_pages": [
+   66
+  ],
+  "expect_chunk_ids": [
+   "granovsky-1986-00190"
+  ],
+  "kabul": [
+   {
+    "doc": "granovsky-1986",
+    "pages": [
+     66
+    ],
+    "chunk_id": "granovsky-1986-00190"
+   }
+  ],
+  "expect_in_answer": [
+   "25"
+  ],
+  "cevap": "Litre suya 25 g",
+  "kanit": "25 g of soap per liter of water",
+  "bolum": "",
+  "model_celiskisi": "arama ve 4 model beklenenle çelişti",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A153",
+  "kind": "prosedür",
+  "q": "s7300a iplik gerginligi nasıl ayarlanır",
+  "zorluk": [
+   "gundelik"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300a"
+  ],
+  "expect_pages": [
+   78
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300a-00367"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300a",
+    "pages": [
+     78
+    ],
+    "chunk_id": "brother-s7300a-00367"
+   }
+  ],
+  "expect_in_answer": [],
+  "cevap": "Önce alt iplik gerginliği, sonra düzgün dikiş elde edilecek şekilde üst iplik gerginliği ayarlanır",
+  "kanit": "After the lower thread tension has been adjusted, adjust the upper thread tension",
+  "bolum": "<Upper thread tension>",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A154",
+  "kind": "değer",
+  "q": "pantolonda cırt bant ne kadar içerde",
+  "zorluk": [
+   "gundelik",
+   "ocr"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada; OCR sorusu, beklenen değer okunaklı",
+  "expect_docs": [
+   "gl-pd-07-14a"
+  ],
+  "expect_pages": [
+   10,
+   21
+  ],
+  "expect_chunk_ids": [
+   "gl-pd-07-14a-00082",
+   "gl-pd-07-14a-00160"
+  ],
+  "kabul": [
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     10
+    ],
+    "chunk_id": "gl-pd-07-14a-00082"
+   },
+   {
+    "doc": "gl-pd-07-14a",
+    "pages": [
+     21
+    ],
+    "chunk_id": "gl-pd-07-14a-00160"
+   }
+  ],
+  "expect_in_answer": [
+   "1/8–3/16"
+  ],
+  "cevap": "1/8–3/16 inç",
+  "kanit": "sewn 1183/16 inch from bound selvage",
+  "bolum": "3.7.1 Fastener tape, (hook and loop)",
+  "ocr_bicimi": "1183/16",
+  "model_celiskisi": "4 model beklenenle çelişti (arama getirdi)",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ },
+ {
+  "id": "A155",
+  "kind": "kod",
+  "q": "s7300b E-050?",
+  "zorluk": [
+   "gundelik",
+   "kod_varyant"
+  ],
+  "dogrulandi": true,
+  "note": "onaylandı 2026-11-05 (geliştirme ekibi): kanıt beklenen sayfada",
+  "expect_docs": [
+   "brother-s7300b"
+  ],
+  "expect_pages": [
+   105
+  ],
+  "expect_chunk_ids": [
+   "brother-s7300b-00437"
+  ],
+  "kabul": [
+   {
+    "doc": "brother-s7300b",
+    "pages": [
+     105
+    ],
+    "chunk_id": "brother-s7300b-00437"
+   }
+  ],
+  "expect_in_answer": [
+   "E050"
+  ],
+  "cevap": "Makine kafası geriye yatık",
+  "kanit": "Code: E050",
+  "bolum": "Switch-related errors",
+  "onaylayan": "geliştirme ekibi",
+  "onay_tarihi": "2026-11-05"
+ }
+]

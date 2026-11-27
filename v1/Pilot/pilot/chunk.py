@@ -1,0 +1,435 @@
+"""Öğeler -> arama parçaları (chunk). Başlık sınırını aşmaz, sayfa ve bbox listesini korur.
+
+Parça türleri:
+  text       ardışık paragraf/liste öğeleri, CHUNK_MAX_CHARS'a kadar
+  table_row  tablonun mantıksal satırı ("Başlık: değer | ...")
+  table      satırlarına ayrılamayan tablo (markdown)
+  figure     VLM ile açıklanmış şekil (figures.py): başlık + şekildeki yazılar + otomatik açıklama
+"""
+import json
+import re
+from collections import Counter
+from dataclasses import asdict, dataclass, field
+from difflib import SequenceMatcher
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+
+from .config import CHUNK_MAX_CHARS, CHUNKS_PATH, LANGS
+from .figures import figure_text, is_described
+from .parse import (_norm_repeating, furniture_keys, in_edge_band, is_letter_spaced, merge_cross_page,
+                    printed_page_labels, remove_furniture)
+from .registry import DocMeta
+
+HEADING_LABELS = ("section_header", "title")
+SKIP_LABELS = ("picture", "figure", "page_header", "page_footer")
+MIN_CHARS = 3
+MAX_SECTION_CHARS = 80
+MAX_TABLE_SECTION_CHARS = 160
+
+# --- Bölüm adı kuralları (yalnız section ve embed_text'i değiştirir; parça sınırları aynı) ---------------------------
+# Kural 1: başlık etiketli öğe şu durumlarda bölüm adı olmaz, önceki bölüm sürer: OCR çöpü ("c: o o", Granovsky'de
+# 273 parçanın bölümüydü), uyarı etiketi ("NOTE:", "CAUTION" — onlarca sayfaya taşınıyordu), sayfa üst bilgisinin
+# ayıklamadan kaçan OCR varyantı ("OLlPD 07-14A"; sayfa kenarında ve bir üst bilgiye çok benzer).
+ADMONITION = re.compile(
+    r"^(notes?|caution|warning|danger|important|attention|notice|remarque|avertissement|pr[ée]caution|mise en garde|"
+    r"nota|advertencia|precauci[óo]n|peligro|aviso|hinweis|achtung|warnung|vorsicht|gefahr|"
+    r"not|uyar[ıi]|dikkat|tehlike|[öo]nemli)\s*[:!.]*$", re.I)
+HEADER_SIMILARITY = 0.8
+
+
+def is_ocr_junk(text: str) -> bool:
+    """Baştaki numara atılınca 3+ harfli kelime yoksa ya da kelimeler metnin %40'ından azını tutuyorsa."""
+    body = re.sub(r"^[\d.\s]+", "", text.strip())
+    words = re.findall(r"[^\W\d_]{3,}", body)
+    return bool(text.strip()) and (not words or sum(map(len, words)) / max(len(body), 1) < 0.4)
+
+
+def heading_rejected(e: dict[str, Any], furniture: set[str]) -> str:
+    """Kural 1: '' (bölüm adı olabilir) | 'ocr' | 'uyari' | 'ust_bilgi'."""
+    t = e["text"].strip()
+    if is_ocr_junk(t):
+        return "ocr"
+    if ADMONITION.match(t):
+        return "uyari"
+    if in_edge_band(e) and any(SequenceMatcher(None, _norm_repeating(t), k).ratio() >= HEADER_SIMILARITY
+                               for k in furniture):
+        return "ust_bilgi"
+    return ""
+
+
+# Kural 2: tablo satırları tablonun adını taşır ("TABLE V. Seam and stitch types"). Ad tablonun hemen üstünde ya da
+# altında olabilir (GL-PD şartnamelerinde çoğunlukla altta); iki tablonun arasındaki ad, dokümanda tek anlamlı
+# konumların çoğunluğuna göre bağlanır. "- Continued" ekleri atılır.
+TABLE_CAPTION = re.compile(r"^\s*(TABLE|Table|TABLO|Tablo|TABLEAU|Tableau|TABLA|Tabla)\s+[IVXLC0-9]+[A-Za-z]?\b")
+TABLE_LABELS = ("table", "table_row")
+
+
+def _caption_text(t: str) -> str:
+    first = t.strip().split("\n")[0]
+    first = re.sub(r"\s*[-–]\s*Contin\w*.*$", "", first, flags=re.I)
+    return first.strip()[:MAX_SECTION_CHARS]
+
+
+def table_captions(elements: list[dict[str, Any]]) -> dict[int, str]:
+    """Tablo öğesinin dizini → tablo adı."""
+    is_cap = [e["label"] not in TABLE_LABELS and bool(TABLE_CAPTION.match(e["text"])) for e in elements]
+    runs, i = [], 0
+    while i < len(elements):
+        if elements[i]["label"] in TABLE_LABELS:
+            j = i
+            while j + 1 < len(elements) and elements[j + 1]["label"] in TABLE_LABELS:
+                j += 1
+            runs.append((i, j))
+            i = j + 1
+        else:
+            i += 1
+    is_table = lambda k: 0 <= k < len(elements) and elements[k]["label"] in TABLE_LABELS
+    below = {(i, j): j + 1 for i, j in runs if j + 1 < len(elements) and is_cap[j + 1]}
+    above = {(i, j): i - 1 for i, j in runs if i - 1 >= 0 and is_cap[i - 1]}
+    shared = lambda k: is_table(k - 1) and is_table(k + 1)          # iki tablonun arasındaki ad
+    prefer_below = sum(not shared(k) for k in below.values()) >= sum(not shared(k) for k in above.values())
+    out = {}
+    for run in runs:
+        first, second = (below, above) if prefer_below else (above, below)
+        k = first.get(run)
+        if k is None and run in second and not shared(second[run]):   # paylaşılan ad tercih edilen tabloya aittir
+            k = second[run]
+        if k is not None:
+            for x in range(run[0], run[1] + 1):
+                out[x] = _caption_text(elements[k]["text"])
+    return out
+
+
+# Kural 3: adı bilinen tabloda, en az üç düzeyli numaralı alt başlığın (3.11.1.1) kapsamı biter; satırlar o başlığın
+# en yakın üst maddesine bağlanır ("3.11.1 Seams and stitching > TABLE V. ..."). Adı bilinmeyen tabloda bölüm aynı.
+NUMBERED = re.compile(r"^(\d{1,2}(?:\.\d{1,2})+)\.?\s")
+
+
+def parent_section(section: str, numbered: dict[str, str]) -> str:
+    m = NUMBERED.match(section)
+    if not m or m.group(1).count(".") < 2:
+        return section
+    parts = m.group(1).split(".")
+    for n in range(len(parts) - 1, 0, -1):
+        key = ".".join(parts[:n])
+        if key in numbered:
+            return numbered[key]
+    return section
+
+
+# Kural 4: bölüm adı boş kalan parça, PDF yer imlerinden (outline) sayfasına düşen son başlığı alır. Yer imleri
+# OCR'dan üretilmişse (Granovsky: "ag xi", "(4).") kullanılmaz: başlıkların en az %80'i Kural 1'den geçmeli.
+OUTLINE_MIN_VALID = 0.8
+
+
+# --- Dil: öğe bazında otomatik tespit (lingua) -------------------------------------------------------------------
+# Kayıttaki dil alanı (DocMeta.default_lang, lang_ranges) yalnız yöneticinin beyanıdır; dil metinden gelir. Tespit öğe
+# (paragraf, tablo satırı) düzeyinde: aynı sayfada iki dil olabilir (Mr. Coffee iki sütunlu, en + es). Öğe yeterince
+# uzun, gerçek kelimelerden oluşan (OCR çöpü değil) ve tespiti güvenliyse kendi dilini alır; değilse aynı sayfada
+# kendinden önceki güvenli öğenin dilini (iki sütunlu sayfada okuma sırası), yoksa sayfanın çoğunluk dilini (dil
+# bölümünün ilk sayfası), o da yoksa önceki sayfadan; hiç güvenli öğe yoksa 'en'.
+# Dil değişimi parça sınırıdır. Sistemin ürettiği metin (şekil şablonu, model açıklaması) dili belirlemez.
+ELEM_MIN_LETTERS, ELEM_MIN_CONF = 40, 0.8
+MIN_WORD_QUALITY = 0.3          # 4+ harfli kelimelerin oranı: OCR çöpünde 0,01–0,08, normal metinde ~0,5
+
+
+@lru_cache(maxsize=1)
+def _detector() -> Any:
+    from lingua import IsoCode639_1, LanguageDetectorBuilder
+    codes = [getattr(IsoCode639_1, c.strip().upper()) for c in LANGS if c.strip()]
+    return LanguageDetectorBuilder.from_iso_codes_639_1(*codes).with_preloaded_language_models().build()
+
+
+def detect_lang(text: str) -> tuple[str | None, float, int]:
+    """(dil, güven, harf sayısı). Sayılar, kodlar ve noktalama atılır; harf yoksa ya da metin kelimeden oluşmuyorsa
+    (OCR çöpü) (None, 0, harf)."""
+    words = re.findall(r"[^\W\d_]{2,}", text)
+    letters = sum(map(len, words))
+    if not words or sum(len(w) >= 4 for w in words) / len(words) < MIN_WORD_QUALITY:
+        return None, 0.0, letters
+    best = _detector().compute_language_confidence_values(" ".join(words))[0]
+    return best.language.iso_code_639_1.name.lower(), best.value, letters
+
+
+def element_languages(elements: list[dict[str, Any]]) -> list[str]:
+    """Öğe başına dil (elements ile aynı sırada)."""
+    known: list[str | None] = []
+    for e in elements:
+        lang = None
+        if e["label"] not in ("picture", "figure") and e["text"].strip():
+            lang, conf, letters = detect_lang(e["text"])
+            if letters < ELEM_MIN_LETTERS or conf < ELEM_MIN_CONF:
+                lang = None
+        known.append(lang)
+    page_major: dict[int, str] = {}
+    for page in {e["page"] for e in elements}:
+        cnt = Counter(x for e, x in zip(elements, known) if x and e["page"] == page)
+        if cnt:
+            page_major[page] = cnt.most_common(1)[0][0]
+    out: list[str] = []
+    cur, cur_page = next((x for x in known if x), None) or "en", None
+    for e, x in zip(elements, known):
+        if x:
+            cur, cur_page = x, e["page"]
+        elif cur_page != e["page"] and e["page"] in page_major:
+            cur, cur_page = page_major[e["page"]], e["page"]
+        out.append(cur)
+    return out
+
+
+def lang_conflicts(meta: DocMeta, elements: list[dict[str, Any]], langs: list[str]) -> list[tuple[int, str, str]]:
+    """Kayıttaki beyanla (DocMeta.lang_of) çelişen sayfalar: (sayfa, beyan, tespit edilen diller "en+es")."""
+    per: dict[int, Counter] = {}
+    for e, lang in zip(elements, langs):
+        if e["label"] not in ("picture", "figure") and e["text"].strip():
+            per.setdefault(e["page"], Counter())[lang] += 1
+    out = []
+    for page, cnt in sorted(per.items()):
+        found = "+".join(sorted(cnt))
+        if found != meta.lang_of(page):
+            out.append((page, meta.lang_of(page), found))
+    return out
+
+
+def pdf_outline(path: Path) -> list[tuple[int, str]]:
+    """(sayfa, başlık) listesi, sayfaya göre sıralı; yer imi yoksa ya da güvenilmezse boş."""
+    try:
+        import pymupdf
+        return clean_outline(pymupdf.open(path).get_toc())
+    except Exception:
+        return []
+
+
+def clean_outline(toc: list[list[Any]]) -> list[tuple[int, str]]:
+    entries = [(p, " ".join(t.split())[:MAX_SECTION_CHARS]) for _, t, p in toc if p >= 1]
+    valid = [(p, t) for p, t in entries if t and not is_ocr_junk(t) and not ADMONITION.match(t)]
+    if len(entries) < 3 or len(valid) < OUTLINE_MIN_VALID * len(entries):
+        return []
+    return sorted(valid, key=lambda x: x[0])
+
+
+def outline_section(outline: list[tuple[int, str]], page: int) -> str:
+    sec = ""
+    for p, t in outline:
+        if p > page:
+            break
+        sec = t
+    return sec
+
+# Paragraf içi numaralı başlık ("3.7.1 Fastener tape (hook and loop). All widths ..."): Docling bunları başlık değil
+# metin olarak etiketliyor; önceki başlık sonraki bölümlerin parçalarına taşınıyordu (ceket şartnamesi s.9-11,
+# "3.5.1 Slide fasteners"). En az iki düzeyli numara: "1. Gücü kapatın" gibi adım listeleri başlık sayılmaz. Başlık
+# büyük harfle başlar ve kısa bir cümleyle noktada biter ("3.5 mm thread" başlık değil).
+RUN_IN_HEADING = re.compile(r"^(\d{1,2}(?:\.\d{1,2}){1,4})\.?\s+([A-Z][^.\n]{1,70}?)\.(?:\s|$)")
+
+# Gezinme sayfaları: içindekiler, dizin, ön sayfa (künye, telif). Hiçbir soruya cevap değiller ama sorunun terimlerini
+# içerdikleri için aday listesinde yer kaplıyorlar (BENCHMARK-RAPORU Aşama 2.5). Parça 'nav' alanıyla işaretlenir,
+# arama onları Qdrant filtresinde dışarıda tutar. Biçim kuralları; dokümana özgü değil.
+_TOC_ENTRY = re.compile(r"(?:^|\s)(?:Chapter\s+)?\d{1,2}(?:[.\-]\d{1,2})*\.?\s+[A-Z][^.\n]{3,90}?\s\.*\s*\d{1,3}(?=\s|$)")
+_TITLE_PAGE = re.compile(r"([A-Z][A-Za-z ,'&\-()]{2,80}?)\s(\d{1,3})(?=\s|$)")
+_INDEX_ENTRY = re.compile(r"[A-Za-z][A-Za-z\-' ]{1,40},\s*\d{1,3}(?:\s*[-–]\s*\d{1,3})?(?:,\s*\d{1,3})*(?=\s|$|[;.])")
+_FRONT = re.compile(r"©|\b(?:first published|copyright|isbn|translated from|printed in|all rights reserved|"
+                    r"registered trademark|edition)\b", re.I)
+FRONT_MATTER_PAGES = 6
+
+
+def _dot_leader_toc(text: str) -> bool:
+    from .retrieve import is_toc
+    return is_toc(text)
+
+
+def nav_kind(text: str, page: int) -> str:
+    """'toc' | 'index' | 'front_matter' | '' (içerik)."""
+    t = " ".join(text.split())
+    if _dot_leader_toc(t):
+        return "toc"
+    toc = _TOC_ENTRY.findall(t)
+    if len(toc) >= 3 and sum(map(len, toc)) >= 0.6 * len(t):
+        return "toc"
+    entries = _TITLE_PAGE.findall(t)
+    nums = [int(n) for _, n in entries]
+    rising = sum(b >= a for a, b in zip(nums, nums[1:]))
+    covered = sum(len(a) + len(n) + 1 for a, n in entries)
+    if len(entries) >= 5 and rising >= 0.8 * (len(nums) - 1) and covered >= 0.7 * len(t):
+        return "toc"            # numarasız içindekiler: başlık + artan sayfa numarası
+    idx = _INDEX_ENTRY.findall(t)
+    if len(idx) >= 6 and sum(map(len, idx)) >= 0.5 * len(t):
+        return "index"
+    if page <= FRONT_MATTER_PAGES and len({m.lower() for m in _FRONT.findall(t)}) >= 2:
+        return "front_matter"
+    return ""
+
+
+@dataclass
+class Chunk:
+    chunk_id: str
+    doc_id: str
+    brand: str
+    product: str
+    doc_type: str
+    lang: str
+    chunk_type: str
+    section: str
+    page: int
+    pages: list[int]
+    page_labels: dict[str, str | None]
+    boxes: list[dict[str, Any]]
+    text: str
+    embed_text: str = field(default="")
+    generated: str = field(default="")   # metnin model üretimi kısmı (şekil açıklaması): doğrulamada kaynak sayılmaz
+    nav: str = field(default="")         # gezinme parçası: toc | index | front_matter (aramada dışarıda tutulur)
+    ocr: bool = field(default=False)     # metni yüklemede yapılan OCR'dan (pilot/ocr.py)
+    # İki okumada uyuşmayan sayı içeren diziler (PLAN-OCR §10–§11): bunları içeren alıntı doğrulanmış gösterilmez
+    ocr_belirsiz: list[str] = field(default_factory=list)
+
+
+def _embed_text(meta: DocMeta, section: str, text: str) -> str:
+    head = f"{meta.brand} {meta.product}"
+    return f"{head} | {section}\n{text}" if section else f"{head}\n{text}"
+
+
+def _split_long(el: dict[str, Any]) -> list[dict[str, Any]]:
+    """CHUNK_MAX_CHARS'tan uzun tek paragrafı cümle sınırından böl. Kutular aynı kalır."""
+    text = el["text"].strip()
+    if len(text) <= CHUNK_MAX_CHARS:
+        return [el]
+    sentences = re.split(r"(?<=[.!?;])\s+(?=[A-Z0-9(])", text)
+    parts: list[str] = []
+    cur = ""
+    for s in sentences:
+        if cur and len(cur) + len(s) + 1 > CHUNK_MAX_CHARS:
+            parts.append(cur)
+            cur = s
+        else:
+            cur = f"{cur} {s}".strip()
+    if cur:
+        parts.append(cur)
+    return [{**el, "text": part} for part in parts]
+
+
+def build_chunks(meta: DocMeta, elements: list[dict[str, Any]],
+                 figures: dict[str, dict[str, Any]] | None = None) -> list[Chunk]:
+    """Bir dokümanın parse edilmiş öğelerinden parçalar üret. figures: figures.load_figures() çıktısı.
+    Şekil parçaları sona eklenir: Metin akışını bölmezler, metin parçalarının kimlikleri değişmez."""
+    furniture = furniture_keys(elements)
+    elements = merge_cross_page(remove_furniture(elements))
+    pages = sorted({p for e in elements for p in e["pages"]})
+    labels = printed_page_labels(meta.path, pages)
+    captions = table_captions(elements)
+    outline = pdf_outline(meta.path)
+    elem_lang = element_languages(elements)
+
+    chunks: list[Chunk] = []
+    section = ""
+    numbered: dict[str, str] = {}          # görülen numaralı başlıklar: "3.11.1" → "3.11.1 Seams and stitching"
+    buf: list[dict[str, Any]] = []
+    figure_els: list[tuple[str, dict[str, Any], str]] = []
+    buf_lang = ""
+
+    def set_section(s: str) -> None:
+        nonlocal section
+        section = s
+        m = NUMBERED.match(s)
+        if m:
+            numbered[m.group(1)] = s
+
+    def make(chunk_type: str, text: str, els: list[dict[str, Any]], lang: str, sec: str | None = None,
+             generated: str = "", caption: str = "") -> None:
+        sec = section if sec is None else sec
+        if caption and caption not in sec:
+            sec = f"{parent_section(sec, numbered)} > {caption}"[:MAX_TABLE_SECTION_CHARS] if sec else caption
+        text = text.strip()
+        if len(text) < MIN_CHARS:
+            return
+        boxes = [b for e in els for b in e["boxes"]]
+        pgs = sorted({b["page"] for b in boxes})
+        if not sec and outline:
+            sec = outline_section(outline, pgs[0])
+        chunks.append(Chunk(
+            chunk_id=f"{meta.doc_id}-{len(chunks):05d}", doc_id=meta.doc_id, brand=meta.brand,
+            product=meta.product, doc_type=meta.doc_type, lang=lang,
+            chunk_type=chunk_type, section=sec, page=pgs[0], pages=pgs,
+            page_labels={str(p): labels.get(p) for p in pgs}, boxes=boxes, text=text,
+            embed_text=_embed_text(meta, sec, text), generated=generated,
+            nav=nav_kind(text, pgs[0]) if chunk_type == "text" else ""))
+
+    def flush() -> None:
+        nonlocal buf
+        if buf:
+            make("text", " ".join(e["text"].strip() for e in buf), buf, buf_lang)
+            buf = []
+
+    for idx, e in enumerate(elements):
+        label = e["label"]
+        if label == "picture" and is_described((figures or {}).get(e["id"])):
+            figure_els.append((section, e, elem_lang[idx]))
+            continue
+        if label in SKIP_LABELS:
+            continue
+        if label in HEADING_LABELS:
+            flush()
+            # Harf aralıklı başlık ("R e p a i r a n d A d j u s t m e n t"): kelime sınırları kayıp, bölüm adı
+            # olamaz. Granovsky'de kitap adı bütün kitabın bölüm adı olmuştu (685 parça). Önceki bölüm sürer.
+            # Kural 1 (OCR çöpü, uyarı etiketi, üst bilgi) de aynı: parça yine burada kapanır, yalnız ad değişmez.
+            if not is_letter_spaced(e["text"], min_tokens=4) and not heading_rejected(e, furniture):
+                set_section(e["text"].strip()[:MAX_SECTION_CHARS])
+            continue
+        if label == "table":
+            flush()
+            if not e.get("has_rows"):
+                make("table", e["text"], [e], elem_lang[idx], caption=captions.get(idx, ""))
+            continue
+        if label == "table_row":
+            flush()
+            make("table_row", e["text"], [e], elem_lang[idx], caption=captions.get(idx, ""))
+            continue
+        # metin/liste/dipnot/başlık dışı her şey paragraf gibi biriktirilir
+        if not e["text"].strip():
+            continue
+        for piece in _split_long(e):
+            run_in = RUN_IN_HEADING.match(piece["text"].strip())
+            if run_in:
+                flush()
+                set_section(f"{run_in.group(1)} {run_in.group(2)}"[:MAX_SECTION_CHARS])
+            size = sum(len(x["text"]) for x in buf) + len(piece["text"])
+            lang_changes = bool(buf) and elem_lang[idx] != buf_lang
+            if buf and (size > CHUNK_MAX_CHARS or lang_changes):
+                flush()
+            buf_lang = elem_lang[idx]
+            buf.append(piece)
+    flush()
+    for sec, e, lang in figure_els:
+        fig = figures[e["id"]]
+        make("figure", figure_text(fig), [e], lang, sec=sec, generated=fig["desc"])
+    mark_ocr(meta, chunks)
+    return chunks
+
+
+def mark_ocr(meta: DocMeta, chunks: list[Chunk]) -> None:
+    """OCR'lı sayfalardan gelen parçalara `ocr` işareti ve metinlerinde geçen belirsiz dizileri (pilot/ocr.py kaydı)."""
+    from .ocr import load_record
+    from .config import OCR_ENABLED
+    rec = load_record(meta) if OCR_ENABLED else None
+    if not rec:
+        return
+    pages = {d["page"]: d for d in rec.get("sayfalar", []) if d.get("chosen") == "yeni"}
+    for c in chunks:
+        on = [pages[p] for p in c.pages if p in pages]
+        if not on:
+            continue
+        c.ocr = True
+        toks = dict.fromkeys(t for d in on for t in d.get("belirsiz") or [])
+        c.ocr_belirsiz = [t for t in toks if t in c.text]
+
+
+def write_chunks(chunks: list[Chunk], path: Path = CHUNKS_PATH) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        for c in chunks:
+            f.write(json.dumps(asdict(c), ensure_ascii=False) + "\n")
+
+
+def read_chunks(path: Path = CHUNKS_PATH) -> list[dict[str, Any]]:
+    with path.open(encoding="utf-8") as f:
+        return [json.loads(line) for line in f if line.strip()]

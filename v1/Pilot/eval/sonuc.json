@@ -1,0 +1,1228 @@
+[
+ {
+  "id": "Q01",
+  "judge": {
+   "refused": false,
+   "status": "partial",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": true,
+   "correct": true
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "The seams for all outside visible stitching shall be sewn with 11 (± 1) stitches per inch."
+    }
+   ],
+   "cevap": "inç başına 11 (± 1) dikiş olmalı.",
+   "sesli_metin": "inç başına on bir dikiş olmalı.",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "inç başına on bir dikiş olmalı.",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok"
+  ],
+  "timings": {
+   "search": 76.12790703773499,
+   "prompt_tokens": 2120.0,
+   "output_tokens": 128.0,
+   "llm_seconds": 66.681161,
+   "llm": 66.70308566093445,
+   "verify": 0.0,
+   "total": 142.8331696987152
+  },
+  "sources": [
+   [
+    "gl-pd-14-04a",
+    [
+     22,
+     23
+    ],
+    2.66
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     22,
+     23
+    ],
+    0.99
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     26
+    ],
+    -1.23
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     26
+    ],
+    -1.93
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     26
+    ],
+    -2.06
+   ]
+  ]
+ },
+ {
+  "id": "Q02",
+  "judge": {
+   "refused": false,
+   "status": "partial",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": true,
+   "correct": true
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "The seams for all outside visible stitching shall be sewn with 10-14 stitches per inch."
+    }
+   ],
+   "cevap": "10-14 SPI",
+   "sesli_metin": "Pantolonun dış dikişlerinde SPI 10-14 olmalı.",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "Pantolonun dış dikişlerinde inç başına dikiş on ile on dört arası olmalı.",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok"
+  ],
+  "timings": {
+   "search": 35.72804141044617,
+   "prompt_tokens": 2520.0,
+   "output_tokens": 125.0,
+   "llm_seconds": 94.8516426,
+   "llm": 94.8592677116394,
+   "verify": 0.0006778240203857422,
+   "total": 130.5902247428894
+  },
+  "sources": [
+   [
+    "gl-pd-07-14a",
+    [
+     19
+    ],
+    -5.4
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     25
+    ],
+    -6.38
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     13
+    ],
+    -7.08
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     13
+    ],
+    -7.09
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     12
+    ],
+    -7.16
+   ]
+  ]
+ },
+ {
+  "id": "Q03",
+  "judge": {
+   "refused": false,
+   "status": "partial",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": false,
+   "correct": false
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "Buttons shall be attached with 16 stitches per button."
+    }
+   ],
+   "cevap": "16",
+   "sesli_metin": "Ceketteki düğme iliklerinde dikiş sayısı 16 olmalı.",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "Ceketteki düğme iliklerinde dikiş sayısı on altı olmalı.",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok"
+  ],
+  "timings": {
+   "search": 37.93668508529663,
+   "prompt_tokens": 2507.0,
+   "output_tokens": 113.0,
+   "llm_seconds": 101.2246757,
+   "llm": 101.2326340675354,
+   "verify": 0.0005207061767578125,
+   "total": 139.17092657089233
+  },
+  "sources": [
+   [
+    "gl-pd-14-04a",
+    [
+     22,
+     23
+    ],
+    -2.14
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     9,
+     10
+    ],
+    -2.75
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     11
+    ],
+    -3.1
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     32
+    ],
+    -3.62
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     22,
+     23
+    ],
+    -3.98
+   ]
+  ]
+ },
+ {
+  "id": "Q04",
+  "judge": {
+   "refused": false,
+   "status": "failed",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": null,
+   "correct": false
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "・Is the upper thread tension too weak? Is the lower thread tension too strong? Adjust the lower thread tension or upper thread tension. Try pressing the special locus key and selecting No. 1."
+    }
+   ],
+   "cevap": "Üst iplik gerginliği eksikse, alt iplik gerginliğini kontrol etmek ve gerekirse ayarlamak önemlidir. Gerginliği ayarlamak için özel konum tuşuna basarak ve No. 1 seçeneğini deneyebilirsiniz.",
+   "sesli_metin": "Üst iplik gerginliği eksikse, alt iplik gerginliğini kontrol et ve ayarlayın. Özel konum tuşuna No. 1 seçeneğini deneyin.",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "",
+  "problems": [
+   "Alıntı kaynakta birebir bulunamadı: '・Is the upper thread tension too weak? Is the lower thread tension too'",
+   "Cevapta geçerli [n] atfı yok"
+  ],
+  "timings": {
+   "search": 84.36310195922852,
+   "prompt_tokens": 1966.0,
+   "output_tokens": 230.0,
+   "llm_seconds": 133.3780358,
+   "llm": 133.38946962356567,
+   "verify": 0.0,
+   "total": 217.75308918952942
+  },
+  "sources": [
+   [
+    "brother-s7300a",
+    [
+     101
+    ],
+    -0.29
+   ],
+   [
+    "brother-s7300a",
+    [
+     29
+    ],
+    -0.36
+   ],
+   [
+    "brother-s7300a",
+    [
+     101
+    ],
+    -0.8
+   ],
+   [
+    "brother-s7300a",
+    [
+     105
+    ],
+    -1.16
+   ],
+   [
+    "brother-s7300a",
+    [
+     82
+    ],
+    -1.18
+   ]
+  ]
+ },
+ {
+  "id": "Q05",
+  "judge": {
+   "refused": false,
+   "status": "failed",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": null,
+   "correct": false
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "・ Is the needle tip bent? Is the needle tip blunt? If the needle tip is bent or blunt, replace the needle. ・ Is the needle properly installed? If it is incorrect, install the needle correctly. ・ Is the machine properly threaded? If it is incorrect, thread the thread correctly. ・ Is the presser foot "
+    },
+    {
+     "kaynak_no": 3,
+     "metin": "・ Is the needle too thick? Replace the needle with a needle that is one rank thinner. ・ Is the length of thread trailing out from the bobbin case after thread trimming too short If the bobbin is spinning loosely, replace the anti-spin spring in the bobbin case. ・ Is the sewing speed too fast at the "
+    }
+   ],
+   "cevap": "Dikiş atlıyorsa, aşağıdaki adımları deneyin:\n1. Dikiş tipinin doğru olup olmadığını kontrol edin. Yanlışsa doğru yerine yerleştirin.\n2. Makineyi doğru şekilde dikişliyor musunuz? Yanlışsa doğru şekilde dikişliyin.\n3. Dikiş atlaması durumunda dikiş hızınızı azaltın.\n4. Dikiş hızınızın çok yüksek olup olmadığını kontrol edin. Eger çokysa, daha düşük bir dikiş hızı ayarlayın.",
+   "sesli_metin": "Dikiş atlıyorsa, dikiş tipinin doğru olup olmadığını kontrol edin. Yanlışsa doğru yerine yerleştirin. Makineyi doğru şekilde dikişliyor musunuz? Yanlışsa doğru şekilde dikişliyin. Dikiş atlaması durumunda dikiş hızınızı azaltın. Dikiş hızınızın çok高空",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok",
+   "Model cevaba başka dilde metin karıştırdı (高空...): cevap güvenilmez"
+  ],
+  "timings": {
+   "search": 200.2110538482666,
+   "prompt_tokens": 2705.0,
+   "output_tokens": 447.0,
+   "llm_seconds": 220.0305069,
+   "llm": 220.04314064979553,
+   "verify": 0.0016071796417236328,
+   "total": 420.2563331127167
+  },
+  "sources": [
+   [
+    "brother-s7300b",
+    [
+     109
+    ],
+    0.03
+   ],
+   [
+    "brother-s7300b",
+    [
+     113
+    ],
+    -0.53
+   ],
+   [
+    "brother-s7300b",
+    [
+     110
+    ],
+    -1.38
+   ],
+   [
+    "brother-s7300b",
+    [
+     115
+    ],
+    -4.18
+   ],
+   [
+    "brother-s7300b",
+    [
+     115
+    ],
+    -4.63
+   ]
+  ]
+ },
+ {
+  "id": "Q06",
+  "judge": {
+   "refused": false,
+   "status": "failed",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": null,
+   "correct": false
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "Follow steps 1-3 above. Press the SELECT button until the red CLEAN indicator light is illuminated. For your convenience the cleaning cycle is automatic. The entire cycle will take 45-60 minutes to complete."
+    },
+    {
+     "kaynak_no": 2,
+     "metin": "Follow package instructions to prepare one batch of MR. COFFEE ® Coffeemaker Cleaner. Pour the mixture into the water reservoir. Before decalcifying remove the water filtration disk from the machine. NOTE: 4 cups or 20 fl. oz. of undiluted, white household vinegar may be used as a substitute for the"
+    },
+    {
+     "kaynak_no": 3,
+     "metin": "Always unplug the coffeemaker and allow to cool before cleaning. Remove the filter basket, permanent filter (not included on all models), shower head cover (by turning it counterclockwise), decanter and decanter lid and wash them in a solution of hot water and mild liquid soap. Never use abrasive"
+    }
+   ],
+   "cevap": "Kahve makinesini temizlemek için aşağıdaki adımları takip edin: 1. Makineyi kapatın ve koltukları çıkartın. 2. Filtryu, kalıcı filtryi (her model için farklı olabilir), dökme başlığı kapısını (saat yönünün tersine döndürerek çıkarın) ve dökme kahve kabını çıkartın. 3. Her parçayı sıcak su ve yumuşak sabunlu bir çözeltiyle yıkayın. Agresif temizleyici, çelik çamur veya benzeri malzemeler kullanmayın. 4. Makineyi tekrar kurun ve koltukları kapatin. 5. Temizlik döngüsünü başlatın. 6. Döngü tamamlandığında makine kahve kabını temizleyecek ve kahve kabını temizleyin. 7. Temizlik döngüsünü tamamladı",
+   "sesli_metin": "Kahve makinesini temizlemek için makineyi kapatın ve koltukları çıkartın. Filtryu, kalıcı filtryi (her model için farklı olabilir), dökme başlığı kapısını (saat yönünün tersine döndürerek çıkarın) ve dökme kahve kabını çıkartın. Her parçayı sıcak su와",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok",
+   "Alıntıda olmayan sayı(lar): ['2', '5', '6', '7']",
+   "Model cevaba başka dilde metin karıştırdı (와...): cevap güvenilmez"
+  ],
+  "timings": {
+   "search": 42.79898810386658,
+   "prompt_tokens": 2459.0,
+   "output_tokens": 611.0,
+   "llm_seconds": 238.4840572,
+   "llm": 238.4962215423584,
+   "verify": 0.0009996891021728516,
+   "total": 281.29673314094543
+  },
+  "sources": [
+   [
+    "mrcoffee-2003",
+    [
+     17
+    ],
+    2.26
+   ],
+   [
+    "mrcoffee-2003",
+    [
+     16
+    ],
+    2.2
+   ],
+   [
+    "mrcoffee-2003",
+    [
+     16
+    ],
+    1.33
+   ],
+   [
+    "mrcoffee-2003",
+    [
+     17
+    ],
+    1.2
+   ],
+   [
+    "mrcoffee-2003",
+    [
+     8
+    ],
+    0.98
+   ]
+  ]
+ },
+ {
+  "id": "Q07",
+  "judge": {
+   "refused": false,
+   "status": "clarify",
+   "clarify_ok": true,
+   "correct": true
+  },
+  "answer": {
+   "bulunamadi": false,
+   "alintilar": [],
+   "cevap": "",
+   "sesli_metin": "",
+   "netlestirme_sorusu": "Soru birden fazla ürünün şartnamesine uyuyor ve değerler ürüne göre değişebilir. Hangi ürün için?",
+   "celiski_var": false,
+   "secenekler": [
+    {
+     "doc_id": "gl-pd-07-14a",
+     "etiket": "Pantolon"
+    },
+    {
+     "doc_id": "gl-pd-14-04a",
+     "etiket": "Ceket"
+    }
+   ],
+   "ipucu": ""
+  },
+  "speech": "",
+  "problems": [],
+  "timings": {
+   "search": 46.04455089569092,
+   "total": 46.04492545127869
+  },
+  "sources": [
+   [
+    "gl-pd-07-14a",
+    [
+     19
+    ],
+    -0.05
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     22,
+     23
+    ],
+    -0.31
+   ],
+   [
+    "brother-s7300a",
+    [
+     37
+    ],
+    -4.03
+   ],
+   [
+    "brother-s7300b",
+    [
+     45
+    ],
+    -4.03
+   ],
+   [
+    "brother-s7300a",
+    [
+     45
+    ],
+    -4.03
+   ]
+  ]
+ },
+ {
+  "id": "Q08",
+  "judge": {
+   "refused": true,
+   "status": "not_found",
+   "correct": true
+  },
+  "answer": {
+   "bulunamadi": true,
+   "alintilar": [],
+   "cevap": "",
+   "sesli_metin": "",
+   "netlestirme_sorusu": null,
+   "celiski_var": false,
+   "neden": "Soruda geçen marka için (Nike) sistemde doküman yok.",
+   "oneri": []
+  },
+  "speech": "",
+  "problems": [],
+  "timings": {
+   "total": 0.0
+  },
+  "sources": []
+ },
+ {
+  "id": "Q09",
+  "judge": {
+   "refused": false,
+   "status": "partial",
+   "correct": false
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "7.0 to 8.0 ozlsq. yd., 2xlleft hand twill, with 91 x 47 warp/filling ends per inch (minimum), 80% cotton/20% meta aramid fiber blend."
+    },
+    {
+     "kaynak_no": 2,
+     "metin": "5.04 ozlsq. yd. minimum, plain weave, 75% polyester 25% cotton, material or equal"
+    }
+   ],
+   "cevap": "Pantolonun cep astarı için 7.0 ile 8.0 ozlsq. yd. arasında olan 2xlleft hand twill kumaş veya 75% polyester 25% cotton, material veya eşdeğer kumaş kullanılabilir. 80% cotton/20% meta aramid fiber blend kumaş da kullanılabilir.",
+   "sesli_metin": "Pantolonun cep astarı için 7.0 ile 8.0 ondalık yarım kare cilden 2xlleft hand twill kumaş veya 75% polyester 25% cotton, material veya eşdeğer kumaş kullanılabilir. 80% cotton/20% meta aramid fiber blend kumaş da kullanılabilir.",
+   "celiski_var": true,
+   "netlestirme_sorusu": "Pantolonun hangi tipine ait cep astarı kumaşını kullanmak gerekiyor?",
+   "bulunamadi": false
+  },
+  "speech": "Pantolonun cep astarı için yedi virgül sıfır ile sekiz virgül sıfır ondalık yarım kare cilden 2xlleft hand twill kumaş veya yetmiş beş% polyester yirmi beş% cotton, material veya eşdeğer kumaş kullanılabilir. seksen% cotton/yirmi% meta aramid fiber blend kumaş da kullanılabilir.",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok"
+  ],
+  "timings": {
+   "search": 48.082937717437744,
+   "prompt_tokens": 2343.0,
+   "output_tokens": 370.0,
+   "llm_seconds": 165.748898,
+   "llm": 165.76004195213318,
+   "verify": 0.0010001659393310547,
+   "total": 213.84598875045776
+  },
+  "sources": [
+   [
+    "gl-pd-07-14a",
+    [
+     6
+    ],
+    -5.81
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     5
+    ],
+    -5.82
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     5
+    ],
+    -5.92
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     1
+    ],
+    -6.24
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     7
+    ],
+    -6.5
+   ]
+  ]
+ },
+ {
+  "id": "Q10",
+  "judge": {
+   "refused": false,
+   "status": "clarify",
+   "correct": false
+  },
+  "answer": {
+   "bulunamadi": false,
+   "alintilar": [],
+   "cevap": "",
+   "sesli_metin": "",
+   "netlestirme_sorusu": "Bilgi birden fazla modelin kılavuzunda var; ayar ve değerler modele göre değişebilir. Hangi model için?",
+   "celiski_var": false,
+   "secenekler": [
+    {
+     "doc_id": "brother-s7300b",
+     "etiket": "S-7300B düz dikiş makinesi"
+    },
+    {
+     "doc_id": "brother-s7300a",
+     "etiket": "S-7300A düz dikiş makinesi"
+    }
+   ],
+   "ipucu": ""
+  },
+  "speech": "",
+  "problems": [],
+  "timings": {
+   "search": 26.828126192092896,
+   "total": 26.828126192092896
+  },
+  "sources": [
+   [
+    "brother-s7300b",
+    [
+     63
+    ],
+    -8.06
+   ],
+   [
+    "brother-s7300b",
+    [
+     63
+    ],
+    -8.06
+   ],
+   [
+    "brother-s7300a",
+    [
+     18
+    ],
+    -9.0
+   ],
+   [
+    "brother-s7300b",
+    [
+     19
+    ],
+    -9.0
+   ],
+   [
+    "brother-s7300a",
+    [
+     83
+    ],
+    -9.01
+   ]
+  ]
+ },
+ {
+  "id": "Q11",
+  "judge": {
+   "refused": false,
+   "status": "partial",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": true,
+   "correct": true
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "Overedge or pre-hemming shall be 10 (± 2) stitches per inch."
+    }
+   ],
+   "cevap": "Overedge veya pre-hemming dikişlerinde inç başına 10 (± 2) dikiş olmalı.",
+   "sesli_metin": "Overedge veya pre-hemming dikişlerinde inç başına 10 dikiş olmalı.",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "Overedge veya pre-hemming dikişlerinde inç başına on, artı eksi iki dikiş olmalı.",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok",
+   "Sesli metinde tolerans düşmüş: kaynak '10 (± 2)', seste ± 2 yok (sesli metin doğrulanmış cevaptan yeniden üretilir)"
+  ],
+  "timings": {
+   "search": 41.63228249549866,
+   "prompt_tokens": 2148.0,
+   "output_tokens": 150.0,
+   "llm_seconds": 77.6576744,
+   "llm": 77.66789031028748,
+   "verify": 0.0,
+   "total": 119.30189681053162
+  },
+  "sources": [
+   [
+    "gl-pd-14-04a",
+    [
+     22,
+     23
+    ],
+    -0.79
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     22,
+     23
+    ],
+    -1.7
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     26
+    ],
+    -2.96
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     26
+    ],
+    -3.0
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     26
+    ],
+    -3.12
+   ]
+  ]
+ },
+ {
+  "id": "Q12",
+  "judge": {
+   "refused": false,
+   "status": "partial",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": true,
+   "correct": true
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "Stitch type: 502,503 or 504"
+    },
+    {
+     "kaynak_no": 2,
+     "metin": "Stitch type: 502,503 or 504"
+    },
+    {
+     "kaynak_no": 3,
+     "metin": "Overedge or pre-hemming shall be 6-10 stitches per inch."
+    }
+   ],
+   "cevap": "Overedge dikişlerinde SPI 6-10 olmalıdır.",
+   "sesli_metin": "Overedge dikişlerinde SPI 6-10 olmalı.",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "Overedge dikişlerinde inç başına dikiş altı ile on arası olmalı.",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok"
+  ],
+  "timings": {
+   "search": 50.18707776069641,
+   "prompt_tokens": 2145.0,
+   "output_tokens": 202.0,
+   "llm_seconds": 98.8297514,
+   "llm": 98.8396668434143,
+   "verify": 0.0005388259887695312,
+   "total": 149.02789092063904
+  },
+  "sources": [
+   [
+    "gl-pd-07-14a",
+    [
+     21
+    ],
+    -4.31
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     21
+    ],
+    -4.36
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     19
+    ],
+    -4.81
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     9
+    ],
+    -5.17
+   ],
+   [
+    "gl-pd-07-14a",
+    [
+     8
+    ],
+    -5.5
+   ]
+  ]
+ },
+ {
+  "id": "Q13",
+  "judge": {
+   "refused": false,
+   "status": "partial",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": false,
+   "correct": false
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "The sewn eyelets for the bellows pockets shall have a minimum of 16 stitches."
+    }
+   ],
+   "cevap": "Ceketteki kuşgözü (eyelet) dikişinde en az 16 üst üste dikiş olmalı.",
+   "sesli_metin": "Ceket kuşgözü dikişinde en az 16 dikiş olmalı.",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "Ceket kuşgözü dikişinde en az on altı dikiş olmalı.",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok"
+  ],
+  "timings": {
+   "search": 41.14603137969971,
+   "prompt_tokens": 2455.0,
+   "output_tokens": 150.0,
+   "llm_seconds": 110.7304775,
+   "llm": 110.74221658706665,
+   "verify": 0.0010483264923095703,
+   "total": 151.88983154296875
+  },
+  "sources": [
+   [
+    "gl-pd-14-04a",
+    [
+     22,
+     23
+    ],
+    0.02
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     11
+    ],
+    -3.39
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     11
+    ],
+    -4.35
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     11
+    ],
+    -4.43
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     49
+    ],
+    -4.75
+   ]
+  ]
+ },
+ {
+  "id": "Q14",
+  "judge": {
+   "refused": false,
+   "status": "failed",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": true,
+   "correct": false
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "Code: E050 Machine head is detected as being tilted back start sewing. | Cause: when ・Turn off the power, and then head to its original position. ・Turn off the power and check | Remedy: return the machine the connection of connector P2."
+    }
+   ],
+   "cevap": "E050 hatası, makine başlangıçta makine başı yatık olduğunu gösterir. Bu durumu düzeltmek için şu adımları izleyin: 1) Güçten ayrıl. 2) Makine başını orijinal konumuna getir. 3) Bağlantı P2'yi kontrol edin.",
+   "sesli_metin": "E050 hatası, makine başı yatık olduğunu gösterir. Güçten ayrıl ve makine başını orijinal konuma getirin. Bağlantı P2'yi kontrol edin.",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok",
+   "Alıntıda olmayan sayı(lar): ['1', '2', '3']"
+  ],
+  "timings": {
+   "search": 14.376014232635498,
+   "prompt_tokens": 1884.0,
+   "output_tokens": 260.0,
+   "llm_seconds": 92.5211633,
+   "llm": 92.53153324127197,
+   "verify": 0.0010676383972167969,
+   "total": 106.90961384773254
+  },
+  "sources": [
+   [
+    "brother-s7300a",
+    [
+     98
+    ],
+    0.97
+   ],
+   [
+    "brother-s7300a",
+    [
+     98
+    ],
+    -6.95
+   ],
+   [
+    "brother-s7300a",
+    [
+     98
+    ],
+    -7.27
+   ],
+   [
+    "brother-s7300a",
+    [
+     100
+    ],
+    -7.34
+   ],
+   [
+    "brother-s7300a",
+    [
+     100
+    ],
+    -7.57
+   ]
+  ]
+ },
+ {
+  "id": "Q15",
+  "judge": {
+   "refused": false,
+   "status": "partial",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": false,
+   "correct": false
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "Needle bar | -[]0[]P: High-speed spindle | -[]3[]P: Special Brother grease"
+    }
+   ],
+   "cevap": "S-7300A makinesinde yüksek hızlı eksenli iğne kullanılır.",
+   "sesli_metin": "S-7300A makinesinde yüksek hızlı eksenli iğne kullanılır.",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "S-7300A makinesinde yüksek hızlı eksenli iğne kullanılır.",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok"
+  ],
+  "timings": {
+   "search": 11.33150863647461,
+   "prompt_tokens": 1798.0,
+   "output_tokens": 144.0,
+   "llm_seconds": 58.5447242,
+   "llm": 58.55832052230835,
+   "verify": 0.000568389892578125,
+   "total": 69.89124798774719
+  },
+  "sources": [
+   [
+    "brother-s7300a",
+    [
+     12
+    ],
+    -6.23
+   ],
+   [
+    "brother-s7300a",
+    [
+     12
+    ],
+    -6.51
+   ],
+   [
+    "brother-s7300a",
+    [
+     12
+    ],
+    -6.85
+   ],
+   [
+    "brother-s7300a",
+    [
+     41
+    ],
+    -7.03
+   ],
+   [
+    "brother-s7300a",
+    [
+     39
+    ],
+    -7.03
+   ]
+  ]
+ },
+ {
+  "id": "Q16",
+  "judge": {
+   "refused": false,
+   "status": "partial",
+   "source_hit": true,
+   "wrong_doc_in_sources": false,
+   "value_ok": true,
+   "correct": true
+  },
+  "answer": {
+   "alintilar": [
+    {
+     "kaynak_no": 1,
+     "metin": "Buttonholes shall be 54 (± 2) stitches per inch including tack."
+    }
+   ],
+   "cevap": "54 (± 2) stitches per inch",
+   "sesli_metin": "Buttonholes on the coat require 54 stitches per inch.",
+   "celiski_var": false,
+   "netlestirme_sorusu": "",
+   "bulunamadi": false
+  },
+  "speech": "54, plus or minus 2 stitches per inch",
+  "problems": [
+   "Cevapta geçerli [n] atfı yok",
+   "Sesli metinde tolerans düşmüş: kaynak '54 (± 2)', seste ± 2 yok (sesli metin doğrulanmış cevaptan yeniden üretilir)"
+  ],
+  "timings": {
+   "search": 41.89132356643677,
+   "prompt_tokens": 2597.0,
+   "output_tokens": 118.0,
+   "llm_seconds": 117.9384515,
+   "llm": 117.94692373275757,
+   "verify": 0.0011250972747802734,
+   "total": 159.84051704406738
+  },
+  "sources": [
+   [
+    "gl-pd-14-04a",
+    [
+     22,
+     23
+    ],
+    2.95
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     22,
+     23
+    ],
+    -0.25
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     11
+    ],
+    -0.91
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     9,
+     10
+    ],
+    -1.22
+   ],
+   [
+    "gl-pd-14-04a",
+    [
+     26,
+     27
+    ],
+    -2.11
+   ]
+  ]
+ },
+ {
+  "id": "Q17",
+  "judge": {
+   "refused": false,
+   "status": "clarify",
+   "clarify_ok": true,
+   "correct": true
+  },
+  "answer": {
+   "bulunamadi": false,
+   "alintilar": [],
+   "cevap": "",
+   "sesli_metin": "",
+   "netlestirme_sorusu": "Soru birden fazla modele uyuyor. Hangi model için?",
+   "celiski_var": false,
+   "secenekler": [
+    {
+     "doc_id": "brother-s7300a",
+     "etiket": "S-7300A düz dikiş makinesi"
+    },
+    {
+     "doc_id": "brother-s7300b",
+     "etiket": "S-7300B düz dikiş makinesi"
+    }
+   ],
+   "ipucu": ""
+  },
+  "speech": "",
+  "problems": [],
+  "timings": {
+   "total": 0.0
+  },
+  "sources": []
+ },
+ {
+  "id": "Q18",
+  "judge": {
+   "refused": true,
+   "status": "not_found",
+   "correct": true
+  },
+  "answer": {
+   "bulunamadi": true,
+   "alintilar": [],
+   "cevap": "",
+   "sesli_metin": "",
+   "netlestirme_sorusu": null,
+   "celiski_var": false,
+   "neden": "Soruda geçen marka için (Nike) sistemde doküman yok.",
+   "oneri": []
+  },
+  "speech": "",
+  "problems": [],
+  "timings": {
+   "total": 0.0
+  },
+  "sources": []
+ }
+]

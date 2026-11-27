@@ -1,0 +1,13 @@
+docling
+pypdfium2
+pillow
+pymupdf
+lingua-language-detector   # parça bazında dil tespiti (chunk.py)
+FlagEmbedding
+sentence-transformers
+qdrant-client
+ollama
+streamlit
+streamlit-pdf-viewer
+pydantic
+pytest
