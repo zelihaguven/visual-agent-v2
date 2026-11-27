@@ -1,9 +1,11 @@
-"""Ayrıştırıcıların ürettiği ortak öğe biçimi."""
+"""Ayrıştırıcıların ürettiği ortak öğe biçimi ve işleme ilerlemesinin bildirimi."""
 
 import re
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from contextvars import ContextVar
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Literal
 
 from visual_agent.domain.document import SourceLocation
 
@@ -75,3 +77,20 @@ def labeled_row(labels: Sequence[str], values: Sequence[str]) -> str:
         for label, value in zip(labels, values, strict=True)
         if value
     )
+
+
+# İşleme ilerlemesi: üçüncü taraf paketi gerektirmez; API de içe aktarır (ingest eki kurulu
+# olmasa da).
+IngestStep = Literal["prepare", "pages", "text", "images", "chunks", "index"]
+"""İşleme adımı: hazırlık (dönüştürme), taranmış sayfa, metin, görsel, parçalama, indeksleme."""
+IngestState = tuple[IngestStep, int, int]
+"""(adım, okunan, toplam); toplamı bilinmeyen adımda 0, 0. Arayüzdeki ilerleme çubuğu için."""
+IngestProgress = Callable[[IngestStep, int, int], None]
+INGEST_PROGRESS: ContextVar[IngestProgress | None] = ContextVar("ingest_progress", default=None)
+"""İşlemeyi başlatan kurar (işçi); kurulmadıysa bildirilmez. İşlemenin sonucunu etkilemez."""
+
+
+def report_progress(step: IngestStep, done: int = 0, total: int = 0) -> None:
+    sink = INGEST_PROGRESS.get()
+    if sink is not None:
+        sink(step, done, total)

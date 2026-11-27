@@ -102,11 +102,14 @@ export type DocumentInfo = {
   outdated?: boolean;
   /** Sunucunun verdiği konu adı; belgeler bu ada göre gruplanır. */
   topic?: string | null;
-  /** İşlenen belgenin okuyucu adımı: okunan ve toplam sayfa ya da görsel. */
-  progress?: ReadingProgress | null;
+  /** İşlenen belgenin adımı; sayfa ve görsel okunurken işlenen ve toplam sayı. */
+  progress?: ProcessingProgress | null;
 };
 
-export type ReadingProgress = { kind: "page" | "image"; done: number; total: number };
+export type ProcessingStep = "prepare" | "pages" | "text" | "images" | "chunks" | "index";
+
+/** total 0 ise adımın sayısı bilinmiyor (dönüştürme, metin, parçalama, indeksleme). */
+export type ProcessingProgress = { step: ProcessingStep; done: number; total: number };
 
 export type SourceView =
   | { kind: "page"; page: number; title: string; image_url: string }

@@ -377,24 +377,56 @@
   font-variant-numeric: tabular-nums;
 }
 
-.document-progress progress {
+.document-progress > span {
+  white-space: nowrap;
+}
+
+.progress-track {
+  display: flex;
+  flex: 1;
+  gap: 3px;
+  min-width: 0;
+}
+
+.progress-phase {
   flex: 1;
   height: 6px;
-  border: none;
   border-radius: var(--radius-pill);
   overflow: hidden;
   background: var(--color-chip);
-  accent-color: var(--coral);
 }
 
-.document-progress progress::-webkit-progress-bar {
-  background: var(--color-chip);
-}
-
-.document-progress progress::-webkit-progress-value {
+.progress-fill {
+  display: block;
+  width: 0;
+  height: 100%;
   background: var(--coral);
+  transition: width var(--ease);
 }
 
-.document-progress progress::-moz-progress-bar {
-  background: var(--coral);
+.progress-phase.is-done .progress-fill,
+.progress-phase.is-waiting .progress-fill {
+  width: 100%;
+}
+
+/* Sayısı bilinmeyen adım: bölüm yanıp söner; hareket azaltılmışsa sabit, yarı saydam. */
+.progress-phase.is-waiting .progress-fill {
+  animation: progress-wait 1.4s ease-in-out infinite;
+}
+
+@keyframes progress-wait {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-phase.is-waiting .progress-fill {
+    animation: none;
+    opacity: 0.5;
+  }
 }
