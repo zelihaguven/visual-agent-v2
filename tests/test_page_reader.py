@@ -1279,3 +1279,39 @@ def test_embedded_image_on_a_text_page_is_not_read_as_a_whole_page(tmp_path: Pat
     )
 
     assert (elements, calls) == ([], [])
+
+
+class _ZdrLimited(_OpenRouter):
+    """ZDR dizini isteğine bir kez 429 döner."""
+
+    def __init__(self) -> None:
+        super().__init__(reply="Basınç 185 bar")
+        self.limited = True
+
+    def handle(self, request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/endpoints/zdr") and self.limited:
+            self.limited = False
+            self.requests += 1
+            return httpx.Response(429, headers={"Retry-After": "5"}, json={"error": "limit"})
+        return super().handle(request)
+
+
+def test_zdr_index_rate_limit_is_waited_out_like_a_reading(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    waits: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr(page_reader, "_sleep", sleep)
+    server = _ZdrLimited()
+    outage = CloudOutage()
+    token = CLOUD_OUTAGE.set(outage)
+    try:
+        text = _qwen_check(server, tmp_path)(Image.new("RGB", (40, 20), "white"))
+    finally:
+        CLOUD_OUTAGE.reset(token)
+
+    assert (text, waits, outage.reasons) == ("Basınç 185 bar", [5.0], {})
+    assert server.requests == 3  # ZDR 429, ZDR, okuma

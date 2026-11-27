@@ -24,7 +24,7 @@ import logging
 import re
 import tempfile
 from collections import Counter
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from html.parser import HTMLParser
@@ -287,17 +287,17 @@ def _rate_limit_wait(response: httpx.Response, attempt: int) -> float:
     return min(max(wait, 0.0), _RATE_LIMIT_MAX_WAIT)
 
 
-async def _read_with_retries(client: JsonModel, prompt: str, png: bytes, max_tokens: int) -> str:
-    """429 alan çağrı beklenip yeniden denenir; denemeler tükenirse hata yükselir ve çağıran
-    belgenin devresini açar."""
+async def _with_retries[T](request: Callable[[], Awaitable[T]]) -> T:
+    """429 alan istek (okuma ya da ZDR dizini) beklenip yeniden denenir; denemeler tükenirse
+    hata yükselir ve çağıran belgenin devresini açar."""
     for attempt in range(_RATE_LIMIT_RETRIES):
         try:
-            return await client.read_image(prompt, png, max_tokens)
+            return await request()
         except httpx.HTTPStatusError as error:
             if error.response.status_code != httpx.codes.TOO_MANY_REQUESTS:
                 raise
             await _sleep(_rate_limit_wait(error.response, attempt))
-    return await client.read_image(prompt, png, max_tokens)
+    return await request()
 
 
 class CloudUnavailable(RuntimeError):
@@ -360,11 +360,13 @@ def cloud_reader(
     async def call(png: bytes) -> str:
         async with httpx.AsyncClient(transport=config.transport, timeout=_CLOUD_SECONDS) as http:
             if not chosen:
-                index = await fetch_zdr_index(http, config.base_url, config.api_key)
+                index = await _with_retries(
+                    lambda: fetch_zdr_index(http, config.base_url, config.api_key)
+                )
                 chosen.append(select_providers(model, (), index))
             providers, ignored = chosen[0]
             client = JsonModel(http, config.base_url, config.api_key, model, providers, ignored)
-            return await _read_with_retries(client, prompt, png, max_tokens)
+            return await _with_retries(lambda: client.read_image(prompt, png, max_tokens))
 
     def read(image: Image.Image) -> str:
         buffer = io.BytesIO()
