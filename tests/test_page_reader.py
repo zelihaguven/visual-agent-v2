@@ -1016,6 +1016,45 @@ def test_same_crop_is_paid_once_even_by_a_new_reader(tmp_path: Path) -> None:
     assert len(server.bodies) == 1
 
 
+class _Failing(_OpenRouter):
+    """İlk sohbet isteğine verilen HTTP durumunu döner, sonrakilere cevap verir."""
+
+    def __init__(self, status: int) -> None:
+        super().__init__(reply="Basınç 135 bar Tork 12 Nm")
+        self.status: int | None = status
+
+    def handle(self, request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/chat/completions") and self.status is not None:
+            status, self.status = self.status, None
+            self.requests += 1
+            return httpx.Response(status, json={"error": "hata"})
+        return super().handle(request)
+
+
+@pytest.mark.parametrize(
+    ("status", "opens"), [(413, False), (400, False), (500, True), (401, True)]
+)
+def test_only_errors_beyond_the_block_open_the_circuit(
+    tmp_path: Path, status: int, opens: bool
+) -> None:
+    """Bloğa özgü 4xx (çok büyük ya da bozuk görüntü) yalnız o bloğu Tesseract'a düşürür; 5xx ve
+    kimlik hatası belgenin devresini açar."""
+    server = _Failing(status)
+    tesseract = lambda _: ""  # noqa: E731
+    cloud = _cloud(_qwen_check(server, tmp_path / "onbellek"))
+    outage = CloudOutage()
+    token = CLOUD_OUTAGE.set(outage)
+    try:
+        elements = _read(tmp_path, _two_blocks, tesseract, cloud)
+    finally:
+        CLOUD_OUTAGE.reset(token)
+
+    assert (QWEN in outage.reasons) is opens
+    assert len(server.bodies) == (0 if opens else 1)  # ikinci blok buluta gitti mi
+    assert elements[0].ocr_uncertain == ("185",)  # ilk blok Tesseract'la (boş okuma) denetlendi
+    assert elements[1].ocr_uncertain == (("12",) if opens else ())
+
+
 class _Limited(_OpenRouter):
     """İlk `limited` sohbet isteğine 429 döner (Retry-After başlığı isteğe bağlı)."""
 

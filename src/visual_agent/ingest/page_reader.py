@@ -315,6 +315,20 @@ class CloudConfig:
     """Yalnız testler verir."""
 
 
+_REQUEST_ERRORS = frozenset({400, 413, 415, 422})
+"""İsteğin kendisine özgü hatalar (bozuk ya da çok büyük görüntü): belgenin devresini açmaz."""
+
+
+def _rejected_request(error: Exception) -> bool:
+    """Okuma isteği bu bloğa özgü bir 4xx ile reddedildi: yalnız o blok yedeğe düşer. Ağ
+    hatası, zaman aşımı, 5xx, kimlik/yetki hataları ve denemeleri tükenmiş 429 devreyi açar."""
+    return (
+        isinstance(error, httpx.HTTPStatusError)
+        and error.response.status_code in _REQUEST_ERRORS
+        and error.request.url.path.endswith("/chat/completions")
+    )
+
+
 def _cached_content(path: Path) -> str | None:
     """Önbellekteki cevap; dosya yoksa ya da bozuksa (yarım yazılmış, elle değişmiş) None:
     bozuk dosya yok sayılır, cevap yeniden istenir ve dosyanın üstüne yazılır."""
@@ -367,8 +381,13 @@ def cloud_reader(
             try:
                 content = asyncio.run(call(png))
             except Exception as error:  # okuma durmaz; çağıran yedeğe geçer ya da değeri gizler
-                outage.reasons[model] = repr(error)[:200]
-                logger.warning("Bulut okuması alınamadı; belgenin kalanında istenmez: %s", error)
+                if _rejected_request(error):
+                    logger.warning("Bulut bu bloğu reddetti; yalnız blok yedeğe düşer: %s", error)
+                else:
+                    outage.reasons[model] = repr(error)[:200]
+                    logger.warning(
+                        "Bulut okuması alınamadı; belgenin kalanında istenmez: %s", error
+                    )
                 raise CloudUnavailable(f"{model}: {error!r}"[:300]) from error
             if content.strip() and (accept is None or accept(content)):
                 config.cache.mkdir(parents=True, exist_ok=True)
