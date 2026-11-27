@@ -31,7 +31,7 @@ def bm25_cache_directory() -> str:
     return os.environ.get("FASTEMBED_CACHE_PATH") or BM25_CACHE_DIRECTORY
 
 
-class BgeM3Dense:
+class BgeM3Dense:  # pragma: no cover - modeli yükler; testlerde sahte kodlayıcı kullanılır
     size = _DENSE_SIZE
 
     def __init__(self) -> None:
@@ -53,14 +53,14 @@ class BgeM3Dense:
         return self._encode([text])[0]
 
 
-def _to_mapping(embedding: Any) -> dict[int, float]:
+def _to_mapping(embedding: Any) -> dict[int, float]:  # pragma: no cover
     return {
         int(index): float(value)
         for index, value in zip(embedding.indices, embedding.values, strict=True)
     }
 
 
-class Bm25Sparse:
+class Bm25Sparse:  # pragma: no cover - modeli yükler; testlerde sahte kodlayıcı kullanılır
     def __init__(self) -> None:
         from fastembed.sparse.bm25 import Bm25
 

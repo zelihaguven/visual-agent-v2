@@ -78,7 +78,7 @@ pythonpath = ["."]
 addopts = "--strict-markers --cov=visual_agent --cov=apps --cov=evals --cov-report=term-missing --cov-fail-under=80"
 
 [tool.coverage.run]
-omit = ["*/ingest/tools.py", "*/retrieval/encoders.py"]
+omit = ["*/ingest/tools.py"]
 
 [tool.ruff]
 line-length = 100

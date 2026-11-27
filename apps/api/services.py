@@ -17,7 +17,8 @@ from apps.worker.indexing import LazyIndexer, SharedEncoders
 from visual_agent.ask.clients import build_ask_deps
 from visual_agent.ask.deps import AskDeps, AskRequest
 from visual_agent.ask.orchestrator import answer_question
-from visual_agent.catalog.identifiers import SnapshotProvider
+from visual_agent.catalog.identifiers import SnapshotProvider, build_identifier_index
+from visual_agent.catalog.memory import DocumentCatalog
 from visual_agent.catalog.repository import DocumentRepository, open_repository
 from visual_agent.domain.result import AskOutcome, Failed
 from visual_agent.retrieval.hybrid import HybridRetriever
@@ -52,10 +53,15 @@ class AskRuntime:
     async def _build_deps(self, api_key: str) -> AskDeps:
         dense, sparse = await self._encoders.get()
         await self._store.ensure_collection(dense.size)
-        snapshot = await self._snapshots.current()
         retriever = HybridRetriever(dense, sparse, self._store)
+        # Katalog burada okunmaz: her soruda güncel görüntüyle değiştirilir (`ask`).
         return await build_ask_deps(
-            self._http, self._settings, api_key, snapshot.catalog, snapshot.identifiers, retriever
+            self._http,
+            self._settings,
+            api_key,
+            DocumentCatalog(),
+            build_identifier_index(()),
+            retriever,
         )
 
     async def _ensure_deps(self, api_key: str) -> AskDeps:

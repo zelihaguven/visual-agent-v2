@@ -1,6 +1,7 @@
 """Uygulama ve ölçüm model istemcilerini aynı yerden kurar."""
 
 import asyncio
+import json
 
 import httpx
 import pytest
@@ -72,10 +73,44 @@ def test_a_model_without_a_zdr_endpoint_is_refused() -> None:
 
 
 def test_ask_deps_wire_every_client() -> None:
+    """Çeviri, takip tamamlama ve niyet yardımcı modele gider; cevap modeline değil."""
+    helper = "yardimci/model"
+    zdr = {"data": [*ZDR["data"], {"model_id": helper, "tag": "venice", "safety_retention": False}]}
+    reply = '{"follows": false, "question": "", "intent": "greeting", "en": "question"}'
+    bodies: list[dict[str, object]] = []
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/endpoints/zdr"):
+            return httpx.Response(200, json=zdr)
+        bodies.append(json.loads(request.content))
+        return httpx.Response(200, json={"choices": [{"message": {"content": reply}}]})
+
+    settings = Settings(
+        _env_file=None,
+        answer_model=ANSWER_MODEL,
+        answer_providers=("deepinfra",),
+        helper_model=helper,
+        helper_providers=("venice",),
+    )
+    base = make_deps(None)  # type: ignore[arg-type]
     retriever = FakeRetriever()
 
-    deps = _build(_settings(), [], retriever)
+    async def run() -> AskDeps:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handle)) as http:
+            deps = await build_ask_deps(
+                http, settings, "anahtar", base.catalog, base.identifiers, retriever
+            )
+            assert deps.translator is not None
+            assert deps.rewriter is not None
+            assert deps.intent_classifier is not None
+            await deps.translator("soru", "tr", ("tr", "en"))
+            await deps.rewriter("önceki soru", "peki M?")
+            await deps.intent_classifier("merhaba")
+            return deps
+
+    deps = asyncio.run(run())
 
     assert deps.retriever is retriever
     assert deps.system_prompt
-    assert None not in (deps.translator, deps.rewriter, deps.intent_classifier)
+    assert [body["model"] for body in bodies] == [helper, helper, helper]
+    assert all(body["provider"]["only"] == ["venice"] for body in bodies)  # type: ignore[index]
